@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd -- "$project_root"
+mode="${1:-checks}"
+if [[ "$mode" != checks && "$mode" != linux && "$mode" != android ]]; then
+  printf 'Usage: tool/verify [checks|linux|android]\n' >&2
+  exit 2
+fi
+./tool/flutterw pub get --enforce-lockfile
+# Use the Dart executable bundled with the same pinned Flutter SDK.
+sdk_root="${VITAL_FLUTTER_SDK:-${XDG_DATA_HOME:-$HOME/.local/share}/flutter-$(<.flutter-version)}"
+"$sdk_root/bin/dart" format --output=none --set-exit-if-changed lib test integration_test
+./tool/flutterw analyze --no-pub --fatal-infos
+"$sdk_root/bin/dart" analyze third_party/pdfium_dart/hook/build.dart
+python3 tool/probes/files/verify_pdfium_hook.py
+./tool/flutterw test --no-pub
+PATH="$sdk_root/bin:$PATH" bash test/data/run_process_checks.sh
+PATH="$sdk_root/bin:$PATH" bash test/data/run_draft_process_checks.sh
+PATH="$sdk_root/bin:$PATH" bash test/data/run_product_process_checks.sh
+PATH="$sdk_root/bin:$PATH" bash test/data/run_interval_process_checks.sh
+PATH="$sdk_root/bin:$PATH" bash test/data/run_pause_process_checks.sh
+PATH="$sdk_root/bin:$PATH" bash test/data/run_phase_process_checks.sh
+PATH="$sdk_root/bin:$PATH" bash test/data/run_combined_process_checks.sh
+python3 test/data/event_store_process_runner.py
+python3 test/data/attachment_store_process_runner.py
+python3 test/data/history_store_process_runner.py
+python3 test/data/supporting_store_process_runner.py
+case "$mode" in
+  linux) ./tool/flutterw build linux --debug --no-pub ;;
+  android) ./tool/flutterw build apk --debug --no-pub ;;
+esac

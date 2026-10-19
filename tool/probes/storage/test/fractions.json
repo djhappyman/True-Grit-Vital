@@ -1,0 +1,32 @@
+[
+  {
+    "entered": "0.1",
+    "concentrationNumerator": 1,
+    "concentrationDenominator": 3,
+    "expected": "1/30"
+  },
+  {
+    "entered": "0.000001",
+    "concentrationNumerator": 1,
+    "concentrationDenominator": 7,
+    "expected": "1/7000000"
+  },
+  {
+    "entered": "12.345678",
+    "concentrationNumerator": 250,
+    "concentrationDenominator": 1,
+    "expected": "6172839/2000"
+  },
+  {
+    "entered": "9000000000",
+    "concentrationNumerator": 9000000000,
+    "concentrationDenominator": 7,
+    "expected": "81000000000000000000/7"
+  },
+  {
+    "entered": "0.333333",
+    "concentrationNumerator": 3,
+    "concentrationDenominator": 1,
+    "expected": "999999/1000000"
+  }
+]

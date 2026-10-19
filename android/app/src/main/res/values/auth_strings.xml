@@ -1,0 +1,4 @@
+<resources>
+    <string name="auth_title">Unlock Vital</string>
+    <string name="auth_description">Use your device screen lock to continue.</string>
+</resources>

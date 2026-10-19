@@ -1,0 +1,25 @@
+name: pdfium_dart
+description: Dart FFI bindings for PDFium library. Provides low-level access to PDFium's C API from Dart.
+version: 0.3.1
+homepage: https://github.com/espresso3389/pdfrx
+repository: https://github.com/espresso3389/pdfrx/tree/master/packages/pdfium_dart
+issue_tracker: https://github.com/espresso3389/pdfrx/issues
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  archive:
+  crypto: 3.0.7
+  code_assets:
+  ffi:
+  hooks:
+  http:
+
+dev_dependencies:
+  lints:
+  test:
+
+# Bindings retain upstream 0.3.1's version 1–5 ABI prefix. Vital guards the
+# WithConfig boundary; this fork does not expose 8100's version 6–7 config.
+# No stale regeneration configuration is retained. See VITAL_PATCH.md.

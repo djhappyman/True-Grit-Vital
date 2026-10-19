@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+expected_flutter="$(<"$project_root/.flutter-version")"
+sdk_root="${VITAL_FLUTTER_SDK:-${XDG_DATA_HOME:-$HOME/.local/share}/flutter-$expected_flutter}"
+if [[ ! -x "$sdk_root/bin/flutter" ]]; then
+  printf 'Flutter %s is required. Set VITAL_FLUTTER_SDK to its SDK directory.\n' "$expected_flutter" >&2
+  exit 1
+fi
+actual_flutter="$("$sdk_root/bin/flutter" --version --machine)"
+if ! python3 -c 'import json,sys; v=json.load(sys.stdin); sys.exit(0 if v["frameworkVersion"] == sys.argv[1] and v["dartSdkVersion"].split()[0] == "3.13.5" else 1)' "$expected_flutter" <<< "$actual_flutter"; then
+  printf 'Expected Flutter %s with bundled Dart 3.13.5; SDK does not match.\n' "$expected_flutter" >&2
+  exit 1
+fi
+cd -- "$project_root"
+exec "$sdk_root/bin/flutter" "$@"

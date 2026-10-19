@@ -1,0 +1,4329 @@
+{
+  "@@locale": "en",
+  "appTitle": "True Grit: Vital",
+  "@appTitle": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "today": "Today",
+  "@today": {
+    "description": "Development-shell heading or navigation label. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "substances": "Substances",
+  "@substances": {
+    "description": "Development-shell heading or navigation label. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "events": "Cycles",
+  "@events": {
+    "description": "Primary destination for optional cycles and prescription courses."
+  },
+  "history": "History",
+  "@history": {
+    "description": "Development-shell heading or navigation label. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "appearance": "Appearance",
+  "@appearance": {
+    "description": "Development-shell heading or navigation label. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "preview": "Development preview",
+  "@preview": {
+    "description": "Development-shell heading or navigation label. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "previewBody": "Recording and profiles are not available in this build.",
+  "@previewBody": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "todayEmpty": "Your daily view",
+  "@todayEmpty": {
+    "description": "Development-shell heading or navigation label. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "todayBody": "Planned doses and recorded use will appear here.",
+  "@todayBody": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "substancesEmpty": "Your substances",
+  "@substancesEmpty": {
+    "description": "Development-shell heading or navigation label. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "substancesBody": "Medicines, supplements and other substances will appear here.",
+  "@substancesBody": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "eventsEmpty": "Your events",
+  "@eventsEmpty": {
+    "description": "Development-shell heading or navigation label. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "eventsBody": "Events are not available in this build. Actual use can be recorded in Substances.",
+  "@eventsBody": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "historyEmpty": "Your history",
+  "@historyEmpty": {
+    "description": "Development-shell heading or navigation label. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "historyBody": "Recorded doses and corrections will appear here.",
+  "@historyBody": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "appearanceBody": "Appearance choices are saved on this device.",
+  "@appearanceBody": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "colourMode": "Colour mode",
+  "@colourMode": {
+    "description": "Development-shell heading or navigation label. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "system": "System",
+  "@system": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "light": "Light",
+  "@light": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "dark": "Dark",
+  "@dark": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "opaqueSurfaces": "Opaque surfaces",
+  "@opaqueSurfaces": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "opaqueHelper": "Use solid backgrounds for decorative surfaces.",
+  "@opaqueHelper": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "reduceMotion": "Reduce motion",
+  "@reduceMotion": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "motionHelper": "Limit optional movement. System settings also apply.",
+  "@motionHelper": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "surfaceSample": "Surface sample",
+  "@surfaceSample": {
+    "description": "Development-shell heading or navigation label. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "opaqueActive": "Solid surfaces are active while glass is being checked on devices.",
+  "@opaqueActive": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "opaqueChosen": "Solid surfaces are active.",
+  "@opaqueChosen": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "glassActive": "Glass is active on this sample surface.",
+  "@glassActive": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "motionReduced": "Reduced motion is active.",
+  "@motionReduced": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "motionStandard": "Standard motion is active.",
+  "@motionStandard": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "back": "Back",
+  "@back": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "formSamples": "Form icons",
+  "@formSamples": {
+    "description": "Development-shell heading or navigation label. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "tablet": "Tablet",
+  "@tablet": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "injection": "Injection",
+  "@injection": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "liquid": "Liquid",
+  "@liquid": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "formHelper": "Icons describe forms, not substance types or dose advice.",
+  "@formHelper": {
+    "description": "Development-shell appearance choice or explanatory text. Keep UK English, complete meaning and brief wording; this preview has no saved records."
+  },
+  "appearanceFailure": "Appearance was not saved. Try the choice again.",
+  "@appearanceFailure": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "loadingRecords": "Opening records…",
+  "@loadingRecords": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "recoveryTitle": "Records unavailable",
+  "@recoveryTitle": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "recoveryBody": "Vital could not open the saved records. Retry without deleting the app or its data.",
+  "@recoveryBody": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "unsupportedBody": "Recording is available in the Android and Linux apps. This platform cannot open personal records.",
+  "@unsupportedBody": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "create": "Create",
+  "@create": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "record": "Record",
+  "@record": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "correct": "Correct",
+  "@correct": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "undo": "Undo",
+  "@undo": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "save": "Save",
+  "@save": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "discard": "Discard",
+  "@discard": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "keep": "Keep",
+  "@keep": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "me": "Me",
+  "@me": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "newSubstance": "New substance",
+  "@newSubstance": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "nameLabel": "Full name",
+  "@nameLabel": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "formLabel": "Form",
+  "@formLabel": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "unitLabel": "Unit",
+  "@unitLabel": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "typeLabel": "Type",
+  "@typeLabel": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "nameRequired": "Enter the full substance name.",
+  "@nameRequired": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "detailsRequired": "Choose a unit and enter a form and type. Keep each field within 500 characters.",
+  "@detailsRequired": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "substancesReady": "Create a substance to record what you take.",
+  "@substancesReady": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "noRecords": "Nothing recorded",
+  "@noRecords": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "todayReady": "Actual use recorded today appears here. Earlier use stays in History.",
+  "@todayReady": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "historyReady": "Record actual use to start your history.",
+  "@historyReady": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "recordHeading": "Record use",
+  "@recordHeading": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "correctHeading": "Correct use",
+  "@correctHeading": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "amountLabel": "Amount",
+  "@amountLabel": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "actualDateLabel": "Actual date",
+  "@actualDateLabel": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "actualTimeLabel": "Actual time",
+  "@actualTimeLabel": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "dateExample": "Use YYYY-MM-DD.",
+  "@dateExample": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "timeExample": "Use 24-hour HH:MM.",
+  "@timeExample": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "amountInvalid": "Use a decimal point, without commas. Enter an amount above zero, up to 9,000,000,000, with up to 6 decimal places.",
+  "@amountInvalid": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "timeInvalid": "Enter a valid actual date and time.",
+  "@timeInvalid": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "saveFailure": "The save could not be confirmed. Retry with the same details.",
+  "@saveFailure": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "conflictFailure": "This record has changed. Return to History and review the latest version before correcting it.",
+  "@conflictFailure": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "saved": "Saved",
+  "@saved": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "voided": "Voided",
+  "@voided": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "undoHelp": "Undo marks this entry as voided. The original and its corrections stay in history.",
+  "@undoHelp": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "undoFailure": "Undo could not be confirmed. Retry or review History.",
+  "@undoFailure": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "unsavedHeading": "Unsaved changes",
+  "@unsavedHeading": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "unsavedBody": "Keep editing or discard this unfinished entry.",
+  "@unsavedBody": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "pendingBody": "Resolve the save before leaving this entry.",
+  "@pendingBody": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "historyUnavailable": "History could not be loaded. Retry to keep your current view.",
+  "@historyUnavailable": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "recordHistory": "Record history",
+  "@recordHistory": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "noItem": "This substance is unavailable. Return to Substances.",
+  "@noItem": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "saving": "Saving…",
+  "@saving": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
+  },
+  "ownerAmount": "{person}: {amount} {unit}",
+  "@ownerAmount": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word.",
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "itemDetails": "{form} · {type} · {unit}",
+  "@itemDetails": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word.",
+    "placeholders": {
+      "form": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "actualStamp": "Actual: {time}",
+  "@actualStamp": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "entryStamp": "Entered: {time}",
+  "@entryStamp": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "revisionStamp": "Revision {revision}",
+  "@revisionStamp": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word.",
+    "placeholders": {
+      "revision": {
+        "type": "int"
+      }
+    }
+  },
+  "recordContext": "Record actual use for {person}: {name}, in {unit}.",
+  "@recordContext": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word.",
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "correctionContext": "Correct actual use for {person}: {name}, in {unit}.",
+  "@correctionContext": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word.",
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "savedContext": "Saved for {person}: {name}, {amount} {unit}.",
+  "@savedContext": {
+    "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word.",
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "ambiguousTime": "This clock time occurs twice. Choose the earlier or later time.",
+  "@ambiguousTime": {
+    "description": "Repeated local clock during daylight-saving change. Require explicit selection; do not guess the recorded instant."
+  },
+  "earlier": "Earlier",
+  "@earlier": {
+    "description": "Repeated local clock during daylight-saving change. Require explicit selection; do not guess the recorded instant."
+  },
+  "later": "Later",
+  "@later": {
+    "description": "Repeated local clock during daylight-saving change. Require explicit selection; do not guess the recorded instant."
+  },
+  "offsetChoice": "{choice}: {offset}",
+  "@offsetChoice": {
+    "description": "Repeated local clock during daylight-saving change. Require explicit selection; do not guess the recorded instant.",
+    "placeholders": {
+      "choice": {
+        "type": "String"
+      },
+      "offset": {
+        "type": "String"
+      }
+    }
+  },
+  "more": "More",
+  "@more": {
+    "description": "One-word button to load more saved records after the currently displayed history page."
+  },
+  "voidedContext": "Voided for {person}: {name}, {amount} {unit}.",
+  "@voidedContext": {
+    "description": "Confirmation after the durable Undo commit. Full person, item, amount and unit must remain visible.",
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "keyringTitle": "Keyring unavailable",
+  "@keyringTitle": {
+    "description": "Heading when Linux protected key storage cannot be accessed. Not an app lock or an empty dataset."
+  },
+  "keyringBody": "Unlock the desktop keyring, then retry. If it stays unavailable, check that Secret Service and secret-tool are installed.",
+  "@keyringBody": {
+    "description": "Linux keyring unavailable, locked or timed out. Retry repeats protected startup without deleting records or creating a replacement dataset."
+  },
+  "people": "People",
+  "@people": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "scope": "Scope",
+  "@scope": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "everyone": "Everyone",
+  "@everyone": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "choosePerson": "Choose person",
+  "@choosePerson": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "addPerson": "Add person",
+  "@addPerson": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "editPerson": "Edit person",
+  "@editPerson": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "displayName": "Display name",
+  "@displayName": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "adultConfirmed": "Adult confirmed",
+  "@adultConfirmed": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "adultHelper": "This person is aged 18 or over.",
+  "@adultHelper": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "profileSetupHelp": "Confirm your display name and that you are an adult, then select Save to open Today.",
+  "@profileSetupHelp": {
+    "description": "Required first-run profile setup and how to continue."
+  },
+  "profileRequired": "Enter a display name and confirm this person is an adult.",
+  "@profileRequired": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "profileFailure": "This profile could not be saved. Review the details and retry.",
+  "@profileFailure": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "profileChanged": "This profile has changed. Go back and review it before saving.",
+  "@profileChanged": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "optionalDetails": "Optional details",
+  "@optionalDetails": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "reportName": "Report name (optional)",
+  "@reportName": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "relationship": "Relationship (optional)",
+  "@relationship": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "profileNotes": "Notes (optional)",
+  "@profileNotes": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "edit": "Edit",
+  "@edit": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "archive": "Archive",
+  "@archive": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "reactivate": "Reactivate",
+  "@reactivate": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "archived": "Archived",
+  "@archived": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "archivePerson": "Archive person",
+  "@archivePerson": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "archiveBody": "Archive {person}? Their history stays available. They leave active feeds and their reminders stop.",
+  "@archiveBody": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands.",
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "reactivateBody": "Reactivate {person}? Reminders stay stopped. No plans are available to resume in this build.",
+  "@reactivateBody": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands.",
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "profileOwner": "Person: {person}",
+  "@profileOwner": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands.",
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "onBehalf": "Recorded on behalf of {person}.",
+  "@onBehalf": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands.",
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "meName": "{name} (Me)",
+  "@meName": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "profileReference": "{name}. Profile {reference}",
+  "@profileReference": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+  "scopeFailure": "The browsing choice could not be saved. Retry.",
+  "@scopeFailure": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "profileUnavailable": "This person is unavailable. Return to People to review their profile.",
+  "@profileUnavailable": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "view": "View",
+  "@view": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "add": "Add",
+  "@add": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "details": "Details",
+  "@details": {
+    "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
+  },
+  "searchPeople": "Find people",
+  "@searchPeople": {
+    "description": "Local profiles: short headings and one-word commands, full scope and consequences."
+  },
+  "delete": "Delete",
+  "@delete": {
+    "description": "Local profiles: short headings and one-word commands, full scope and consequences."
+  },
+  "deletePerson": "Delete person",
+  "@deletePerson": {
+    "description": "Local profiles: short headings and one-word commands, full scope and consequences."
+  },
+  "deleteRecords": "Delete records",
+  "@deleteRecords": {
+    "description": "Local profiles: short headings and one-word commands, full scope and consequences."
+  },
+  "deleteProfileBody": "Delete all saved records for {person}? This cannot be undone. Me stays available; another adult’s profile is removed.",
+  "@deleteProfileBody": {
+    "description": "Local profiles: short headings and one-word commands, full scope and consequences.",
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "archivedHelp": "This person is archived. Reactivate them in People before recording or correcting use.",
+  "@archivedHelp": {
+    "description": "Local profiles: short headings and one-word commands, full scope and consequences."
+  },
+  "legacySource": "Recording source was not recorded.",
+  "@legacySource": {
+    "description": "Local profiles: short headings and one-word commands, full scope and consequences."
+  },
+  "selfSource": "Self-reported use.",
+  "@selfSource": {
+    "description": "Local profiles: short headings and one-word commands, full scope and consequences."
+  },
+  "recordingOnBehalf": "You are recording on behalf of {person}.",
+  "@recordingOnBehalf": {
+    "description": "Unsaved use form context, does not claim durable recording.",
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "profileDetailsLimit": "Keep the display name within 500 characters and optional details within 4,000.",
+  "@profileDetailsLimit": {
+    "description": "Validation instruction for profile field length limits."
+  },
+  "lockHeading": "Unlock",
+  "lockBody": "Use your device screen lock to open Vital. Your unfinished entries stay private.",
+  "lockLoading": "Opening protected records.",
+  "lockUnavailable": "Device authentication is unavailable. Check your device screen lock, then try again.",
+  "unlock": "Unlock",
+  "lock": "Lock",
+  "appLock": "App lock",
+  "appLockHelper": "Require your device screen lock when you open or return to Vital.",
+  "lockSetupRequired": "Set up a device screen lock before enabling app lock.",
+  "lockUnsupported": "Device authentication is unavailable on this platform. You can still record doses.",
+  "draftHeading": "Unfinished entries",
+  "draftBody": "Your entry is kept on this device until you save or discard it.",
+  "resume": "Resume",
+  "draftFailure": "Your latest changes could not be kept. Stay here and try again.",
+  "draftSaved": "Your entry was already saved. Review the history before recording again.",
+  "draftDiscardFailure": "This entry could not be discarded. Try again.",
+  "draftUnavailable": "This entry is no longer available. Return to Today to review your records.",
+  "@draftUnavailable": {
+    "description": "An ordinary entry invalidated by scoped deletion or dataset replacement. Does not claim that the main adult profile was deleted."
+  },
+  "schedule": "Schedule",
+  "planZoneUnavailable": "The device time zone is unavailable. Retry or choose a named home zone.",
+  "planInputInvalid": "Check the dates, times, count, amounts and time zone before previewing.",
+  "planEditHelp": "Choose the date this change starts. Earlier versions and recorded doses stay in history.",
+  "planPattern": "Timing",
+  "planCount": "Count",
+  "planTimes": "Chosen times",
+  "planAsNeeded": "As needed",
+  "planCountHelp": "The count applies to each selected date. Recorded and skipped counts are shown separately. This count is not a safe allowance.",
+  "planTime": "Planned time",
+  "planPrnHelp": "Record use when needed. There are no expected times or missed doses.",
+  "planStart": "Start date",
+  "planEffective": "Effective date",
+  "planEnd": "End date (optional)",
+  "planEndHelp": "YYYY-MM-DD. Includes this day. Leave blank for no end.",
+  "planZone": "Time zone",
+  "planLocal": "Follow local",
+  "planHome": "Home zone",
+  "planHomeZone": "Named home zone",
+  "planZoneExample": "For example, Europe/London",
+  "planCalculationIssue": "Some dates cannot be calculated with the available time zone data. Review this plan.",
+  "planIncomplete": "The calculation limit was reached. This view is incomplete.",
+  "planBoundary": "Clock boundary",
+  "planNoNext": "No next planned date within this plan.",
+  "planMissingClock": "This local time does not exist. Review the clock change.",
+  "planRepeatedClock": "This local time occurs twice. Choose which one.",
+  "planNoAlert": "No alert for this clock change",
+  "planPlanned": "Planned",
+  "planNothingToday": "Nothing planned today.",
+  "planTakenNow": "Taken records the current time. Use Extra to enter another amount or actual time.",
+  "planClockReview": "Clock review",
+  "planNoAlertHelp": "Keep this planned dose without an alert, or enter a replacement time. This does not skip the dose.",
+  "planReplacementTime": "Replacement time",
+  "taken": "Taken",
+  "skip": "Skip",
+  "extra": "Extra",
+  "replace": "Replace",
+  "remove": "Remove",
+  "planObserved": "Observed zone: {zone}",
+  "@planObserved": {
+    "description": "Daily plan context; preserve full values and person ownership.",
+    "placeholders": {
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "planPreviewRange": "Preview: {start} to {end}",
+  "@planPreviewRange": {
+    "description": "Daily plan context; preserve full values and person ownership.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "planNext": "Next planned date: {date}",
+  "@planNext": {
+    "description": "Daily plan context; preserve full values and person ownership.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "planEnds": "Last included date: {date}",
+  "@planEnds": {
+    "description": "Daily plan context; preserve full values and person ownership.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "planReplacement": "Replacement time: {time}",
+  "@planReplacement": {
+    "description": "Daily plan context; preserve full values and person ownership.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "planUntimed": "{date}: {count} planned, {amount} {unit} each, untimed in {zone}",
+  "@planUntimed": {
+    "description": "Daily plan context; preserve full values and person ownership.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "planTimed": "{date} at {time}: {amount} {unit}, {zone}. {status}",
+  "@planTimed": {
+    "description": "Daily plan context; preserve full values and person ownership.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "planProgress": "{taken} recorded, {skipped} skipped, {planned} planned",
+  "@planProgress": {
+    "description": "Daily plan context; preserve full values and person ownership.",
+    "placeholders": {
+      "taken": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      },
+      "planned": {
+        "type": "int"
+      }
+    }
+  },
+  "planClockInstant": "Selected instant: {instant} UTC",
+  "@planClockInstant": {
+    "description": "Daily plan context; preserve full values and person ownership.",
+    "placeholders": {
+      "instant": {
+        "type": "String"
+      }
+    }
+  },
+  "planPreview": "Preview",
+  "planZoneUnknown": "Unknown",
+  "planHistory": "Planned history",
+  "planHistoryHelp": "Saved planned amounts and times appear here. Actual doses appear separately below.",
+  "planPreviewLimited": "The first 20 planned doses are shown. The preview contains more doses.",
+  "planNextReview": "Next date needs review",
+  "review": "Review",
+  "planOlderActions": "Earlier actions are available in pages of 100.",
+  "planActionEntry": "{action}, entered {date}",
+  "@planActionEntry": {
+    "description": "Audit entry time, not an actual dose time.",
+    "placeholders": {
+      "action": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "planActionContext": "{action}: {person}, {item}, {amount} {unit}, planned {date}",
+  "@planActionContext": {
+    "description": "Accessible name for a correctly owned planned-dose command.",
+    "placeholders": {
+      "action": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogue": "Catalogue",
+  "@catalogue": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueSearch": "Search medicines",
+  "@catalogueSearch": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueHelp": "Select the exact name, form and strength. The strength does not choose a dose or unit.",
+  "@catalogueHelp": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueUnavailable": "The medicine catalogue is unavailable. Enter a custom substance to continue.",
+  "@catalogueUnavailable": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueSearching": "Searching the offline catalogue…",
+  "@catalogueSearching": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueStart": "Enter a name, form or strength to search offline.",
+  "@catalogueStart": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueRefine": "Some matches may be missing. Add more of the name, form or strength.",
+  "@catalogueRefine": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueSearchFailure": "Unable to search. Try again or enter a custom substance.",
+  "@catalogueSearchFailure": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueQueryLimit": "Use up to 128 characters and 16 search words, or continue with a custom entry.",
+  "@catalogueQueryLimit": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueSelected": "Selected product",
+  "@catalogueSelected": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueCustom": "Custom entry",
+  "@catalogueCustom": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueCustomHelp": "Continue with “{query}” as the substance name.",
+  "@catalogueCustomHelp": {
+    "description": "Offline catalogue and person-owned item type interaction.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogueNoMatch": "No catalogue match for “{query}”. You can enter it as a custom substance.",
+  "@catalogueNoMatch": {
+    "description": "Offline catalogue and person-owned item type interaction.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogueRelease": "Source: {source}. Version: {version}. Released: {date}.",
+  "@catalogueRelease": {
+    "description": "Offline catalogue and person-owned item type interaction.",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogueProduct": "{name}. Form: {form}. Strength: {strength}.",
+  "@catalogueProduct": {
+    "description": "Offline catalogue and person-owned item type interaction.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "form": {
+        "type": "String"
+      },
+      "strength": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogueMissing": "Not supplied",
+  "@catalogueMissing": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueAttribution": "Attribution: {attribution}",
+  "@catalogueAttribution": {
+    "description": "Offline catalogue and person-owned item type interaction.",
+    "placeholders": {
+      "attribution": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogueLicence": "Licence: {licence}",
+  "@catalogueLicence": {
+    "description": "Offline catalogue and person-owned item type interaction.",
+    "placeholders": {
+      "licence": {
+        "type": "String"
+      }
+    }
+  },
+  "catalogueSelect": "Select",
+  "@catalogueSelect": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueEnter": "Enter",
+  "@catalogueEnter": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueClear": "Clear",
+  "@catalogueClear": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueSearchAction": "Search",
+  "@catalogueSearchAction": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueSelectedHelp": "This saved source version stays with the substance and its dose history.",
+  "@catalogueSelectedHelp": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "catalogueSelectContext": "Select {name}, form {form}, strength {strength}",
+  "@catalogueSelectContext": {
+    "description": "Offline catalogue and person-owned item type interaction.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "form": {
+        "type": "String"
+      },
+      "strength": {
+        "type": "String"
+      }
+    }
+  },
+  "itemTypes": "Item types",
+  "@itemTypes": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "itemTypesHelp": "Types group this person’s substances. They do not change forms, strengths or icons.",
+  "@itemTypesHelp": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "itemTypesEmpty": "No personal types yet. Create one or enter a type with a new substance.",
+  "@itemTypesEmpty": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "itemTypeNew": "New type",
+  "@itemTypeNew": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "itemTypeEdit": "Rename type",
+  "@itemTypeEdit": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "itemTypeName": "Type name",
+  "@itemTypeName": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "itemTypeRenameHelp": "Existing substances use the new name. Earlier dose records keep their saved type.",
+  "@itemTypeRenameHelp": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "itemTypeManage": "Manage",
+  "@itemTypeManage": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "itemTypeRename": "Rename",
+  "@itemTypeRename": {
+    "description": "Offline catalogue and person-owned item type interaction."
+  },
+  "itemTypeChoice": "Use type {name}",
+  "@itemTypeChoice": {
+    "description": "Offline catalogue and person-owned item type interaction.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "itemTypeCurrent": "Selected type: {name}",
+  "@itemTypeCurrent": {
+    "description": "Offline catalogue and person-owned item type interaction.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "previous": "Previous",
+  "next": "Next",
+  "itemTypeExists": "This person already has that type. Choose a different name.",
+  "@itemTypeExists": {
+    "description": "Duplicate owner-scoped type name; fields remain editable."
+  },
+  "@previous": {
+    "description": "Bounded list page navigation command."
+  },
+  "@next": {
+    "description": "Bounded list page navigation command."
+  },
+  "stock": "Stock",
+  "@stock": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockCreate": "Add container",
+  "@stockCreate": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockAdjust": "Adjust stock",
+  "@stockAdjust": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockLabel": "Container name",
+  "@stockLabel": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockStrength": "Labelled strength",
+  "@stockStrength": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockKnownStrength": "Known strength",
+  "@stockKnownStrength": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockKnownStrengthHelp": "Use the concentration printed on this container.",
+  "@stockKnownStrengthHelp": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockConcentration": "Strength (mg/ml)",
+  "@stockConcentration": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockOpening": "Starting amount",
+  "@stockOpening": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockKnownOpening": "Known amount",
+  "@stockKnownOpening": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockOpeningHelp": "Leave this off when the remaining amount is unknown.",
+  "@stockOpeningHelp": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockThreshold": "Low-stock threshold",
+  "@stockThreshold": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockThresholdHelp": "Optional. An empty threshold turns low-stock notices off.",
+  "@stockThresholdHelp": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockRefill": "Refill notices",
+  "@stockRefill": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockRefillHelp": "Show a notice here and in Today when known stock reaches zero or below.",
+  "@stockRefillHelp": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockEmpty": "Containers are optional. Add one to track its supply.",
+  "@stockEmpty": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockOptional": "Record without stock, or choose this person’s container.",
+  "@stockOptional": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockNone": "No container",
+  "@stockNone": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockUnknown": "Stock unknown. Measure the remaining amount to establish a balance.",
+  "@stockUnknown": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockLimit": "Stock total unavailable. The recorded use remains saved.",
+  "@stockLimit": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockLow": "Low stock",
+  "@stockLow": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockRefillDue": "Refill due",
+  "@stockRefillDue": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockMismatch": "Stock mismatch. The dose is saved. Review the container separately.",
+  "@stockMismatch": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockRestock": "Restock",
+  "@stockRestock": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockWaste": "Waste",
+  "@stockWaste": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockMeasure": "Measure",
+  "@stockMeasure": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockReason": "Reason (optional)",
+  "@stockReason": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockRestockHelp": "Adds supply. An unknown balance stays unknown until measured.",
+  "@stockRestockHelp": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockWasteHelp": "Removes supply without recording a dose.",
+  "@stockWasteHelp": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockMeasureHelp": "Replaces the balance with the amount you measure. Earlier history stays unchanged.",
+  "@stockMeasureHelp": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockUnknownMeasure": "Unknown amount",
+  "@stockUnknownMeasure": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockUnknownMeasureHelp": "Save the remaining stock as unknown.",
+  "@stockUnknownMeasureHelp": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockDecimalHelp": "Use a dot or comma for decimals, with no grouping. Up to six decimal places.",
+  "@stockDecimalHelp": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockAmountInvalid": "Enter an amount from 0.000001 to 9,000,000,000 with up to six decimal places.",
+  "@stockAmountInvalid": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockMeasurementInvalid": "Enter zero or a positive amount with up to six decimal places.",
+  "@stockMeasurementInvalid": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockLabelRequired": "Enter the container name and its labelled strength.",
+  "@stockLabelRequired": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockChooseKind": "Choose restock, waste or measurement.",
+  "@stockChooseKind": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockSource": "Dose source",
+  "@stockSource": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockChoose": "Choose",
+  "@stockChoose": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockSelected": "Selected",
+  "@stockSelected": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockReplacement": "Strength changed",
+  "@stockReplacement": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockReplacementHelp": "Choose which amount to keep. This changes this dose only; future plans stay the same.",
+  "@stockReplacementHelp": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockKeepMg": "Keep mg",
+  "@stockKeepMg": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockKeepMl": "Keep ml",
+  "@stockKeepMl": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockKeepRequired": "Choose whether mg or ml stays fixed.",
+  "@stockKeepRequired": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockNoEquivalent": "No equivalent is available for these strengths and units. Enter the actual amount for the selected container.",
+  "@stockNoEquivalent": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockPhysical": "Physical effect",
+  "@stockPhysical": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockPhysicalHelp": "Choose what happened to the supply. Correcting details does not record another use.",
+  "@stockPhysicalHelp": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockRetain": "Keep consumed",
+  "@stockRetain": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockReverse": "Reverse entry",
+  "@stockReverse": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockRetainHelp": "The supply was used or lost. Keep its stock effect.",
+  "@stockRetainHelp": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockReverseHelp": "The recorded use was a mistake. Reverse its stock effect, preserving any later measurement.",
+  "@stockReverseHelp": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockPhysicalRequired": "Choose whether the supply was consumed or the entry was a mistake.",
+  "@stockPhysicalRequired": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockAlreadyReviewed": "The stock effect was already reviewed. Later detail changes keep that effect.",
+  "@stockAlreadyReviewed": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockNotices": "Stock notices",
+  "@stockNotices": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockLocalNoticeHelp": "Notices appear in Vital. No device notification is scheduled.",
+  "@stockLocalNoticeHelp": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockSaved": "Stock saved",
+  "@stockSaved": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockNoticeSaved": "Notice settings saved.",
+  "@stockNoticeSaved": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockNoticeFailure": "Notice settings were not saved. Your entry is still here. Retry.",
+  "@stockNoticeFailure": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockEntered": "Original entry: {amount} {unit}.",
+  "@stockEntered": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "stockQuantity": "{amount} {unit}",
+  "@stockQuantity": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "stockApproximate": "Approximately {amount} {unit}",
+  "@stockApproximate": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "stockBalance": "Remaining: {amount}",
+  "@stockBalance": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "stockNoticeTarget": "{person}: {container}",
+  "@stockNoticeTarget": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences.",
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "container": {
+        "type": "String"
+      }
+    }
+  },
+  "stockStrengthValue": "Labelled strength: {strength}",
+  "@stockStrengthValue": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences.",
+    "placeholders": {
+      "strength": {
+        "type": "String"
+      }
+    }
+  },
+  "stockReplacementFrom": "Previous strength: {strength}",
+  "@stockReplacementFrom": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences.",
+    "placeholders": {
+      "strength": {
+        "type": "String"
+      }
+    }
+  },
+  "stockNewEquivalent": "This dose: {amount}",
+  "@stockNewEquivalent": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "stockThresholdValue": "Low-stock threshold: {amount}",
+  "@stockThresholdValue": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "stockHistory": "Stock history",
+  "@stockHistory": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockMovementEntry": "{kind}: {amount}",
+  "@stockMovementEntry": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences.",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "stockUnavailable": "This container is unavailable. Review the person and substance.",
+  "@stockUnavailable": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockMore": "More containers are available. Open Stock to review them.",
+  "@stockMore": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockApply": "Apply",
+  "@stockApply": {
+    "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
+  },
+  "stockAdjustAction": "Adjust",
+  "@stockAdjustAction": {
+    "description": "Stock tracking action or explanatory copy."
+  },
+  "stockLabelOnly": "Labelled strength",
+  "@stockLabelOnly": {
+    "description": "Stock tracking action or explanatory copy."
+  },
+  "stockLabelOnlyHelp": "Record the labelled strength without tracking a container.",
+  "@stockLabelOnlyHelp": {
+    "description": "Stock tracking action or explanatory copy."
+  },
+  "stockEntryProvenance": "Entered: {amount} {unit}.",
+  "@stockEntryProvenance": {
+    "description": "Stock tracking action or explanatory copy.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "stockCorrectionEntryHelp": "Enter the corrected actual amount. A displayed approximate equivalent is never reused as an entry.",
+  "@stockCorrectionEntryHelp": {
+    "description": "Stock tracking action or explanatory copy."
+  },
+  "stockEnter": "Enter",
+  "@stockEnter": {
+    "description": "Enter the actual quantity for the selected source when conversion is unavailable."
+  },
+  "stockSourceAction": "Source",
+  "@stockSourceAction": {
+    "description": "Opens optional container source selection for this planned dose."
+  },
+  "stockCorrectionAmount": "Actual amount (optional)",
+  "@stockCorrectionAmount": {
+    "description": "New actual quantity for a correction. Empty means preserve the exact stored quantity."
+  },
+  "stockCorrectionKeep": "Leave the amount empty to keep the saved exact quantity.",
+  "@stockCorrectionKeep": {
+    "description": "Time-only correction keeps exact quantity and source snapshots."
+  },
+  "stockDeficit": "Stock deficit. The recorded balance is below zero.",
+  "@stockDeficit": {
+    "description": "Signed stock balance is negative; no clamping or invented refill."
+  },
+  "stockReviewedKeep": "Leave the current stock balance unchanged. The earlier physical correction stays in history.",
+  "@stockReviewedKeep": {
+    "description": "For later corrections or Undo after a physical stock consequence was already reviewed."
+  },
+  "stockThresholdEditHelp": "Enter a replacement threshold, or Clear to turn low-stock notices off. An empty unchanged entry keeps the saved threshold.",
+  "@stockThresholdEditHelp": {
+    "description": "Existing exact threshold is readonly; empty new input preserves it."
+  },
+  "stockThresholdCleared": "Low-stock notices will be turned off when you save.",
+  "@stockThresholdCleared": {
+    "description": "Explicit Clear action previews disabling the low-stock threshold."
+  },
+  "stockStrengthRequired": "Enter the labelled strength.",
+  "@stockStrengthRequired": {
+    "description": "Standalone strength label missing; keep draft editable."
+  },
+  "stockUnknownValue": "Unknown",
+  "@stockUnknownValue": {
+    "description": "Unknown stock quantity, distinct from zero."
+  },
+  "stockKeepBalance": "Keep balance",
+  "@stockKeepBalance": {
+    "description": "Selection to retain the current physical balance after an earlier reviewed stock correction."
+  },
+  "stockConcentrationHelp": "Optional. Leave empty when the concentration is unknown.",
+  "@stockConcentrationHelp": {
+    "description": "Standalone labelled strength can remain unknown without a tracked container."
+  },
+  "reminders": "Reminders",
+  "reminderHelp": "Alerts cover a limited window. Reopen Vital to prepare more. Android settings can affect delivery.",
+  "reminderUnsupported": "Alerts are not available on this platform. Plans and records stay available.",
+  "reminderGeneric": "Notifications show no person, substance or amount.",
+  "reminderDetailedUnavailable": "Detailed notifications are not available.",
+  "reminderPermission": "Allow notifications in Android to receive alerts.",
+  "reminderExact": "Allow exact alarms in Android for planned alert times.",
+  "reminderBlocked": "Android is blocking notifications. Review notification settings.",
+  "reminderProtected": "Protected storage is unavailable. Unlock the device and reopen Vital.",
+  "reminderClock": "Snooze is unavailable until the device clock can be checked. Reopen Vital and retry.",
+  "reminderAttention": "Reminders need attention",
+  "reminderUnprepared": "No prepared coverage for {scope}. Select Retry to check again.",
+  "@reminderUnprepared": {
+    "placeholders": {
+      "scope": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderCoverage": "Prepared through {time} for {scope}. This does not confirm delivery.",
+  "@reminderCoverage": {
+    "placeholders": {
+      "scope": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderIncomplete": "Some alerts are not prepared in this scope. Reopen Vital and retry.",
+  "reminderChecked": "Checked {time}.",
+  "@reminderChecked": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderPlanHelp": "Alerts for {person} and this plan. Turning alerts off does not change the plan or records.",
+  "@reminderPlanHelp": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderUntimed": "Alerts need chosen times. Counts and as-needed plans have no alert times.",
+  "reminderPending": "A reminder is awaiting review.",
+  "reminderDelay": "Delay",
+  "reminderCustom": "Custom delay",
+  "reminderCustomHelp": "Enter a positive whole number of minutes.",
+  "reminderMinutes": "{minutes, plural, one{1 minute} other{{minutes} minutes}}",
+  "@reminderMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "reminderSnoozeHelp": "The delay starts when you save. Snoozing does not record use.",
+  "reminderSaved": "Snooze saved. Check reminder health to see whether the alert is prepared.",
+  "reminderChanged": "This reminder has changed. Your entry is kept for review. Open the plan to check its current status.",
+  "reminderSubmitted": "This action was submitted. Retry checks the same saved command.",
+  "reminderUnavailable": "This reminder is no longer available. Review the plan before recording anything.",
+  "reminderInterrupted": "Device restarted. Choose a delay to remind you again.",
+  "reminderSnoozeInterrupted": "Snooze interrupted",
+  "reminderActionContext": "{person}: {item}, {amount} {unit}.",
+  "@reminderActionContext": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderPlanScope": "Plan for {person}",
+  "@reminderPlanScope": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderRepairReason": "Alert status: {status}.",
+  "@reminderRepairReason": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "reminderStatePending": "Awaiting preparation",
+  "reminderStatePrepared": "Prepared",
+  "reminderStateConsumed": "Issued, use not recorded",
+  "reminderStateCancelled": "Cancelled",
+  "reminderStatePostUncertain": "Display uncertain. Review this reminder",
+  "reminderStateFailed": "Unavailable. Retry preparation",
+  "reminderStateUnknown": "Preparation uncertain. Retry to check",
+  "reminderStateCapacity": "Preparation limit reached",
+  "reminderStateExpired": "Delay expired. Choose a new delay",
+  "reminderStateReview": "Review required",
+  "reminderAllow": "Allow",
+  "reminderSettings": "Settings",
+  "snooze": "Snooze",
+  "reminderDone": "Done",
+  "reminderScope": "{person}: {item}",
+  "reminderExcludedCount": "Entries outside coverage: {count}.",
+  "reminderDisabled": "Alerts are off for this plan.",
+  "reminderNoOccurrences": "No eligible alert times in this preparation window.",
+  "reminderWorkLimit": "Preparation reached its work limit. Reopen Vital and retry.",
+  "reminderClockReview": "Choose how to handle a missing or repeated clock time in this plan.",
+  "@reminderScope": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "@reminderExcludedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "productToggle": "Ready-mixed product",
+  "@productToggle": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productToggleHelp": "Record one volume with separate labelled ingredients.",
+  "@productToggleHelp": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productIngredients": "Ingredients",
+  "@productIngredients": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productLabelHeading": "Product label",
+  "@productLabelHeading": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productLabelHelp": "Changes apply to future entries. Saved records keep their original label.",
+  "@productLabelHelp": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productIngredientName": "Ingredient name",
+  "@productIngredientName": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productConcentration": "Concentration",
+  "@productConcentration": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productKnownStrength": "Known strength",
+  "@productKnownStrength": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productKnownStrengthHelp": "Copy a known concentration from the label. Otherwise leave it unknown.",
+  "@productKnownStrengthHelp": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productMassUnit": "Mass unit",
+  "@productMassUnit": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productVolumeUnit": "Volume unit",
+  "@productVolumeUnit": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productUnitsHelp": "Only mg per ml has a calculated mass. Other labelled units stay unchanged.",
+  "@productUnitsHelp": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productAdd": "Add",
+  "@productAdd": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productRemove": "Remove",
+  "@productRemove": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productLabelAction": "Label",
+  "@productLabelAction": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productIngredientInvalid": "Enter 2–32 ingredients with names and units. Known concentrations must be positive decimals with up to six decimal places.",
+  "@productIngredientInvalid": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productUnknownAmount": "Amount unknown.",
+  "@productUnknownAmount": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productVolumeHelp": "Enter the consumed volume in ml. Each ingredient is calculated separately.",
+  "@productVolumeHelp": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productFixedVolume": "The entered volume stays fixed. The selected container supplies this entry’s ingredient strengths. Future defaults stay unchanged.",
+  "@productFixedVolume": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productSnapshotHelp": "Based on the label saved with this entry.",
+  "@productSnapshotHelp": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productNoLabel": "No ready-mixed label is saved. Create a label with at least two ingredients.",
+  "@productNoLabel": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productSourceHelp": "This container keeps its own labelled ingredients. Later product edits leave this container unchanged.",
+  "@productSourceHelp": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productSourceRequired": "Choose a container with labelled ingredients for this product, or select None.",
+  "@productSourceRequired": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productUnavailable": "The labelled ingredients are unavailable. Retry before recording.",
+  "@productUnavailable": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productUnknownStrength": "Concentration unknown ({massUnit}/{volumeUnit}).",
+  "@productUnknownStrength": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word.",
+    "placeholders": {
+      "massUnit": {
+        "type": "String"
+      },
+      "volumeUnit": {
+        "type": "String"
+      }
+    }
+  },
+  "productStrengthValue": "Label: {amount} {massUnit}/{volumeUnit}.",
+  "@productStrengthValue": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "massUnit": {
+        "type": "String"
+      },
+      "volumeUnit": {
+        "type": "String"
+      }
+    }
+  },
+  "productIngredientNumber": "Ingredient {number}",
+  "@productIngredientNumber": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "productAmountValue": "Amount: {amount}.",
+  "@productAmountValue": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "productVolumeValue": "Product volume: {amount}.",
+  "@productVolumeValue": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "productOldLabel": "Default label",
+  "@productOldLabel": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productNewLabel": "Selected label",
+  "@productNewLabel": {
+    "description": "Ready-mixed product entry or labelled snapshot. Preserve full names, units, explicit unknowns and ownership. Headings use 1–3 words; visible commands use one word."
+  },
+  "productFieldContext": "Ingredient {number}: {field}",
+  "@productFieldContext": {
+    "description": "Accessible name for a ready-mixed ingredient control. The visible action remains one word.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "productRemoveContext": "Remove ingredient {number}",
+  "@productRemoveContext": {
+    "description": "Accessible name for a ready-mixed ingredient control. The visible action remains one word.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "productAddContext": "Add ingredient",
+  "@productAddContext": {
+    "description": "Accessible name for a ready-mixed ingredient control. The visible action remains one word."
+  },
+  "calendarDates": "Dates",
+  "@calendarDates": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarDatesHelp": "Choose the dates separately from the quantity and times.",
+  "@calendarDatesHelp": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarDaily": "Daily",
+  "@calendarDaily": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarWeekdays": "Weekdays",
+  "@calendarWeekdays": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarDays": "Days",
+  "@calendarDays": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarWeeks": "Weeks",
+  "@calendarWeeks": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarMonths": "Months",
+  "@calendarMonths": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarMonday": "Monday",
+  "@calendarMonday": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarTuesday": "Tuesday",
+  "@calendarTuesday": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarWednesday": "Wednesday",
+  "@calendarWednesday": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarThursday": "Thursday",
+  "@calendarThursday": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarFriday": "Friday",
+  "@calendarFriday": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarSaturday": "Saturday",
+  "@calendarSaturday": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarSunday": "Sunday",
+  "@calendarSunday": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarDayInterval": "Every N days",
+  "@calendarDayInterval": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarWeekInterval": "Every N weeks",
+  "@calendarWeekInterval": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarMonthInterval": "Every N months",
+  "@calendarMonthInterval": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarIntervalHelp": "Enter a positive whole number. Calendar days keep their local dates across clock changes.",
+  "@calendarIntervalHelp": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarYearHelp": "Enter a positive whole number. Use 12 for a yearly pattern.",
+  "@calendarYearHelp": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarAnchor": "First anchor date",
+  "@calendarAnchor": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarWeekAnchor": "Anchor week start",
+  "@calendarWeekAnchor": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarMonthAnchor": "Anchor month",
+  "@calendarMonthAnchor": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarWeekHelp": "YYYY-MM-DD. This saved date starts the first week. Selected weekdays repeat from this week, regardless of display preferences.",
+  "@calendarWeekHelp": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarMonthHelp": "YYYY-MM-DD. Any date in the first eligible month. The nominal day below stays separate from the effective start.",
+  "@calendarMonthHelp": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarSelectWeekdays": "Choose at least one weekday.",
+  "@calendarSelectWeekdays": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarMonthRule": "Monthly rule",
+  "@calendarMonthRule": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarDate": "Date",
+  "@calendarDate": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarOrdinal": "Ordinal",
+  "@calendarOrdinal": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarLast": "Last",
+  "@calendarLast": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarNominalDay": "Day of month",
+  "@calendarNominalDay": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarNominalHelp": "Enter 1 to 31. This nominal day stays the same after a short month.",
+  "@calendarNominalHelp": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarOrdinalNumber": "Weekday occurrence",
+  "@calendarOrdinalNumber": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarWeekday": "Weekday",
+  "@calendarWeekday": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarMissing": "Missing dates",
+  "@calendarMissing": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarMissingDayHelp": "Omit creates no planned dose when the day is missing. Use chooses that month’s last day, then returns to the nominal day.",
+  "@calendarMissingDayHelp": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarMissingWeekHelp": "Omit creates no planned dose when this weekday occurrence is missing. Use chooses the last matching weekday in that month.",
+  "@calendarMissingWeekHelp": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarOmit": "Omit",
+  "@calendarOmit": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarUse": "Use",
+  "@calendarUse": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarMissingRequired": "Choose Omit or Use for months without the selected date.",
+  "@calendarMissingRequired": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarInvalid": "Check the calendar dates, positive interval and selected weekdays, then preview again.",
+  "@calendarInvalid": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarUnsupported": "This calendar combination is unsupported. Choose a supported date pattern before saving.",
+  "@calendarUnsupported": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarAnchorPreview": "Anchor week: {from} to {to}. This saved week fixes the repeat pattern.",
+  "@calendarAnchorPreview": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarBoundaryDay": "{month}: nominal day {day} does not exist.",
+  "@calendarBoundaryDay": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English.",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarBoundaryWeekday": "{month}: occurrence {ordinal} of {weekday} does not exist.",
+  "@calendarBoundaryWeekday": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English.",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "ordinal": {
+        "type": "int"
+      },
+      "weekday": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarBoundaryOmitted": "No dose is planned for this missing date. No Skip is recorded.",
+  "@calendarBoundaryOmitted": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarBoundaryUse": "The planned date is {date}.",
+  "@calendarBoundaryUse": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarBoundaryNext": "Next selected date: {date}. The nominal rule stays unchanged.",
+  "@calendarBoundaryNext": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarKnownDate": "Next calendar date: {date}. Its time cannot be converted with the available timezone rules.",
+  "@calendarKnownDate": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarBeyondPreview": "This next date is beyond the preview range. Reminder preparation uses a separate range.",
+  "@calendarBeyondPreview": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarBoundaryLimit": "The first missing-date boundary could not be established within the calculation range.",
+  "@calendarBoundaryLimit": {
+    "description": "Calendar schedule editor, validation or preview. Preserve date selection separately from times and recorded use. One-word button labels and plain UK English."
+  },
+  "calendarOrdinalHelp": "Choose 1 for the first matching weekday, 2 for the second, and so on.",
+  "@calendarOrdinalHelp": {
+    "description": "Explanation of the monthly ordinal weekday selector. The number is an occurrence within a month, not a dose count."
+  },
+  "intervalPattern": "Interval",
+  "intervalBasis": "Interval anchor",
+  "intervalFixed": "Planned",
+  "intervalActual": "Recorded",
+  "intervalFixedHelp": "Keep the entered planned anchor. Recorded doses do not move this interval.",
+  "intervalActualHelp": "Use the latest qualifying recorded time for this plan. Extra doses do not qualify automatically.",
+  "intervalDuration": "Elapsed hours",
+  "intervalDurationHelp": "Enter a positive number of hours, for example 6 or 1.5.",
+  "intervalAnchor": "Planned instant",
+  "intervalAnchorHelp": "Enter a date and time with its UTC offset, for example 2026-10-19T08:00:00+01:00. Use Z for UTC.",
+  "intervalNoAnchor": "No qualifying dose",
+  "intervalNoAnchorHelp": "Record a dose, then review whether it qualifies for this plan.",
+  "intervalNext": "Next planned instant: {instant}",
+  "@intervalNext": {
+    "placeholders": {
+      "instant": {
+        "type": "String"
+      }
+    }
+  },
+  "intervalReview": "Next time",
+  "intervalBefore": "Before: {value}",
+  "@intervalBefore": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "intervalAfter": "After: {value}",
+  "@intervalAfter": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "intervalQualify": "Qualifying dose",
+  "intervalQualifyHelp": "Select this recorded dose as a possible anchor for this plan. Review the resulting next time before saving.",
+  "intervalExtraHelp": "Extra doses do not change this interval unless you select them explicitly.",
+  "intervalTakenHelp": "Taken qualifies this dose for the plan. The latest qualifying recorded time sets the next time.",
+  "intervalFuture": "Choose a recorded time that has already happened before setting the next time.",
+  "intervalDurationValue": "Every {hours} elapsed hours",
+  "@intervalDurationValue": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "intervalQualified": "This dose qualifies for this plan. The latest qualifying recorded time sets the next time.",
+  "select": "Select",
+  "intervalPlan": "Plan from {date}: every {hours} elapsed hours",
+  "@intervalPlan": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "intervalSourceRevision": "Recorded dose revision: {revision}",
+  "@intervalSourceRevision": {
+    "placeholders": {
+      "revision": {
+        "type": "int"
+      }
+    }
+  },
+  "intervalEditHelp": "Changing the interval or anchor starts a new segment. Recorded intervals then need a qualifying dose.",
+  "intervalInputInvalid": "Enter positive elapsed hours, an amount and valid dates. A planned anchor needs an explicit time zone offset.",
+  "intervalRecordedTime": "Recorded instant: {instant}",
+  "@intervalRecordedTime": {
+    "placeholders": {
+      "instant": {
+        "type": "String"
+      }
+    }
+  },
+  "intervalProposedAmount": "New amount: {amount} {unit}",
+  "@intervalProposedAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "intervalAnchorRevision": "Anchor dose revision: {revision}",
+  "@intervalAnchorRevision": {
+    "placeholders": {
+      "revision": {
+        "type": "int"
+      }
+    }
+  },
+  "intervalClockHeading": "Review timing",
+  "intervalClockHelp": "Interval reminders need a timing review after a restart or clock change. Open this plan in Today to review recovery.",
+  "intervalClockStopped": "Interval reminders stopped",
+  "intervalClockReview": "Use the current device clock from {date}. Keep recorded anchors and history. Earlier reminders will not be replayed.",
+  "@intervalClockReview": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "intervalEarlierReview": "This time does not follow the current anchor. Record the dose separately, then review whether it qualifies for this plan.",
+  "pauseHeading": "Pause plan",
+  "pauseResume": "Resume plan",
+  "pauseBlocks": "Repeating breaks",
+  "pauseContinuous": "Continuous",
+  "pauseOnDays": "Active days",
+  "pauseOffDays": "Break days",
+  "pauseOffHelp": "Enter whole days. Zero break days keeps the plan continuous.",
+  "pauseBlockAnchor": "First active date",
+  "pauseIntersection": "A date must match both the chosen calendar dates and the active block. Elapsed intervals keep their original instants.",
+  "pauseConsequence": "Pausing stops planned opportunities and reminders. Recorded doses and stock history stay unchanged.",
+  "pauseStart": "Pause instant",
+  "pauseResumeAt": "Resume instant",
+  "pauseChoice": "Choose how the pattern resumes.",
+  "pausePreserve": "Preserve",
+  "pauseRestart": "Restart",
+  "pausePreserveHelp": "Keep the original dates and interval starting point. Time continues through the pause.",
+  "pauseRestartHelp": "Start a new pattern from the date or instant you enter. The plan end stays unchanged.",
+  "pauseNewAnchor": "New first date",
+  "pauseDateHelp": "Enter YYYY-MM-DD. Weekly patterns need a Monday; monthly patterns need the first of a month.",
+  "pauseActualHelp": "A paused next dose stays suppressed. Review a qualifying recorded dose or edit the timing basis to use a planned starting point. Resuming creates no dose.",
+  "pauseInvalid": "Choose Preserve or Restart when resuming. Enter a valid instant with its UTC offset and any required new anchor.",
+  "pauseHistory": "Pause history",
+  "pauseHistoryHelp": "Recorded pause periods describe the plan. They do not prove doses were taken.",
+  "pauseNoHistory": "No recorded pauses.",
+  "pauseOngoing": "Ongoing",
+  "pauseState": "Paused",
+  "pauseRecordHelp": "Record actual use separately while this plan is paused.",
+  "pauseBefore": "Before: {value}",
+  "pauseAfter": "After: {value}",
+  "pauseBoundary": "First affected boundary: {value}",
+  "pausePeriod": "Recorded pause: {start} to {resume}",
+  "pauseDuration": "Recorded pause duration: {minutes} complete minutes. This is not a count of doses taken.",
+  "pauseBlockSummary": "{active} active days, {rest} break days, starting on {anchor}.",
+  "@pauseBefore": {
+    "description": "Pause or repeating block review. Periods describe recorded plan history, not actual intake.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@pauseAfter": {
+    "description": "Pause or repeating block review. Periods describe recorded plan history, not actual intake.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@pauseBoundary": {
+    "description": "Pause or repeating block review. Periods describe recorded plan history, not actual intake.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@pausePeriod": {
+    "description": "Pause or repeating block review. Periods describe recorded plan history, not actual intake.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "resume": {
+        "type": "String"
+      }
+    }
+  },
+  "@pauseDuration": {
+    "description": "Pause or repeating block review. Periods describe recorded plan history, not actual intake.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "@pauseBlockSummary": {
+    "description": "Pause or repeating block review. Periods describe recorded plan history, not actual intake.",
+    "placeholders": {
+      "active": {
+        "type": "int"
+      },
+      "rest": {
+        "type": "int"
+      },
+      "anchor": {
+        "type": "String"
+      }
+    }
+  },
+  "pauseAction": "Pause",
+  "phaseHeading": "Phases",
+  "@phaseHeading": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseMixed": "Partly timed",
+  "@phaseMixed": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseWindows": "Time windows",
+  "@phaseWindows": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseMixedHelp": "The total includes the chosen times and an untimed remainder. Enter more total doses than chosen times.",
+  "@phaseMixedHelp": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseWindowHelp": "A window belongs to its start date. An end before its start falls on the next day. Actual use is recorded separately.",
+  "@phaseWindowHelp": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseWindowStart": "Window start",
+  "@phaseWindowStart": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseWindowEnd": "Window end",
+  "@phaseWindowEnd": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseWindowEndHelp": "Use HH:MM. Both endpoints are kept.",
+  "@phaseWindowEndHelp": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseWindowAnchor": "Reminder time",
+  "@phaseWindowAnchor": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseWindowAnchorHelp": "Optional HH:MM inside the window. This is an alert time, not a recorded dose.",
+  "@phaseWindowAnchorHelp": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseNoAnchor": "No reminder time",
+  "@phaseNoAnchor": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseWindowSummary": "{date}: {start} to {end}, {amount} {unit}. Reminder: {anchor}. Zone: {zone}.",
+  "@phaseWindowSummary": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "anchor": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseOverrideSummary": "Original: {original}, {oldAmount} {oldUnit}. Changed: {effective}, {amount} {unit}.",
+  "@phaseOverrideSummary": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible.",
+    "placeholders": {
+      "original": {
+        "type": "String"
+      },
+      "oldAmount": {
+        "type": "String"
+      },
+      "oldUnit": {
+        "type": "String"
+      },
+      "effective": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseHelp": "Enter each phase yourself. Gaps have no planned doses. Existing recorded doses keep their original meaning.",
+  "@phaseHelp": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseEndHeading": "Plan end",
+  "@phaseEndHeading": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseNoEnd": "Open ended",
+  "@phaseNoEnd": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseDateEnd": "Last day",
+  "@phaseDateEnd": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseExactEnd": "Exact end",
+  "@phaseExactEnd": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseEndZone": "End zone",
+  "@phaseEndZone": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseEndHelp": "The last day includes the whole day in this saved zone. An exact end excludes that instant. Choose an exact end if midnight needs a clock choice.",
+  "@phaseEndHelp": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseExactHelp": "Use a date, time and UTC or numerical offset.",
+  "@phaseExactHelp": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseStart": "Phase start",
+  "@phaseStart": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseLast": "Phase last day",
+  "@phaseLast": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseBoundary": "First boundary: {value}.",
+  "@phaseBoundary": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseGap": "Gap: {start} to {end}. No doses are planned in this range.",
+  "@phaseGap": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseInvalid": "Check phase dates, amounts and timing. Phases must not overlap. Review each entered endpoint and plan end.",
+  "@phaseInvalid": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseChangeHeading": "One-off change",
+  "@phaseChangeHeading": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseChangeHelp": "Choose the original dose by its date and identity. Moving keeps its original amount unless you enter a replacement amount.",
+  "@phaseChangeHelp": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseOriginalDate": "Original date",
+  "@phaseOriginalDate": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseTarget": "New time",
+  "@phaseTarget": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseTargetHelp": "Optional date, time and offset. Leave empty to keep the original time.",
+  "@phaseTargetHelp": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseAmount": "New amount",
+  "@phaseAmount": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseAmountHelp": "Optional. Leave empty to keep the original amount and unit.",
+  "@phaseAmountHelp": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseBefore": "Before: {value}",
+  "@phaseBefore": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseAfter": "After: {value}",
+  "@phaseAfter": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseEndSummary": "Plan end: {value}. Saved zone: {zone}.",
+  "@phaseEndSummary": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseCollision": "Separate doses share this time. Review each identity before saving. This does not combine the doses.",
+  "@phaseCollision": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseCollisionLabel": "Dose identity: {value}",
+  "@phaseCollisionLabel": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseSavedHelp": "Phases and one-off changes retain their original dose identities. Actual use remains separate.",
+  "@phaseSavedHelp": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseRemoveHelp": "Removing a phase changes future expectations. Review the resulting plan before saving.",
+  "@phaseRemoveHelp": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseNotSelected": "Choose an original dose before adding a one-off change.",
+  "@phaseNotSelected": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseReviewIssue": "This change crosses a pause, end or unresolved clock boundary. Choose valid timing or review the plan boundary.",
+  "@phaseReviewIssue": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseSource": "Original identity: {value}",
+  "@phaseSource": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseReviewHelp": "Review the complete amounts and first boundary before saving. Cancel clears this review and changes nothing.",
+  "@phaseReviewHelp": {
+    "description": "Phase and exception scheduling interface. Full identities and units must remain visible."
+  },
+  "phaseWindowMoveHelp": "Enter the full reminder date, time and offset if alerts are enabled. Both endpoints must be entered when moving a window.",
+  "@phaseWindowMoveHelp": {
+    "description": "Explicit one-off window target, no duration or reminder assumption."
+  },
+  "phaseEndpoint": "Window endpoint: {value}",
+  "@phaseEndpoint": {
+    "description": "Full original window endpoint requiring a clock choice.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseWindowChanged": "Original window: {originalStart} to {originalEnd}, reminder {originalAnchor}, {oldAmount} {oldUnit}. Changed window: {start} to {end}, reminder {anchor}, {amount} {unit}. Zone: {zone}.",
+  "@phaseWindowChanged": {
+    "description": "Original and effective full window endpoints, explicit reminder anchor and amounts.",
+    "placeholders": {
+      "originalStart": {
+        "type": "String"
+      },
+      "originalEnd": {
+        "type": "String"
+      },
+      "originalAnchor": {
+        "type": "String"
+      },
+      "oldAmount": {
+        "type": "String"
+      },
+      "oldUnit": {
+        "type": "String"
+      },
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      },
+      "anchor": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseCountSummary": "{count} doses each planned day, {amount} {unit} each. No chosen times.",
+  "@phaseCountSummary": {
+    "description": "Full manually entered phase summary; never generated advice.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseMixedSummary": "{count} doses each planned day. {timed} have chosen times. The untimed doses use {amount} {unit} each.",
+  "@phaseMixedSummary": {
+    "description": "Full manually entered phase summary; never generated advice.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "timed": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseSlotSummary": "Chosen time: {time}, {amount} {unit}.",
+  "@phaseSlotSummary": {
+    "description": "Full manually entered phase summary; never generated advice.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseWindowEntered": "Window: {start} to {end}, {amount} {unit}. Reminder time: {anchor}.",
+  "@phaseWindowEntered": {
+    "description": "Full manually entered phase summary; never generated advice.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "anchor": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseIntervalSummary": "Every {hours} elapsed hours, {amount} {unit}.",
+  "@phaseIntervalSummary": {
+    "description": "Full manually entered phase summary; never generated advice.",
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseReviewed": "Reviewed",
+  "@phaseReviewed": {
+    "description": "Full manually entered phase summary; never generated advice."
+  },
+  "phaseFrom": "Starts at {instant}.",
+  "@phaseFrom": {
+    "description": "Full manually entered phase summary; never generated advice.",
+    "placeholders": {
+      "instant": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseUntil": "Ends before {instant}.",
+  "@phaseUntil": {
+    "description": "Full manually entered phase summary; never generated advice.",
+    "placeholders": {
+      "instant": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseEditHelp": "To change an active phase, enter its last day and add a new phase. Earlier recorded doses stay unchanged.",
+  "@phaseEditHelp": {
+    "description": "How to preserve an already active phase while entering future changes."
+  },
+  "phaseEndpointLabel": "{label}: {date} at {time}, {zone}.",
+  "@phaseEndpointLabel": {
+    "description": "Explicit window endpoint identity and clock review.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseWindowPending": "Window: {startDate} at {start} to {endDate} at {end}, {amount} {unit}. Review endpoint clocks in {zone}.",
+  "@phaseWindowPending": {
+    "description": "Explicit window endpoint identity and clock review.",
+    "placeholders": {
+      "startDate": {
+        "type": "String"
+      },
+      "start": {
+        "type": "String"
+      },
+      "endDate": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "phaseBucketHelp": "This group has {count} untimed doses. Edit the shared plan amount, or record an individual dose with its actual amount.",
+  "@phaseBucketHelp": {
+    "description": "A multi-opportunity daily bucket has no individual planned dose identity. Offer Edit and Record instead of a bucket-wide one-off override.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "phaseSingleCount": "This dose has no chosen time. Enter a new amount, or record actual use separately.",
+  "@phaseSingleCount": {
+    "description": "Count-one amount-only exception. Do not invent an exact time."
+  },
+  "combinedHeading": "Combined entry",
+  "combinedHelp": "Record several sources for one person at the same time. Review each amount and stock effect before saving.",
+  "combinedAction": "Combine",
+  "combinedAdd": "Add source",
+  "combinedCount": "Choose 2 to 16 sources. Each source keeps its own amount and stock effect.",
+  "combinedReview": "Review entry",
+  "combinedReviewHelp": "Save all sources together. Cancelling this review changes no records or stock.",
+  "combinedHistory": "Combined record",
+  "combinedHistoryHelp": "Correct or undo every source together. Each source retains its own history.",
+  "combinedCorrection": "Correct entry",
+  "combinedUndoHelp": "Undo marks every source as voided. Choose the physical stock consequence for each source.",
+  "combinedNoStock": "No stock movement.",
+  "combinedStockUnknown": "Stock outflow unknown. The remaining balance will be unknown.",
+  "combinedOutflow": "Stock outflow: {amount}.",
+  "@combinedOutflow": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    },
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "combinedTotal": "Total from {source}: {amount}.",
+  "@combinedTotal": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    },
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "combinedRemaining": "Remaining: {amount}.",
+  "@combinedRemaining": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    },
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "combinedSite": "Site (optional)",
+  "combinedSiteHelp": "Enter a site label if useful. It is saved for this person only.",
+  "combinedSites": "Site history",
+  "combinedSiteValue": "Site: {site}.",
+  "@combinedSiteValue": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      }
+    },
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "combinedSource": "Source {number}",
+  "@combinedSource": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    },
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "combinedRemove": "Remove",
+  "combinedEdit": "Edit",
+  "combinedChoose": "Choose",
+  "combinedKeep": "Keep",
+  "combinedReverse": "Restore",
+  "combinedKeepHelp": "Keep the original physical consumption.",
+  "combinedReverseHelp": "Reverse the original stock outflow. Use this only for a mistaken entry.",
+  "combinedPhysicalRequired": "Choose the stock consequence for every source.",
+  "combinedInvalid": "Check each source amount, unit and time, then review again.",
+  "combinedRestoreEffect": "Restore the original stock outflow.",
+  "combinedRetainEffect": "Keep the original stock balance.",
+  "@combinedHeading": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedHelp": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedAction": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedAdd": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedCount": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedReview": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedReviewHelp": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedHistory": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedHistoryHelp": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedCorrection": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedUndoHelp": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedNoStock": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedStockUnknown": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedSite": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedSiteHelp": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedSites": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedRemove": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedEdit": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedChoose": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedKeep": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedReverse": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedKeepHelp": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedReverseHelp": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedPhysicalRequired": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedInvalid": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedRestoreEffect": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "@combinedRetainEffect": {
+    "description": "Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences."
+  },
+  "combinedSiteAction": "Site",
+  "@combinedSiteAction": {
+    "description": "One-word command revealing optional site entry or its history editor."
+  },
+  "combinedAmountLabel": "Amount for {name}, in {unit}.",
+  "@combinedAmountLabel": {
+    "description": "Contextual accessible name for a combined source control. Preserve the full entered name and units.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "combinedSiteLabel": "Site for {name}.",
+  "@combinedSiteLabel": {
+    "description": "Contextual accessible name for a combined source control. Preserve the full entered name and units.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "combinedRemoveLabel": "Remove source {number}: {name}.",
+  "@combinedRemoveLabel": {
+    "description": "Contextual accessible name for a combined source control. Preserve the full entered name and units.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "combinedKeepLabel": "Keep consumption for {name}.",
+  "@combinedKeepLabel": {
+    "description": "Contextual accessible name for a combined source control. Preserve the full entered name and units.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "combinedRestoreLabel": "Restore stock for {name}.",
+  "@combinedRestoreLabel": {
+    "description": "Contextual accessible name for a combined source control. Preserve the full entered name and units.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "combinedSourceLabel": "Choose stock for source {number}: {name}.",
+  "@combinedSourceLabel": {
+    "description": "Contextual accessible name for a combined source control. Preserve the full entered name and units.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "combinedSiteInvalid": "Use a site label with 500 characters or fewer.",
+  "@combinedSiteInvalid": {
+    "description": "Recoverable validation beside optional site field; preserves the entered label."
+  },
+  "eventNew": "New event",
+  "eventEdit": "Edit event",
+  "eventName": "Event name",
+  "eventType": "Event type",
+  "eventCycle": "Cycle",
+  "eventPrescription": "Prescription",
+  "eventEmpty": "No events yet. Create a cycle or prescription event to organise recorded use.",
+  "eventHelp": "Events organise use history. They do not record doses or change stock or plans.",
+  "eventPlannedStart": "Planned start",
+  "eventPlannedEnd": "Planned end",
+  "eventActualStart": "Actual start",
+  "eventActualEnd": "Actual end",
+  "eventZone": "Event zone",
+  "eventDateHelp": "Optional. Enter YYYY-MM-DD or an exact ISO time with Z or an offset. A final date includes the whole day in the event zone.",
+  "eventCompleted": "Completed",
+  "eventCompletedHelp": "Record the event as complete. Each item keeps its current plan until you explicitly change it.",
+  "eventDateError": "Enter a valid date or an exact time with Z or an offset. Leave an optional date empty.",
+  "eventZoneError": "Enter a valid IANA zone, such as Europe/London.",
+  "eventMembers": "Event items",
+  "eventMemberHelp": "Membership uses exact times with Z or an offset. Earlier use is included only when it falls within the reviewed interval and event dates.",
+  "eventMemberStart": "Membership start",
+  "eventMemberEnd": "Membership end",
+  "eventMemberOpen": "Open membership",
+  "eventReview": "Review event",
+  "eventPreviewHelp": "Review historical records before saving. Cancelling leaves membership and all records unchanged.",
+  "eventPreviewEnter": "Records included: {count}",
+  "@eventPreviewEnter": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventPreviewLeave": "Records excluded: {count}",
+  "@eventPreviewLeave": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventPreviewChanged": "Event details changed. Review the new historical selection before saving.",
+  "eventNoActuals": "No actual records fall within the selected event dates and memberships.",
+  "eventHistoryHelp": "Actual records keep their original identity, amounts and recorded type. Combined event selections count each record once.",
+  "eventBounds": "Event dates",
+  "eventPlannedLabel": "Planned: {start} to {end}",
+  "@eventPlannedLabel": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "eventActualLabel": "Actual: {start} to {end}",
+  "@eventActualLabel": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "eventNotRecorded": "Not recorded",
+  "eventOpen": "Open",
+  "eventEndReview": "End review",
+  "eventEndHelp": "Review each item’s current plan and next result. No stopping is selected. Dismiss leaves all plans and stock unchanged.",
+  "eventDismiss": "Dismiss",
+  "eventContinue": "Continue",
+  "eventStop": "Stop",
+  "eventReviewRemaining": "Review remaining items. Completed decisions stay saved.",
+  "eventContinueHelp": "Keep the current plan. Its next result remains subject to its saved phases and end rules.",
+  "eventStopHelp": "Stop future eligibility using the reviewed plan command. Saved doses and stock stay unchanged.",
+  "eventNoPlan": "No current plan",
+  "eventDecisionSaved": "Decision saved.",
+  "eventChoose": "Select an item",
+  "eventOwner": "Event owner",
+  "eventInvalid": "Check the event name, dates and membership times, then review again.",
+  "eventNoMembers": "No item memberships. Add an item with its effective start.",
+  "eventMembership": "Membership",
+  "eventInclusive": "A final date includes that whole day in the saved event zone.",
+  "eventCombined": "Combined history",
+  "eventSelectHelp": "Select events to inspect one combined history without counting the same actual record twice.",
+  "eventSelected": "Selected",
+  "eventSelect": "Select",
+  "useHistory": "Use history",
+  "useNew": "New period",
+  "useEdit": "Edit period",
+  "useHelp": "Recorded periods and first-ever starts are optional history. They do not infer continuous use, adherence or change any plan.",
+  "useEmpty": "No use periods recorded. Individual actual records and plans remain separate.",
+  "useStart": "Recorded start",
+  "useEnd": "Recorded end",
+  "useDateHelp": "Enter YYYY, YYYY-MM or YYYY-MM-DD. Use Unknown for an unknown date. Leave the end empty for an open period.",
+  "useDateError": "Enter a valid year, month or date, or Unknown. Leave the end empty for an open period.",
+  "useFirstEver": "First-ever start",
+  "useFirstEverHelp": "Mark this supplied start as the first-ever use. Unknown stays unknown.",
+  "useKind": "Period type",
+  "useTaking": "Use",
+  "useBreak": "Break",
+  "useFirstLabel": "First-ever start: {date}",
+  "@useFirstLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "usePeriodLabel": "{start} to {end}",
+  "@usePeriodLabel": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "useUnknown": "Unknown",
+  "eventRemove": "Remove",
+  "eventAdd": "Add",
+  "eventItemIdentity": "Item: {name} · {detail} · Entry {reference}",
+  "@eventItemIdentity": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      },
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+  "eventClear": "Clear",
+  "eventRevisions": "Revisions",
+  "eventRevision": "Revision {number}",
+  "@eventRevision": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "useDays": "Recorded length: {days} days.",
+  "@useDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "eventReviewTime": "Review time: {time}",
+  "@eventReviewTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "eventMemberStartFor": "Membership start for {name}",
+  "@eventMemberStartFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventMemberEndFor": "Membership end for {name}",
+  "@eventMemberEndFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventRemoveFor": "Remove {name} from future event membership",
+  "@eventRemoveFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventReviewFor": "Review {name} for {person}",
+  "@eventReviewFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSelectFor": "Select {name} for {person}",
+  "@eventSelectFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "eventMemberRange": "Membership: {start} to {end} ({zone}).",
+  "@eventMemberRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "eventBoundaryReview": "This date needs review. Enter an exact time with Z or an offset, check the event zone, then review again.",
+  "eventDueReview": "This event has ended. Review which plans continue.",
+  "attachments": "Files",
+  "attachmentHelp": "Add an optional original file or photo to this record. A photo does not confirm that a dose was taken.",
+  "attachmentEmpty": "No files attached. Choose a file or an existing photo to add one.",
+  "attachmentChoose": "Choose",
+  "attachmentPhotos": "Photos",
+  "attachmentCapture": "Capture",
+  "attachmentUnavailable": "File selection is unavailable here. Existing protected files remain available.",
+  "attachmentCameraUnavailable": "Camera capture is unavailable here. You can choose an existing photo.",
+  "attachmentNew": "Add file",
+  "attachmentOriginal": "Original file",
+  "attachmentName": "File name",
+  "attachmentRename": "Rename",
+  "attachmentDelete": "Delete from record",
+  "attachmentDeleteHelp": "Delete {name} from {person}’s record. Vital removes its protected copy after any open preview or share releases it. Your source file and shared copies stay unchanged.",
+  "@attachmentDeleteHelp": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentShare": "Share",
+  "attachmentShareHeading": "Share file",
+  "attachmentShareHelp": "Share {name} for {person}. Only this original is handed to the destination you choose. Its contents and metadata may contain personal information.",
+  "@attachmentShareHelp": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentShareLifetime": "The receiving app can read the prepared copy for up to 24 hours, including after Vital locks. It may keep its own copy.",
+  "attachmentSaveHelp": "Save a copy of this original to the location you choose. That copy is outside Vital’s protected storage.",
+  "attachmentReady": "Ready",
+  "attachmentStaging": "Importing file",
+  "attachmentAwaiting": "Waiting for selection",
+  "attachmentInterrupted": "Selection interrupted. Resume the original import or cancel it.",
+  "attachmentRemoving": "Removing file",
+  "attachmentPinned": "An open preview or share keeps this exact original until it is released.",
+  "attachmentBytes": "{count, plural, =1{1 byte} other{{count} bytes}}",
+  "@attachmentBytes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "attachmentSaved": "File added to this record.",
+  "attachmentCancelled": "Selection cancelled. The original is unchanged.",
+  "attachmentShared": "Share opened. The prepared original stays available for up to 24 hours.",
+  "attachmentCopySaved": "Copy saved to the location you chose.",
+  "attachmentFailed": "Unable to complete this file action. Try again.",
+  "attachmentStale": "This file’s record changed or is unavailable. Return to its original record and review it.",
+  "attachmentArchivedProfile": "This person is archived. Reactivate them in People to manage files.",
+  "attachmentVoidedRecord": "This dose is voided. Files cannot be added to it.",
+  "attachmentNameError": "Enter a file name with 1 to 255 characters.",
+  "attachmentByteError": "Choose a file no larger than 16 MiB. Your source file is unchanged.",
+  "attachmentImageError": "This image cannot be previewed. Choose a complete image with at most 16 million pixels and one frame. Your source is unchanged.",
+  "attachmentPdfError": "This PDF cannot be previewed. Choose a complete, unencrypted PDF with no more than 100 pages. Your source is unchanged.",
+  "attachmentBusy": "An import is already waiting. Resume or cancel it before choosing another file.",
+  "attachmentShareBusy": "Earlier shares are still available to their receiving apps. Try again after their 24-hour handoff period.",
+  "attachmentPreview": "File preview",
+  "attachmentPreviewHelp": "This preview is scaled for display. Sharing or saving uses the unchanged original.",
+  "attachmentPreviewHelpShare": "This preview is scaled for display. Sharing uses the unchanged original.",
+  "attachmentPreviewHelpSave": "This preview is scaled for display. Saving uses the unchanged original.",
+  "attachmentPreviewHelpNone": "This preview is scaled for display.",
+  "attachmentNoPreview": "This file type has no preview.",
+  "attachmentNoPreviewShare": "This file type has no preview. You can share the unchanged original.",
+  "attachmentNoPreviewSave": "This file type has no preview. You can save the unchanged original.",
+  "attachmentNoPreviewShareSave": "This file type has no preview. You can share or save the unchanged original.",
+  "attachmentPreviewFailure": "Unable to show this preview. Retry.",
+  "attachmentPreviewFailureShare": "Unable to show this preview. Retry. You can share the unchanged original.",
+  "attachmentPreviewFailureSave": "Unable to show this preview. Retry. You can save the unchanged original.",
+  "attachmentPreviewFailureShareSave": "Unable to show this preview. Retry. You can share or save the unchanged original.",
+  "attachmentPage": "Page {page} of {total}",
+  "@attachmentPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "attachmentZoom": "Zoom",
+  "attachmentReset": "Reset",
+  "attachmentResume": "Resume",
+  "attachmentJobs": "Waiting imports",
+  "attachmentTargetItem": "Item: {name}",
+  "@attachmentTargetItem": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentTargetDose": "Dose: {name}, {amount} {unit} at {time}",
+  "@attachmentTargetDose": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentFor": "Files for {person}",
+  "@attachmentFor": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentViewFor": "View {name} for {person}",
+  "@attachmentViewFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentImportAmount": "Imported: {count} bytes.",
+  "@attachmentImportAmount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "attachmentLocked": "Unlock Vital to continue this file action.",
+  "attachmentJobUnavailable": "This import no longer matches its original record. Cancel it and return to that record.",
+  "attachmentReopen": "Open",
+  "attachmentClose": "Close",
+  "attachmentBack": "Back",
+  "attachmentRecordRevision": "Attached to revision {revision}.",
+  "@attachmentRecordRevision": {
+    "placeholders": {
+      "revision": {
+        "type": "int"
+      }
+    }
+  },
+  "attachmentRenamed": "File name saved.",
+  "attachmentRemoved": "File removed from this record. Open uses retain their copy until released.",
+  "attachmentSaveHeading": "Save file",
+  "attachmentSaveFor": "Save a copy of {name} for {person} to the location you choose. That copy is outside Vital’s protected storage.",
+  "@attachmentSaveFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "historyTimeline": "Timeline",
+  "historyCalendar": "Calendar",
+  "historyFilters": "Filters",
+  "filterType": "Type",
+  "filterEvent": "Event",
+  "filterStatus": "Status",
+  "filterDates": "Dates",
+  "statusAll": "All",
+  "statusRecorded": "Recorded",
+  "statusSkipped": "Skipped",
+  "statusVoided": "Voided",
+  "historyNoEntries": "No entries",
+  "historyNoEntriesBody": "No recorded or skipped entries match this view. Clear a filter or choose another date.",
+  "historyNewEntries": "History changed. Refresh to show the latest entries.",
+  "historyRefreshed": "History refreshed. Your filters are retained.",
+  "historyMoved": "This entry moved to {date}.",
+  "@historyMoved": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "refresh": "Refresh",
+  "dates": "Dates",
+  "timeFormat": "Time format",
+  "timeSystem": "System",
+  "time12": "12-hour",
+  "time24": "24-hour",
+  "timeFormatHelp": "Choose how times appear. Recorded times and amounts stay unchanged. Time entry uses 24-hour HH:MM.",
+  "displaySaveFailure": "Unable to save the time format. Choose it again to retry.",
+  "shownInZone": "Shown in {zone}",
+  "@shownInZone": {
+    "placeholders": {
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "plannedInZone": "Planned in {zone}",
+  "@plannedInZone": {
+    "placeholders": {
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "dateOnly": "Date only",
+  "timeNeedsReview": "Time needs review",
+  "historyRangeTooBroad": "Too many filters",
+  "historyRangeTooBroadBody": "Choose fewer types or events to load this view.",
+  "historyLoadFailed": "Unable to load history. Try again.",
+  "historyMatched": "Matches filters",
+  "historyGroupContext": "Full group shown. Matching sources are marked.",
+  "historyRecorded": "Recorded use",
+  "historySkippedHelp": "This is a skipped planned occurrence. It is not recorded use.",
+  "historyPlannedAmount": "Planned: {amount} {unit}",
+  "@historyPlannedAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "historyPlanCaptured": "Saved plan: {name}",
+  "@historyPlanCaptured": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "historyPlannedDate": "Planned date: {date}",
+  "@historyPlannedDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "historySkipAudit": "Action history",
+  "historyActionRevision": "Action revision {revision}. {kind}. {date}.",
+  "@historyActionRevision": {
+    "placeholders": {
+      "revision": {
+        "type": "int"
+      },
+      "kind": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "historyExactInstant": "Exact instant: {instant}",
+  "@historyExactInstant": {
+    "placeholders": {
+      "instant": {
+        "type": "String"
+      }
+    }
+  },
+  "historyCalendarHelp": "Choose a day to view its entries. Scroll across the calendar when needed.",
+  "historyMarkerLegend": "● Recorded. − Skipped. × Voided.",
+  "historyDaySummary": "{date}. {recorded} recorded, {skipped} skipped, {voided} voided.",
+  "@historyDaySummary": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "recorded": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      },
+      "voided": {
+        "type": "int"
+      }
+    }
+  },
+  "historyDayCounts": "Recorded: {recorded}. Skipped: {skipped}. Voided: {voided}.",
+  "@historyDayCounts": {
+    "placeholders": {
+      "recorded": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      },
+      "voided": {
+        "type": "int"
+      }
+    }
+  },
+  "previousMonth": "Previous month",
+  "nextMonth": "Next month",
+  "historyMonthLoading": "Loading day counts…",
+  "historyWindow": "Showing an older window. Refresh to return to the latest entries.",
+  "historyDateHelp": "Use YYYY-MM-DD. The end date is included in the shown zone.",
+  "historyFrom": "From",
+  "historyThrough": "Through",
+  "historyDateError": "Enter valid dates with the end on or after the start.",
+  "historyUnknownType": "Unknown type",
+  "historyNoOptions": "No matching choices. Try another search.",
+  "historyFilterLimit": "Choose at most {count} entries.",
+  "@historyFilterLimit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "historyScopeFixed": "This view keeps its selected person. Other feeds stay unchanged.",
+  "historyPlanUnknown": "No saved plan context. No missed use is inferred.",
+  "historyInspection": "Source",
+  "historyUnknownSource": "This source is no longer available. Return to history and refresh.",
+  "historyAuditEmpty": "No earlier actions are available.",
+  "historyShowing": "Showing {count} entries.",
+  "@historyShowing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "historyNoCapturedPlan": "No plan captured",
+  "historyNoCapturedPlanBody": "There are no captured planned actions in this view. This does not show missed use.",
+  "chartsTitle": "Charts",
+  "chartSeries": "Series",
+  "chartRange": "Range",
+  "chartBuckets": "Buckets",
+  "chartDay": "Day",
+  "chartWeek": "Week",
+  "chartMonth": "Month",
+  "chartTable": "Table",
+  "chartPlot": "Chart",
+  "chartTotal": "Total",
+  "chartKnownTotal": "Known total",
+  "chartIncomplete": "Some ingredient amounts are unknown.",
+  "chartEmpty": "No recorded use in this range.",
+  "chartLoading": "Loading chart…",
+  "chartLoadFailed": "Unable to load the chart. Try again.",
+  "chartInvalidZone": "The display time zone is unavailable. Reset to show UTC.",
+  "chartTooLarge": "Choose a shorter range to show every record.",
+  "chartGap": "No recorded use",
+  "chartAnnotations": "Context",
+  "chartAnnotationOverflow": "{count, plural, one {1 more context entry. Choose a shorter range.} other {{count} more context entries. Choose a shorter range.}}",
+  "@chartAnnotationOverflow": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chartInspect": "View",
+  "chartZoomIn": "Narrow",
+  "chartZoomOut": "Widen",
+  "chartPrevious": "Earlier",
+  "chartNext": "Later",
+  "chartFrom": "From",
+  "chartBefore": "Before",
+  "chartApply": "Apply",
+  "chartChoosePerson": "Choose a person",
+  "chartChooseSeries": "Choose a series",
+  "chartExact": "Exact amount",
+  "chartSourceCount": "{count, plural, one {1 administration} other {{count} administrations}}",
+  "@chartSourceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chartEventStart": "Event start",
+  "chartEventEnd": "Event end",
+  "chartPlanChanged": "Plan changed",
+  "chartPauseStart": "Pause start",
+  "chartPauseEnd": "Pause end",
+  "chartPhaseStart": "Phase start",
+  "chartPhaseEnd": "Phase end",
+  "chartPlanEnd": "Plan end",
+  "apply": "Apply",
+  "choose": "Choose",
+  "clear": "Clear",
+  "reset": "Reset",
+  "search": "Search",
+  "undone": "Undone",
+  "cycleElapsed": "{days, plural, =0 {0 days elapsed} =1 {1 day elapsed} other {{days} days elapsed}}",
+  "@cycleElapsed": {
+    "description": "Cycle timing in its saved zone. Date-only periods count calendar days, with the final date included. Exact times count full elapsed or started remaining 24-hour periods.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "cycleRemaining": "{days, plural, =0 {0 days remaining} =1 {1 day remaining} other {{days} days remaining}}",
+  "@cycleRemaining": {
+    "description": "Cycle timing in its saved zone. Date-only periods count calendar days, with the final date included. Exact times count full elapsed or started remaining 24-hour periods.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "cycleStartsIn": "{days, plural, =0 {Starts today} =1 {Starts in 1 day} other {Starts in {days} days}}",
+  "@cycleStartsIn": {
+    "description": "Future cycle start. Date-only values use saved-zone calendar days; exact starts round remaining 24-hour periods up.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "todayDue": "Due",
+  "@todayDue": {
+    "description": "Today section heading for planned occurrences, separate from recorded activity."
+  },
+  "todayUpcoming": "Upcoming",
+  "@todayUpcoming": {
+    "description": "Today section heading for planned occurrences, separate from recorded activity."
+  },
+  "historyYesterday": "Yesterday",
+  "historyDaysAgo": "{days, plural, one{1 day ago} other{{days} days ago}}",
+  "@historyDaysAgo": {
+    "description": "Relative civil date in the displayed timezone, never elapsed 24-hour periods.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "historyRelativeExact": "{relative}. {exact}",
+  "@historyRelativeExact": {
+    "description": "Accessible relative date followed by full exact date, time and displayed timezone.",
+    "placeholders": {
+      "relative": {
+        "type": "String"
+      },
+      "exact": {
+        "type": "String"
+      }
+    }
+  },
+  "historyDateZone": "{date}. {zone}. Date only.",
+  "@historyDateZone": {
+    "description": "Accessible date-only entry with its saved plan timezone. Do not imply an exact time.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "historyDoseNoPlanBody": "This dose has no captured plan. This does not show missed use.",
+  "historySelectedTypes": "{count, plural, one{1 type selected} other{{count} types selected}}",
+  "@historySelectedTypes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "historySelectedEvents": "{count, plural, one{1 event selected} other{{count} events selected}}",
+  "@historySelectedEvents": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "historyDateFilter": "{from} to {through}",
+  "@historyDateFilter": {
+    "description": "Active inclusive date filter. Either endpoint may be Any date.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "through": {
+        "type": "String"
+      }
+    }
+  },
+  "historyAnyDate": "Any date",
+  "chartAmount": "{amount} {unit}",
+  "@chartAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "chartSeriesLabel": "{name} · {unit}",
+  "@chartSeriesLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "chartCanvasSummary": "{name}, recorded amounts in {unit}. Use the table to inspect exact values and sources.",
+  "@chartCanvasSummary": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "chartDateRange": "{start} to {end}",
+  "@chartDateRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "chartUnknown": "Unknown",
+  "chartContextUnavailable": "Some context could not be loaded. Choose a shorter range.",
+  "chartRangeInvalid": "Choose valid dates with the end after the start.",
+  "chartSources": "Sources",
+  "historyCapturedPlan": "Plan captured",
+  "chartPlotUnavailable": "Use the table to inspect this range of quantities.",
+  "working": "Working…",
+  "@working": {
+    "description": "Accessible status while a command button is processing; does not claim a save succeeded."
+  },
+  "chartRangeSummary": "{start} to before {end}",
+  "@chartRangeSummary": {
+    "description": "Exact chart range with an inclusive start and exclusive end. Preserve the word before.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingTitle": "Supporting",
+  "@supportingTitle": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingPanels": "Panels",
+  "@supportingPanels": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingObservations": "Observations",
+  "@supportingObservations": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingPanel": "Lab panel",
+  "@supportingPanel": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingObservation": "Observation",
+  "@supportingObservation": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingAdd": "Add",
+  "@supportingAdd": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingManual": "Enter values manually. Save before attaching source files.",
+  "@supportingManual": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingEmpty": "No supporting records in this view. Add a panel or observation, or change the filters.",
+  "@supportingEmpty": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingTitleLabel": "Title",
+  "@supportingTitleLabel": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingCollection": "Collection date",
+  "@supportingCollection": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingMeasured": "Measured date",
+  "@supportingMeasured": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingReport": "Report date",
+  "@supportingReport": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingEntry": "Entry date",
+  "@supportingEntry": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingUnknown": "Unknown",
+  "@supportingUnknown": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingDay": "Date",
+  "@supportingDay": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingExact": "Exact",
+  "@supportingExact": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingPartial": "Partial",
+  "@supportingPartial": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingDateText": "Source date",
+  "@supportingDateText": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingDateHint": "Use YYYY-MM-DD for a date. For an exact time, include its UTC offset and source time zone. Keep incomplete dates as written.",
+  "@supportingDateHint": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingZone": "Source time zone",
+  "@supportingZone": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingPrecision": "Date precision",
+  "@supportingPrecision": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingResults": "Results",
+  "@supportingResults": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingMarker": "Marker name",
+  "@supportingMarker": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingOriginalMarker": "Original marker",
+  "@supportingOriginalMarker": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingValue": "Original value",
+  "@supportingValue": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingNumeric": "Numeric",
+  "@supportingNumeric": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingQualitative": "Text",
+  "@supportingQualitative": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingMissing": "Missing",
+  "@supportingMissing": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingQualifier": "Qualifier",
+  "@supportingQualifier": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingUnit": "Original unit",
+  "@supportingUnit": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingRange": "Source range",
+  "@supportingRange": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingFlag": "Source flag",
+  "@supportingFlag": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingProvenance": "Source details",
+  "@supportingProvenance": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingLab": "Laboratory",
+  "@supportingLab": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingLabIdentity": "Laboratory identity",
+  "@supportingLabIdentity": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingMethod": "Method",
+  "@supportingMethod": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingMethodIdentity": "Method identity",
+  "@supportingMethodIdentity": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingSpecimen": "Specimen",
+  "@supportingSpecimen": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingSpecimenIdentity": "Specimen identity",
+  "@supportingSpecimenIdentity": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingSourceText": "Source text",
+  "@supportingSourceText": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingRecordedBy": "Recorded by",
+  "@supportingRecordedBy": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingNotes": "Notes",
+  "@supportingNotes": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingNewMetric": "New marker",
+  "@supportingNewMetric": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingChooseMetric": "Reuse a saved marker to continue its trend. Similar names are kept separate.",
+  "@supportingChooseMetric": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingMetrics": "Markers",
+  "@supportingMetrics": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingInvalid": "Check the title, dates and each result. Numeric values can include a sign or scientific notation. Exact times need an offset and time zone.",
+  "@supportingInvalid": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingNoResults": "No results recorded.",
+  "@supportingNoResults": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingUnknownDate": "Date unknown",
+  "@supportingUnknownDate": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingDateBasis": "Date basis",
+  "@supportingDateBasis": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingFrom": "From date",
+  "@supportingFrom": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingBefore": "Before date",
+  "@supportingBefore": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingIncludeUnknown": "Include unknown dates",
+  "@supportingIncludeUnknown": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingFilters": "Filters",
+  "@supportingFilters": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingTrends": "Trends",
+  "@supportingTrends": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingTable": "Table",
+  "@supportingTable": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingGroupUncertain": "Source details are incomplete. These results are shown separately.",
+  "@supportingGroupUncertain": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingTrendScope": "Results are grouped by marker, original unit, laboratory, method and specimen. Points are shown separately. No totals or clinical interpretation are calculated.",
+  "@supportingTrendScope": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingNoTrend": "No results for this marker and date range.",
+  "@supportingNoTrend": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingTooMany": "This view is too large. Narrow the date range and retry.",
+  "@supportingTooMany": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingUnavailable": "This supporting record is unavailable for this person.",
+  "@supportingUnavailable": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingVoided": "Voided",
+  "@supportingVoided": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingVoid": "Void",
+  "@supportingVoid": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingRestore": "Restore",
+  "@supportingRestore": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingVoidBody": "Void this record? Its original values and revisions will remain available.",
+  "@supportingVoidBody": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingRestoreBody": "Restore this record to the current supporting list?",
+  "@supportingRestoreBody": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingRevisions": "Revisions",
+  "@supportingRevisions": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingSource": "Source",
+  "@supportingSource": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingContext": "Linked context",
+  "@supportingContext": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingContextHint": "Linked items and cycles provide context. They do not establish a cause.",
+  "@supportingContextHint": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingRangeHint": "Copied source text only. A source flag or range is not advice.",
+  "@supportingRangeHint": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingRemove": "Remove",
+  "@supportingRemove": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingPrevious": "Previous",
+  "@supportingPrevious": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingNext": "Next",
+  "@supportingNext": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingApply": "Apply",
+  "@supportingApply": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingRetry": "Retry",
+  "@supportingRetry": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingExpand": "Expand",
+  "@supportingExpand": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingCollapse": "Collapse",
+  "@supportingCollapse": {
+    "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingResultPosition": "Result {current} of {count}",
+  "@supportingResultPosition": {
+    "description": "Complete supporting record message.",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "supportingRevisionLabel": "Revision {revision}",
+  "@supportingRevisionLabel": {
+    "description": "Complete supporting record message.",
+    "placeholders": {
+      "revision": {
+        "type": "int"
+      }
+    }
+  },
+  "supportingTarget": "Supporting record: {title}",
+  "@supportingTarget": {
+    "description": "Complete supporting record message.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingDateLabel": "{label}: {value}",
+  "@supportingDateLabel": {
+    "description": "Complete supporting record message.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingGroupLabel": "{marker} · {unit}",
+  "@supportingGroupLabel": {
+    "description": "Complete supporting record message.",
+    "placeholders": {
+      "marker": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingPlotLabel": "{count} exact numeric results. Use the table to inspect every result.",
+  "@supportingPlotLabel": {
+    "description": "Complete supporting record message.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "supportingLocked": "Unlock Vital to view supporting records.",
+  "@supportingLocked": {
+    "description": "Supporting records context and precise display state."
+  },
+  "supportingLoadFailure": "Unable to load supporting records. Retry this view.",
+  "@supportingLoadFailure": {
+    "description": "Supporting records context and precise display state."
+  },
+  "supportingDateWindow": "Dates from {start}, before {end}.",
+  "@supportingDateWindow": {
+    "description": "Supporting records context and precise display state.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingPlotBounds": "Displayed values range from {minimum} to {maximum}.",
+  "@supportingPlotBounds": {
+    "description": "Supporting records context and precise display state.",
+    "placeholders": {
+      "minimum": {
+        "type": "String"
+      },
+      "maximum": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingPlotDates": "Displayed source dates: {start} to {end}.",
+  "@supportingPlotDates": {
+    "description": "Supporting records context and precise display state.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingSourceVersion": "Source version {version}: {id}",
+  "@supportingSourceVersion": {
+    "description": "Supporting records context and precise display state.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingOffsetFallback": "This date uses UTC because its display time zone is unavailable. The saved source date is retained.",
+  "@supportingOffsetFallback": {
+    "description": "Supporting records context and precise display state."
+  },
+  "supportingIncludeVoided": "Include voided",
+  "@supportingIncludeVoided": {
+    "description": "Supporting date filter or positive list toggle."
+  },
+  "supportingIncludeVoidedHint": "Show voided records alongside current records.",
+  "@supportingIncludeVoidedHint": {
+    "description": "Supporting date filter or positive list toggle."
+  },
+  "supportingCollectionChoice": "Collection",
+  "@supportingCollectionChoice": {
+    "description": "Supporting date filter or positive list toggle."
+  },
+  "supportingReportChoice": "Report",
+  "@supportingReportChoice": {
+    "description": "Supporting date filter or positive list toggle."
+  },
+  "supportingEntryChoice": "Entry",
+  "@supportingEntryChoice": {
+    "description": "Supporting date filter or positive list toggle."
+  },
+  "supportingAddPanel": "Add blood test",
+  "@supportingAddPanel": {
+    "description": "Manual supporting form heading or essential save requirement."
+  },
+  "supportingEditPanel": "Edit blood test",
+  "@supportingEditPanel": {
+    "description": "Manual supporting form heading or essential save requirement."
+  },
+  "supportingAddObservation": "Add observation",
+  "@supportingAddObservation": {
+    "description": "Manual supporting form heading or essential save requirement."
+  },
+  "supportingEditObservation": "Edit observation",
+  "@supportingEditObservation": {
+    "description": "Manual supporting form heading or essential save requirement."
+  },
+  "supportingObservationManual": "Enter at least one value or text result. Save before attaching source files.",
+  "@supportingObservationManual": {
+    "description": "Manual supporting form heading or essential save requirement."
+  }
+}

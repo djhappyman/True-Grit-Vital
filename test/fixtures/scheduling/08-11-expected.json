@@ -1,0 +1,829 @@
+{
+  "schema": "vital-g03-oracle-1",
+  "scope": "Preparation only. No production resolver, transaction, UI or native delivery evidence.",
+  "timezone_basis": "Host zoneinfo; version is reported by verification, not silently treated as admitted Dart 2026e.",
+  "cases": [
+    {
+      "id": "C01",
+      "ticket": 8,
+      "status": "accepted_family_explicit_input",
+      "inputs": {
+        "weekdays": [
+          0,
+          3
+        ],
+        "start": "2026-10-19",
+        "end": "2026-11-01"
+      },
+      "expected": [
+        "2026-10-19",
+        "2026-10-22",
+        "2026-10-26",
+        "2026-10-29"
+      ],
+      "verification_basis": "Monday/Thursday calendar lookup; no elapsed spacing implied"
+    },
+    {
+      "id": "C02",
+      "ticket": 8,
+      "status": "accepted_family_explicit_input",
+      "inputs": {
+        "anchor": "2026-03-28",
+        "every_days": 2,
+        "start": "2026-03-28",
+        "end": "2026-04-02"
+      },
+      "expected": [
+        "2026-03-28",
+        "2026-03-30",
+        "2026-04-01"
+      ],
+      "verification_basis": "integer civil-day difference from preserved anchor"
+    },
+    {
+      "id": "C03",
+      "ticket": 8,
+      "status": "accepted_family_explicit_input",
+      "inputs": {
+        "anchor": "2026-12-28",
+        "every_days": 3,
+        "start": "2026-12-28",
+        "end": "2027-01-04"
+      },
+      "expected": [
+        "2026-12-28",
+        "2026-12-31",
+        "2027-01-03"
+      ],
+      "verification_basis": "integer civil-day difference from preserved anchor"
+    },
+    {
+      "id": "C04",
+      "ticket": 8,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "anchor_week": "2026-12-28",
+        "every_weeks": 2,
+        "weekdays": [
+          0,
+          3
+        ],
+        "end": "2027-01-15",
+        "composition": "intersection"
+      },
+      "expected": [
+        "2026-12-28",
+        "2026-12-31",
+        "2027-01-11",
+        "2027-01-14"
+      ],
+      "verification_basis": "explicit anchored week parity and selected weekdays; locale cannot change anchor"
+    },
+    {
+      "id": "C05",
+      "ticket": 8,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "year": 2027,
+        "month": 1,
+        "nominal_day": 31,
+        "every_months": 1,
+        "candidate_months": 4,
+        "missing_date": "last_day"
+      },
+      "expected": [
+        "2027-01-31",
+        "2027-02-28",
+        "2027-03-31",
+        "2027-04-30"
+      ],
+      "verification_basis": "month-index arithmetic; nominal day never changes after substitution"
+    },
+    {
+      "id": "C06",
+      "ticket": 8,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "year": 2027,
+        "month": 1,
+        "nominal_day": 31,
+        "every_months": 1,
+        "candidate_months": 5,
+        "missing_date": "omit"
+      },
+      "expected": [
+        "2027-01-31",
+        "2027-03-31",
+        "2027-05-31"
+      ],
+      "verification_basis": "month-index arithmetic; nominal day never changes after substitution"
+    },
+    {
+      "id": "C07",
+      "ticket": 8,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "year": 2028,
+        "month": 1,
+        "nominal_day": 31,
+        "every_months": 1,
+        "candidate_months": 3,
+        "missing_date": "last_day"
+      },
+      "expected": [
+        "2028-01-31",
+        "2028-02-29",
+        "2028-03-31"
+      ],
+      "verification_basis": "month-index arithmetic; nominal day never changes after substitution"
+    },
+    {
+      "id": "C08",
+      "ticket": 8,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "year": 2026,
+        "month": 11,
+        "nominal_day": 31,
+        "every_months": 2,
+        "candidate_months": 4,
+        "missing_date": "last_day"
+      },
+      "expected": [
+        "2026-11-30",
+        "2027-01-31",
+        "2027-03-31",
+        "2027-05-31"
+      ],
+      "verification_basis": "month-index arithmetic; nominal day never changes after substitution"
+    },
+    {
+      "id": "C09",
+      "ticket": 8,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "selector": "last Monday",
+        "months": [
+          "2027-01",
+          "2027-02",
+          "2027-03"
+        ]
+      },
+      "expected": [
+        "2027-01-25",
+        "2027-02-22",
+        "2027-03-29"
+      ],
+      "verification_basis": "independent weekday enumeration, not a missing-day substitute"
+    },
+    {
+      "id": "C10",
+      "ticket": 8,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "anchor": "2028-02-29",
+        "every_months": 12,
+        "missing_date": "omit",
+        "cursor": "2028-03-01",
+        "preview_end": "2028-04-01"
+      },
+      "expected": {
+        "range": [],
+        "next_date": "2032-02-29"
+      },
+      "verification_basis": "2029/2030/2031 non-leap; 2032 leap; separate sparse next beyond empty preview"
+    },
+    {
+      "id": "C11",
+      "ticket": 8,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "anchor": "2028-02-29",
+        "every_months": 12,
+        "missing_date": "last_day",
+        "cursor": "2028-03-01"
+      },
+      "expected": "2029-02-28",
+      "verification_basis": "explicit alternate missing-date branch"
+    },
+    {
+      "id": "B01",
+      "ticket": 8,
+      "status": "accepted_family_explicit_input",
+      "inputs": {
+        "anchor": "2000-01-01",
+        "every_days": 2,
+        "cursor": "2090-01-01",
+        "zone": "Etc/UTC",
+        "operation": "next_date_strict_after"
+      },
+      "expected": "2090-01-02",
+      "verification_basis": "90*365+23 = 32873 elapsed calendar days to cursor; next ordinal at 32874; UTC avoids asset extrapolation"
+    },
+    {
+      "id": "B02",
+      "ticket": 10,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "anchor": "2000-01-01",
+        "every_days": 2,
+        "pause_start": "2026-01-01",
+        "resume": "2046-01-01",
+        "choice": "preserve",
+        "zone": "Etc/UTC"
+      },
+      "expected": "2046-01-01",
+      "verification_basis": "seek to resume-eligible day algebraically; no paused-day materialization"
+    },
+    {
+      "id": "B03",
+      "ticket": 8,
+      "status": "oracle_defensive_validation",
+      "inputs": {
+        "invalid": [
+          "zero_interval",
+          "negative_interval",
+          "unbounded_oracle_range",
+          "missing_month_policy"
+        ]
+      },
+      "expected": [
+        "zero_interval",
+        "negative_interval",
+        "unbounded_oracle_range",
+        "missing_month_policy"
+      ],
+      "verification_basis": "bounded reference tool rejects malformed inputs; these are not application product limits"
+    },
+    {
+      "id": "Z01",
+      "ticket": 8,
+      "status": "existing_daily_engineering_policy",
+      "inputs": {
+        "local": "2026-03-29T01:30:00",
+        "zone": "Europe/London"
+      },
+      "expected": [],
+      "verification_basis": "UTC round-trip validates each fold; no constructor normalization or automatic choice"
+    },
+    {
+      "id": "Z02",
+      "ticket": 8,
+      "status": "existing_daily_engineering_policy",
+      "inputs": {
+        "local": "2026-10-25T01:30:00",
+        "zone": "Europe/London"
+      },
+      "expected": [
+        "2026-10-25T00:30:00Z",
+        "2026-10-25T01:30:00Z"
+      ],
+      "verification_basis": "UTC round-trip validates each fold; no constructor normalization or automatic choice"
+    },
+    {
+      "id": "Z03",
+      "ticket": 8,
+      "status": "existing_daily_engineering_policy",
+      "inputs": {
+        "local": "2026-10-04T02:15:00",
+        "zone": "Australia/Lord_Howe"
+      },
+      "expected": [],
+      "verification_basis": "UTC round-trip validates each fold; no constructor normalization or automatic choice"
+    },
+    {
+      "id": "Z04",
+      "ticket": 8,
+      "status": "existing_daily_engineering_policy",
+      "inputs": {
+        "local": "2026-04-05T01:45:00",
+        "zone": "Australia/Lord_Howe"
+      },
+      "expected": [
+        "2026-04-04T14:45:00Z",
+        "2026-04-04T15:15:00Z"
+      ],
+      "verification_basis": "UTC round-trip validates each fold; no constructor normalization or automatic choice"
+    },
+    {
+      "id": "Z05",
+      "ticket": 8,
+      "status": "existing_daily_engineering_policy",
+      "inputs": {
+        "next_local": "2026-07-11T08:00:00",
+        "local_zone": "America/New_York",
+        "home_zone": "Europe/London"
+      },
+      "expected": {
+        "follow_local": "2026-07-11T12:00:00Z",
+        "fixed_home": "2026-07-11T07:00:00Z"
+      },
+      "verification_basis": "same wall time, separately saved plan-zone bases"
+    },
+    {
+      "id": "Z06",
+      "ticket": 8,
+      "status": "existing_daily_engineering_policy",
+      "inputs": {
+        "switch": "2026-07-10T09:00:00Z",
+        "before": "Pacific/Kiritimati",
+        "after": "Pacific/Honolulu",
+        "bucket_progress": {
+          "2026-07-09": 2,
+          "2026-07-10": 1
+        }
+      },
+      "expected": [
+        "2026-07-10",
+        "2026-07-09",
+        "2026-07-10"
+      ],
+      "verification_basis": "date visits reuse original date identity/progress; no third bucket"
+    },
+    {
+      "id": "E01",
+      "ticket": 9,
+      "status": "accepted_family_explicit_input",
+      "inputs": {
+        "anchor": "2026-03-28T22:00:00Z",
+        "every_hours": 6,
+        "ordinals": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "expected": [
+        "2026-03-28T22:00:00Z",
+        "2026-03-29T04:00:00Z",
+        "2026-03-29T10:00:00Z",
+        "2026-03-29T16:00:00Z"
+      ],
+      "verification_basis": "UTC arithmetic: every adjacent gap exactly 21600 seconds across clock transition"
+    },
+    {
+      "id": "E02",
+      "ticket": 9,
+      "status": "accepted_family_explicit_input",
+      "inputs": {
+        "anchor": "2026-10-24T21:00:00Z",
+        "every_hours": 6,
+        "ordinals": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "expected": [
+        "2026-10-24T21:00:00Z",
+        "2026-10-25T03:00:00Z",
+        "2026-10-25T09:00:00Z",
+        "2026-10-25T15:00:00Z"
+      ],
+      "verification_basis": "UTC arithmetic: every adjacent gap exactly 21600 seconds across clock transition"
+    },
+    {
+      "id": "A01",
+      "ticket": 9,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "records": [
+          {
+            "id": "a1",
+            "actual": "2026-03-29T06:00:00Z",
+            "entered": "2026-03-29T06:10:00Z",
+            "qualifies": true
+          }
+        ],
+        "every_hours": 6,
+        "policy": "P4-most-recent-qualifying-actual-single-next"
+      },
+      "expected": {
+        "anchor": "a1",
+        "next": "2026-03-29T12:00:00Z"
+      },
+      "verification_basis": "max actual instant then smallest stable ID; explicit qualification/voiding; entry time excluded"
+    },
+    {
+      "id": "A02",
+      "ticket": 9,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "records": [
+          {
+            "id": "a1",
+            "actual": "2026-03-29T05:00:00Z",
+            "entered": "2026-03-29T06:10:00Z",
+            "qualifies": true
+          }
+        ],
+        "every_hours": 6,
+        "policy": "P4-most-recent-qualifying-actual-single-next"
+      },
+      "expected": {
+        "anchor": "a1",
+        "next": "2026-03-29T11:00:00Z"
+      },
+      "verification_basis": "max actual instant then smallest stable ID; explicit qualification/voiding; entry time excluded"
+    },
+    {
+      "id": "A03",
+      "ticket": 9,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "records": [
+          {
+            "id": "a1",
+            "actual": "2026-03-29T06:00:00Z",
+            "entered": "2026-03-29T06:10:00Z",
+            "qualifies": true
+          },
+          {
+            "id": "a0",
+            "actual": "2026-03-28T23:00:00Z",
+            "entered": "2026-03-29T07:00:00Z",
+            "qualifies": true
+          }
+        ],
+        "every_hours": 6,
+        "policy": "P4-most-recent-qualifying-actual-single-next"
+      },
+      "expected": {
+        "anchor": "a1",
+        "next": "2026-03-29T12:00:00Z"
+      },
+      "verification_basis": "max actual instant then smallest stable ID; explicit qualification/voiding; entry time excluded"
+    },
+    {
+      "id": "A04",
+      "ticket": 9,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "records": [
+          {
+            "id": "a1",
+            "actual": "2026-03-29T06:00:00Z",
+            "entered": "2026-03-29T06:10:00Z",
+            "qualifies": true
+          },
+          {
+            "id": "a2",
+            "actual": "2026-03-29T06:30:00Z",
+            "qualifies": true
+          }
+        ],
+        "every_hours": 6,
+        "policy": "P4-most-recent-qualifying-actual-single-next"
+      },
+      "expected": {
+        "anchor": "a2",
+        "next": "2026-03-29T12:30:00Z"
+      },
+      "verification_basis": "max actual instant then smallest stable ID; explicit qualification/voiding; entry time excluded"
+    },
+    {
+      "id": "A05",
+      "ticket": 9,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "records": [
+          {
+            "id": "a1",
+            "actual": "2026-03-29T06:00:00Z",
+            "entered": "2026-03-29T06:10:00Z",
+            "qualifies": true
+          },
+          {
+            "id": "a2",
+            "actual": "2026-03-29T06:30:00Z",
+            "qualifies": false
+          }
+        ],
+        "every_hours": 6,
+        "policy": "P4-most-recent-qualifying-actual-single-next"
+      },
+      "expected": {
+        "anchor": "a1",
+        "next": "2026-03-29T12:00:00Z"
+      },
+      "verification_basis": "max actual instant then smallest stable ID; explicit qualification/voiding; entry time excluded"
+    },
+    {
+      "id": "A06",
+      "ticket": 9,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "records": [
+          {
+            "id": "a1",
+            "actual": "2026-03-29T06:00:00Z",
+            "entered": "2026-03-29T06:10:00Z",
+            "qualifies": true
+          },
+          {
+            "id": "a2",
+            "actual": "2026-03-29T06:00:00Z",
+            "qualifies": true
+          }
+        ],
+        "every_hours": 6,
+        "policy": "P4-most-recent-qualifying-actual-single-next"
+      },
+      "expected": {
+        "anchor": "a1",
+        "next": "2026-03-29T12:00:00Z"
+      },
+      "verification_basis": "max actual instant then smallest stable ID; explicit qualification/voiding; entry time excluded"
+    },
+    {
+      "id": "A07",
+      "ticket": 9,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "records": [
+          {
+            "id": "a1",
+            "actual": "2026-03-29T06:00:00Z",
+            "entered": "2026-03-29T06:10:00Z",
+            "qualifies": true,
+            "voided": true
+          }
+        ],
+        "every_hours": 6,
+        "policy": "P4-most-recent-qualifying-actual-single-next"
+      },
+      "expected": {
+        "anchor": null,
+        "next": null
+      },
+      "verification_basis": "max actual instant then smallest stable ID; explicit qualification/voiding; entry time excluded"
+    },
+    {
+      "id": "A08",
+      "ticket": 9,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "records": [
+          {
+            "id": "a1",
+            "actual": "2026-03-29T06:00:00Z",
+            "entered": "2026-03-29T06:10:00Z",
+            "qualifies": true
+          },
+          {
+            "id": "a2",
+            "actual": "2026-03-29T06:30:00Z",
+            "qualifies": true,
+            "voided": true
+          }
+        ],
+        "every_hours": 6,
+        "policy": "P4-most-recent-qualifying-actual-single-next"
+      },
+      "expected": {
+        "anchor": "a1",
+        "next": "2026-03-29T12:00:00Z"
+      },
+      "verification_basis": "max actual instant then smallest stable ID; explicit qualification/voiding; entry time excluded"
+    },
+    {
+      "id": "A09",
+      "ticket": 9,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "records": [
+          {
+            "id": "a1",
+            "actual": "2026-03-29T06:00:00Z",
+            "entered": "2026-03-29T06:10:00Z",
+            "qualifies": true
+          }
+        ],
+        "now": "2026-03-29T13:00:00Z",
+        "every_hours": 6,
+        "policy": "P4-single-next"
+      },
+      "expected": [
+        "2026-03-29T12:00:00Z"
+      ],
+      "verification_basis": "overdue single next remains; no independent 18:00 expectation without another qualifying actual"
+    },
+    {
+      "id": "P01",
+      "ticket": 10,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "anchor": "2026-03-28",
+        "every_days": 2,
+        "resume": "2026-04-02",
+        "choice": "preserve"
+      },
+      "expected": [
+        "2026-04-03",
+        "2026-04-05"
+      ],
+      "verification_basis": "anchor parity survives suppression; no catch-up"
+    },
+    {
+      "id": "P02",
+      "ticket": 10,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "old_anchor": "2026-03-28",
+        "new_segment": "2026-04-02",
+        "every_days": 2,
+        "choice": "restart"
+      },
+      "expected": [
+        "2026-04-02",
+        "2026-04-04",
+        "2026-04-06"
+      ],
+      "verification_basis": "new segment, old history retained"
+    },
+    {
+      "id": "P03",
+      "ticket": 10,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "anchor": "2026-10-19",
+        "on_days": 3,
+        "off_days": 2,
+        "start": "2026-10-25",
+        "end": "2026-11-02"
+      },
+      "expected": [
+        "2026-10-25",
+        "2026-10-26",
+        "2026-10-29",
+        "2026-10-30",
+        "2026-10-31"
+      ],
+      "verification_basis": "calendar modulo block; preserve vs restart use different explicit anchors"
+    },
+    {
+      "id": "P04",
+      "ticket": 10,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "anchor": "2026-10-25",
+        "on_days": 3,
+        "off_days": 2,
+        "start": "2026-10-25",
+        "end": "2026-11-02"
+      },
+      "expected": [
+        "2026-10-25",
+        "2026-10-26",
+        "2026-10-27",
+        "2026-10-30",
+        "2026-10-31",
+        "2026-11-01"
+      ],
+      "verification_basis": "calendar modulo block; preserve vs restart use different explicit anchors"
+    },
+    {
+      "id": "P05",
+      "ticket": 10,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "anchor": "2026-10-24T21:00:00Z",
+        "pause": "2026-10-25T01:00:00Z",
+        "resume": "2026-10-25T08:00:00Z",
+        "choice": "preserve",
+        "every_hours": 6
+      },
+      "expected": "2026-10-25T09:00:00Z",
+      "verification_basis": "03:00 suppressed; ordinal 2 at 09:00 retained"
+    },
+    {
+      "id": "P06",
+      "ticket": 10,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "resume": "2026-10-25T08:00:00Z",
+        "first_selected": "2026-10-25T08:00:00Z",
+        "choice": "restart",
+        "every_hours": 6
+      },
+      "expected": [
+        "2026-10-25T08:00:00Z",
+        "2026-10-25T14:00:00Z"
+      ],
+      "verification_basis": "resume is not an actual record; first chosen planned anchor is explicit"
+    },
+    {
+      "id": "F01",
+      "ticket": 11,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "inclusive_item_end": "2026-03-29",
+        "bound_zone": "Europe/London"
+      },
+      "expected": {
+        "cutoff": "2026-03-29T23:00:00Z",
+        "hours": 23
+      },
+      "verification_basis": "next civil midnight, never midnight plus 24 elapsed hours"
+    },
+    {
+      "id": "F02",
+      "ticket": 11,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "inclusive_item_end": "2026-10-25",
+        "bound_zone": "Europe/London"
+      },
+      "expected": {
+        "cutoff": "2026-10-26T00:00:00Z",
+        "hours": 25
+      },
+      "verification_basis": "next civil midnight, never midnight plus 24 elapsed hours"
+    },
+    {
+      "id": "F03",
+      "ticket": 11,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "original": {
+          "owner": "ada",
+          "plan": "p1",
+          "date": "2026-10-31",
+          "slot": "late"
+        },
+        "original_amount": "1 tablet",
+        "destination_phase_amount": "2 tablets",
+        "target": "2026-11-01T00:30:00Z",
+        "policy": "P6-original-amount"
+      },
+      "expected": {
+        "original": {
+          "owner": "ada",
+          "plan": "p1",
+          "date": "2026-10-31",
+          "slot": "late"
+        },
+        "effective": "2026-11-01T00:30:00Z",
+        "amount": "1 tablet",
+        "extra_expectations": 0
+      },
+      "verification_basis": "one-hour move; explicit original ownership/amount branch, no destination-phase inheritance"
+    },
+    {
+      "id": "F04",
+      "ticket": 11,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "end_exclusive": "2026-11-01T00:00:00Z",
+        "candidates": [
+          "2026-10-31T23:30:00Z",
+          "2026-11-01T00:00:00Z",
+          "2026-11-01T00:30:00Z"
+        ]
+      },
+      "expected": [
+        true,
+        false,
+        false
+      ],
+      "verification_basis": "hard end excludes boundary and moved target beyond it"
+    },
+    {
+      "id": "F05",
+      "ticket": 11,
+      "status": "conditional_proposal_not_accepted",
+      "inputs": {
+        "pause": "2026-11-01T00:00:00Z",
+        "resume": "2026-11-01T01:00:00Z",
+        "targets": [
+          "2026-11-01T00:00:00Z",
+          "2026-11-01T00:30:00Z",
+          "2026-11-01T01:00:00Z"
+        ]
+      },
+      "expected": [
+        false,
+        false,
+        true
+      ],
+      "verification_basis": "pause veto after override; resume boundary is active unless ended"
+    },
+    {
+      "id": "V01",
+      "ticket": 15,
+      "status": "accepted_event_rule",
+      "inputs": {
+        "event_last_date": "2026-03-29",
+        "zone": "Europe/London",
+        "item_ongoing": true
+      },
+      "expected": {
+        "event_end_exclusive": "2026-03-29T23:00:00Z",
+        "next_item": "2026-03-30T07:00:00Z"
+      },
+      "verification_basis": "event includes final day; independent plan continues"
+    }
+  ]
+}

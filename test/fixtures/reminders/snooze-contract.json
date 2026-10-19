@@ -1,0 +1,244 @@
+{
+  "schema": 1,
+  "status": "design_oracle_not_production_test_results",
+  "clock_unit": "milliseconds",
+  "identity": {
+    "generation": "g1",
+    "person": "ada",
+    "plan": "p1",
+    "originalDate": "2026-10-19",
+    "slot": "am"
+  },
+  "invariants": {
+    "administrationDelta": 0,
+    "stockDelta": 0,
+    "planRevisionDelta": 0,
+    "bucketRevisionDelta": 0,
+    "actualAnchorDelta": 0
+  },
+  "cases": [
+    {
+      "id": "S01",
+      "sample": {
+        "utc": "2026-10-19T09:00:00Z",
+        "elapsed": 3600000,
+        "boot": "b1"
+      },
+      "delayMinutes": 15,
+      "expected": {
+        "deadlineElapsed": 4500000,
+        "projectedUtc": "2026-10-19T09:15:00Z",
+        "snoozeRevision": 1,
+        "desiredDeferredCount": 1
+      }
+    },
+    {
+      "id": "S02",
+      "command": "s1",
+      "replaySamePayload": true,
+      "expected": {
+        "reuseOriginalDeadline": true,
+        "newIntentCount": 0,
+        "changedPayloadConflicts": true
+      }
+    },
+    {
+      "id": "S03",
+      "sample": {
+        "utc": "2026-10-19T09:05:00Z",
+        "elapsed": 3900000,
+        "boot": "b1"
+      },
+      "delayMinutes": 10,
+      "expectedSnoozeRevision": 1,
+      "expected": {
+        "deadlineElapsed": 4500000,
+        "projectedUtc": "2026-10-19T09:15:00Z",
+        "snoozeRevision": 2,
+        "desiredDeferredCount": 1,
+        "oldTokenRejected": true
+      }
+    },
+    {
+      "id": "S04",
+      "pickerOpenedAt": "2026-10-19T08:40:00Z",
+      "sample": {
+        "utc": "2026-10-19T09:00:00Z",
+        "elapsed": 3600000,
+        "boot": "b1"
+      },
+      "delayMinutes": 5,
+      "expected": {
+        "deadlineElapsed": 3900000,
+        "projectedUtc": "2026-10-19T09:05:00Z",
+        "writeBeforeUnlock": false
+      }
+    },
+    {
+      "id": "S05",
+      "originalDeadlineElapsed": 4500000,
+      "wallClockChangeMinutes": 120,
+      "zoneChange": [
+        "Europe/London",
+        "America/New_York"
+      ],
+      "expected": {
+        "deadlineElapsed": 4500000,
+        "invalidatedLocalBasis": "review",
+        "homeBasis": "unchanged"
+      }
+    },
+    {
+      "id": "S06",
+      "crossMidnight": true,
+      "expected": {
+        "originalIdentityUnchanged": true,
+        "tomorrowSlotSuppressed": false,
+        "duplicateOccurrenceCount": 0
+      }
+    },
+    {
+      "id": "S07",
+      "commitOrder": [
+        "taken",
+        "snooze"
+      ],
+      "expected": {
+        "snooze": "resolved_conflict",
+        "desiredDeferredCount": 0,
+        "reverseOrder": "refreshed_taken_cancels_snooze",
+        "staleCapturedRevision": "review"
+      }
+    },
+    {
+      "id": "S08",
+      "race": [
+        "taken",
+        "skip",
+        "duplicate_callback"
+      ],
+      "expected": {
+        "terminalWinnerCount": 1,
+        "skipAdministrationDelta": 0,
+        "duplicateCommand": "original_result"
+      }
+    },
+    {
+      "id": "S09",
+      "invalidations": [
+        "archive",
+        "delete",
+        "plan_revision",
+        "reminder_off",
+        "generation_replacement"
+      ],
+      "expected": {
+        "oldContext": "reject",
+        "wrongPersonWriteCount": 0,
+        "reactivationResumes": false
+      }
+    },
+    {
+      "id": "S10",
+      "nativeFailures": [
+        "permission",
+        "capacity",
+        "exception"
+      ],
+      "expected": {
+        "intentSaved": true,
+        "prepared": false,
+        "repairOnly": true,
+        "restoreOriginalImmediateAlert": false
+      }
+    },
+    {
+      "id": "S11",
+      "crashAfter": "native_register_before_db_ack",
+      "expected": {
+        "repairToken": "same",
+        "repairDeadline": "same",
+        "duplicateAlertCount": 0,
+        "clinicalCommandReplayed": false,
+        "firedTokenRearmed": false,
+        "visibleDeliveryExactlyOnceGuaranteed": false,
+        "claimBeforePostCrash": "post_uncertain_review_no_auto_repost"
+      }
+    },
+    {
+      "id": "S12",
+      "lateNativeSequence": 4,
+      "acceptedCancellationSequence": 5,
+      "expected": {
+        "lateApply": "reject",
+        "timeoutOutcome": "unknown_until_reconciled"
+      }
+    },
+    {
+      "id": "S13",
+      "savedBoot": "b1",
+      "currentBoot": "b2",
+      "expected": {
+        "snooze": "interrupted",
+        "autoRearmedCount": 0,
+        "wallFallback": false,
+        "requiresNewExplicitCommand": true
+      }
+    },
+    {
+      "id": "S14",
+      "credentialEncryptedStorageAvailable": false,
+      "expected": {
+        "ordinaryRepair": "wait_or_reopen",
+        "directBootClinicalCopy": false,
+        "replacementDatabase": false,
+        "prepared": false
+      }
+    },
+    {
+      "id": "S15",
+      "budget": 256,
+      "snoozeReserved": 16,
+      "reviewReserved": 8,
+      "ordinaryCandidateCount": 240,
+      "snoozeCount": 16,
+      "expected": {
+        "ordinarySelectedAtMost": 232,
+        "totalSelectedAtMost": 256,
+        "exclusionsExplicit": true,
+        "coverageCrossesFailureHole": false,
+        "ordinarySelected": 232,
+        "ordinaryUnpreparedAtLeast": 8,
+        "occupiedWith16Snoozes": 248,
+        "reservedUnused": 8
+      }
+    },
+    {
+      "id": "S16",
+      "invalidInputs": [
+        "zero",
+        "negative",
+        "malformed",
+        "native_int64_overflow",
+        "dart_instant_overflow",
+        "boot_changed",
+        "deadline_passed"
+      ],
+      "expected": {
+        "wrapTimer": false,
+        "immediateCatchup": false,
+        "silentNewDelay": false
+      }
+    },
+    {
+      "id": "S17",
+      "visiblePerson": "bea",
+      "targetPerson": "ada",
+      "expected": {
+        "commandPerson": "ada",
+        "authenticateBeforeWrite": true,
+        "feedOwnerRetargets": false
+      }
+    }
+  ]
+}

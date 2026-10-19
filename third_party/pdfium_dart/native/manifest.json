@@ -1,0 +1,35 @@
+{
+  "release": "chromium/8100",
+  "published": "2026-10-12T20:25:13Z",
+  "immutable": true,
+  "assets": {
+    "android-arm": {
+      "url": "https://github.com/bblanchon/pdfium-binaries/releases/download/chromium/8100/pdfium-android-arm.tgz",
+      "archiveSha256": "876a8c44bb8d10b19ce816af11f1c527f101c4f714ef5670d885457b451846bb",
+      "librarySha256": "b763c1240904dd55b9b3fb40addc720d3d4540a0619665c9384cf6a5a0ea5f0f",
+      "archiveBytes": 2857233,
+      "libraryBytes": 4313824
+    },
+    "android-arm64": {
+      "url": "https://github.com/bblanchon/pdfium-binaries/releases/download/chromium/8100/pdfium-android-arm64.tgz",
+      "archiveSha256": "e9bab2929443d3d881166af9ec1d191c76ecdd37effb07a58743a7d7b507e149",
+      "librarySha256": "e6b7257b3905152dab64c79f7a4a570693e11ccb740e92e4d3b89c28df6fcbbb",
+      "archiveBytes": 3437225,
+      "libraryBytes": 6573320
+    },
+    "android-x64": {
+      "url": "https://github.com/bblanchon/pdfium-binaries/releases/download/chromium/8100/pdfium-android-x64.tgz",
+      "archiveSha256": "b5cd96bc81c3414a84ce1f3eb928d6fe6981b13fe555f21bfa931bc478f51876",
+      "librarySha256": "bc1f5735107f8840cf7fc3611191fb0369352f6e49650809fc69a34009035358",
+      "archiveBytes": 3579443,
+      "libraryBytes": 6839216
+    },
+    "linux-x64": {
+      "url": "https://github.com/bblanchon/pdfium-binaries/releases/download/chromium/8100/pdfium-linux-x64.tgz",
+      "archiveSha256": "1c1894a12d4d96ee01400c3874444126254180c5c7d2ab628576b67f8120320a",
+      "librarySha256": "b8784cbd652ad2993332b7695e2c80f3a797f877fc47d9be97b66bca9639539e",
+      "archiveBytes": 3799482,
+      "libraryBytes": 7964952
+    }
+  }
+}

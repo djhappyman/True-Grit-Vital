@@ -1,0 +1,17 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - linux/**
+    # Independent package: analysed and tested by tool/probes/storage/run.sh.
+    - tool/probes/storage/**
+    # Retained third-party evidence excerpts are not application modules.
+    - docs/implementation/evidence/**
+    # Independent upstream package; patched hook is checked explicitly.
+    - third_party/pdfium_dart/**
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true

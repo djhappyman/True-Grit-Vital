@@ -1,0 +1,14 @@
+name: vital_storage_gate_probe
+publish_to: none
+environment:
+  sdk: '>=3.13.5 <4.0.0'
+dependencies:
+  drift: 2.35.2
+  sqlite3: 3.7.1
+dev_dependencies:
+  test: 1.31.0
+  lints: 6.0.0
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc
