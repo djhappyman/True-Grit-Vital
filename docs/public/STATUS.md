@@ -12,7 +12,7 @@ The UI is a working development interface. Simplifying forms, reducing exposed d
 
 ## What remains
 
-Before expanding further, address the current supporting-record reviews: richer source-date handling, stable marker/laboratory identity, missing unit/range presentation, locale-aware input, note-only observations, accessibility and restart recovery for an uncommitted void action. Full integrated verification of this round is required; scoped tests alone are insufficient.
+Before expanding further, address the current supporting-record reviews: richer source-date handling, stable marker/laboratory identity, missing unit/range presentation, locale-aware input, note-only observations, accessibility and restart recovery for an uncommitted void action. Passing automated checks does not close these review findings.
 
 The storage review also identified date-zone consistency issues, queries that scan a person's or metric's history before filtering, and missing upgrade-path coverage for new attachment/draft targets. These are known development limitations, not completed acceptance criteria.
 
@@ -30,7 +30,7 @@ The offline medicines catalogue still has an unresolved source/access gate. No N
 
 ## Evidence boundaries
 
-The preceding schema18 checkpoint passed 986 tests with one explicit skip, formatting/analysis and process-recovery checks. Schema19 supporting records have scoped domain, data, migration, provider and UI checks. The publication checkpoint below records the subsequent integrated result when available.
+The schema19 publication checkpoint passed `./tool/verify checks`: 1,083 Flutter tests passed with one explicit skip, formatting and static analysis were clean, and the PDFium integrity and process-recovery suites passed, including supporting-record migration recovery. A separate checkout containing only published files resolved the locked dependencies and passed 55 scheduling tests and six PDFium integrity checks.
 
 Android and Linux have compiled successfully at earlier checkpoints. This does not establish physical-device performance, TalkBack behaviour, every OEM reminder condition or production readiness. Existing development APKs use development signing. Portable backup/restore is not yet available.
 
