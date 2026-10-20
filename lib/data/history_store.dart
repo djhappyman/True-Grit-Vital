@@ -98,6 +98,38 @@ final class DailyActionSource {
   final String recordedType;
 }
 
+/// One bounded History window that starts at a validated anchor entry.
+///
+/// The anchor and the parents after it are resolved by one transaction whose
+/// predicates are the same branch SQL as `timeline`, so every row of
+/// [entries] belongs to the current filtered snapshot at one generation.
+/// [anchorAvailable] is false when the sought entry no longer resolves inside
+/// that snapshot (deleted or undone, changed past the status filter, or moved
+/// outside the date, item, type, unit or event filters); such a page carries
+/// no rows and callers must offer a refresh path instead of inserting an
+/// out-of-filter row or widening the filters.
+final class TimelineAnchoredPage {
+  const TimelineAnchoredPage({
+    required this.queryIdentity,
+    required this.schemaVersion,
+    required this.datasetGeneration,
+    required this.entries,
+    required this.anchorAvailable,
+    required this.hasMore,
+  });
+
+  final String queryIdentity;
+  final int schemaVersion;
+  final String datasetGeneration;
+  final List<TimelineEntry> entries;
+
+  /// False when the anchor left the current filtered snapshot.
+  final bool anchorAvailable;
+
+  /// A further parent page still exists after [entries] when true.
+  final bool hasMore;
+}
+
 final class _HistorySql {
   _HistorySql(this.sql, this.args);
   final String sql;
@@ -361,6 +393,120 @@ extension HistoryRecordStore on RecordStore {
 
   Stream<TimelinePage> watchTimeline(TimelineQuery query) =>
       _watch(() => timeline(query));
+
+  /// Parent row of one timeline branch, or null when it does not resolve.
+  Future<Map<String, Object?>?> _timelineRow(
+    _HistorySql branch,
+    String sortKey,
+  ) async {
+    final rows = await _rows(
+      'SELECT * FROM (${branch.sql}) WHERE key=? LIMIT 1',
+      [...branch.args, sortKey],
+    );
+    return rows.isEmpty ? null : rows.single;
+  }
+
+  /// True when one parent entry still resolves inside the same filtered
+  /// snapshot as `timeline`, so an inspection refresh can splice it where it
+  /// stands. Shared predicates cover scope, dates, item, type, unit, event
+  /// boundaries and the combined parent match; a row that left the filters
+  /// returns false instead of being spliced in outside them.
+  Future<bool> historyEntryInQuery(TimelineQuery query, TimelineEntryId id) =>
+      _db.transaction(() async {
+        final branches = await _historyBranches(query);
+        for (final b in branches) {
+          if (await _timelineRow(b, id.sortKey) != null) return true;
+        }
+        return false;
+      });
+
+  /// One bounded read that resolves [anchor] inside the current filtered
+  /// snapshot and returns the parent-first window that starts at it.
+  ///
+  /// Used to follow a corrected or backfilled entry. The anchor row and the
+  /// parents after it are read with the same predicates as `timeline` inside
+  /// one transaction, so a fresh deletion or undo, a status change or a move
+  /// outside any filter makes [TimelineAnchoredPage.anchorAvailable] false
+  /// instead of inserting a stale or out-of-filter row. The window holds at
+  /// most `query.limit` entries with the anchor first and no duplicates, and
+  /// [TimelineAnchoredPage.hasMore] reports further parents after it.
+  Future<TimelineAnchoredPage> timelineAnchor(
+    TimelineQuery query, {
+    required TimelineEntryId anchor,
+  }) async {
+    _requireWritable();
+    return _db.transaction(() async {
+      final branches = await _historyBranches(query);
+      Map<String, Object?>? found;
+      for (final b in branches) {
+        final row = await _timelineRow(b, anchor.sortKey);
+        if (row != null) {
+          found = row;
+          break;
+        }
+      }
+      if (found == null) {
+        return TimelineAnchoredPage(
+          queryIdentity: query.identity,
+          schemaVersion: _db.schemaVersion,
+          datasetGeneration: generation,
+          entries: const [],
+          anchorAvailable: false,
+          hasMore: false,
+        );
+      }
+      final at = found['at'] as int, key = found['key'] as String;
+      final following = <Map<String, Object?>>[];
+      for (final b in branches) {
+        following.addAll(
+          await _rows(
+            'SELECT * FROM (${b.sql}) WHERE at<=? AND (at<? OR (at=? AND key>?)) ORDER BY at DESC,id LIMIT ?',
+            [...b.args, at, at, at, key, query.limit],
+          ),
+        );
+      }
+      following.sort((a, b) {
+        final t = (b['at'] as int).compareTo(a['at'] as int);
+        return t != 0 ? t : (a['key'] as String).compareTo(b['key'] as String);
+      });
+      final selected = following.take(query.limit - 1).toList();
+      final entries = await _historyLoad([found, ...selected], query);
+      final identities = <String>{};
+      TimelineEntry? previous;
+      for (final entry in entries) {
+        if (!identities.add(entry.id.sortKey)) {
+          throw const TimelineModelException('page_duplicate');
+        }
+        if (previous != null && compareTimelineEntries(previous, entry) >= 0) {
+          throw const TimelineModelException('page_order');
+        }
+        if (query.filter.scope.personId != null &&
+            entry.personId != query.filter.scope.personId) {
+          throw const TimelineModelException('page_scope');
+        }
+        if (!query.filter.status.includes(entry.status)) {
+          throw const TimelineModelException('page_status');
+        }
+        previous = entry;
+      }
+      return TimelineAnchoredPage(
+        queryIdentity: query.identity,
+        schemaVersion: _db.schemaVersion,
+        datasetGeneration: generation,
+        entries: entries,
+        anchorAvailable: true,
+        hasMore: following.length > query.limit - 1,
+      );
+    });
+  }
+
+  /// Bounded visible observation of one anchored window: continuous
+  /// revalidation of the anchor and the parents after its current position.
+  Stream<TimelineAnchoredPage> watchTimelineAnchor(
+    TimelineQuery query,
+    TimelineEntryId anchor,
+  ) => _watch(() => timelineAnchor(query, anchor: anchor));
+
   Future<List<TimelineEntry>> _historyLoad(
     List<Map<String, Object?>> parents,
     TimelineQuery query,

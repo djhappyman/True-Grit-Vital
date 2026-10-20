@@ -10,6 +10,15 @@ export '../domain/history/history.dart';
 
 typedef HistoryReader = Future<TimelinePage> Function(TimelineQuery);
 typedef HistoryWatcher = Stream<TimelinePage> Function(TimelineQuery);
+typedef HistoryAnchorReader = Future<TimelineAnchoredPage> Function(
+  TimelineQuery,
+  TimelineEntryId,
+);
+typedef HistoryAnchorWatcher = Stream<TimelineAnchoredPage> Function(
+  TimelineQuery,
+  TimelineEntryId,
+);
+
 final historyReaderProvider = Provider<HistoryReader>(
   (ref) =>
       (query) async =>
@@ -18,6 +27,18 @@ final historyReaderProvider = Provider<HistoryReader>(
 final historyWatcherProvider = Provider<HistoryWatcher>(
   (ref) => (query) async* {
     yield* (await ref.read(recordStoreProvider.future)).watchTimeline(query);
+  },
+);
+final historyAnchorReaderProvider = Provider<HistoryAnchorReader>(
+  (ref) =>
+      (query, anchor) async =>
+          (await ref.read(recordStoreProvider.future))
+              .timelineAnchor(query, anchor: anchor),
+);
+final historyAnchorWatcherProvider = Provider<HistoryAnchorWatcher>(
+  (ref) => (query, anchor) async* {
+    yield* (await ref.read(recordStoreProvider.future))
+        .watchTimelineAnchor(query, anchor);
   },
 );
 
@@ -36,6 +57,7 @@ class HistoryState {
     this.schemaVersion = 0,
     this.datasetGeneration = '',
     this.anchored = false,
+    this.anchorUnavailable = false,
   });
   final TimelineQuery? query;
   final List<TimelineEntry> entries;
@@ -50,9 +72,15 @@ class HistoryState {
   final String datasetGeneration;
 
   /// True while the window starts at an explicitly sought entry rather than
-  /// the top of the filtered list. Such a window holds its position and only
-  /// re-reads on Refresh; the top subscription is not attached.
+  /// the top of the filtered list. Such a window keeps its position and is
+  /// observed through the bounded anchored window of its first row, so a
+  /// later correction or deletion updates it or marks it stale.
   final bool anchored;
+
+  /// True when the sought anchor no longer resolves inside the current
+  /// filtered snapshot. Such a window keeps its position and shows the stale
+  /// refresh path instead of widening filters with an out-of-filter row.
+  final bool anchorUnavailable;
 }
 
 final historyControllerProvider = NotifierProvider.autoDispose
@@ -61,7 +89,7 @@ final historyControllerProvider = NotifierProvider.autoDispose
 class HistoryController extends Notifier<HistoryState> {
   HistoryController(this.routeIdentity);
   final String routeIdentity;
-  StreamSubscription<TimelinePage>? _live;
+  StreamSubscription<Object>? _live;
   int _epoch = 0;
   bool _visible = true, atTop = true;
   static const maxWindowPages = 8;
@@ -108,63 +136,134 @@ class HistoryController extends Notifier<HistoryState> {
 
   void _subscribe(int epoch) {
     final query = state.query;
-    // An anchored window is not the top of the filtered list; the top
-    // subscription would compare a different page against it and mark the
-    // window stale on every store change. Anchor windows re-read on Refresh.
-    if (query == null ||
-        !_current(epoch) ||
-        !_visible ||
-        state.anchored) {
-      return;
+    if (query == null || !_current(epoch) || !_visible) return;
+    final anchored = state.anchored && state.entries.isNotEmpty;
+    // Top windows observe their first page; anchored windows observe the
+    // bounded anchored window of their first row (the anchor) instead of
+    // detaching, so a later correction or deletion still updates the window
+    // or marks it stale through the same filtered snapshot.
+    void onError(Object error, StackTrace stackTrace) {
+      if (!_current(epoch)) return;
+      state = HistoryState(
+        query: state.query,
+        entries: state.entries,
+        next: state.next,
+        error: error,
+        pages: state.pages,
+        stale: state.entries.isNotEmpty || state.anchored,
+        anchored: state.anchored,
+        anchorUnavailable: state.anchorUnavailable,
+        schemaVersion: state.schemaVersion,
+        datasetGeneration: state.datasetGeneration,
+      );
     }
-    _live = ref
-        .read(historyWatcherProvider)(query.firstPage)
-        .listen(
-          (page) {
+
+    if (anchored) {
+      // The anchored window keeps its position and updates in place when the
+      // emission still aligns with the loaded rows.
+      _live = ref
+          .read(historyAnchorWatcherProvider)(query, state.entries.first.id)
+          .listen((page) {
             if (!_visible ||
                 !_current(epoch) ||
                 page.queryIdentity != state.query?.identity) {
               return;
             }
-            if (state.entries.isNotEmpty && (!atTop || state.pages > 1)) {
-              if (_signature(page.entries) !=
-                  _signature(state.entries.take(query.limit))) {
-                state = HistoryState(
-                  query: state.query,
-                  entries: state.entries,
-                  next: state.next,
-                  stale: true,
-                  pages: state.pages,
-                  schemaVersion: page.schemaVersion,
-                  datasetGeneration: page.datasetGeneration,
-                );
-              }
-              return;
-            }
-            state = HistoryState(
-              query: query,
-              entries: page.entries,
-              next: page.next,
-              pages: 1,
-              refreshed: state.refreshed,
-              schemaVersion: page.schemaVersion,
-              datasetGeneration: page.datasetGeneration,
-            );
-          },
-          onError: (Object error) {
-            if (!_current(epoch)) return;
-            state = HistoryState(
-              query: state.query,
-              entries: state.entries,
-              next: state.next,
-              error: error,
-              pages: state.pages,
-              stale: state.entries.isNotEmpty,
-              schemaVersion: state.schemaVersion,
-              datasetGeneration: state.datasetGeneration,
-            );
-          },
+            _applyAnchorPage(page);
+          }, onError: onError);
+      return;
+    }
+    _live = ref.read(historyWatcherProvider)(query.firstPage).listen((page) {
+      if (!_visible ||
+          !_current(epoch) ||
+          page.queryIdentity != state.query?.identity) {
+        return;
+      }
+      if (state.entries.isNotEmpty && (!atTop || state.pages > 1)) {
+        if (_signature(page.entries) !=
+            _signature(state.entries.take(query.limit))) {
+          state = HistoryState(
+            query: query,
+            entries: state.entries,
+            next: state.next,
+            stale: true,
+            pages: state.pages,
+            schemaVersion: page.schemaVersion,
+            datasetGeneration: page.datasetGeneration,
+          );
+        }
+        return;
+      }
+      state = HistoryState(
+        query: query,
+        entries: page.entries,
+        next: page.next,
+        pages: 1,
+        refreshed: state.refreshed,
+        schemaVersion: page.schemaVersion,
+        datasetGeneration: page.datasetGeneration,
+      );
+    }, onError: onError);
+  }
+
+  /// Applies one bounded anchored window emission.
+  ///
+  /// Parent order that still aligns and shows only newer versions of the
+  /// same rows is spliced in place, so an edit after seeking updates the
+  /// window visibly. Rows that moved out of the snapshot, dropped or
+  /// reordered parents leave the position intact and mark the window stale,
+  /// and an anchor that no longer resolves keeps the position with the
+  /// refresh path visible instead of silently widening filters.
+  void _applyAnchorPage(TimelineAnchoredPage page) {
+    final previous = state, query = previous.query;
+    if (query == null) return;
+    final window = previous.entries.take(page.entries.length).toList();
+    final aligned =
+        page.anchorAvailable &&
+        page.entries.length <= previous.entries.length &&
+        window.indexed.every(
+          (pair) => pair.$2.id.sortKey == page.entries[pair.$1].id.sortKey,
         );
+    if (!aligned) {
+      _markAnchorStale(page, previous);
+      return;
+    }
+    if (page.entries.length < previous.entries.length) {
+      // A shorter emission covers the first page of a wider window: keep the
+      // position untouched unless the observed page itself changed.
+      if (_signature(window) == _signature(page.entries)) return;
+      _markAnchorStale(page, previous);
+      return;
+    }
+    if (_signature(previous.entries) == _signature(page.entries)) return;
+    state = HistoryState(
+      query: query,
+      entries: page.entries,
+      next: previous.next,
+      pages: previous.pages,
+      stale: previous.stale,
+      refreshed: previous.refreshed,
+      schemaVersion: page.schemaVersion,
+      datasetGeneration: page.datasetGeneration,
+      anchored: true,
+      anchorUnavailable: previous.anchorUnavailable,
+    );
+  }
+
+  void _markAnchorStale(TimelineAnchoredPage page, HistoryState previous) {
+    final query = previous.query;
+    if (query == null) return;
+    state = HistoryState(
+      query: query,
+      entries: previous.entries,
+      next: previous.next,
+      pages: previous.pages,
+      stale: true,
+      schemaVersion: page.schemaVersion,
+      datasetGeneration: page.datasetGeneration,
+      anchored: true,
+      anchorUnavailable: previous.anchorUnavailable,
+    );
   }
 
   String _signature(Iterable<TimelineEntry> entries) => entries
@@ -207,6 +306,7 @@ class HistoryController extends Notifier<HistoryState> {
       schemaVersion: previous.schemaVersion,
       datasetGeneration: previous.datasetGeneration,
       anchored: previous.anchored,
+      anchorUnavailable: previous.anchorUnavailable,
     );
     try {
       final page = await ref.read(historyReaderProvider)(
@@ -232,6 +332,7 @@ class HistoryController extends Notifier<HistoryState> {
         schemaVersion: page.schemaVersion,
         datasetGeneration: page.datasetGeneration,
         anchored: previous.anchored,
+        anchorUnavailable: previous.anchorUnavailable,
       );
     } catch (error) {
       if (!_current(epoch)) return;
@@ -249,6 +350,7 @@ class HistoryController extends Notifier<HistoryState> {
         schemaVersion: previous.schemaVersion,
         datasetGeneration: previous.datasetGeneration,
         anchored: previous.anchored,
+        anchorUnavailable: previous.anchorUnavailable,
       );
     }
   }
@@ -256,56 +358,77 @@ class HistoryController extends Notifier<HistoryState> {
   /// Restarts the window at an exact entry position, keeping filters and
   /// query identity. Used to follow a corrected or backfilled entry that
   /// moved outside the loaded range.
+  ///
+  /// One bounded store read validates the anchor against the current
+  /// filtered snapshot: a deleted, re-voided or moved-out-of-filter anchor
+  /// keeps the position and shows the stale refresh path instead of forcing
+  /// a stale row into the window or widening filters.
   Future<void> seek(TimelineEntry anchor) async {
     final query = state.query;
     if (query == null || state.loading || state.olderLoading) return;
-    final TimelineCursor position;
-    try {
-      position = TimelineCursor.at(
-        occurredAt: anchor.occurredAt,
-        sortKey: anchor.id.sortKey,
-        query: query,
-        schemaVersion: state.schemaVersion,
-        datasetGeneration: state.datasetGeneration,
-      );
-    } on TimelineCursorException {
-      // Cursor metadata was not carried by a page read yet; do not invent it.
-      return;
-    }
     final epoch = ++_epoch;
     await _live?.cancel();
     _live = null;
     if (!_current(epoch)) return;
+    final previous = state;
     state = HistoryState(
       query: query,
       loading: true,
       refreshed: true,
-      schemaVersion: state.schemaVersion,
-      datasetGeneration: state.datasetGeneration,
+      schemaVersion: previous.schemaVersion,
+      datasetGeneration: previous.datasetGeneration,
       anchored: true,
     );
     try {
-      final page = await ref.read(historyReaderProvider)(
-        query.withCursor(position),
+      final page = await ref.read(historyAnchorReaderProvider)(
+        query,
+        anchor.id,
       );
       if (!_current(epoch) || page.queryIdentity != query.identity) return;
+      if (!page.anchorAvailable) {
+        state = HistoryState(
+          query: query,
+          entries: previous.entries,
+          next: previous.next,
+          pages: previous.pages,
+          refreshed: false,
+          stale: true,
+          schemaVersion: page.schemaVersion,
+          datasetGeneration: page.datasetGeneration,
+          anchored: true,
+          anchorUnavailable: true,
+        );
+        if (_visible) _subscribe(epoch);
+        return;
+      }
       state = HistoryState(
         query: query,
-        entries: [anchor, ...page.entries],
-        next: page.next,
+        entries: page.entries,
+        next: !page.hasMore || page.entries.isEmpty
+            ? null
+            : TimelineCursor.at(
+                occurredAt: page.entries.last.occurredAt,
+                sortKey: page.entries.last.id.sortKey,
+                query: query,
+                schemaVersion: page.schemaVersion,
+                datasetGeneration: page.datasetGeneration,
+              ),
         pages: 1,
         refreshed: true,
         schemaVersion: page.schemaVersion,
         datasetGeneration: page.datasetGeneration,
         anchored: true,
       );
+      if (_visible) _subscribe(epoch);
     } catch (error) {
       if (!_current(epoch)) return;
       state = HistoryState(
         query: query,
         error: error,
-        schemaVersion: state.schemaVersion,
-        datasetGeneration: state.datasetGeneration,
+        refreshed: true,
+        pages: previous.pages,
+        schemaVersion: previous.schemaVersion,
+        datasetGeneration: previous.datasetGeneration,
         anchored: true,
       );
     }
@@ -314,13 +437,45 @@ class HistoryController extends Notifier<HistoryState> {
   /// Replaces one visible row in place with its current version and keeps
   /// the window, position and cursor intact. Used when a correction changed
   /// the entry without moving it in the get order.
-  void spliceEntry(TimelineEntry updated) {
+  ///
+  /// The store re-validates the entry against the same filtered snapshot;
+  /// an entry that left the filters is withdrawn and the window marked
+  /// stale, so a voided or out-of-filter row never stays visible in place.
+  Future<void> spliceEntry(TimelineEntry updated) async {
     final query = state.query;
     if (query == null) return;
+    bool member;
+    try {
+      member = await (await ref.read(recordStoreProvider.future))
+          .historyEntryInQuery(query, updated.id);
+    } on TimelineQueryException {
+      // The bounded seam reports too-broad event filters as typed failures;
+      // treat them as outside the snapshot so no unvalidated row stays, and
+      // Refresh re-reads through the normal bounded path.
+      member = false;
+    }
+    if (!ref.mounted || state.query?.identity != query.identity) return;
     final index = state.entries.indexWhere(
       (entry) => entry.id.sortKey == updated.id.sortKey,
     );
     if (index < 0) return;
+    if (!member) {
+      state = HistoryState(
+        query: query,
+        entries: List.unmodifiable([
+          for (final (position, entry) in state.entries.indexed)
+            if (position != index) entry,
+        ]),
+        next: state.next,
+        pages: state.pages,
+        stale: true,
+        schemaVersion: state.schemaVersion,
+        datasetGeneration: state.datasetGeneration,
+        anchored: state.anchored,
+        anchorUnavailable: state.anchorUnavailable,
+      );
+      return;
+    }
     state = HistoryState(
       query: query,
       entries: List.unmodifiable([
@@ -334,6 +489,7 @@ class HistoryController extends Notifier<HistoryState> {
       schemaVersion: state.schemaVersion,
       datasetGeneration: state.datasetGeneration,
       anchored: state.anchored,
+      anchorUnavailable: state.anchorUnavailable,
     );
   }
 
@@ -355,6 +511,7 @@ class HistoryController extends Notifier<HistoryState> {
       schemaVersion: state.schemaVersion,
       datasetGeneration: state.datasetGeneration,
       anchored: state.anchored,
+      anchorUnavailable: state.anchorUnavailable,
     );
   }
 }

@@ -157,8 +157,9 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       controller.withdrawEntry(entry.id);
     } else if (latest.occurredAt == entry.occurredAt) {
       // Unmoved correction: replace the row in place, without resetting the
-      // loaded pages or the scroll position.
-      controller.spliceEntry(latest);
+      // loaded pages or the scroll position. The store re-validates the row
+      // against the current filtered snapshot first.
+      await controller.spliceEntry(latest);
     } else {
       // The entry changed its position. Its old row cannot stand for the
       // corrected one, so remove it and offer the new position instead.
@@ -196,9 +197,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         (anchorEntry != null && anchorEntry.occurredAt != originalAnchorTime
             ? anchorEntry.occurredAt
             : null);
-    final jumped = effectiveMovedAt == null
-        ? null
-        : movedTarget ?? anchorEntry;
+    final jumped = effectiveMovedAt == null ? null : movedTarget ?? anchorEntry;
     final display = DisplayTime(),
         formatter = displayFormatter(context, preferences.timeFormat);
     final now = ref.watch(historyNowProvider)();
@@ -522,7 +521,11 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 ],
                 if (state.refreshed || (!state.loading && anchor != null))
                   Semantics(liveRegion: true, child: Text(t.historyRefreshed)),
-                if (effectiveMovedAt != null) ...[
+                // An anchor that no longer resolves inside the filtered
+                // snapshot shows only the stale refresh path; its stored row
+                // no longer stands for the entry, so no moved banner or View
+                // offer is built on it.
+                if (effectiveMovedAt != null && !state.anchorUnavailable) ...[
                   Semantics(
                     liveRegion: true,
                     child: Text(
