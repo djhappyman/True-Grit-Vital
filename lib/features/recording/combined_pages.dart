@@ -67,6 +67,13 @@ final combinedSourceLabelProvider =
               store.productLabel(personId: personId, itemId: itemId),
     );
 
+/// The record surface a preparation must find settled before it may apply.
+/// During a replacement Riverpod retains the retired store in [AsyncValue.value];
+/// callers must not treat that retained value as the current source.
+final combinedRecordSurfaceProvider = Provider<AsyncValue<RecordStore>>(
+  (ref) => ref.watch(recordStoreProvider),
+);
+
 class _SourceEntry {
   _SourceEntry({
     required this.itemId,
@@ -146,7 +153,7 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
       preparing = false;
   int itemOffset = 0;
   // Bound every awaited preparation to the private form state it started from.
-  int _editEpoch = 0, _lockEpoch = 0;
+  int _editEpoch = 0, _lockEpoch = 0, _prepareSeq = 0;
   final _pendingAdds = <String>{};
   DateTime? instant;
   CombinedUseCommand? frozen;
@@ -253,13 +260,18 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
     if (mounted && draftReady) setState(() {});
   }
 
-  /// A pending read or review may only apply to the same private form, store
-  /// generation and unlocked session it began in.
-  bool _preparationCurrent(RecordStore store) =>
-      mounted &&
-      identical(ref.read(recordStoreProvider).value, store) &&
-      !ref.read(appLockProvider).locked &&
-      (capturedGeneration == null || capturedGeneration == store.generation);
+  /// A pending read or review may only apply to the same private form, settled
+  /// store surface, generation and unlocked session it began in. A retained
+  /// value during a replacement or failed reload is not a current source.
+  bool _preparationCurrent(RecordStore store) {
+    final surface = ref.read(combinedRecordSurfaceProvider);
+    return mounted &&
+        !surface.isLoading &&
+        !surface.hasError &&
+        identical(surface.value, store) &&
+        !ref.read(appLockProvider).locked &&
+        (capturedGeneration == null || capturedGeneration == store.generation);
+  }
 
   @override
   void dispose() {
@@ -272,25 +284,25 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
   }
 
   Future<void> add(SubstanceItem item) async {
-    // A repeated tap on the same pending source joins the first read.
+    // A repeated tap on the same pending source joins the first read. Once the
+    // read finishes the id is released, so a deliberate later add still works.
     if (_pendingAdds.contains(item.id)) return;
+    final surface = ref.read(combinedRecordSurfaceProvider);
+    if (surface.isLoading || surface.hasError) return;
+    final startStore = surface.value;
     final locks = _lockEpoch;
-    setState(() => _pendingAdds.add(item.id));
+    final t = AppLocalizations.of(context);
+    setState(() {
+      _pendingAdds.add(item.id);
+      if (error == t.historyUnavailable) error = null;
+    });
     try {
       final store = await ref.read(recordStoreProvider.future);
-      final ProductLabelSnapshot? label;
-      try {
-        label = await ref.read(combinedSourceLabelProvider)(
-          store,
-          widget.personId,
-          item.id,
-        );
-      } on Object {
-        // A closed or replaced store cannot supply a current label. Keep a
-        // genuine read failure visible; discard only the obsolete attempt.
-        if (_preparationCurrent(store) && locks == _lockEpoch) rethrow;
-        return;
-      }
+      final label = await ref.read(combinedSourceLabelProvider)(
+        store,
+        widget.personId,
+        item.id,
+      );
       // A lock, replacement or newer preparation owns the form now. No stale
       // label or source may join after that boundary.
       if (!_preparationCurrent(store) || locks != _lockEpoch) return;
@@ -305,10 +317,21 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
       setState(() {
         entries.add(e);
         choosing = false;
-        _pendingAdds.remove(item.id);
+        if (error == t.historyUnavailable) error = null;
       });
       changed();
-      return;
+    } catch (_) {
+      // A genuine read failure stays visible so the person can choose the
+      // source again. A lock, replaced store or pending replacement owns the
+      // outcome now, so its obsolete failure stays silent.
+      final current = ref.read(combinedRecordSurfaceProvider);
+      if (mounted &&
+          locks == _lockEpoch &&
+          !current.isLoading &&
+          !current.hasError &&
+          identical(current.value, startStore)) {
+        setState(() => error = t.historyUnavailable);
+      }
     } finally {
       if (mounted && _pendingAdds.remove(item.id)) setState(() {});
     }
@@ -340,14 +363,19 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
 
   Future<void> review() async {
     if (preparing || busy || uncertain || _pendingAdds.isNotEmpty) return;
-    final store = ref.read(recordStoreProvider).value;
-    if (store == null) return;
+    final surface = ref.read(combinedRecordSurfaceProvider);
+    final store = surface.value;
+    if (surface.isLoading || surface.hasError || store == null) return;
     final t = AppLocalizations.of(context);
     final edit = _editEpoch, locks = _lockEpoch;
     // The reviewed payload may only freeze if nothing in this private form
     // changed while the clock sample or correction dialogs were awaited.
     bool current() =>
-        edit == _editEpoch && locks == _lockEpoch && _preparationCurrent(store);
+        mounted &&
+        edit == _editEpoch &&
+        locks == _lockEpoch &&
+        _preparationCurrent(store);
+    final attempt = ++_prepareSeq;
     setState(() => preparing = true);
     try {
       final at = actual();
@@ -462,7 +490,9 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
       });
       persistEntry();
     } catch (e) {
-      if (mounted) {
+      // An obsolete attempt must not resurrect an error after a lock, form
+      // change or store replacement has already taken the form over.
+      if (current()) {
         setState(
           () => error = e is CommandConflict
               ? t.conflictFailure
@@ -470,7 +500,10 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
         );
       }
     } finally {
-      if (mounted) setState(() => preparing = false);
+      // Only the newest attempt may release its own preparing state.
+      if (mounted && _prepareSeq == attempt) {
+        setState(() => preparing = false);
+      }
     }
   }
 
