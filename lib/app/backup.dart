@@ -134,20 +134,35 @@ class BackupController extends Notifier<BackupState> {
   BackupCancellationToken? _token;
   int _epoch = 0;
 
+  /// Operations that produced the creation currently offered in state.
+  /// Cleanup always uses these, so a replaced backend never deletes with
+  /// the wrong staging directory.
+  BackupOperations? _creationOperations;
+
+  /// Mirror of the creation offered in [BackupState]; every state update
+  /// that adds or clears a creation keeps these in step.
+  BackupCreation? _heldCreation;
+
+  /// Creation whose deletion is currently in flight. Fences a repeated
+  /// delete request and lets the lock path skip an already running one.
+  BackupCreation? _discarding;
+
   @override
   BackupState build() {
     _token?.cancel();
+    // A rebuild replaces the panel: any held ready creation is still a
+    // pending staging artifact, so release it with the same fencing the
+    // lock uses instead of leaking it.
+    final held = _heldCreation;
+    _releaseCreation(held);
     ref.onDispose(() => _token?.cancel());
     ref.listen(appLockProvider.select((state) => state.locked), (_, locked) {
       if (locked) {
         _token?.cancel();
         _epoch++;
         final creation = state.creation;
-        final operations = _operations;
         state = const BackupState();
-        if (creation != null && operations != null) {
-          unawaited(operations.discard(creation).catchError((Object _) {}));
-        }
+        _releaseCreation(creation);
       }
     });
     _operations = ref.watch(backupOperationsProvider);
@@ -157,6 +172,24 @@ class BackupController extends Notifier<BackupState> {
   }
 
   bool _current(int epoch) => ref.mounted && epoch == _epoch;
+
+  /// Drops an owned creation from the controller while handing its staged
+  /// archive to the operations that created it. A deletion already running
+  /// for the same creation is left alone; its stale completion is rejected
+  /// by the fenced [discard].
+  void _releaseCreation(BackupCreation? creation) {
+    final operations = _creationOperations;
+    _heldCreation = null;
+    _creationOperations = null;
+    if (creation == null || operations == null) return;
+    if (identical(_discarding, creation)) return;
+    unawaited(operations.discard(creation).catchError((Object _) {}));
+  }
+
+  void _clearCreation() {
+    _heldCreation = null;
+    _creationOperations = null;
+  }
 
   bool get available => _operations != null;
   bool get canSave => _operations?.destinationSupported ?? false;
@@ -184,6 +217,7 @@ class BackupController extends Notifier<BackupState> {
       );
       return;
     }
+    final previous = state.creation;
     final error = passwordError(password, confirmation);
     if (error != null) {
       state = state.copyWith(
@@ -192,12 +226,14 @@ class BackupController extends Notifier<BackupState> {
         clearCreation: true,
         clearSavedName: true,
       );
+      _releaseCreation(previous);
       return;
     }
     final epoch = ++_epoch;
     final token = BackupCancellationToken();
     _token = token;
     state = const BackupState(phase: BackupPhase.preparing);
+    _releaseCreation(previous);
     try {
       final creation = await operations.createBackup(
         password: password,
@@ -232,6 +268,8 @@ class BackupController extends Notifier<BackupState> {
         creation: creation,
         clearError: true,
       );
+      _heldCreation = creation;
+      _creationOperations = operations;
     } on BackupFailure catch (failure) {
       if (!_current(epoch)) return;
       final cancelled = failure.code == 'backup_cancelled';
@@ -278,6 +316,7 @@ class BackupController extends Notifier<BackupState> {
               clearError: true,
             )
           : state.copyWith(phase: BackupPhase.ready);
+      if (result == BackupSaveStatus.saved) _clearCreation();
     } on BackupFailure catch (failure) {
       if (!_current(epoch)) return;
       state = state.copyWith(phase: BackupPhase.ready, errorCode: failure.code);
@@ -292,24 +331,33 @@ class BackupController extends Notifier<BackupState> {
 
   Future<void> discard() async {
     final creation = state.creation;
-    final operations = _operations;
+    final operations = _creationOperations;
     if (creation == null || operations == null || state.busy) return;
+    if (identical(_discarding, creation)) return;
+    _discarding = creation;
+    final epoch = _epoch;
     try {
       await operations.discard(creation);
-      if (ref.mounted) state = const BackupState();
+      if (!_current(epoch) || !identical(state.creation, creation)) return;
+      state = const BackupState();
+      _clearCreation();
     } catch (_) {
-      if (ref.mounted) {
-        state = state.copyWith(
-          phase: BackupPhase.ready,
-          errorCode: 'backup_failed',
-        );
-      }
+      if (!_current(epoch) || !identical(state.creation, creation)) return;
+      // Preserve the creation so the deletion can be retried truthfully.
+      state = state.copyWith(
+        phase: BackupPhase.ready,
+        errorCode: 'backup_failed',
+      );
+    } finally {
+      if (identical(_discarding, creation)) _discarding = null;
     }
   }
 
   void reset() {
     if (state.busy) return;
+    final previous = state.creation;
     state = const BackupState();
+    _releaseCreation(previous);
   }
 }
 
