@@ -466,6 +466,29 @@ extension AttachmentRecordStore on RecordStore {
     );
   }
 
+  /// Watches one bounded keyset page instead of an offset window.
+  ///
+  /// The read is bounded to `limit + 1` rows and repeats only while the
+  /// protected dataset emits a change, so a visible row update stays bounded
+  /// and continuation cannot be shifted by a preceding insert, delete or
+  /// rename. A stale cursor still fails through [attachmentPage] rather than
+  /// being silently rebound to another generation or owner/target scope.
+  Stream<AttachmentPage> watchAttachmentPage({
+    required String personId,
+    AttachmentTargetKind? targetKind,
+    String? targetId,
+    int limit = 100,
+    AttachmentPageCursor? cursor,
+  }) => _watch(
+    () => attachmentPage(
+      personId: personId,
+      targetKind: targetKind,
+      targetId: targetId,
+      limit: limit,
+      cursor: cursor,
+    ),
+  );
+
   Stream<List<AttachmentRecord>> watchAttachments({
     required String personId,
     AttachmentTargetKind? targetKind,

@@ -40,27 +40,40 @@ final attachmentLookupProvider = StreamProvider.autoDispose
       yield* (await ref.watch(recordStoreProvider.future))
           .watchAttachmentById(id);
     });
+
+/// One fixed-size attachment list page. The family key carries the exact
+/// owner/target scope and, after the first page, the keyset cursor returned by
+/// the previous page. It never carries an offset.
 typedef AttachmentQuery = ({
   String personId,
   AttachmentTargetKind targetKind,
   String targetId,
-  int offset,
+  AttachmentPageCursor? cursor,
 });
+
+const attachmentListPageSize = 50;
+
+/// One bounded newest-first page, re-read when its protected dataset changes.
+///
+/// The store rejects a cursor from another dataset generation or a different
+/// owner/target scope, so a page cannot be rebound across those boundaries.
+/// Visible row edits still arrive because the page read itself is watched; its
+/// continuation stays anchored to the raw `created_at DESC, id ASC` keys.
 final attachmentListProvider = StreamProvider.autoDispose
-    .family<List<AttachmentRecord>, AttachmentQuery>(retry: (_, _) => null, (
+    .family<AttachmentPage?, AttachmentQuery>(retry: (_, _) => null, (
       ref,
       query,
     ) async* {
       if (!ref.watch(appLockProvider.select((s) => s.ready && !s.locked))) {
-        yield [];
+        yield null;
         return;
       }
-      yield* (await ref.watch(recordStoreProvider.future)).watchAttachments(
+      yield* (await ref.watch(recordStoreProvider.future)).watchAttachmentPage(
         personId: query.personId,
         targetKind: query.targetKind,
         targetId: query.targetId,
-        limit: 51,
-        offset: query.offset,
+        limit: attachmentListPageSize,
+        cursor: query.cursor,
       );
     });
 String attachmentRoute(AttachmentRecord record) =>
@@ -285,8 +298,54 @@ class AttachmentListPage extends ConsumerStatefulWidget {
 
 class _AttachmentListPageState extends ConsumerState<AttachmentListPage> {
   final chooseFocus = FocusNode();
-  int offset = 0;
+
+  /// One lower-bound cursor per visited page, with [null] for the head page.
+  /// Rows and offsets are never retained, so returning to an earlier page uses
+  /// the same keyset anchor rather than a shifted window.
+  final pageAnchors = <AttachmentPageCursor?>[null];
+  int pageIndex = 0;
   bool focused = false;
+
+  AttachmentPageCursor? get pageCursor => pageAnchors[pageIndex];
+
+  void resetPages() {
+    pageAnchors
+      ..clear()
+      ..add(null);
+    pageIndex = 0;
+  }
+
+  void nextPage(AttachmentPage page) {
+    final next = page.nextCursor;
+    if (next == null) return;
+    setState(() {
+      // Continuing from an earlier page deliberately abandons any later
+      // anchors so they cannot be reused after a different branch of work.
+      if (pageAnchors.length > pageIndex + 1) {
+        pageAnchors.removeRange(pageIndex + 1, pageAnchors.length);
+      }
+      pageAnchors.add(next);
+      pageIndex++;
+    });
+  }
+
+  void previousPage() {
+    if (pageIndex == 0) return;
+    setState(() => pageIndex--);
+  }
+
+  @override
+  void didUpdateWidget(AttachmentListPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A different owner or target is a different protected list. Never carry
+    // the previous target's cursor into it.
+    if (oldWidget.personId != widget.personId ||
+        oldWidget.kind != widget.kind ||
+        oldWidget.targetId != widget.targetId) {
+      resetPages();
+    }
+  }
+
   @override
   void dispose() {
     chooseFocus.dispose();
@@ -329,11 +388,25 @@ class _AttachmentListPageState extends ConsumerState<AttachmentListPage> {
     final revision = item?.personId == widget.personId
         ? item!.revision
         : actual?.revision ?? supporting?.revision;
+    // A replaced dataset rejects every cursor captured from the old one. Use
+    // the head page for this frame and reset the chain afterwards, so a stale
+    // cursor is never rendered and cannot retry forever.
+    final generation = ref.watch(
+      recordStoreProvider.select((s) => s.value?.generation),
+    );
+    final cursor = pageCursor;
+    final staleCursor =
+        cursor != null && generation != null && cursor.generation != generation;
+    if (staleCursor) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && pageCursor != null) setState(resetPages);
+      });
+    }
     final query = (
       personId: widget.personId,
       targetKind: widget.kind,
       targetId: widget.targetId,
-      offset: offset,
+      cursor: staleCursor ? null : cursor,
     );
     final result = ref.watch(attachmentListProvider(query)),
         jobs = ref.watch(attachmentJobsProvider);
@@ -426,35 +499,38 @@ class _AttachmentListPageState extends ConsumerState<AttachmentListPage> {
         if (notice != null) Semantics(liveRegion: true, child: Text(notice)),
         const AttachmentJobs(),
         result.when(
-          data: (records) => Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (records.isEmpty && (jobs.value?.isEmpty ?? false))
-                Text(t.attachmentEmpty),
-              for (final record in records.take(50))
-                AttachmentTile(
-                  key: ValueKey(record.id),
-                  attachment: record,
-                  fallbackFocus: chooseFocus,
+          data: (page) {
+            final records = page?.records ?? const <AttachmentRecord>[];
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (records.isEmpty && (jobs.value?.isEmpty ?? false))
+                  Text(t.attachmentEmpty),
+                for (final record in records)
+                  AttachmentTile(
+                    key: ValueKey(record.id),
+                    attachment: record,
+                    fallbackFocus: chooseFocus,
+                  ),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    if (pageIndex > 0)
+                      VitalButton.secondary(
+                        onPressed: previousPage,
+                        child: Text(t.previous),
+                      ),
+                    if (page != null && page.hasMore)
+                      VitalButton.secondary(
+                        onPressed: () => nextPage(page),
+                        child: Text(t.next),
+                      ),
+                  ],
                 ),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  if (offset > 0)
-                    VitalButton.secondary(
-                      onPressed: () => setState(() => offset -= 50),
-                      child: Text(t.previous),
-                    ),
-                  if (records.length > 50)
-                    VitalButton.secondary(
-                      onPressed: () => setState(() => offset += 50),
-                      child: Text(t.next),
-                    ),
-                ],
-              ),
-            ],
-          ),
+              ],
+            );
+          },
           error: (_, _) => LoadFailure(
             onRetry: () => ref.invalidate(attachmentListProvider(query)),
           ),
