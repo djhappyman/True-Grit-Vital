@@ -102,16 +102,12 @@ final class ReportEventData implements ReportTemplateData {
     final descriptors = {for (final item in items) item.itemId: item};
     bool selected(String itemId) =>
         selection.itemIds.isEmpty || selection.itemIds.contains(itemId);
-    final entries = <ReportLedgerEntry>[];
-    for (final record in snapshot.records) {
-      if (!selected(record.itemId)) {
-        // Totals derive from every snapshot record, so a record outside the
-        // selection would put member totals and the ledger out of step.
-        throw const ReportSelectionFailure('report_item');
-      }
-      entries.add(ReportLedgerEntry.fromRecord(record));
-    }
-    entries.sort((a, b) => a.occurredAt.compareTo(b.occurredAt));
+    // Event members and their totals are scoped below. Keep the ledger under
+    // the same selection when a captured snapshot contains additional items.
+    final entries = [
+      for (final record in snapshot.records)
+        if (selected(record.itemId)) ReportLedgerEntry.fromRecord(record),
+    ]..sort((a, b) => a.occurredAt.compareTo(b.occurredAt));
     if (entries.length > maxEntries) {
       throw const ReportSelectionFailure('report_history_limit');
     }
