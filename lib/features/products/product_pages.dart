@@ -115,6 +115,14 @@ class _ProductLabelFormState extends DurableFormState<ProductLabelForm> {
   }
 
   @override
+  Widget? failure() {
+    // The ingredient editor renders this validation beside its fields. Showing
+    // it again above Save would duplicate the visible error and announcement.
+    final invalid = AppLocalizations.of(context).productIngredientInvalid;
+    return error == invalid ? null : super.failure();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context),
         people = ref.watch(profilesProvider),
