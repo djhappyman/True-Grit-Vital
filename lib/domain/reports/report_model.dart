@@ -651,7 +651,9 @@ final class ReportText {
         for (final entry in snapshot.supporting) {
           lines
             ..add('')
-            ..add('${entry.title} (${entry.kind.name})')
+            ..add(
+              '${entry.title} (${entry.kind == SupportingRecordKind.labPanel ? 'Lab panel' : 'Observation'})',
+            )
             ..add('Measured: ${formatSupportingDate(entry.collectionDate)}');
           for (final value in entry.values) {
             lines.add(
@@ -660,7 +662,9 @@ final class ReportText {
               '${value.referenceRange == null ? '' : ' (range ${value.referenceRange})'}',
             );
           }
-          if (entry.notes != null) lines.add('Note: ${entry.notes}');
+          if (selection.includeNotes && entry.notes != null) {
+            lines.add('Note: ${entry.notes}');
+          }
         }
       }
       if (snapshot.supportingTruncated) {
@@ -761,7 +765,9 @@ final class ReportText {
       for (final entry in snapshot.supporting) {
         lines
           ..add('')
-          ..add('${entry.title} (${entry.kind.name})')
+          ..add(
+            '${entry.title} (${entry.kind == SupportingRecordKind.labPanel ? 'Lab panel' : 'Observation'})',
+          )
           ..add('Measured: ${formatSupportingDate(entry.collectionDate)}');
         for (final value in entry.values) {
           lines.add(
@@ -770,7 +776,9 @@ final class ReportText {
             '${value.referenceRange == null ? '' : ' (range ${value.referenceRange})'}',
           );
         }
-        if (entry.notes != null) lines.add('Note: ${entry.notes}');
+        if (selection.includeNotes && entry.notes != null) {
+          lines.add('Note: ${entry.notes}');
+        }
       }
     }
     if (selection.includeAttachments) {

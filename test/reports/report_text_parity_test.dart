@@ -497,7 +497,7 @@ void main() {
       expect(text, contains('Supporting records: included.'));
       expect(text, contains('Private notes: included where recorded.'));
       expect(text, contains('Source files: listed.'));
-      expect(text, contains('Synthetic panel (labPanel)'));
+      expect(text, contains('Synthetic panel (Lab panel)'));
       expect(text, contains('Measured: 5 October 2026'));
       expect(text, contains('Example marker: 5.5 mmol/L (range 3.0-7.0)'));
       expect(text, contains('Note: Synthetic note'));
@@ -531,6 +531,29 @@ void main() {
       expect(text, contains('Private notes: not included.'));
       expect(text, isNot(contains('Synthetic panel')));
       expect(text, isNot(contains('Synthetic source.pdf')));
+      expect(text, isNot(contains('Synthetic note')));
+    });
+
+    test('supporting context respects a separately disabled notes option', () {
+      final source = _r02Snapshot();
+      final snapshot = ReportSnapshot.build(
+        selection: ReportSelection(
+          template: ReportTemplateId.r02DetailedHistory,
+          personId: 'me',
+          fromDate: CivilDate(2026, 10, 1),
+          beforeDate: CivilDate(2026, 11, 1),
+          displayZone: 'UTC',
+          includeSupporting: true,
+          includeNotes: false,
+        ),
+        cutoff: source.cutoff,
+        person: source.person,
+        records: source.records,
+        supporting: source.supporting,
+      );
+      final text = ReportText.contextLines(snapshot).join('\n');
+      expect(text, contains('Synthetic panel (Lab panel)'));
+      expect(text, contains('Private notes: not included.'));
       expect(text, isNot(contains('Synthetic note')));
     });
 
@@ -644,7 +667,7 @@ void main() {
       expect(text, contains('2 administrations'));
 
       expect(text, contains('Supporting records: included.'));
-      expect(text, contains('Synthetic observation (observation)'));
+      expect(text, contains('Synthetic observation (Observation)'));
       expect(text, contains('Example reading: 72 bpm'));
       expect(text, contains('Note: Synthetic observation note'));
       expect(
