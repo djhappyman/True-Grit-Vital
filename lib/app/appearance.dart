@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'storage.dart';
@@ -25,6 +26,20 @@ class AppearancePreferences {
     opaque: opaque ?? this.opaque,
     reduceMotion: reduceMotion ?? this.reduceMotion,
   );
+
+  /// Throws when the persisted value is not a decodable appearance record;
+  /// the controller surfaces that as a load failure instead of defaults.
+  factory AppearancePreferences.decode(String raw) {
+    final data = jsonDecode(raw) as Map<String, dynamic>;
+    return AppearancePreferences(
+      mode: ThemeMode.values.firstWhere(
+        (m) => m.name == data['mode'],
+        orElse: () => ThemeMode.system,
+      ),
+      opaque: data['opaque'] == true,
+      reduceMotion: data['reduceMotion'] == true,
+    );
+  }
 }
 
 final appearanceProvider =
@@ -60,31 +75,52 @@ class AppearanceController extends Notifier<AppearancePreferences> {
   // error state or busy state. Saves still serialise on the shared notifier.
   int _epoch = 0;
   bool _saving = false;
+  Completer<void>? _saveSettled;
 
   @override
   AppearancePreferences build() {
-    // During a record-store reload Riverpod keeps the previous AsyncValue,
-    // whose store the provider has already retired: reading it races with
-    // close and would raise a current-generation error spuriously. Only
-    // read a settled store; a settled rebuild follows when it arrives.
+    // Gate on the record surface's settled state, not on isReloading:
+    // riverpod 3.4.3 (src/core/async_value.dart:86,97) reports isRefreshing
+    // for a manual Ref.invalidate/refresh — the actual dataset-swap path
+    // (lib/app/restore.dart) — and isReloading only for watch-driven
+    // rebuilds. Both pending forms, and a rebuild that ends in an error,
+    // retain the previously surfaced store in .value even though the
+    // provider's onDispose has already retired it; reading the retained
+    // store races against close. Only a settled, healthy store is read;
+    // a settled rebuild follows when the surface resolves.
     final record = ref.watch(recordStoreProvider);
-    final store = record.isReloading ? null : record.value;
+    final store = (record.isLoading || record.hasError) ? null : record.value;
     final epoch = ++_epoch;
     if (store != null) {
       Future.microtask(() async {
         try {
+          // A read issued while a publication is still in flight would
+          // return the value that write is about to replace (or, on
+          // failure, the one a rollback restores), and its epoch is the
+          // newest one, so the fence alone could not stop it overriding
+          // the user edit. Wait for the in-flight publication first, then
+          // draw freshly from the store.
+          while (_saving && ref.mounted && epoch == _epoch) {
+            final settled = _saveSettled;
+            if (settled == null) break;
+            await settled.future;
+          }
+          if (!ref.mounted || epoch != _epoch) return;
           final raw = await store.readSetting('appearance');
-          if (raw == null || !ref.mounted || epoch != _epoch) return;
-          final data = jsonDecode(raw) as Map<String, dynamic>;
-          state = AppearancePreferences(
-            mode: ThemeMode.values.firstWhere(
-              (m) => m.name == data['mode'],
-              orElse: () => ThemeMode.system,
-            ),
-            opaque: data['opaque'] == true,
-            reduceMotion: data['reduceMotion'] == true,
-          );
+          if (!ref.mounted || epoch != _epoch) return;
+          final next = raw == null
+              ? const AppearancePreferences()
+              : AppearancePreferences.decode(raw);
+          // This load belongs to the current epoch, so any banner left by
+          // the store this dataset replaced (a prior failed save, for
+          // instance) is retired now that the current dataset supplied its
+          // own data, defaulted or persisted. A decodable failure below
+          // reaches catch and re-raises its own banner instead.
+          ref.read(appearanceErrorProvider.notifier).set(false);
+          state = next;
         } catch (_) {
+          // A load failure at the current epoch surfaces truthfully; any
+          // superseded generation's result stays silent behind the fence.
           if (ref.mounted && epoch == _epoch) {
             ref.read(appearanceErrorProvider.notifier).set(true);
           }
@@ -96,6 +132,8 @@ class AppearanceController extends Notifier<AppearancePreferences> {
 
   Future<void> _save(AppearancePreferences next) async {
     if (_saving) return;
+    final settled = Completer<void>();
+    _saveSettled = settled;
     _saving = true;
     final epoch = ++_epoch;
     ref.read(appearanceBusyProvider.notifier).set(true);
@@ -120,10 +158,12 @@ class AppearanceController extends Notifier<AppearancePreferences> {
       }
     } finally {
       _saving = false;
+      _saveSettled = null;
       // While this write is in flight no newer write can start because
       // _saving serialises publications on the shared notifier instance, so
       // clearing busy here retires this generation's own indicator.
       if (ref.mounted) ref.read(appearanceBusyProvider.notifier).set(false);
+      settled.complete();
     }
   }
 
