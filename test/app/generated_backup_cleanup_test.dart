@@ -180,6 +180,15 @@ final _prepareForDataChange = Provider<Future<void> Function()>((ref) {
 
 Future<void> _flush() => Future<void>.delayed(Duration.zero);
 
+/// The harness's held deletion for exactly [creation], when several are
+/// pending at once.
+_PendingDiscard _pending(
+  _HarnessOperations operations,
+  BackupCreation creation,
+) => operations.pending.singleWhere(
+  (pending) => identical(pending.creation, creation),
+);
+
 /// How many transfer cleanups ran through the shared fake gateway.
 int _cleanups(FakeArtifactGateway gateway) =>
     gateway.calls.where((call) => call == 'cleanup').length;
@@ -585,7 +594,7 @@ void main() {
       expect(identical(holder.single, operations), isTrue);
     });
 
-    test('reset-owned cleanup is not duplicated by preparation', () async {
+    test('reset-owned cleanup is awaited before downstream cleanup', () async {
       final creation = await _creation(directory!, 'one', 'a' * 64);
       final operations = _HarnessOperations(nextCreation: creation);
       final (:container, :gateway, :holder) = _harness(operations);
@@ -597,18 +606,242 @@ void main() {
       final prepare = container.read(_prepareForDataChange)();
       await _flush();
       expect(operations.discards, 1, reason: 'reset already owns the delete');
-      expect(_cleanups(gateway), 1);
-      expect(gateway.includedOffered, isTrue);
+      expect(
+        _cleanups(gateway),
+        0,
+        reason: 'an unsettled reset deletion blocks downstream cleanup',
+      );
+      // A cleared panel alone is not proof the artifact is gone.
+      expect(_stateOf(container).phase, BackupPhase.idle);
 
       operations.pending.single.completion.complete();
       await prepare;
 
-      expect(_stateOf(container).phase, BackupPhase.idle);
-      expect(operations.discards, 1);
       expect(_cleanups(gateway), 1);
       expect(gateway.includedOffered, isTrue);
+      expect(_stateOf(container).phase, BackupPhase.idle);
+      expect(operations.discards, 1);
       expect(identical(holder.single, operations), isTrue);
     });
+
+    test('a reset-owned deletion failure blocks the preparation', () async {
+      final creation = await _creation(directory!, 'one', 'a' * 64);
+      final operations = _HarnessOperations(
+        nextCreation: creation,
+        discardOutcomes: [true],
+      );
+      final (:container, :gateway, :holder) = _harness(operations);
+      await _readyWith(container, operations, creation);
+
+      container.read(backupProvider.notifier).reset();
+      final prepare = container.read(_prepareForDataChange)();
+      await _flush();
+      expect(operations.discards, 1);
+
+      operations.pending.single.completion.complete();
+      await expectLater(prepare, _throwsCleanupFailed);
+
+      expect(_cleanups(gateway), 0);
+      expect(_stateOf(container).phase, BackupPhase.idle);
+      expect(_stateOf(container).creation, isNull);
+      expect(identical(holder.single, operations), isTrue);
+
+      // The retained failed deletion is retried on its origin operations
+      // and only a successful retry releases the data change.
+      final retry = container.read(_prepareForDataChange)();
+      expect(operations.discards, 2, reason: 'failed cleanup retried');
+      expect(identical(operations.pending.single.creation, creation), isTrue);
+      operations.pending.single.completion.complete();
+      await retry;
+
+      expect(_cleanups(gateway), 1);
+      expect(gateway.includedOffered, isTrue);
+      expect(operations.discards, 2);
+      expect(identical(holder.single, operations), isTrue);
+    });
+
+    test('a lock-started deletion failure blocks the preparation', () async {
+      final creation = await _creation(directory!, 'one', 'a' * 64);
+      final operations = _HarnessOperations(
+        nextCreation: creation,
+        discardOutcomes: [true],
+      );
+      final (:container, :gateway, :holder) = _harness(operations);
+      await _readyWith(container, operations, creation);
+
+      container.read(appLockProvider.notifier).lock();
+      expect(operations.discards, 1);
+      expect(_stateOf(container).phase, BackupPhase.idle);
+      expect(_stateOf(container).creation, isNull);
+
+      final prepare = container.read(_prepareForDataChange)();
+      await _flush();
+      operations.pending.single.completion.complete();
+      await expectLater(prepare, _throwsCleanupFailed);
+
+      expect(_cleanups(gateway), 0);
+      expect(identical(holder.single, operations), isTrue);
+    });
+
+    test('a rebuild-started deletion failure blocks the preparation', () async {
+      final older = await _creation(directory!, 'one', 'a' * 64);
+      final operations = _HarnessOperations(
+        nextCreation: older,
+        discardOutcomes: [true],
+      );
+      final (:container, :gateway, :holder) = _harness(operations);
+      await _readyWith(container, operations, older);
+
+      final replaced = _HarnessOperations(
+        nextCreation: await _creation(directory!, 'two', 'b' * 64),
+      );
+      holder[0] = replaced;
+      container.refresh(backupProvider);
+      await _flush();
+      expect(operations.discards, 1);
+
+      final prepare = container.read(_prepareForDataChange)();
+      await _flush();
+      expect(_cleanups(gateway), 0, reason: 'drains before downstream work');
+      operations.pending.single.completion.complete();
+      await expectLater(prepare, _throwsCleanupFailed);
+
+      expect(_cleanups(gateway), 0);
+      expect(_stateOf(container).phase, BackupPhase.idle);
+      expect(_stateOf(container).creation, isNull);
+
+      // The failed deletion stays bound to its origin operations: the
+      // replaced backend never deletes anything of this panel.
+      final retry = container.read(_prepareForDataChange)();
+      expect(operations.discards, 2);
+      expect(identical(operations.pending.single.creation, older), isTrue);
+      operations.pending.single.completion.complete();
+      await retry;
+
+      expect(_cleanups(gateway), 1);
+      expect(replaced.discards, 0);
+      expect(replaced.pending, isEmpty);
+    });
+
+    test('a pending UI discard survives reset and is awaited', () async {
+      final creation = await _creation(directory!, 'one', 'a' * 64);
+      final operations = _HarnessOperations(nextCreation: creation);
+      final (:container, :gateway, :holder) = _harness(operations);
+      await _readyWith(container, operations, creation);
+
+      final uiDiscard = container.read(backupProvider.notifier).discard();
+      await _flush();
+      container.read(backupProvider.notifier).reset();
+      await _flush();
+      expect(operations.discards, 1, reason: 'reset shares the running one');
+
+      final prepare = container.read(_prepareForDataChange)();
+      await _flush();
+      expect(_cleanups(gateway), 0, reason: 'waits for the pending deletion');
+
+      operations.pending.single.completion.complete();
+      await uiDiscard;
+      await prepare;
+
+      expect(_cleanups(gateway), 1);
+      expect(gateway.includedOffered, isTrue);
+      expect(operations.discards, 1);
+      expect(identical(holder.single, operations), isTrue);
+    });
+
+    test('superseding work while draining refuses erasure', () async {
+      final older = await _creation(directory!, 'one', 'a' * 64);
+      final newer = await _creation(directory!, 'two', 'b' * 64);
+      final operations = _HarnessOperations(nextCreation: older);
+      final (:container, :gateway, :holder) = _harness(operations);
+      await _readyWith(container, operations, older);
+
+      container.read(backupProvider.notifier).reset();
+      final prepare = container.read(_prepareForDataChange)();
+      await _flush();
+
+      operations.nextCreation = newer;
+      final createGate = Completer<BackupCreation>();
+      operations.createGate = createGate;
+      final pendingCreate = container
+          .read(backupProvider.notifier)
+          .create(password: _password, confirmation: _password);
+      createGate.complete(newer);
+      await pendingCreate;
+      expect(identical(_stateOf(container).creation, newer), isTrue);
+
+      operations.pending.single.completion.complete();
+      await expectLater(prepare, _throwsWorkBusy);
+
+      expect(
+        identical(_stateOf(container).creation, newer),
+        isTrue,
+        reason: 'the newer artifact is never erased by old work',
+      );
+      expect(_cleanups(gateway), 0);
+      expect(operations.discards, 1);
+      expect(identical(holder.single, operations), isTrue);
+    });
+
+    test(
+      'a failed older deletion blocks preparation under a newer panel',
+      () async {
+        final older = await _creation(directory!, 'one', 'a' * 64);
+        final newer = await _creation(directory!, 'two', 'b' * 64);
+        final operations = _HarnessOperations(
+          nextCreation: older,
+          discardOutcomes: [true, false, true, false],
+        );
+        final (:container, :gateway, :holder) = _harness(operations);
+        await _readyWith(container, operations, older);
+
+        final uiDiscard = container.read(backupProvider.notifier).discard();
+        await _flush();
+        operations.nextCreation = newer;
+        await container
+            .read(backupProvider.notifier)
+            .create(password: _password, confirmation: _password);
+        expect(identical(_stateOf(container).creation, newer), isTrue);
+
+        _pending(operations, older).completion.complete();
+        await uiDiscard;
+        expect(operations.discards, 1, reason: 'the older deletion failed');
+
+        final prepare = container.read(_prepareForDataChange)();
+        await _flush();
+        // The preparation starts the newer deletion and retries the
+        // retained failed older deletion on its own origin operations.
+        expect(operations.discards, 3);
+        _pending(operations, newer).completion.complete();
+        expect(
+          _cleanups(gateway),
+          0,
+          reason: 'not enough: the older one is still around',
+        );
+
+        _pending(operations, older).completion.complete();
+        await expectLater(
+          prepare,
+          _throwsCleanupFailed,
+          reason: 'the retained older deletion failed again, so no cleanup',
+        );
+        expect(_cleanups(gateway), 0);
+        expect(_stateOf(container).phase, BackupPhase.idle);
+        expect(_stateOf(container).creation, isNull);
+
+        // One more preparation retries the retained deletion; only its
+        // success releases the data change.
+        final retry = container.read(_prepareForDataChange)();
+        await _flush();
+        expect(operations.discards, 4, reason: 'the retained one retries');
+        _pending(operations, older).completion.complete();
+        await retry;
+
+        expect(_cleanups(gateway), 1);
+        expect(gateway.includedOffered, isTrue);
+        expect(identical(holder.single, operations), isTrue);
+      },
+    );
 
     test(
       'an empty panel releases without touching the archive owner',

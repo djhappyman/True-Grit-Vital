@@ -93,6 +93,24 @@ enum BackupRelease {
   failed,
 }
 
+/// One deletion this controller started on its own staged archive. A
+/// settled failure is retained so the next release can retry it truthfully
+/// instead of treating it as safely done.
+final class _PendingDeletion {
+  _PendingDeletion(this.creation, this.operations);
+
+  final BackupCreation creation;
+
+  /// The operations that produced and own the artifact; never swapped for
+  /// a rebuilt backend.
+  final BackupOperations operations;
+
+  Completer<bool> settled = Completer<bool>();
+  bool failed = false;
+
+  Future<bool> get future => settled.future;
+}
+
 final class BackupState {
   const BackupState({
     this.phase = BackupPhase.idle,
@@ -156,15 +174,14 @@ class BackupController extends Notifier<BackupState> {
   /// that adds or clears a creation keeps these in step.
   BackupCreation? _heldCreation;
 
-  /// Creation whose deletion is currently in flight. Fences a repeated
-  /// delete request and lets the lock path skip an already running one.
-  BackupCreation? _discarding;
-
-  /// Settles with true when the staged artifact of [_discarding] was
-  /// deleted and false when that deletion failed, so callers sharing the
-  /// in-flight deletion observe its actual outcome instead of issuing a
-  /// duplicate delete.
-  Completer<bool>? _deletion;
+  /// Every deletion this controller started on its own staged artifacts:
+  /// direct discards, janitorial releases through reset/lock/rebuild and
+  /// awaited data-change releases. Each entry keeps its own originating
+  /// operations and settles with true when that artifact was actually
+  /// deleted. Successful entries are removed; a failed one is retained so
+  /// the next release retries truthfully instead of treating a cleared
+  /// panel as proof that its artifact is gone.
+  final List<_PendingDeletion> _pendingDeletions = [];
 
   @override
   BackupState build() {
@@ -193,21 +210,92 @@ class BackupController extends Notifier<BackupState> {
   bool _current(int epoch) => ref.mounted && epoch == _epoch;
 
   /// Drops an owned creation from the controller while handing its staged
-  /// archive to the operations that created it. A deletion already running
-  /// for the same creation is left alone; its stale completion is rejected
-  /// by the fenced [discard].
+  /// archive to the operations that created it. The deletion is started
+  /// (or shared, when one is already running for the same creation) and
+  /// kept observable, so a later data-change preparation can never report
+  /// a released panel while that deletion is unsettled or failed.
   void _releaseCreation(BackupCreation? creation) {
     final operations = _creationOperations;
     _heldCreation = null;
     _creationOperations = null;
     if (creation == null || operations == null) return;
-    if (identical(_discarding, creation)) return;
-    unawaited(operations.discard(creation).catchError((Object _) {}));
+    for (final pending in _pendingDeletions) {
+      if (identical(pending.creation, creation)) return;
+    }
+    _startDeletion(creation, operations);
   }
 
   void _clearCreation() {
     _heldCreation = null;
     _creationOperations = null;
+  }
+
+  /// Starts the deletion for [creation] on exactly [operations] and keeps
+  /// it observable until it settles.
+  _PendingDeletion _startDeletion(
+    BackupCreation creation,
+    BackupOperations operations,
+  ) {
+    final pending = _PendingDeletion(creation, operations);
+    _pendingDeletions.add(pending);
+    unawaited(_run(pending));
+    return pending;
+  }
+
+  /// Finds this controller's originated deletion for [creation]: one
+  /// already running is shared on the exact same future, and only a failed
+  /// one is restarted. Every discard and every release call the same
+  /// sharing path, so a repeated request never duplicates the delete.
+  _PendingDeletion _shareDeletion(
+    BackupCreation creation,
+    BackupOperations operations,
+  ) {
+    for (final pending in _pendingDeletions) {
+      if (identical(pending.creation, creation)) {
+        if (pending.failed) _restartDeletion(pending);
+        return pending;
+      }
+    }
+    return _startDeletion(creation, operations);
+  }
+
+  void _restartDeletion(_PendingDeletion pending) {
+    pending
+      ..failed = false
+      ..settled = Completer<bool>();
+    unawaited(_run(pending));
+  }
+
+  /// Settles [pending] with the actual deletion outcome. While the panel
+  /// still offers the same creation and no newer work superseded it, a
+  /// success clears the panel and a failure keeps the creation retryable
+  /// with the normal backup error state; a newer attempt is never touched.
+  Future<void> _run(_PendingDeletion pending) async {
+    final epoch = _epoch;
+    bool deleted;
+    try {
+      await pending.operations.discard(pending.creation);
+      deleted = true;
+    } catch (_) {
+      deleted = false;
+    }
+    pending.failed = !deleted;
+    if (deleted) _pendingDeletions.remove(pending);
+    if (ref.mounted &&
+        epoch == _epoch &&
+        identical(state.creation, pending.creation)) {
+      if (deleted) {
+        state = const BackupState();
+        _clearCreation();
+      } else {
+        // Preserve the creation so the deletion can be retried truthfully.
+        state = state.copyWith(
+          phase: BackupPhase.ready,
+          errorCode: 'backup_failed',
+        );
+      }
+    }
+    pending.settled.complete(deleted);
   }
 
   bool get available => _operations != null;
@@ -352,93 +440,64 @@ class BackupController extends Notifier<BackupState> {
     final creation = state.creation;
     final operations = _creationOperations;
     if (creation == null || operations == null || state.busy) return;
-    if (identical(_discarding, creation)) {
-      // Share the running deletion instead of duplicating it. Whoever
-      // started it already drives the retry and cleared-state semantics.
-      await _deletion!.future;
-      return;
-    }
-    _discarding = creation;
-    final deletion = _deletion = Completer<bool>();
-    final epoch = _epoch;
-    try {
-      await operations.discard(creation);
-      deletion.complete(true);
-      if (!_current(epoch) || !identical(state.creation, creation)) return;
-      state = const BackupState();
-      _clearCreation();
-    } catch (_) {
-      deletion.complete(false);
-      if (!_current(epoch) || !identical(state.creation, creation)) return;
-      // Preserve the creation so the deletion can be retried truthfully.
-      state = state.copyWith(
-        phase: BackupPhase.ready,
-        errorCode: 'backup_failed',
-      );
-    } finally {
-      if (identical(_discarding, creation)) {
-        _discarding = null;
-        _deletion = null;
-      }
-    }
+    // Share the running deletion instead of duplicating it and wait for
+    // its actual outcome. The shared entry drives the retry and
+    // cleared-state semantics for every caller of the same creation.
+    final pending = _shareDeletion(creation, operations);
+    await pending.future;
   }
 
   /// Releases the staged archive owned by this panel during data-change
-  /// preparation, awaiting the actual deletion instead of leaving one open.
-  /// The deletion always runs on the operations that originated the offered
-  /// creation, and one already running is shared rather than duplicated.
+  /// preparation, awaiting the actual deletion instead of leaving one
+  /// open. Every deletion this controller originated is drained: the
+  /// panel's own creation and any janitorial release/reset/lock/rebuild
+  /// deletion. A settled failure is retried once per call and retained
+  /// until its deletion actually succeeds. The deletion always runs on
+  /// the operations that originated the creation, and one already running
+  /// is shared rather than duplicated.
   ///
   /// [BackupRelease.released] is only returned once the panel no longer
-  /// owns a staged artifact and its deletion settled truthfully.
-  /// [BackupRelease.failed] keeps the creation exactly as [discard] leaves
-  /// it, still retryable there. [BackupRelease.busy] means other or newer
-  /// panel work owns the flow; callers must not erase data on it because a
-  /// late completion can never discard a newer attempt or pretend the
-  /// change is safe.
+  /// owns a staged artifact and every originated deletion settled
+  /// truthfully. [BackupRelease.failed] keeps the panel's creation exactly
+  /// as [discard] leaves it, still retryable there. [BackupRelease.busy]
+  /// means newer or other panel work owns the flow; callers must not erase
+  /// data on it because a late completion can never discard a newer
+  /// attempt or pretend the change is safe.
   Future<BackupRelease> releaseForDataChange() async {
-    if (state.busy) return BackupRelease.busy;
-    final creation = state.creation;
-    if (creation == null) return BackupRelease.released;
-    if (identical(_discarding, creation)) {
-      // Share the in-flight deletion; a same-file delete must never race.
-      final settled = await _deletion!.future;
-      return _releaseOutcome(creation, deleted: settled);
-    }
-    final operations = _creationOperations;
-    if (operations == null) return BackupRelease.failed;
-    _discarding = creation;
-    final deletion = _deletion = Completer<bool>();
-    bool deleted = false;
-    try {
-      await operations.discard(creation);
-      deleted = true;
-      deletion.complete(true);
-    } catch (_) {
-      deletion.complete(false);
-    } finally {
-      if (identical(_discarding, creation)) {
-        _discarding = null;
-        _deletion = null;
-      }
-    }
-    return _releaseOutcome(creation, deleted: deleted);
-  }
-
-  /// Observes the settled panel for [creation]. A still offered creation is
-  /// cleared on success or kept retryable on failure; a panel that moved to
-  /// other owned work is never touched.
-  BackupRelease _releaseOutcome(
-    BackupCreation creation, {
-    required bool deleted,
-  }) {
     if (!ref.mounted) return BackupRelease.busy;
-    if (identical(state.creation, creation)) {
-      if (state.busy) return BackupRelease.busy;
-      if (deleted) {
-        state = const BackupState();
-        _clearCreation();
-        return BackupRelease.released;
-      }
+    if (state.busy) return BackupRelease.busy;
+    final target = state.creation;
+    if (target == null && _pendingDeletions.isEmpty) {
+      return BackupRelease.released;
+    }
+    final entries = <_PendingDeletion>[];
+    if (target != null) {
+      final operations = _creationOperations;
+      if (operations == null) return BackupRelease.failed;
+      entries.add(_shareDeletion(target, operations));
+    }
+    for (final pending in _pendingDeletions) {
+      if (entries.contains(pending)) continue;
+      if (pending.failed) _restartDeletion(pending);
+      entries.add(pending);
+    }
+    final outcomes = await Future.wait([
+      for (final pending in entries) pending.future,
+    ]);
+    if (!ref.mounted) return BackupRelease.busy;
+    if (state.busy) return BackupRelease.busy;
+    final current = state.creation;
+    final allDeleted = outcomes.every((outcome) => outcome);
+    if (current == null) {
+      // The panel is clear; with everything actually deleted the change is
+      // safe, otherwise a retained failed deletion keeps the change blocked.
+      return allDeleted ? BackupRelease.released : BackupRelease.failed;
+    }
+    if (target == null || !identical(current, target)) {
+      // A newer attempt or different panel work owns the flow now.
+      return BackupRelease.busy;
+    }
+    if (!allDeleted) {
       // Keep the creation so the deletion can be retried truthfully.
       state = state.copyWith(
         phase: BackupPhase.ready,
@@ -446,13 +505,9 @@ class BackupController extends Notifier<BackupState> {
       );
       return BackupRelease.failed;
     }
-    if (state.busy || state.creation != null) {
-      // A newer attempt or different panel work owns the flow now.
-      return BackupRelease.busy;
-    }
-    // The panel moved on while the deletion ran: the outcome is the fate
-    // of the artifact itself, never a claim about newer work.
-    return deleted ? BackupRelease.released : BackupRelease.failed;
+    state = const BackupState();
+    _clearCreation();
+    return BackupRelease.released;
   }
 
   void reset() {
