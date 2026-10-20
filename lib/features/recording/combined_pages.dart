@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../app/app_lock.dart';
 import '../../app/storage.dart';
 import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
@@ -53,6 +54,17 @@ final combinedCorrectionWriterProvider =
           (command) async =>
               (await ref.read(recordStoreProvider.future))
                   .correctCombined(command),
+    );
+
+/// Reads a source label before it joins the form. Overridable so a delayed read
+/// can be exercised without another global subsystem.
+final combinedSourceLabelProvider =
+    Provider<
+      Future<ProductLabelSnapshot?> Function(RecordStore, String, String)
+    >(
+      (ref) =>
+          (store, personId, itemId) =>
+              store.productLabel(personId: personId, itemId: itemId),
     );
 
 class _SourceEntry {
@@ -133,6 +145,9 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
       reviewing = false,
       preparing = false;
   int itemOffset = 0;
+  // Bound every awaited preparation to the private form state it started from.
+  int _editEpoch = 0, _lockEpoch = 0;
+  final _pendingAdds = <String>{};
   DateTime? instant;
   CombinedUseCommand? frozen;
   CombinedCorrectionCommand? frozenCorrection;
@@ -227,6 +242,7 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
   }
 
   void changed() {
+    _editEpoch++;
     if (!busy && !uncertain) {
       frozen = null;
       frozenCorrection = null;
@@ -236,6 +252,14 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
     entryChanged();
     if (mounted && draftReady) setState(() {});
   }
+
+  /// A pending read or review may only apply to the same private form, store
+  /// generation and unlocked session it began in.
+  bool _preparationCurrent(RecordStore store) =>
+      mounted &&
+      identical(ref.read(recordStoreProvider).value, store) &&
+      !ref.read(appLockProvider).locked &&
+      (capturedGeneration == null || capturedGeneration == store.generation);
 
   @override
   void dispose() {
@@ -248,25 +272,46 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
   }
 
   Future<void> add(SubstanceItem item) async {
-    final store = await ref.read(recordStoreProvider.future);
-    final label = await store.productLabel(
-      personId: widget.personId,
-      itemId: item.id,
-    );
-    if (!mounted) return;
-    final e = _SourceEntry(
-      itemId: item.id,
-      itemRevision: item.revision,
-      name: item.name,
-      unit: item.unit,
-      changed: changed,
-      label: label,
-    );
-    setState(() {
-      entries.add(e);
-      choosing = false;
-    });
-    changed();
+    // A repeated tap on the same pending source joins the first read.
+    if (_pendingAdds.contains(item.id)) return;
+    final locks = _lockEpoch;
+    setState(() => _pendingAdds.add(item.id));
+    try {
+      final store = await ref.read(recordStoreProvider.future);
+      final ProductLabelSnapshot? label;
+      try {
+        label = await ref.read(combinedSourceLabelProvider)(
+          store,
+          widget.personId,
+          item.id,
+        );
+      } on Object {
+        // A closed or replaced store cannot supply a current label. Keep a
+        // genuine read failure visible; discard only the obsolete attempt.
+        if (_preparationCurrent(store) && locks == _lockEpoch) rethrow;
+        return;
+      }
+      // A lock, replacement or newer preparation owns the form now. No stale
+      // label or source may join after that boundary.
+      if (!_preparationCurrent(store) || locks != _lockEpoch) return;
+      final e = _SourceEntry(
+        itemId: item.id,
+        itemRevision: item.revision,
+        name: item.name,
+        unit: item.unit,
+        changed: changed,
+        label: label,
+      );
+      setState(() {
+        entries.add(e);
+        choosing = false;
+        _pendingAdds.remove(item.id);
+      });
+      changed();
+      return;
+    } finally {
+      if (mounted && _pendingAdds.remove(item.id)) setState(() {});
+    }
   }
 
   DateTime? actual() {
@@ -294,8 +339,15 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
   }
 
   Future<void> review() async {
-    if (preparing || busy || uncertain) return;
+    if (preparing || busy || uncertain || _pendingAdds.isNotEmpty) return;
+    final store = ref.read(recordStoreProvider).value;
+    if (store == null) return;
     final t = AppLocalizations.of(context);
+    final edit = _editEpoch, locks = _lockEpoch;
+    // The reviewed payload may only freeze if nothing in this private form
+    // changed while the clock sample or correction dialogs were awaited.
+    bool current() =>
+        edit == _editEpoch && locks == _lockEpoch && _preparationCurrent(store);
     setState(() => preparing = true);
     try {
       final at = actual();
@@ -317,7 +369,7 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
       }
       commandId ??= newCommandId();
       final sample = await captureIntervalClock(ref);
-      if (!mounted) return;
+      if (!mounted || !current()) return;
       instant = at;
       if (widget.actionId == null) {
         frozen = CombinedUseCommand(
@@ -378,7 +430,7 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
             intervalClockSample: sample,
             captureClockIfMissing: false,
           );
-          if (reviews == null || !mounted) return;
+          if (reviews == null || !current()) return;
           components.add(
             CombinedCorrectionComponent(
               recordId: e.record!.id,
@@ -392,6 +444,7 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
             ),
           );
         }
+        if (!current()) return;
         frozenCorrection = CombinedCorrectionCommand(
           commandId: commandId!,
           actionId: widget.actionId!,
@@ -433,6 +486,9 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(appLockProvider, (previous, next) {
+      if (next.locked && previous?.locked != true) _lockEpoch++;
+    });
     final t = AppLocalizations.of(context),
         people = ref.watch(profilesProvider);
     final group = widget.actionId == null
@@ -603,7 +659,12 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
           child: Text(t.cancel),
         ),
       VitalButton(
-        onPressed: busy || preparing || conflict || (!valid && !uncertain)
+        onPressed:
+            busy ||
+                preparing ||
+                conflict ||
+                _pendingAdds.isNotEmpty ||
+                (!valid && !uncertain)
             ? null
             : reviewing || uncertain
             ? save
