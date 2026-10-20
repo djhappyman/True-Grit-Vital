@@ -194,6 +194,28 @@ void main() {
     },
   );
 
+  appTest('a sub-day range cannot widen through Narrow', (tester) async {
+    final f = await launch(tester);
+    f.container
+        .read(routerProvider)
+        .go(
+          '/charts?scope=me&from=2026-10-01T12:00:00Z'
+          '&before=2026-10-01T13:00:00Z&mode=table',
+        );
+    await settle(tester);
+    final narrow = tester.widget<VitalButton>(
+      find.widgetWithText(VitalButton, 'Narrow'),
+    );
+    expect(narrow.onPressed, isNull);
+    expect(
+      tester
+          .widget<VitalButton>(find.widgetWithText(VitalButton, 'Widen'))
+          .onPressed,
+      isNotNull,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   appTest('widest bounded zoom disables instead of doing nothing silently', (
     tester,
   ) async {

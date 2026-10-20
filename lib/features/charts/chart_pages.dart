@@ -786,6 +786,7 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
   /// same range and clearing the chosen bucket or open sources for no reason.
   ({DateTime from, DateTime before})? _zoomedRange(bool widen) {
     final length = upper!.difference(lower!).inMicroseconds;
+    if (!widen && length <= const Duration(days: 1).inMicroseconds) return null;
     final next = widen
         ? length * 2
         : math.max(const Duration(days: 1).inMicroseconds, length ~/ 2);
