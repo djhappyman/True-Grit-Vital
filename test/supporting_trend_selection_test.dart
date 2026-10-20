@@ -2,7 +2,6 @@ import 'dart:ui' show Tristate;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
-import 'package:true_grit_vital/app/supporting.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/recording/record_pages.dart';
@@ -218,9 +217,8 @@ void main() {
         ),
         command: 'save-c',
       );
-      // The supported refresh path re-reads the same query instance. The page
-      // state, including the chosen comparison identity, survives it.
-      f.container.invalidate(supportingTrendProvider);
+      // The bounded watcher re-reads the same query when the store commits.
+      // The page state, including the chosen comparison identity, survives it.
       await waitForWidget(
         tester,
         find.textContaining('Group 1 of 3. Marker. Unit: umol/L'),
@@ -270,7 +268,6 @@ void main() {
         command: 'correct-b',
         expectedRevision: b.revision,
       );
-      f.container.invalidate(supportingTrendProvider);
       await waitForWidget(
         tester,
         find.textContaining('Group 1 of 3. Marker. Unit: g/L'),
@@ -295,7 +292,6 @@ void main() {
         command: 'void-b',
         voided: true,
       );
-      f.container.invalidate(supportingTrendProvider);
       await waitForWidget(
         tester,
         find.text(
@@ -334,7 +330,6 @@ void main() {
         command: 'restore-b',
         voided: false,
       );
-      f.container.invalidate(supportingTrendProvider);
       await waitForWidget(tester, find.byType(SupportingPlot));
       await settle(tester);
       expect(selectedGroup(tester).key.identity, identityOf(restored));

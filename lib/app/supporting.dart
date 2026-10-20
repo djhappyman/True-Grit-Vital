@@ -86,9 +86,8 @@ final class SupportingSourcePage {
   bool get hasMore => nextCursor != null;
 }
 
-typedef SupportingSourceReader = Future<SupportingSourcePage> Function(
-  SupportingSourceRequest request,
-);
+typedef SupportingSourceReader =
+    Future<SupportingSourcePage> Function(SupportingSourceRequest request);
 
 /// Reads one newest-first page through the stable attachment keyset query.
 /// Files for another adult, staging or deleting files and files from a
@@ -135,20 +134,84 @@ final supportingSourceCandidatesProvider = FutureProvider.autoDispose
       return ref.watch(supportingSourceReaderProvider)(request);
     });
 
-final supportingTrendReaderProvider =
-    Provider<Future<SupportingTrendPage> Function(SupportingTrendQuery)>(
-      (ref) =>
-          (query) async =>
-              (await ref.read(recordStoreProvider.future))
-                  .supportingTrend(query),
+/// The bounded store watcher for one trend query. A visible page keeps this
+/// subscription open; leaving the page, locking or replacing the dataset
+/// cancels it through provider disposal.
+typedef SupportingTrendWatcher =
+    Stream<SupportingTrendPage> Function(
+      SupportingTrendQuery query, {
+      int requestGeneration,
+    });
+
+final supportingTrendWatcherProvider = Provider<SupportingTrendWatcher>(
+  (ref) => (query, {requestGeneration = 0}) async* {
+    yield* (await ref.read(
+      recordStoreProvider.future,
+    )).watchSupportingTrend(query, requestGeneration: requestGeneration);
+  },
+);
+
+/// One fence per encoded query. It lives as long as the trend provider, so a
+/// rebuild advances the request sequence while a retired stream's pending
+/// emission still carries the previous token.
+final _supportingTrendFenceProvider = Provider.autoDispose
+    .family<_SupportingTrendFence, String>(
+      (ref, encoded) => _SupportingTrendFence(),
     );
 
-final supportingTrendProvider = FutureProvider.autoDispose
-    .family<SupportingTrendPage?, String>((ref, encoded) async {
-      if (ref.watch(appLockProvider.select((s) => s.locked))) return null;
+/// View-owned sequencing for a live trend. The schema version is fixed for the
+/// running process and the page token still carries it; a late emission is
+/// fenced by the request sequence plus the exact query and dataset identity.
+final class _SupportingTrendFence {
+  int _request = 0;
+  int begin() => ++_request;
+  bool accepts(
+    SupportingTrendPage page, {
+    required int request,
+    required SupportingTrendQuery query,
+    required String datasetGeneration,
+  }) =>
+      page.requestGeneration == request &&
+      page.query.identity == query.identity &&
+      page.datasetGeneration == datasetGeneration;
+}
+
+/// Watches the current query while this provider has a listener. The first
+/// emission replaces the whole model, so a correction, void or insert is
+/// visible without invalidating a one-shot read manually.
+final supportingTrendProvider = StreamProvider.autoDispose
+    .family<SupportingTrendPage?, String>((ref, encoded) async* {
+      if (ref.watch(appLockProvider.select((s) => s.locked))) {
+        yield null;
+        return;
+      }
       final query = SupportingTrendQuery.fromJson(_decode(encoded));
-      ref.watch(recordStoreProvider.select((s) => s.value?.generation));
-      return ref.watch(supportingTrendReaderProvider)(query);
+      // Only a settled current store may be read. A manual refresh and the
+      // dataset-swap path both retain the retired store in `.value` while the
+      // surface reloads, so `.isLoading`/`.hasError` must gate this read rather
+      // than `.isReloading`. The settled rebuild then starts a fresh watcher.
+      final record = ref.watch(recordStoreProvider);
+      final store = (record.isLoading || record.hasError) ? null : record.value;
+      if (store == null) {
+        await ref.watch(recordStoreProvider.future);
+        return;
+      }
+      final fence = ref.watch(_supportingTrendFenceProvider(encoded));
+      final request = fence.begin();
+      final generation = store.generation;
+      yield* ref
+          .watch(supportingTrendWatcherProvider)(
+            query,
+            requestGeneration: request,
+          )
+          .where(
+            (page) => fence.accepts(
+              page,
+              request: request,
+              query: query,
+              datasetGeneration: generation,
+            ),
+          );
     });
 
 Map<String, dynamic> _decode(String value) =>
@@ -173,8 +236,9 @@ final supportingPageProvider = StreamProvider.autoDispose
         yield null;
         return;
       }
-      yield* (await ref.watch(recordStoreProvider.future))
-          .watchSupportingRecords(request.query, cursor: request.cursor);
+      yield* (await ref.watch(
+        recordStoreProvider.future,
+      )).watchSupportingRecords(request.query, cursor: request.cursor);
     });
 
 typedef SupportingSave = ({

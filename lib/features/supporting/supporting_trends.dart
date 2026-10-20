@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/display_preferences.dart';
+import '../../app/storage.dart';
 import '../../app/supporting.dart';
 import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
@@ -27,7 +28,8 @@ class SupportingTrendsPage extends ConsumerStatefulWidget {
       _SupportingTrendsPageState();
 }
 
-class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
+class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage>
+    with WidgetsBindingObserver {
   late final from = TextEditingController(
         text: CivilDate.fromDateTime(DateTime.now()).addDays(-365).toString(),
       ),
@@ -37,6 +39,10 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
   late CivilDate start = CivilDate.parse(from.text),
       end = CivilDate.parse(before.text);
   SupportingDateBasis basis = SupportingDateBasis.collection;
+
+  /// Whether the app window is foreground. The route below covers the page
+  /// while a record is open; both states detach the expensive trend watcher.
+  bool _foreground = true;
 
   /// The chosen comparison identity, never a position in the sorted group list.
   /// A live refresh, correction, void or range change can reorder or remove
@@ -49,10 +55,25 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
   int groupPage = 0, tablePage = 0, undatedPage = 0;
   String? error;
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     from.dispose();
     before.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final foreground = state == AppLifecycleState.resumed;
+    if (foreground != _foreground && mounted) {
+      setState(() => _foreground = foreground);
+    }
   }
 
   @override
@@ -127,9 +148,31 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
       dateBasis: basis,
       displayZone: ref.watch(displayZoneProvider),
     );
-    final encoded = jsonEncode(query.toJson()),
-        result = ref.watch(supportingTrendProvider(encoded));
-    final model = result.value;
+    final encoded = jsonEncode(query.toJson());
+    // A covered route, a backgrounded app or the lock screen must not keep a
+    // store subscription open. The route dependency and the lifecycle observer
+    // rebuild this page on return, which watches the current query afresh
+    // without changing the chosen comparison identity.
+    final visible = _foreground && (ModalRoute.of(context)?.isCurrent ?? true);
+    AsyncValue<SupportingTrendPage?>? result;
+    String? liveGeneration;
+    if (visible) {
+      final record = ref.watch(recordStoreProvider);
+      liveGeneration = record.isLoading || record.hasError
+          ? null
+          : record.value?.generation;
+      result = ref.watch(supportingTrendProvider(encoded));
+    }
+    final candidate = result?.value;
+    // A retained AsyncValue from a retired store or a previous query is not
+    // current data, even while the replacement request is still loading.
+    final model =
+        candidate != null &&
+            liveGeneration != null &&
+            candidate.query.identity == query.identity &&
+            candidate.datasetGeneration == liveGeneration
+        ? candidate
+        : null;
     final groups = model?.groups ?? <SupportingTrendGroup>[];
     // The selector follows the first positioned date, not comparison-key hash
     // order, so the first group is the earliest saved result in this view.
@@ -215,7 +258,7 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
           child: Text(t.supportingApply),
         ),
         if (error != null) Semantics(liveRegion: true, child: Text(error!)),
-        if (result.hasError) ...[
+        if (result != null && result.hasError) ...[
           Text(
             result.error is SupportingLimitException
                 ? t.supportingTooMany
@@ -226,7 +269,8 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
             child: Text(t.retry),
           ),
         ],
-        if (result.isLoading) Text(t.loadingRecords),
+        if (visible && model == null && (result?.isLoading ?? true))
+          Text(t.loadingRecords),
         if (model != null && groups.isEmpty && undated.isEmpty)
           Text(t.supportingNoMatches),
         if (positioned.isNotEmpty)
