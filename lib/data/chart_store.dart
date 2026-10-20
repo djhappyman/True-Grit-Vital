@@ -500,13 +500,22 @@ extension ChartContextStore on RecordStore {
           }
         }
       }
+      // A saved date-only end may omit a fabricated instant, so bound its saved
+      // last civil date as well. The civil bounds already include the widest
+      // source/display-zone offset around the viewport. Without that bound every
+      // distant date-only end matched and could exhaust the candidate cap before
+      // a relevant plan.
       final ends = await _rows(
         '''SELECT p.id,json_extract(f.snapshot,'\$.end') AS ending FROM phase_plan f
         JOIN daily_plan p ON p.id=f.plan AND p.person=f.person
-        WHERE p.person=? $itemSql AND ((json_extract(f.snapshot,'\$.end.instant')>=? AND json_extract(f.snapshot,'\$.end.instant')<?)
-          OR (json_type(f.snapshot,'\$.end') NOT IN ('null') AND json_type(f.snapshot,'\$.end.instant') IS NOT 'integer'))
+        WHERE p.person=? $itemSql AND (
+          (json_type(f.snapshot,'\$.end.instant')='integer'
+            AND json_extract(f.snapshot,'\$.end.instant')>=? AND json_extract(f.snapshot,'\$.end.instant')<?)
+          OR (json_type(f.snapshot,'\$.end.lastDate')='text'
+            AND date(json_extract(f.snapshot,'\$.end.lastDate')) IS NOT NULL
+            AND json_extract(f.snapshot,'\$.end.lastDate')>=? AND json_extract(f.snapshot,'\$.end.lastDate')<=?))
         ORDER BY p.id LIMIT 1001''',
-        [request.personId, ...?items, lower, upper],
+        [request.personId, ...?items, lower, upper, firstDate, lastDate],
       );
       if (ends.length > 1000) complete = false;
       for (final row in ends.take(1000)) {
@@ -532,6 +541,19 @@ extension ChartContextStore on RecordStore {
           complete = false;
         }
       }
+      // An end that is neither an integer instant nor a parseable saved date is
+      // unpositionable. Report that honestly without fetching every such row.
+      final unreadableEnd = await _rows(
+        '''SELECT 1 FROM phase_plan f
+        JOIN daily_plan p ON p.id=f.plan AND p.person=f.person
+        WHERE p.person=? $itemSql AND json_type(f.snapshot,'\$.end') NOT IN ('null')
+          AND json_type(f.snapshot,'\$.end.instant') IS NOT 'integer'
+          AND NOT (json_type(f.snapshot,'\$.end.lastDate')='text'
+            AND date(json_extract(f.snapshot,'\$.end.lastDate')) IS NOT NULL)
+        LIMIT 1''',
+        [request.personId, ...?items],
+      );
+      if (unreadableEnd.isNotEmpty) complete = false;
       _requireWritable();
       return ChartContextBatch(annotations: result, complete: complete);
     });
