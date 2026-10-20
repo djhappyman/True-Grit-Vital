@@ -29,37 +29,73 @@ final displayPreferencesProvider =
       DisplayPreferencesController.new,
     );
 
+/// Writes the persisted display preference through the current record store;
+/// tests override this seam for deterministic write outcomes.
+final displayPreferenceWriterProvider = Provider<Future<void> Function(String)>(
+  (ref) => (value) async {
+    final store = await ref.read(recordStoreProvider.future);
+    await store.writeSetting('display', value);
+  },
+);
+
 class DisplayPreferencesController extends Notifier<DisplayPreferences> {
+  // The notifier instance survives a record-store replacement (restore),
+  // so delayed work from a replaced dataset is fenced by epoch and writes
+  // serialise on the shared notifier: a mid-flight rebuild resets state.busy
+  // without retiring the store the in-flight write already touches.
   int _epoch = 0;
+  bool _saving = false;
+  Completer<void>? _saveSettled;
+
   @override
   DisplayPreferences build() {
-    final store = ref.watch(recordStoreProvider).value;
+    // Only a settled, healthy record store is read: pending rebuilds and
+    // failed swaps still surface the previously retired store in .value, and
+    // reading it races store close (see AppearanceController). A settled
+    // rebuild follows when the record surface resolves.
+    final record = ref.watch(recordStoreProvider);
+    final store = (record.isLoading || record.hasError) ? null : record.value;
     final epoch = ++_epoch;
-    scheduleMicrotask(() async {
-      if (store == null) return;
-      try {
-        final raw = await store.readSetting('display');
-        if (!ref.mounted || epoch != _epoch || raw == null) return;
-        final parsed = jsonDecode(raw) as Map<String, dynamic>;
-        state = DisplayPreferences(
-          timeFormat: timeFormatFromStorage(parsed['timeFormat'] as String?),
-        );
-      } catch (_) {
-        if (ref.mounted && epoch == _epoch) {
-          state = const DisplayPreferences(failed: true);
+    if (store != null) {
+      scheduleMicrotask(() async {
+        try {
+          // A read issued while a publication is still in flight would
+          // return the value that write is about to replace; wait for it,
+          // then draw freshly from the store.
+          while (_saving && ref.mounted && epoch == _epoch) {
+            final settled = _saveSettled;
+            if (settled == null) break;
+            await settled.future;
+          }
+          if (!ref.mounted || epoch != _epoch) return;
+          final raw = await store.readSetting('display');
+          if (!ref.mounted || epoch != _epoch) return;
+          state = raw == null
+              ? const DisplayPreferences()
+              : DisplayPreferences(
+                  timeFormat: timeFormatFromStorage(
+                    (jsonDecode(raw) as Map<String, dynamic>)['timeFormat']
+                        as String?,
+                  ),
+                );
+        } catch (_) {
+          if (ref.mounted && epoch == _epoch) {
+            state = const DisplayPreferences(failed: true);
+          }
         }
-      }
-    });
+      });
+    }
     return const DisplayPreferences();
   }
 
   Future<void> setTimeFormat(TimeFormat value) async {
-    if (state.busy || ref.read(appLockProvider).locked) return;
+    if (_saving || ref.read(appLockProvider).locked) return;
     final previous = state.timeFormat, epoch = ++_epoch;
+    final settled = _saveSettled = Completer<void>();
+    _saving = true;
     state = DisplayPreferences(timeFormat: value, busy: true);
     try {
-      await (await ref.read(recordStoreProvider.future)).writeSetting(
-        'display',
+      await ref.read(displayPreferenceWriterProvider)(
         jsonEncode({'timeFormat': value.storageValue}),
       );
       if (ref.mounted && epoch == _epoch) {
@@ -69,6 +105,10 @@ class DisplayPreferencesController extends Notifier<DisplayPreferences> {
       if (ref.mounted && epoch == _epoch) {
         state = DisplayPreferences(timeFormat: previous, failed: true);
       }
+    } finally {
+      _saving = false;
+      _saveSettled = null;
+      settled.complete();
     }
   }
 }
