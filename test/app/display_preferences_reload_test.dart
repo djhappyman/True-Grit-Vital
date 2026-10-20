@@ -120,9 +120,12 @@ Future<void> main() async {
       container.invalidate(recordStoreProvider);
       await drain();
       await nothingSurfaces(
-        () async =>
-            container.read(displayPreferencesProvider) !=
-            const DisplayPreferences(),
+        () async {
+          final current = container.read(displayPreferencesProvider);
+          return current.timeFormat != TimeFormat.system ||
+              current.busy ||
+              current.failed;
+        },
         reason:
             'a manual invalidate keeps the retired store in the pending '
             'value and the controller must not read it as settled state',
@@ -420,11 +423,13 @@ Future<void> main() async {
         await drain();
         expect(writes, hasLength(1));
 
-        // A rebuild resets state.busy while the write is in flight, so a second
-        // publication must be serialised on the shared notifier instead of
-        // interleaving a second store write against the live swap.
+        // A rebuild keeps controls busy while the previous write still owns
+        // the publication slot, so the UI cannot offer a silently ignored edit.
         current = storeB;
         container.invalidate(recordStoreProvider);
+        await container.read(recordStoreProvider.future);
+        await drain();
+        expect(container.read(displayPreferencesProvider).busy, isTrue);
         final overlap = notifier.setTimeFormat(TimeFormat.h24);
         expect(writes, hasLength(1));
         expect(overlap, completes);

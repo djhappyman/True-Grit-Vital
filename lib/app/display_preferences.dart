@@ -85,7 +85,7 @@ class DisplayPreferencesController extends Notifier<DisplayPreferences> {
         }
       });
     }
-    return const DisplayPreferences();
+    return DisplayPreferences(busy: _saving);
   }
 
   Future<void> setTimeFormat(TimeFormat value) async {
@@ -108,6 +108,14 @@ class DisplayPreferencesController extends Notifier<DisplayPreferences> {
     } finally {
       _saving = false;
       _saveSettled = null;
+      // This is the only in-flight write. Retire its busy indicator even when
+      // a rebuild changed the epoch, preserving the current value and error.
+      if (ref.mounted && state.busy) {
+        state = DisplayPreferences(
+          timeFormat: state.timeFormat,
+          failed: state.failed,
+        );
+      }
       settled.complete();
     }
   }
