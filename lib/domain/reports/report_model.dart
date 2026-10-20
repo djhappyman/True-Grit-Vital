@@ -285,6 +285,25 @@ final class ReportSnapshot {
   /// Deterministic structured alternative used by accessible preview and .txt.
   String structuredText({required bool use24Hour}) =>
       ReportText.build(snapshot: this, use24Hour: use24Hour);
+
+  /// The newest captured records by recorded actual time, newest first.
+  ///
+  /// Recency comes from [ReportRecord.actualAt], never from the caller's list
+  /// position or [ReportRecord.enteredAt], so an unsorted snapshot still
+  /// reports the truly latest doses. Records that share an actual instant list
+  /// the lower record identity and revision first, keeping a tied selection
+  /// identical for equivalent snapshots. The source list is never reordered.
+  List<ReportRecord> recentRecords({int limit = 100}) {
+    if (limit < 1) throw RangeError.value(limit, 'limit');
+    final ordered = records.toList()
+      ..sort((a, b) {
+        final byActual = b.actualAt.compareTo(a.actualAt);
+        if (byActual != 0) return byActual;
+        final byIdentity = a.id.compareTo(b.id);
+        return byIdentity != 0 ? byIdentity : a.revision.compareTo(b.revision);
+      });
+    return ordered.length <= limit ? ordered : ordered.sublist(0, limit);
+  }
 }
 
 final class ReportItemTotal {
@@ -788,17 +807,20 @@ final class ReportText {
       }
       if (snapshot.attachments.isEmpty) lines.add('No source files selected.');
     }
+    final recent = snapshot.recentRecords();
     lines
       ..add('')
       ..add('Doses in period');
-    for (final record in snapshot.records.reversed.take(100)) {
+    for (final record in recent) {
       lines.add(
         '${formatInstant(record.actualAt, selection.displayZone, use24Hour: use24Hour)} · '
         '${record.name} · ${formatAmount(record.amount)} ${record.unit} · ${record.type}',
       );
     }
-    if (snapshot.records.length > 100) {
-      lines.add('Showing the latest 100 of ${snapshot.records.length} doses.');
+    if (snapshot.records.length > recent.length) {
+      lines.add(
+        'Showing the latest ${recent.length} of ${snapshot.records.length} doses.',
+      );
     }
     lines
       ..add('')

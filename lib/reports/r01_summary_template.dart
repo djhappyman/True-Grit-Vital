@@ -537,7 +537,7 @@ final class R01SummaryRenderer implements ReportTemplateRenderer {
     bool use24Hour,
     ReportCancellation cancellation,
   ) {
-    final recent = snapshot.records.reversed.take(100).toList();
+    final recent = snapshot.recentRecords();
     final rows = <List<String>>[];
     for (final record in recent) {
       if (cancellation.isCancelled) throw const ReportCancelled();
