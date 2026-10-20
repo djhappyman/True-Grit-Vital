@@ -946,26 +946,43 @@ class AttachmentPreviewSurface extends ConsumerStatefulWidget {
 
 class _AttachmentPreviewSurfaceState
     extends ConsumerState<AttachmentPreviewSurface> {
-  AttachmentPin? pin;
+  ({RecordStore store, AttachmentPin pin})? pinned;
   AttachmentPreview? preview;
   Uint8List? bytes;
-  RecordStore? store;
+  RecordStore? boundStore;
   final transform = TransformationController();
   int page = 1, epoch = 0;
-  bool loading = false, failed = false;
+  bool loading = false, failed = false, reload = false;
+  Future<void>? running;
   double zoom = 1;
+
+  /// Rename and unrelated record updates keep the same bytes. The attachment
+  /// identity, dataset generation, record revision and content version are the
+  /// source boundary; crossing it must not inherit the previous reader state.
+  static bool _sameSource(AttachmentRecord a, AttachmentRecord b) =>
+      a.id == b.id &&
+      a.generation == b.generation &&
+      a.revision == b.revision &&
+      a.versionId == b.versionId;
+
   void clear() {
     epoch++;
     loading = false;
+    failed = false;
+    reload = false;
     preview?.dispose();
     preview = null;
     bytes?.fillRange(0, bytes!.length, 0);
     bytes = null;
-    final oldPin = pin, oldStore = store;
-    pin = null;
-    if (oldPin != null && oldStore != null) {
+    final oldPin = pinned;
+    pinned = null;
+    boundStore = null;
+    page = 1;
+    zoom = 1;
+    transform.value = transform.value.clone()..setIdentity();
+    if (oldPin != null) {
       unawaited(
-        oldStore.releaseAttachmentPin(oldPin).catchError((Object _) {
+        oldPin.store.releaseAttachmentPin(oldPin.pin).catchError((Object _) {
           /* Durable startup recovery releases an interrupted preview pin. */
         }),
       );
@@ -982,13 +999,32 @@ class _AttachmentPreviewSurfaceState
   @override
   void didUpdateWidget(AttachmentPreviewSurface oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.attachment.versionId != widget.attachment.versionId ||
-        oldWidget.attachment.revision != widget.attachment.revision) {
-      clear();
+    if (!_sameSource(oldWidget.attachment, widget.attachment)) clear();
+  }
+
+  /// Serialises source loads so a decode that is already running can finish and
+  /// dispose before the next source asks the decoder for another image.
+  Future<void> load() async {
+    if (running != null) {
+      reload = true;
+      return;
+    }
+    final work = _load();
+    running = work;
+    try {
+      await work;
+    } finally {
+      if (identical(running, work)) {
+        running = null;
+        if (reload) {
+          reload = false;
+          if (mounted) scheduleMicrotask(load);
+        }
+      }
     }
   }
 
-  Future<void> load() async {
+  Future<void> _load() async {
     if (loading ||
         ref.read(appLockProvider).locked ||
         ModalRoute.of(context)?.isCurrent == false) {
@@ -1001,23 +1037,44 @@ class _AttachmentPreviewSurfaceState
     });
     AttachmentPreview? rendered;
     try {
-      store ??= await ref.read(recordStoreProvider.future);
-      if (pin == null) {
-        final captured = await store!.pinAttachment(
+      final sourceStore = await ref.read(recordStoreProvider.future);
+      if (!mounted || token != epoch || ref.read(appLockProvider).locked) {
+        return;
+      }
+      final currentStore = ref.read(recordStoreProvider).value;
+      if (currentStore != null && !identical(currentStore, sourceStore) ||
+          boundStore != null && !identical(boundStore, sourceStore) ||
+          pinned != null && !identical(pinned!.store, sourceStore)) {
+        // The dataset was replaced while this read was resolving. Release the
+        // old pin against its own store and bind the reader to the new one.
+        clear();
+        reload = true;
+        if (mounted) setState(() {});
+        return;
+      }
+      boundStore = sourceStore;
+      var held = pinned;
+      if (held == null) {
+        final captured = await sourceStore.pinAttachment(
           id: widget.attachment.id,
           generation: widget.attachment.generation,
           expectedRevision: widget.attachment.revision,
           sessionId: ref.read(attachmentSessionProvider),
         );
         if (!mounted || token != epoch || ref.read(appLockProvider).locked) {
-          await store!.releaseAttachmentPin(captured);
+          await sourceStore.releaseAttachmentPin(captured);
           return;
         }
-        pin = captured;
+        if (pinned != null) {
+          await sourceStore.releaseAttachmentPin(captured);
+          return;
+        }
+        held = pinned = (store: sourceStore, pin: captured);
       }
+      final current = held;
       if (bytes == null) {
         final captured = await readAttachmentBytes(
-          store!.readAttachmentPin(pin!),
+          current.store.readAttachmentPin(current.pin),
         );
         if (!mounted || token != epoch || ref.read(appLockProvider).locked) {
           captured.fillRange(0, captured.length, 0);
@@ -1036,7 +1093,7 @@ class _AttachmentPreviewSurfaceState
           .read(attachmentMediaProvider)
           .preview(
             bytes!,
-            inspection: pin!.attachment.inspection!,
+            inspection: current.pin.attachment.inspection!,
             page: page,
             maxEdge: edge,
           );
@@ -1051,7 +1108,7 @@ class _AttachmentPreviewSurfaceState
       });
     } catch (_) {
       rendered?.dispose();
-      if (mounted && token == epoch) {
+      if (mounted && token == epoch && !ref.read(appLockProvider).locked) {
         setState(() {
           failed = true;
           loading = false;
@@ -1070,6 +1127,14 @@ class _AttachmentPreviewSurfaceState
         clear();
         if (mounted) setState(() {});
       }
+    });
+    ref.listen(recordStoreProvider, (_, next) {
+      final nextStore = next.value, bound = boundStore;
+      if (nextStore == null || bound == null || identical(bound, nextStore)) {
+        return;
+      }
+      clear();
+      if (mounted) setState(() {});
     });
     if (locked) return const SizedBox.shrink();
     if (ModalRoute.of(context)?.isCurrent == false) {
