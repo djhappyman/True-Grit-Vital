@@ -86,8 +86,9 @@ final class SupportingSourcePage {
   bool get hasMore => nextCursor != null;
 }
 
-typedef SupportingSourceReader =
-    Future<SupportingSourcePage> Function(SupportingSourceRequest request);
+typedef SupportingSourceReader = Future<SupportingSourcePage> Function(
+  SupportingSourceRequest request,
+);
 
 /// Reads one newest-first page through the stable attachment keyset query.
 /// Files for another adult, staging or deleting files and files from a
@@ -137,17 +138,15 @@ final supportingSourceCandidatesProvider = FutureProvider.autoDispose
 /// The bounded store watcher for one trend query. A visible page keeps this
 /// subscription open; leaving the page, locking or replacing the dataset
 /// cancels it through provider disposal.
-typedef SupportingTrendWatcher =
-    Stream<SupportingTrendPage> Function(
-      SupportingTrendQuery query, {
-      int requestGeneration,
-    });
+typedef SupportingTrendWatcher = Stream<SupportingTrendPage> Function(
+  SupportingTrendQuery query, {
+  int requestGeneration,
+});
 
 final supportingTrendWatcherProvider = Provider<SupportingTrendWatcher>(
   (ref) => (query, {requestGeneration = 0}) async* {
-    yield* (await ref.read(
-      recordStoreProvider.future,
-    )).watchSupportingTrend(query, requestGeneration: requestGeneration);
+    yield* (await ref.read(recordStoreProvider.future))
+        .watchSupportingTrend(query, requestGeneration: requestGeneration);
   },
 );
 
@@ -171,6 +170,7 @@ final class _SupportingTrendFence {
     required SupportingTrendQuery query,
     required String datasetGeneration,
   }) =>
+      request == _request &&
       page.requestGeneration == request &&
       page.query.identity == query.identity &&
       page.datasetGeneration == datasetGeneration;
@@ -236,9 +236,8 @@ final supportingPageProvider = StreamProvider.autoDispose
         yield null;
         return;
       }
-      yield* (await ref.watch(
-        recordStoreProvider.future,
-      )).watchSupportingRecords(request.query, cursor: request.cursor);
+      yield* (await ref.watch(recordStoreProvider.future))
+          .watchSupportingRecords(request.query, cursor: request.cursor);
     });
 
 typedef SupportingSave = ({

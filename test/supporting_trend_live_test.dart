@@ -227,6 +227,26 @@ Future<({RecordStore store, ProviderContainer container})> _launchWithWatcher(
 }
 
 void main() {
+  appTest('a trend opened while inactive waits for resume', (tester) async {
+    final watcher = _ControlledTrendWatcher();
+    final f = await _launchWithWatcher(tester, watcher);
+    try {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await settle(tester);
+      f.container
+          .read(routerProvider)
+          .go('/supporting/$meId/trends?metric=metric');
+      await settle(tester);
+      expect(watcher.subscriptions, isEmpty);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await settle(tester);
+      expect(watcher.subscriptions, hasLength(1));
+      expect(watcher.active, 1);
+    } finally {
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    }
+  });
+
   appTest(
     'a visible trend adopts saved corrected and voided records without invalidation',
     (tester) async {

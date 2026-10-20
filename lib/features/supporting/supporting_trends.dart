@@ -57,6 +57,8 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage>
   @override
   void initState() {
     super.initState();
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    _foreground = lifecycle == null || lifecycle == AppLifecycleState.resumed;
     WidgetsBinding.instance.addObserver(this);
   }
 
