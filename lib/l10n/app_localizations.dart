@@ -7245,6 +7245,12 @@ abstract class AppLocalizations {
   /// **'Some results in this group have no full date. They are listed separately and do not connect the line.'**
   String get supportingGroupUndated;
 
+  /// Truthful absence for the chosen comparison identity; no other group is substituted and no plot is shown.
+  ///
+  /// In en, this message translates to:
+  /// **'This group has no results in the selected dates. Choose another group or change the dates.'**
+  String get supportingGroupNoResults;
+
   /// Supporting form stale-record recovery; no History or Today instruction.
   ///
   /// In en, this message translates to:

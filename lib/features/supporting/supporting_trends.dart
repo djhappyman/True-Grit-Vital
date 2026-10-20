@@ -37,7 +37,16 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
   late CivilDate start = CivilDate.parse(from.text),
       end = CivilDate.parse(before.text);
   SupportingDateBasis basis = SupportingDateBasis.collection;
-  int selectedGroup = 0, groupPage = 0, tablePage = 0, undatedPage = 0;
+
+  /// The chosen comparison identity, never a position in the sorted group list.
+  /// A live refresh, correction, void or range change can reorder or remove
+  /// groups; only the matching exact identity keeps the selection.
+  String? selectedGroupIdentity;
+
+  /// Last readable summary for [selectedGroupIdentity]. A group that leaves the
+  /// current range can still be named while it has no points to plot.
+  String? selectedGroupLabel;
+  int groupPage = 0, tablePage = 0, undatedPage = 0;
   String? error;
   @override
   void dispose() {
@@ -46,11 +55,57 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant SupportingTrendsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A deliberate change of marker or owner is a different question, so the
+    // old comparison choice does not carry across. The page may then choose
+    // its first group once, as an unselected page does.
+    if (oldWidget.personId != widget.personId ||
+        oldWidget.metricId != widget.metricId) {
+      selectedGroupIdentity = null;
+      selectedGroupLabel = null;
+      groupPage = 0;
+      tablePage = 0;
+      undatedPage = 0;
+    }
+  }
+
+  /// Range and date-basis changes only reset browsing pages. They must not
+  /// discard the chosen comparison identity.
   void resetPages() {
-    selectedGroup = 0;
     groupPage = 0;
     tablePage = 0;
     undatedPage = 0;
+  }
+
+  SupportingTrendGroup? _selection(
+    AppLocalizations t,
+    List<SupportingTrendGroup> orderedGroups,
+  ) {
+    if (orderedGroups.isEmpty) return null;
+    final identity = selectedGroupIdentity;
+    if (identity == null) {
+      // An unselected page adopts the first chronological group once. Later
+      // inserts and corrections keep that identity rather than this position.
+      selectedGroupIdentity = orderedGroups.first.key.identity;
+      selectedGroupLabel = _groupLabel(t, orderedGroups.first);
+      return orderedGroups.first;
+    }
+    for (final group in orderedGroups) {
+      if (group.key.identity == identity) {
+        selectedGroupLabel = _groupLabel(t, group);
+        return group;
+      }
+    }
+    return null;
+  }
+
+  void _chooseGroup(AppLocalizations t, SupportingTrendGroup group) {
+    setState(() {
+      selectedGroupIdentity = group.key.identity;
+      selectedGroupLabel = _groupLabel(t, group);
+    });
   }
 
   @override
@@ -79,9 +134,16 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
     // The selector follows the first positioned date, not comparison-key hash
     // order, so the first group is the earliest saved result in this view.
     final orderedGroups = [...groups]..sort(_compareGroup);
-    final group = orderedGroups.isEmpty
-        ? null
-        : orderedGroups[selectedGroup.clamp(0, orderedGroups.length - 1)];
+    final group = _selection(t, orderedGroups);
+    final selectedIndex = selectedGroupIdentity == null
+        ? -1
+        : orderedGroups.indexWhere(
+            (candidate) => candidate.key.identity == selectedGroupIdentity,
+          );
+    final lastGroupPage = orderedGroups.isEmpty
+        ? 0
+        : (orderedGroups.length - 1) ~/ 25;
+    final visibleGroupPage = groupPage.clamp(0, lastGroupPage);
     final groupNumbers = <String, int>{
       for (var i = 0; i < orderedGroups.length; i++)
         orderedGroups[i].key.identity: i + 1,
@@ -217,25 +279,27 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
                 ),
             ],
           ),
-        if (group != null) ...[
+        if (model != null &&
+            (orderedGroups.isNotEmpty || selectedGroupIdentity != null))
           VitalSection(
             title: Text(t.chartPlot),
             children: [
-              if (orderedGroups.length > 1) ...[
+              if (orderedGroups.isNotEmpty &&
+                  (orderedGroups.length > 1 || selectedIndex < 0)) ...[
                 Text(t.supportingGroups),
                 for (
-                  var i = groupPage * 25;
-                  i < orderedGroups.length && i < (groupPage + 1) * 25;
+                  var i = visibleGroupPage * 25;
+                  i < orderedGroups.length && i < (visibleGroupPage + 1) * 25;
                   i++
                 )
                   MergeSemantics(
                     child: Semantics(
-                      selected: i == selectedGroup,
-                      child: i == selectedGroup
+                      selected: i == selectedIndex,
+                      child: i == selectedIndex
                           ? VitalButton(
                               multiline: true,
                               onPressed: () =>
-                                  setState(() => selectedGroup = i),
+                                  _chooseGroup(t, orderedGroups[i]),
                               child: Text(
                                 groupSummaries[orderedGroups[i].key.identity]!,
                               ),
@@ -243,7 +307,7 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
                           : VitalButton.secondary(
                               multiline: true,
                               onPressed: () =>
-                                  setState(() => selectedGroup = i),
+                                  _chooseGroup(t, orderedGroups[i]),
                               child: Text(
                                 groupSummaries[orderedGroups[i].key.identity]!,
                               ),
@@ -253,31 +317,38 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
                 if (orderedGroups.length > 25)
                   _pager(
                     t,
-                    page: groupPage,
+                    page: visibleGroupPage,
                     count: orderedGroups.length,
                     onChanged: (value) => setState(() => groupPage = value),
                   ),
               ],
               Text(t.supportingSelectedGroup),
-              Text(
-                groupSummaries[group.key.identity] ??
-                    _entrySummary(
-                      t,
-                      group.entries.first,
-                      number: groupNumbers[group.key.identity] ?? 0,
-                      count: orderedGroups.length,
-                    ),
-              ),
-              SupportingProvenanceView(
-                provenance:
-                    group.entries.first.result.provenance ??
-                    group.entries.first.record.snapshot.provenance,
-              ),
-              if (group.hasUnpositionedGap) Text(t.supportingGroupUndated),
-              SupportingPlot(group: group),
+              if (group != null) ...[
+                Text(
+                  groupSummaries[group.key.identity] ??
+                      _entrySummary(
+                        t,
+                        group.entries.first,
+                        number: groupNumbers[group.key.identity] ?? 0,
+                        count: orderedGroups.length,
+                      ),
+                ),
+                SupportingProvenanceView(
+                  provenance:
+                      group.entries.first.result.provenance ??
+                      group.entries.first.record.snapshot.provenance,
+                ),
+                if (group.hasUnpositionedGap) Text(t.supportingGroupUndated),
+                SupportingPlot(group: group),
+              ] else ...[
+                if (selectedGroupLabel case final label?) Text(label),
+                Semantics(
+                  liveRegion: true,
+                  child: Text(t.supportingGroupNoResults),
+                ),
+              ],
             ],
           ),
-        ],
       ],
     );
   }
@@ -321,6 +392,9 @@ int _compareGroup(SupportingTrendGroup a, SupportingTrendGroup b) {
   }
   return a.key.identity.compareTo(b.key.identity);
 }
+
+String _groupLabel(AppLocalizations t, SupportingTrendGroup group) =>
+    _entrySummary(t, group.entries.first, number: null, count: 0);
 
 String _entrySummary(
   AppLocalizations t,

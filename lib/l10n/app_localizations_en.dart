@@ -4510,6 +4510,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Some results in this group have no full date. They are listed separately and do not connect the line.';
 
   @override
+  String get supportingGroupNoResults =>
+      'This group has no results in the selected dates. Choose another group or change the dates.';
+
+  @override
   String get supportingConflict =>
       'This supporting record changed. Open Supporting records and review the latest revision before editing.';
 

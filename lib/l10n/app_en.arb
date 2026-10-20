@@ -4973,6 +4973,10 @@
   "@supportingGroupUndated": {
     "description": "Truthful trend limitation."
   },
+  "supportingGroupNoResults": "This group has no results in the selected dates. Choose another group or change the dates.",
+  "@supportingGroupNoResults": {
+    "description": "Truthful absence for the chosen comparison identity; no other group is substituted and no plot is shown."
+  },
   "supportingConflict": "This supporting record changed. Open Supporting records and review the latest revision before editing.",
   "@supportingConflict": {
     "description": "Supporting form stale-record recovery; no History or Today instruction."
