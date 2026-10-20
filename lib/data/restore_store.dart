@@ -83,6 +83,17 @@ extension RestoreRecordStore on RecordStore {
               0) {
         throw const RestoreFailure(RestoreCodes.corrupt);
       }
+      // Direct preparation of an arbitrary staged file must apply the same
+      // archive-wide attachment bound as the authenticated archive reader.
+      // Probe only one row beyond the bound so an oversized staged file cannot
+      // turn this check itself into an unbounded scan.
+      if ((await staged._rows(
+            "SELECT 1 FROM attachment_record WHERE state='ready' LIMIT ?",
+            [BackupLimits.maxAttachmentCount + 1],
+          )).length >
+          BackupLimits.maxAttachmentCount) {
+        throw const RestoreFailure(RestoreCodes.tooLarge);
+      }
       final generation = newCommandId();
       final namespace = newCommandId();
       await staged._db.transaction(() async {
@@ -126,30 +137,41 @@ extension RestoreRecordStore on RecordStore {
         // generation so pin, rename and delete accept the restored snapshot.
         // The content version, byte chunks, checksum, ownership, target
         // revision, metadata revision and provenance are left untouched.
-        for (final row in await staged._rows(
-          "SELECT id,snapshot FROM attachment_record WHERE state='ready'",
-        )) {
-          final id = row['id']! as String;
-          final Map<String, Object?> snapshot;
-          final AttachmentRecord retained;
-          try {
-            snapshot = Map<String, Object?>.from(
-              jsonDecode(row['snapshot']! as String) as Map,
-            );
-            retained = AttachmentRecord.fromJson(snapshot);
-          } catch (_) {
-            throw const RestoreFailure(RestoreCodes.corrupt);
-          }
-          if (retained.id != id || retained.state != AttachmentState.ready) {
-            throw const RestoreFailure(RestoreCodes.corrupt);
-          }
-          await staged._db.customStatement(
-            'UPDATE attachment_record SET snapshot=? WHERE id=?',
-            [
-              jsonEncode({...snapshot, 'generation': generation}),
-              id,
-            ],
+        // Walk stable id keyset batches so a hostile or unusually large staged
+        // dataset never materialises every retained manifest at once.
+        String? attachmentCursor;
+        while (true) {
+          final rows = await staged._rows(
+            "SELECT id,snapshot FROM attachment_record WHERE state='ready'"
+            "${attachmentCursor == null ? '' : ' AND id>?'} "
+            'ORDER BY id LIMIT $_restoreAttachmentBatch',
+            [?attachmentCursor],
           );
+          if (rows.isEmpty) break;
+          for (final row in rows) {
+            final id = row['id']! as String;
+            final Map<String, Object?> snapshot;
+            final AttachmentRecord retained;
+            try {
+              snapshot = Map<String, Object?>.from(
+                jsonDecode(row['snapshot']! as String) as Map,
+              );
+              retained = AttachmentRecord.fromJson(snapshot);
+            } catch (_) {
+              throw const RestoreFailure(RestoreCodes.corrupt);
+            }
+            if (retained.id != id || retained.state != AttachmentState.ready) {
+              throw const RestoreFailure(RestoreCodes.corrupt);
+            }
+            await staged._db.customStatement(
+              'UPDATE attachment_record SET snapshot=? WHERE id=?',
+              [
+                jsonEncode({...snapshot, 'generation': generation}),
+                id,
+              ],
+            );
+          }
+          attachmentCursor = rows.last['id']! as String;
         }
         await staged._db.customStatement('UPDATE dataset SET generation=?', [
           generation,
@@ -202,6 +224,10 @@ extension RestoreRecordStore on RecordStore {
     return value;
   }
 }
+
+/// Keyset page for rebinding retained attachment manifests during restore.
+/// Keeps transient manifest memory bounded independently of archive size.
+const _restoreAttachmentBatch = 128;
 
 Future<void> _restoreRemoveEmptySidecars(String path) async {
   for (final suffix in ['-wal', '-shm', '-journal']) {
