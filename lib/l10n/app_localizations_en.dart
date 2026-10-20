@@ -3641,6 +3641,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chartSources => 'Sources';
 
   @override
+  String chartViewBucketSources(
+    String series,
+    String unit,
+    String period,
+    String zone,
+  ) {
+    return 'View sources for $series in $unit for $period. $zone.';
+  }
+
+  @override
+  String chartViewRangeSources(String series, String unit, String range) {
+    return 'View sources for $series in $unit: $range.';
+  }
+
+  @override
   String get historyCapturedPlan => 'Plan captured';
 
   @override

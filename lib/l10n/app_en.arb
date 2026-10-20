@@ -3849,6 +3849,39 @@
   "chartContextUnavailable": "Some context could not be loaded. Choose a shorter range.",
   "chartRangeInvalid": "Choose valid dates with the end after the start.",
   "chartSources": "Sources",
+  "chartViewBucketSources": "View sources for {series} in {unit} for {period}. {zone}.",
+  "@chartViewBucketSources": {
+    "description": "Accessible name for the one-word View command on one table bucket. Preserve the visible word View, the full series name and unit, and the exact displayed civil period and zone.",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "period": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "chartViewRangeSources": "View sources for {series} in {unit}: {range}.",
+  "@chartViewRangeSources": {
+    "description": "Accessible name for the one-word View command that opens every source in the displayed chart range. Preserve the visible word View, the full series name and unit, and the exact displayed range including its zone.",
+    "placeholders": {
+      "series": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
   "historyCapturedPlan": "Plan captured",
   "chartPlotUnavailable": "Use the table to inspect this range of quantities.",
   "working": "Working…",

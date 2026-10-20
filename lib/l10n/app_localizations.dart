@@ -5885,6 +5885,23 @@ abstract class AppLocalizations {
   /// **'Sources'**
   String get chartSources;
 
+  /// Accessible name for the one-word View command on one table bucket. Preserve the visible word View, the full series name and unit, and the exact displayed civil period and zone.
+  ///
+  /// In en, this message translates to:
+  /// **'View sources for {series} in {unit} for {period}. {zone}.'**
+  String chartViewBucketSources(
+    String series,
+    String unit,
+    String period,
+    String zone,
+  );
+
+  /// Accessible name for the one-word View command that opens every source in the displayed chart range. Preserve the visible word View, the full series name and unit, and the exact displayed range including its zone.
+  ///
+  /// In en, this message translates to:
+  /// **'View sources for {series} in {unit}: {range}.'**
+  String chartViewRangeSources(String series, String unit, String range);
+
   /// No description provided for @historyCapturedPlan.
   ///
   /// In en, this message translates to:

@@ -285,6 +285,8 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
     final visibleTablePage = model == null
         ? 0
         : math.min(tablePage, (model.viewport.bucketCount - 1) ~/ 20);
+    final canNarrow = _zoomedRange(false) != null;
+    final canWiden = _zoomedRange(true) != null;
     void selectBucket(int index) => setState(() {
       selectedBucket = index;
       sourcesOpen = true;
@@ -329,11 +331,11 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
                 child: Text(t.chartNext),
               ),
               VitalButton.secondary(
-                onPressed: () => zoom(false),
+                onPressed: canNarrow ? () => zoom(false) : null,
                 child: Text(t.chartZoomIn),
               ),
               VitalButton.secondary(
-                onPressed: () => zoom(true),
+                onPressed: canWiden ? () => zoom(true) : null,
                 child: Text(t.chartZoomOut),
               ),
             ],
@@ -582,9 +584,18 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
                           ),
                         Align(
                           alignment: AlignmentDirectional.centerStart,
-                          child: VitalButton.secondary(
-                            onPressed: () => selectBucket(index),
-                            child: Text(t.view),
+                          child: Semantics(
+                            label: bucketSourceLabel(
+                              context,
+                              t,
+                              choice.label,
+                              choice.key.unit,
+                              model.viewport.buckets[index],
+                            ),
+                            child: VitalButton.secondary(
+                              onPressed: () => selectBucket(index),
+                              child: ExcludeSemantics(child: Text(t.view)),
+                            ),
                           ),
                         ),
                       ],
@@ -614,6 +625,14 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
               action: MergeSemantics(
                 child: Semantics(
                   expanded: sourcesOpen,
+                  label: t.chartViewRangeSources(
+                    choice.label,
+                    choice.key.unit,
+                    t.chartRangeSummary(
+                      displayStamp(context, ref, lower!),
+                      displayStamp(context, ref, upper!),
+                    ),
+                  ),
                   child: VitalButton.secondary(
                     onPressed: () => setState(() {
                       selectedBucket = null;
@@ -621,7 +640,7 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
                       restoredSourceCursor = null;
                       restoredSourceCursors = [null];
                     }),
-                    child: Text(t.view),
+                    child: ExcludeSemantics(child: Text(t.view)),
                   ),
                 ),
               ),
@@ -701,11 +720,10 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
                       Text(
                         annotation.at.isDateOnly
                             ? t.historyDateZone(
-                                MaterialLocalizations.of(
-                                  context,
-                                ).formatMediumDate(
-                                  annotation.at.civilDate!.calendarValue,
-                                ),
+                                MaterialLocalizations.of(context)
+                                    .formatMediumDate(
+                                      annotation.at.civilDate!.calendarValue,
+                                    ),
                                 annotation.at.zoneId!,
                               )
                             : displayStamp(
@@ -763,18 +781,28 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
     });
   }
 
-  void zoom(bool widen) {
+  /// The next zoomed range, or null when zooming this way would not change the
+  /// exact bounds. A null result disables the command instead of rebuilding the
+  /// same range and clearing the chosen bucket or open sources for no reason.
+  ({DateTime from, DateTime before})? _zoomedRange(bool widen) {
     final length = upper!.difference(lower!).inMicroseconds;
     final next = widen
         ? length * 2
         : math.max(const Duration(days: 1).inMicroseconds, length ~/ 2);
-    if (next > const Duration(days: 3650).inMicroseconds) return;
+    if (next == length || next <= 0) return null;
+    if (next > const Duration(days: 3650).inMicroseconds) return null;
     final middle = lower!.add(Duration(microseconds: length ~/ 2));
     final a = middle.subtract(Duration(microseconds: next ~/ 2)),
         b = middle.add(Duration(microseconds: next - next ~/ 2));
-    if (a.year < 1902 || b.year > 2037) return;
+    if (a.year < 1902 || b.year > 2037) return null;
+    return (from: a, before: b);
+  }
+
+  void zoom(bool widen) {
+    final range = _zoomedRange(widen);
+    if (range == null) return;
     setState(() {
-      resetRange(a, b, zone!);
+      resetRange(range.from, range.before, zone!);
       error = null;
     });
   }
@@ -879,6 +907,29 @@ String bucketLabel(BuildContext context, ChartBucketBounds bucket) {
   final start = locale.formatMediumDate(bucket.civilStart.calendarValue),
       end = locale.formatMediumDate(bucket.civilEndInclusive.calendarValue);
   return start == end ? start : t.chartDateRange(start, end);
+}
+
+/// Exact accessible name for one bucket's one-word View command.
+///
+/// The visible table label omits the year, so the accessible name uses the full
+/// localised civil dates and the bucket's actual display zone. It deliberately
+/// says a civil period, not an invented exact source time.
+String bucketSourceLabel(
+  BuildContext context,
+  AppLocalizations t,
+  String series,
+  String unit,
+  ChartBucketBounds bucket,
+) {
+  final locale = MaterialLocalizations.of(context);
+  final start = locale.formatFullDate(bucket.civilStart.calendarValue),
+      end = locale.formatFullDate(bucket.civilEndInclusive.calendarValue);
+  return t.chartViewBucketSources(
+    series,
+    unit,
+    start == end ? start : t.chartDateRange(start, end),
+    bucket.zoneId,
+  );
 }
 
 String annotationLabel(AppLocalizations t, ChartAnnotationKind kind) =>
