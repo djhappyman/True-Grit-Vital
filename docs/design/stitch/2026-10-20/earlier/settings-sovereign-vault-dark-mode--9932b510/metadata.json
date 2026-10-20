@@ -1,0 +1,29 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "3612",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/files/6678828911183343808"
+    },
+    "name": "projects/13558290148435280164/screens/9932b510d6964a94b25e8ea60bb0d5bf",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/9932b510d6964a94b25e8ea60bb0d5bf/fileEntries/screenshot"
+    },
+    "title": "Settings & Sovereign Vault — Dark Mode",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 1806,
+    "hidden": true,
+    "id": "9932b510d6964a94b25e8ea60bb0d5bf",
+    "label": "Settings",
+    "sourceScreen": "projects/13558290148435280164/screens/9932b510d6964a94b25e8ea60bb0d5bf",
+    "width": 390,
+    "y": 12028
+  },
+  "downloadedDimensions": [
+    780,
+    3612
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "3492",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/3d446a0c71de4a1ea9dea8b7ae9fd56b/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/3d446a0c71de4a1ea9dea8b7ae9fd56b",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/3d446a0c71de4a1ea9dea8b7ae9fd56b/fileEntries/screenshot"
+    },
+    "title": "Inventory & Refill Vault — Dark Mode",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 1725,
+    "id": "3d446a0c71de4a1ea9dea8b7ae9fd56b",
+    "label": "Panels",
+    "sourceScreen": "projects/13558290148435280164/screens/3d446a0c71de4a1ea9dea8b7ae9fd56b",
+    "width": 390,
+    "x": 454,
+    "y": 14332
+  },
+  "downloadedDimensions": [
+    780,
+    3492
+  ]
+}

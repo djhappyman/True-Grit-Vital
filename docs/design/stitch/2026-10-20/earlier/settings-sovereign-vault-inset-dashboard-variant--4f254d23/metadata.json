@@ -1,0 +1,30 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "3908",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/4f254d238aa1427b81603580eb201512/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/4f254d238aa1427b81603580eb201512",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/4f254d238aa1427b81603580eb201512/fileEntries/screenshot"
+    },
+    "title": "Settings & Sovereign Vault — Inset Dashboard Variant",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 1954,
+    "hidden": true,
+    "id": "4f254d238aa1427b81603580eb201512",
+    "label": "Generating Screen...",
+    "sourceScreen": "projects/13558290148435280164/screens/4f254d238aa1427b81603580eb201512",
+    "width": 390,
+    "x": 908,
+    "y": 12028
+  },
+  "downloadedDimensions": [
+    780,
+    3908
+  ]
+}

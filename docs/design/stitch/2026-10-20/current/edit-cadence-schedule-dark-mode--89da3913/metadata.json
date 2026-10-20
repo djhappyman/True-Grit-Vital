@@ -1,0 +1,29 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "2668",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/89da3913908642198a6818befd913f48/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/89da3913908642198a6818befd913f48",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/89da3913908642198a6818befd913f48/fileEntries/screenshot"
+    },
+    "title": "Edit Cadence & Schedule — Dark Mode",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 1390,
+    "id": "89da3913908642198a6818befd913f48",
+    "label": "Substance detail",
+    "sourceScreen": "projects/13558290148435280164/screens/89da3913908642198a6818befd913f48",
+    "width": 390,
+    "x": 1362,
+    "y": 12028
+  },
+  "downloadedDimensions": [
+    780,
+    2668
+  ]
+}

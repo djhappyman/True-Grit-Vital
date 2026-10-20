@@ -1,0 +1,28 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "4680",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/66b415fc46344dd9ba496e0e676247a2/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/66b415fc46344dd9ba496e0e676247a2",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/66b415fc46344dd9ba496e0e676247a2/fileEntries/screenshot"
+    },
+    "title": "History — Dark Mode",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 2364,
+    "id": "66b415fc46344dd9ba496e0e676247a2",
+    "label": "History",
+    "sourceScreen": "projects/13558290148435280164/screens/66b415fc46344dd9ba496e0e676247a2",
+    "width": 390,
+    "y": 9386
+  },
+  "downloadedDimensions": [
+    780,
+    4680
+  ]
+}

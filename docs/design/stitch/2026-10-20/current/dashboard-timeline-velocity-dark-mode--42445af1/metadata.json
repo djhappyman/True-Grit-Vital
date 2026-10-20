@@ -1,0 +1,28 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "2904",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/42445af1ef014b4dbe0d0c6ecbf63da3/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/42445af1ef014b4dbe0d0c6ecbf63da3",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/42445af1ef014b4dbe0d0c6ecbf63da3/fileEntries/screenshot"
+    },
+    "title": "Dashboard — Timeline & Velocity (Dark Mode)",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 1452,
+    "id": "42445af1ef014b4dbe0d0c6ecbf63da3",
+    "label": "dashboard",
+    "sourceScreen": "projects/13558290148435280164/screens/42445af1ef014b4dbe0d0c6ecbf63da3",
+    "width": 390,
+    "y": 17125
+  },
+  "downloadedDimensions": [
+    780,
+    2904
+  ]
+}

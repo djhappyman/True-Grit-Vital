@@ -1,0 +1,29 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "3298",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/5c227c48216f492d913e8361dc3c2a65/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/5c227c48216f492d913e8361dc3c2a65",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/5c227c48216f492d913e8361dc3c2a65/fileEntries/screenshot"
+    },
+    "title": "Events — Dark Mode",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 1649,
+    "id": "5c227c48216f492d913e8361dc3c2a65",
+    "label": "Cycles and Prescriptions",
+    "sourceScreen": "projects/13558290148435280164/screens/5c227c48216f492d913e8361dc3c2a65",
+    "width": 390,
+    "x": 908,
+    "y": 7214
+  },
+  "downloadedDimensions": [
+    780,
+    3298
+  ]
+}

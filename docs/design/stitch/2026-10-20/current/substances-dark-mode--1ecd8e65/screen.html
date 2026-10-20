@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-surface": "#191c1c", "on-secondary-fixed": "#0f1e1c", "tertiary-fixed-dim": "#ffb873", "on-secondary-container": "#566663", "surface-container-highest": "#e1e3e2", "secondary-container": "#d2e3df", "surface-tint": "#29685e", "destructive": "#C24134", "secondary": "#52625f", "on-secondary-fixed-variant": "#3a4a47", "surface-container-high": "#e7e8e7", "surface-container-lowest": "#ffffff", "on-primary-fixed": "#00201b", "tertiary-fixed": "#ffdcbf", "surface": "#101715", "dark-surface": "#192420", "secondary-fixed-dim": "#b9cac6", "on-secondary": "#ffffff", "secondary-fixed": "#d5e6e2", "surface-variant": "#e1e3e2", "surface-container-low": "#f3f4f3", "on-primary-container": "#93d2c5", "surface-bright": "#f9f9f8", "on-tertiary-fixed": "#2d1600", "on-error": "#ffffff", "background": "#101715", "outline": "#6f7976", "on-primary-fixed-variant": "#065046", "tertiary-container": "#7b4500", "primary-fixed-dim": "#94d2c6", "on-tertiary-fixed-variant": "#6a3b00", "surface-container": "#edeeed", "on-error-container": "#93000a", "ink": "#E8F0EC", "primary": "#00443b", "text-secondary": "#A7B6AE", "tertiary": "#5a3100", "dark-border": "#23342E", "border-crisp": "#23342E", "primary-fixed": "#afefe1", "error-container": "#ffdad6", "on-background": "#E8F0EC", "error": "#ba1a1a", "primary-container": "#1a5c52", "inverse-primary": "#94d2c6", "on-tertiary-container": "#ffb771", "inverse-on-surface": "#f0f1f0", "inverse-surface": "#2e3131", "outline-variant": "#bfc9c5", "surface-dim": "#d9dad9", "destructive-dark": "#F87171", "on-surface-variant": "#A7B6AE", "dark-text-secondary": "#A7B6AE", "dark-canvas": "#101715", "on-tertiary": "#ffffff", "dark-accent": "#96D1BB", "on-primary": "#ffffff", "dark-text-primary": "#E8F0EC" }, borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" }, spacing: { "space-lg": "1.5rem", "space-md": "1rem", "gutter": "1rem", "space-sm": "0.5rem", "margin": "1rem", "space-xl": "2rem", "space-xs": "0.25rem" }, fontFamily: { "body-lg": ["Noto Sans"], "label-md": ["Noto Sans"], "body-sm": ["Noto Sans"], "title-md": ["Noto Sans"], "headline-xl": ["Noto Sans"], "label-sm": ["Noto Sans"], "headline-md": ["Noto Sans"], "headline-xl-mobile": ["Noto Sans"], "headline-lg": ["Noto Sans"], "metric-lg": ["Noto Sans"], "metric-md": ["Noto Sans"], "body-md": ["Noto Sans"] }, fontSize: { "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }], "label-md": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }], "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400" }], "title-md": ["17px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }], "headline-xl": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.005em", "fontWeight": "600" }], "headline-xl-mobile": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "metric-lg": ["32px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "500" }], "metric-md": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "500" }], "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }] } } } }</script><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#101715;color:#E8F0EC;}.pb-safe{padding-bottom:max(env(safe-area-inset-bottom,0px),0.5rem);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-[#101715] font-body-md text-[#E8F0EC] flex flex-col min-h-screen selection:bg-primary-container selection:text-dark-accent"><header class="fixed top-0 inset-x-0 z-50 bg-[#101715]/85 backdrop-blur-xl border-b border-[#23342E] shadow-[0_4px_20px_rgba(0,0,0,0.4)] pt-safe"><div class="h-16 px-gutter max-w-xl mx-auto flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm min-w-0"><img alt="True Grit: Vital Logo" class="h-8 w-auto object-contain flex-shrink-0" src="https://lh3.googleusercontent.com/aida/AEtjO1WxYQBndV25bKqdRikpvzS1T15OAoPtHdjNKIAF_Rw0KOLlN4x6DJIfyER4flC9Aw306TDkuw5ffs-llKa_na-OJpo-i1kos-wlQeS4fxsQmSj8zHa9KDIcjsfIiLyZvyW1VP-4FKSptMSV5YvFLtNRSKkr1ULZHApeCk8t8WuVxF6UFftFvS99MYuqw5f5GBNp7xqB-aAvhPJWIU8BeLqgbLim9w1wYhZs2Bg3KTtHqXU_WmhyZ50WMCjX"/><div class="flex flex-col min-w-0"><span class="font-label-sm text-label-sm text-[#A7B6AE] tracking-wide uppercase truncate font-medium">True Grit: Vital</span><h1 class="font-title-md text-title-md text-[#E8F0EC] truncate leading-tight">Today</h1></div></div><div class="flex items-center gap-space-xs flex-shrink-0"><a aria-label="Settings" class="w-11 h-11 rounded-full flex items-center justify-center text-[#A7B6AE] hover:text-[#E8F0EC] hover:bg-[#192420] transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[22px]">settings</span></a><div class="w-9 h-9 rounded-full bg-[#1a5c52] text-[#96D1BB] border border-[#23342E] flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full max-w-xl mx-auto px-gutter pt-20 pb-28 bg-[#101715]"><div class="flex flex-col w-full pb-8">
+<!-- Top Action & Overview Header -->
+<div class="flex flex-col gap-space-sm mb-space-md">
+<div class="flex items-center justify-between gap-space-sm">
+<div class="flex flex-col min-w-0">
+<h2 class="font-headline-xl-mobile text-headline-xl-mobile text-dark-text-primary tracking-tight font-semibold">Substances</h2>
+<div class="flex items-center gap-space-xs mt-1">
+<span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-primary-container/40 text-dark-accent font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-dark-accent"></span>
+            6 Active · 1 Paused
+          </span>
+</div>
+</div>
+<button class="h-12 px-5 rounded-full bg-dark-accent text-dark-canvas font-label-md text-label-md font-semibold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-transform flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>Add Substance</span>
+</button>
+</div>
+<!-- Search & Filter Controls -->
+<div class="flex items-center gap-space-xs mt-space-xs">
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-secondary text-[20px] pointer-events-none">search</span>
+<input class="w-full h-12 pl-11 pr-4 rounded-full bg-[#141E1B] text-dark-text-primary placeholder:text-dark-text-secondary font-body-md text-body-md outline-none focus:ring-1 focus:ring-dark-accent/60 transition-all" id="substance-search" placeholder="Search by name, dose, or tag..." type="text"/>
+</div>
+<button aria-label="Filter parameters" class="w-12 h-12 rounded-full bg-[#141E1B] text-dark-text-secondary hover:text-dark-text-primary flex items-center justify-center flex-shrink-0 active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</button>
+</div>
+<!-- Horizontal Category Pill Carousel -->
+<div class="flex items-center gap-space-xs overflow-x-auto no-scrollbar py-1 -mx-margin px-margin">
+<button class="category-pill active h-8 px-4 rounded-full bg-dark-accent text-dark-canvas font-label-sm text-label-sm font-semibold whitespace-nowrap transition-all shadow-sm flex items-center gap-1" data-filter="all" type="button">
+<span>All</span>
+<span class="text-xs opacity-80">(7)</span>
+</button>
+<button class="category-pill h-8 px-4 rounded-full bg-dark-surface text-dark-text-secondary hover:text-dark-text-primary font-label-sm text-label-sm whitespace-nowrap transition-all flex items-center gap-1" data-filter="prescription" type="button">
+<span>Prescription</span>
+<span class="text-xs opacity-60">(2)</span>
+</button>
+<button class="category-pill h-8 px-4 rounded-full bg-dark-surface text-dark-text-secondary hover:text-dark-text-primary font-label-sm text-label-sm whitespace-nowrap transition-all flex items-center gap-1" data-filter="supplements" type="button">
+<span>Supplements</span>
+<span class="text-xs opacity-60">(3)</span>
+</button>
+<button class="category-pill h-8 px-4 rounded-full bg-dark-surface text-dark-text-secondary hover:text-dark-text-primary font-label-sm text-label-sm whitespace-nowrap transition-all flex items-center gap-1" data-filter="prn" type="button">
+<span>PRN</span>
+<span class="text-xs opacity-60">(1)</span>
+</button>
+<button class="category-pill h-8 px-4 rounded-full bg-dark-surface text-dark-text-secondary hover:text-dark-text-primary font-label-sm text-label-sm whitespace-nowrap transition-all flex items-center gap-1" data-filter="paused" type="button">
+<span>Paused</span>
+<span class="text-xs opacity-60">(1)</span>
+</button>
+</div>
+</div>
+<!-- Substance Cards Stack -->
+<div class="flex flex-col gap-space-sm" id="substances-list">
+<!-- Card 1: Telmisartan -->
+<div class="substance-card p-4 rounded-3xl bg-dark-surface transition-all flex flex-col gap-space-sm" data-category="prescription">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-full bg-[#141E1B] text-dark-accent flex items-center justify-center flex-shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-[24px]">medication</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h3 class="font-title-md text-title-md text-dark-text-primary font-semibold truncate">Telmisartan</h3>
+<span class="h-6 px-2.5 rounded-full bg-primary-container/40 text-dark-accent font-label-sm text-label-sm flex items-center justify-center">Prescription</span>
+</div>
+<p class="font-body-md text-body-md text-dark-text-secondary truncate mt-0.5">Oral Tablet · 40 mg</p>
+</div>
+</div>
+<button aria-label="Details for Telmisartan" class="w-10 h-10 rounded-full flex items-center justify-center text-dark-text-secondary hover:text-dark-text-primary hover:bg-[#141E1B] transition-colors flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-[22px]">chevron_right</span>
+</button>
+</div>
+<div class="flex flex-col gap-space-xs pt-1">
+<div class="flex items-center gap-2 text-dark-text-secondary font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-dark-accent">schedule</span>
+<span>Daily at 08:00 AM · Morning protocol</span>
+</div>
+<div class="flex items-center justify-between gap-space-xs mt-1">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ffb873]/15 text-[#ffb873] font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-[#ffb873] animate-pulse"></span>
+            3 doses left (Reorder soon)
+          </span>
+<span class="font-label-sm text-label-sm text-dark-text-secondary">Next: Tomorrow</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Vitamin D3 + K2 -->
+<div class="substance-card p-4 rounded-3xl bg-dark-surface transition-all flex flex-col gap-space-sm" data-category="supplements">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-full bg-[#141E1B] text-dark-accent flex items-center justify-center flex-shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-[24px]">wb_sunny</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h3 class="font-title-md text-title-md text-dark-text-primary font-semibold truncate">Vitamin D3 + K2</h3>
+<span class="h-6 px-2.5 rounded-full bg-secondary-container/20 text-dark-accent font-label-sm text-label-sm flex items-center justify-center">Supplement</span>
+</div>
+<p class="font-body-md text-body-md text-dark-text-secondary truncate mt-0.5">Softgel · 5,000 IU / 100 mcg</p>
+</div>
+</div>
+<button aria-label="Details for Vitamin D3 + K2" class="w-10 h-10 rounded-full flex items-center justify-center text-dark-text-secondary hover:text-dark-text-primary hover:bg-[#141E1B] transition-colors flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-[22px]">chevron_right</span>
+</button>
+</div>
+<div class="flex flex-col gap-space-xs pt-1">
+<div class="flex items-center gap-2 text-dark-text-secondary font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-dark-accent">restaurant</span>
+<span>Daily with food · Morning intake</span>
+</div>
+<div class="flex items-center justify-between gap-space-xs mt-1">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-container/30 text-dark-accent font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-dark-accent"></span>
+            54 doses remaining
+          </span>
+<span class="font-label-sm text-label-sm text-dark-text-secondary">Auto-cycle active</span>
+</div>
+</div>
+</div>
+<!-- Card 3: Omega-3 EPA/DHA -->
+<div class="substance-card p-4 rounded-3xl bg-dark-surface transition-all flex flex-col gap-space-sm" data-category="supplements">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-full bg-[#141E1B] text-dark-accent flex items-center justify-center flex-shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-[24px]">water_drop</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h3 class="font-title-md text-title-md text-dark-text-primary font-semibold truncate">Omega-3 EPA/DHA</h3>
+<span class="h-6 px-2.5 rounded-full bg-secondary-container/20 text-dark-accent font-label-sm text-label-sm flex items-center justify-center">Supplement</span>
+</div>
+<p class="font-body-md text-body-md text-dark-text-secondary truncate mt-0.5">Marine Oil · 2,000 mg (1,200 EPA / 600 DHA)</p>
+</div>
+</div>
+<button aria-label="Details for Omega-3" class="w-10 h-10 rounded-full flex items-center justify-center text-dark-text-secondary hover:text-dark-text-primary hover:bg-[#141E1B] transition-colors flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-[22px]">chevron_right</span>
+</button>
+</div>
+<div class="flex flex-col gap-space-xs pt-1">
+<div class="flex items-center gap-2 text-dark-text-secondary font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-dark-accent">schedule</span>
+<span>Daily at 01:30 PM · Afternoon with meal</span>
+</div>
+<div class="flex items-center justify-between gap-space-xs mt-1">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-container/30 text-dark-accent font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-dark-accent"></span>
+            38 doses remaining
+          </span>
+<span class="font-label-sm text-label-sm text-dark-text-secondary">Stocked</span>
+</div>
+</div>
+</div>
+<!-- Card 4: Magnesium Glycinate -->
+<div class="substance-card p-4 rounded-3xl bg-dark-surface transition-all flex flex-col gap-space-sm" data-category="supplements">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-full bg-[#141E1B] text-dark-accent flex items-center justify-center flex-shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-[24px]">bedtime</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h3 class="font-title-md text-title-md text-dark-text-primary font-semibold truncate">Magnesium Glycinate</h3>
+<span class="h-6 px-2.5 rounded-full bg-secondary-container/20 text-dark-accent font-label-sm text-label-sm flex items-center justify-center">Supplement</span>
+</div>
+<p class="font-body-md text-body-md text-dark-text-secondary truncate mt-0.5">Veggie Capsule · 400 mg elemental</p>
+</div>
+</div>
+<button aria-label="Details for Magnesium" class="w-10 h-10 rounded-full flex items-center justify-center text-dark-text-secondary hover:text-dark-text-primary hover:bg-[#141E1B] transition-colors flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-[22px]">chevron_right</span>
+</button>
+</div>
+<div class="flex flex-col gap-space-xs pt-1">
+<div class="flex items-center gap-2 text-dark-text-secondary font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-dark-accent">nights_stay</span>
+<span>Untimed daily · Evening before bed</span>
+</div>
+<div class="flex items-center justify-between gap-space-xs mt-1">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-container/30 text-dark-accent font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-dark-accent"></span>
+            22 doses remaining
+          </span>
+<span class="font-label-sm text-label-sm text-dark-text-secondary">Sleep stack</span>
+</div>
+</div>
+</div>
+<!-- Card 5: Ibuprofen -->
+<div class="substance-card p-4 rounded-3xl bg-dark-surface transition-all flex flex-col gap-space-sm" data-category="prn">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-full bg-[#141E1B] text-dark-accent flex items-center justify-center flex-shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-[24px]">healing</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h3 class="font-title-md text-title-md text-dark-text-primary font-semibold truncate">Ibuprofen</h3>
+<span class="h-6 px-2.5 rounded-full bg-[#ffdcbf]/15 text-[#ffb873] font-label-sm text-label-sm flex items-center justify-center">PRN</span>
+</div>
+<p class="font-body-md text-body-md text-dark-text-secondary truncate mt-0.5">Coated Tablet · 200 mg</p>
+</div>
+</div>
+<button aria-label="Details for Ibuprofen" class="w-10 h-10 rounded-full flex items-center justify-center text-dark-text-secondary hover:text-dark-text-primary hover:bg-[#141E1B] transition-colors flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-[22px]">chevron_right</span>
+</button>
+</div>
+<div class="flex flex-col gap-space-xs pt-1">
+<div class="flex items-center gap-2 text-dark-text-secondary font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-dark-accent">emergency</span>
+<span>As needed · Maximum 800 mg/day</span>
+</div>
+<div class="flex items-center justify-between gap-space-xs mt-1">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-container/30 text-dark-accent font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-dark-accent"></span>
+            18 doses remaining
+          </span>
+<span class="font-label-sm text-label-sm text-dark-text-secondary">On demand</span>
+</div>
+</div>
+</div>
+<!-- Card 6: Zinc Picolinate (Paused) -->
+<div class="substance-card p-4 rounded-3xl bg-dark-surface/75 opacity-90 transition-all flex flex-col gap-space-sm" data-category="paused">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-12 h-12 rounded-full bg-[#141E1B] text-dark-text-secondary flex items-center justify-center flex-shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-[24px]">pause_circle</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h3 class="font-title-md text-title-md text-dark-text-primary font-semibold truncate">Zinc Picolinate</h3>
+<span class="h-6 px-2.5 rounded-full bg-secondary-container/15 text-dark-text-secondary font-label-sm text-label-sm flex items-center justify-center">Paused</span>
+</div>
+<p class="font-body-md text-body-md text-dark-text-secondary truncate mt-0.5">Capsule · 22 mg</p>
+</div>
+</div>
+<button aria-label="Details for Zinc Picolinate" class="w-10 h-10 rounded-full flex items-center justify-center text-dark-text-secondary hover:text-dark-text-primary hover:bg-[#141E1B] transition-colors flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-[22px]">chevron_right</span>
+</button>
+</div>
+<div class="flex flex-col gap-space-xs pt-1">
+<div class="flex items-center gap-2 text-dark-text-secondary font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-dark-text-secondary">event_busy</span>
+<span>Cycle ended 12 Oct · Routine paused</span>
+</div>
+<div class="flex items-center justify-between gap-space-xs mt-1">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#141E1B] text-dark-text-secondary font-label-sm text-label-sm font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-dark-text-secondary/50"></span>
+            45 doses in stock
+          </span>
+<button class="font-label-sm text-label-sm text-dark-accent hover:underline" type="button">Resume</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Local-First Status Verification Box -->
+<div class="mt-space-lg p-4 rounded-3xl bg-[#141E1B] flex flex-col items-center justify-center text-center gap-space-xs">
+<div class="w-8 h-8 rounded-full bg-primary-container/30 text-dark-accent flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+</div>
+<p class="font-label-sm text-label-sm text-dark-text-primary font-medium">
+      Local database verified · Encrypted on device
+    </p>
+<p class="font-body-sm text-body-sm text-dark-text-secondary max-w-xs">
+      7 substances recorded across 2 active cycles. Never shared or synced to third-party ad networks.
+    </p>
+</div>
+</div>
+<script>
+  (function() {
+    const searchInput = document.getElementById('substance-search');
+    const cards = document.querySelectorAll('.substance-card');
+    const filterPills = document.querySelectorAll('.category-pill');
+
+    let currentFilter = 'all';
+
+    function filterCards() {
+      const query = (searchInput.value || '').toLowerCase().trim();
+
+      cards.forEach(card => {
+        const category = card.getAttribute('data-category');
+        const textContent = card.innerText.toLowerCase();
+
+        const matchesFilter = (currentFilter === 'all') || (category === currentFilter);
+        const matchesQuery = !query || textContent.includes(query);
+
+        if (matchesFilter && matchesQuery) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', filterCards);
+    }
+
+    filterPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        filterPills.forEach(p => {
+          p.classList.remove('bg-dark-accent', 'text-dark-canvas', 'font-semibold', 'shadow-sm');
+          p.classList.add('bg-dark-surface', 'text-dark-text-secondary');
+        });
+
+        pill.classList.remove('bg-dark-surface', 'text-dark-text-secondary');
+        pill.classList.add('bg-dark-accent', 'text-dark-canvas', 'font-semibold', 'shadow-sm');
+
+        currentFilter = pill.getAttribute('data-filter') || 'all';
+        filterCards();
+      });
+    });
+  })();
+</script></main><nav class="fixed bottom-0 inset-x-0 z-50 pointer-events-none pb-safe"><div class="max-w-xl mx-auto px-space-md pb-space-sm"><div class="pointer-events-auto backdrop-blur-xl bg-[#192420]/90 border border-[#23342E] rounded-full px-2 py-1.5 flex items-center justify-around shadow-[0_8px_32px_rgba(0,0,0,0.5)]"><a aria-label="Today" class="flex-1 h-12 rounded-full flex flex-col items-center justify-center gap-0.5 text-[#96D1BB] bg-[#1a5c52]/50 border border-[#96D1BB]/20 shadow-sm transition-all" data-path="today" href="#"><span class="material-symbols-outlined text-[20px]">event_available</span><span class="font-label-sm text-label-sm leading-none font-semibold">Today</span></a><a aria-label="Substances" class="flex-1 h-12 rounded-full flex flex-col items-center justify-center gap-0.5 text-[#A7B6AE] hover:text-[#E8F0EC] transition-all" data-path="substances" href="#"><span class="material-symbols-outlined text-[20px]">medication</span><span class="font-label-sm text-label-sm leading-none">Substances</span></a><a aria-label="Events" class="flex-1 h-12 rounded-full flex flex-col items-center justify-center gap-0.5 text-[#A7B6AE] hover:text-[#E8F0EC] transition-all" data-path="events" href="#"><span class="material-symbols-outlined text-[20px]">date_range</span><span class="font-label-sm text-label-sm leading-none">Events</span></a><a aria-label="History" class="flex-1 h-12 rounded-full flex flex-col items-center justify-center gap-0.5 text-[#A7B6AE] hover:text-[#E8F0EC] transition-all" data-path="history" href="#"><span class="material-symbols-outlined text-[20px]">history</span><span class="font-label-sm text-label-sm leading-none">History</span></a></div></div></nav></body></html>

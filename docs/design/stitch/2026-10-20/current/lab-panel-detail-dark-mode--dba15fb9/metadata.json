@@ -1,0 +1,28 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "5076",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/dba15fb96eeb4dca946f14ef941567c8/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/dba15fb96eeb4dca946f14ef941567c8",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/dba15fb96eeb4dca946f14ef941567c8/fileEntries/screenshot"
+    },
+    "title": "Lab Panel Detail — Dark Mode",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 2538,
+    "id": "dba15fb96eeb4dca946f14ef941567c8",
+    "label": "Blood Panels",
+    "sourceScreen": "projects/13558290148435280164/screens/dba15fb96eeb4dca946f14ef941567c8",
+    "width": 390,
+    "y": 14332
+  },
+  "downloadedDimensions": [
+    780,
+    5076
+  ]
+}

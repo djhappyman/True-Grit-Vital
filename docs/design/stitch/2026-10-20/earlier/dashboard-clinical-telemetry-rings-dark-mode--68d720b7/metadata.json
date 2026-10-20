@@ -1,0 +1,30 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "3428",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/68d720b70b1445ccb90af295a2a4ffbc/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/68d720b70b1445ccb90af295a2a4ffbc",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/68d720b70b1445ccb90af295a2a4ffbc/fileEntries/screenshot"
+    },
+    "title": "Dashboard — Clinical Telemetry & Rings (Dark Mode)",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 1714,
+    "hidden": true,
+    "id": "68d720b70b1445ccb90af295a2a4ffbc",
+    "label": "Generating Screen...",
+    "sourceScreen": "projects/13558290148435280164/screens/68d720b70b1445ccb90af295a2a4ffbc",
+    "width": 390,
+    "x": 908,
+    "y": 17125
+  },
+  "downloadedDimensions": [
+    780,
+    3428
+  ]
+}

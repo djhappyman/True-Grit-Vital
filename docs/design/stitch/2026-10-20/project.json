@@ -1,0 +1,396 @@
+{
+  "createTime": "2026-10-20T17:14:14.425307Z",
+  "designTheme": {
+    "bodyFont": "NOTO_SANS",
+    "bodyFontFamily": "Noto Sans",
+    "colorMode": "LIGHT",
+    "colorVariant": "FIDELITY",
+    "customColor": "#1a5c52",
+    "designMd": "---\nname: Warm Clinical Minimalism\ncolors:\n  surface: '#f9f9f8'\n  surface-dim: '#d9dad9'\n  surface-bright: '#f9f9f8'\n  surface-container-lowest: '#ffffff'\n  surface-container-low: '#f3f4f3'\n  surface-container: '#edeeed'\n  surface-container-high: '#e7e8e7'\n  surface-container-highest: '#e1e3e2'\n  on-surface: '#191c1c'\n  on-surface-variant: '#3f4946'\n  inverse-surface: '#2e3131'\n  inverse-on-surface: '#f0f1f0'\n  outline: '#6f7976'\n  outline-variant: '#bfc9c5'\n  surface-tint: '#29685e'\n  primary: '#00443b'\n  on-primary: '#ffffff'\n  primary-container: '#1a5c52'\n  on-primary-container: '#93d2c5'\n  inverse-primary: '#94d2c6'\n  secondary: '#52625f'\n  on-secondary: '#ffffff'\n  secondary-container: '#d2e3df'\n  on-secondary-container: '#566663'\n  tertiary: '#5a3100'\n  on-tertiary: '#ffffff'\n  tertiary-container: '#7b4500'\n  on-tertiary-container: '#ffb771'\n  error: '#ba1a1a'\n  on-error: '#ffffff'\n  error-container: '#ffdad6'\n  on-error-container: '#93000a'\n  primary-fixed: '#afefe1'\n  primary-fixed-dim: '#94d2c6'\n  on-primary-fixed: '#00201b'\n  on-primary-fixed-variant: '#065046'\n  secondary-fixed: '#d5e6e2'\n  secondary-fixed-dim: '#b9cac6'\n  on-secondary-fixed: '#0f1e1c'\n  on-secondary-fixed-variant: '#3a4a47'\n  tertiary-fixed: '#ffdcbf'\n  tertiary-fixed-dim: '#ffb873'\n  on-tertiary-fixed: '#2d1600'\n  on-tertiary-fixed-variant: '#6a3b00'\n  background: '#f9f9f8'\n  on-background: '#191c1c'\n  surface-variant: '#e1e3e2'\n  ink: '#182725'\n  text-secondary: '#5B6B68'\n  border-crisp: '#E2E6E4'\n  dark-canvas: '#101715'\n  dark-surface: '#192420'\n  dark-accent: '#96D1BB'\n  dark-text-primary: '#E8F0EC'\n  dark-text-secondary: '#A7B6AE'\n  dark-border: '#23342E'\n  destructive: '#C24134'\n  destructive-dark: '#F87171'\ntypography:\n  headline-xl:\n    fontFamily: Noto Sans\n    fontSize: 36px\n    fontWeight: '600'\n    lineHeight: 44px\n    letterSpacing: -0.02em\n  headline-xl-mobile:\n    fontFamily: Noto Sans\n    fontSize: 28px\n    fontWeight: '600'\n    lineHeight: 34px\n    letterSpacing: -0.015em\n  headline-lg:\n    fontFamily: Noto Sans\n    fontSize: 24px\n    fontWeight: '600'\n    lineHeight: 32px\n    letterSpacing: -0.01em\n  headline-md:\n    fontFamily: Noto Sans\n    fontSize: 20px\n    fontWeight: '600'\n    lineHeight: 28px\n    letterSpacing: -0.005em\n  title-md:\n    fontFamily: Noto Sans\n    fontSize: 17px\n    fontWeight: '600'\n    lineHeight: 24px\n    letterSpacing: 0em\n  body-lg:\n    fontFamily: Noto Sans\n    fontSize: 16px\n    fontWeight: '400'\n    lineHeight: 24px\n    letterSpacing: 0em\n  body-md:\n    fontFamily: Noto Sans\n    fontSize: 14px\n    fontWeight: '400'\n    lineHeight: 20px\n    letterSpacing: 0em\n  body-sm:\n    fontFamily: Noto Sans\n    fontSize: 12px\n    fontWeight: '400'\n    lineHeight: 16px\n    letterSpacing: 0.01em\n  metric-lg:\n    fontFamily: Noto Sans\n    fontSize: 32px\n    fontWeight: '500'\n    lineHeight: 38px\n    letterSpacing: -0.02em\n  metric-md:\n    fontFamily: Noto Sans\n    fontSize: 20px\n    fontWeight: '500'\n    lineHeight: 26px\n    letterSpacing: -0.01em\n  label-md:\n    fontFamily: Noto Sans\n    fontSize: 13px\n    fontWeight: '500'\n    lineHeight: 18px\n    letterSpacing: 0.01em\n  label-sm:\n    fontFamily: Noto Sans\n    fontSize: 11px\n    fontWeight: '500'\n    lineHeight: 14px\n    letterSpacing: 0.02em\nrounded:\n  sm: 0.5rem\n  DEFAULT: 1rem\n  md: 1.5rem\n  lg: 2rem\n  xl: 3rem\n  full: 9999px\nspacing:\n  gutter: 1rem\n  margin: 1rem\n  space-xs: 0.25rem\n  space-sm: 0.5rem\n  space-md: 1rem\n  space-lg: 1.5rem\n  space-xl: 2rem\n---\n\n## Brand & Style\n\nThis design system delivers an intimate, restorative, and sovereign routine-tracking environment. It frames supplement and medication management not as an anxiety-inducing obligation or gamified streak, but as an intentional, objective act of self-care.\n\n### Core Tenets\n- **Warm Restraint:** Organic, botanical undertones soften clinical precision. The experience is welcoming, tranquil, and serene.\n- **Sovereign & Local-First:** Free from coercive mechanics, high-pressure notifications, or noisy gamification. The visual tone remains calm, confident, and grounded.\n- **Precision Typography & Hierarchy:** High typographic clarity ensures critical dosage, unit, and schedule markers are legible at a glance.\n- **Adaptive Geometry:** Architectural containers with generous smooth radii (16px and 24px) are juxtaposed against fluid, full-pill action elements to ensure tactile accessibility and effortless touch navigation.\n\n### Design Style: Warm Tactile Glass & Pill Flow\nThe interface blends `shadcn_flutter` compositional clarity with ambient material layering:\n- **Foundational Surfaces:** Crisp structural containment paired with calm tinted neutrals.\n- **Translucency & Blurs:** Navigation anchors and elevated dialogs leverage 16px frosted glass layering alongside solid high-contrast fallbacks for accessibility modes.\n- **Touch Ergonomics:** Strictly phone-first with guaranteed 48×48dp interactive boundaries and fully rounded pill contours for all primary triggers.\n\n## Colors\n\nThe color system combines deep botanical ink, soft mineral stone, and evergreen therapeutic accents to provide clinical dependability without hospital coldness.\n\n### Light Mode Architecture\n- **Canvas Base (`#F6F7F6`):** Soft warm limestone background eliminating glare during early morning or bedtime routines.\n- **Surface Opaque (`#FFFFFF`):** High-clarity containers for substantive cards, panels, and input fields.\n- **Surface Translucent (`rgba(255, 255, 255, 0.76)`):** Frosted ambient glass with backdrop blur (16px) and low-contrast rim strokes (`rgba(0, 0, 0, 0.06)`).\n- **Ink Primary (`#182725`):** Deep botanical ink ensuring WCAG AAA legibility against canvas and card levels.\n- **Text Secondary (`#5B6B68`):** Muted slate teal for metadata, timestamp suffixes, and dosage units.\n- **Primary Teal Accent (`#1A5C52`):** Saturated deep evergreen teal driving active states, primary buttons, and affirmative checks.\n- **Border Crisp (`#E2E6E4`):** Low-contrast structural lines providing gentle separation without harsh dividers.\n\n### Dark Mode Architecture\n- **Dark Canvas (`#101715`):** Deep green-charcoal canvas engineered for zero eye fatigue in dark rooms.\n- **Dark Graphite Surface (`#192420`):** Subtle elevated background for cards and bottom sheets.\n- **Dark Surface Translucent (`rgba(25, 36, 32, 0.78)`):** Smoked glass paired with highlight edge stroke (`rgba(255, 255, 255, 0.08)`).\n- **Luminous Mint Accent (`#96D1BB`):** Muted therapeutic mint delivering high-contrast, glare-free legibility.\n- **Dark Ink Foreground (`#101715`):** High-contrast text layered inside mint buttons and affirmative badges.\n- **Dark Primary Text (`#E8F0EC`) & Secondary Text (`#A7B6AE`):** Soft luminous mineral chalk and celadon mist.\n- **Dark Border (`#23342E`):** Perimeter edge separator.\n\n### System Feedback & Semantic Tones\n- **Destructive (`#C24134` light / `#F87171` dark):** Earthy crimson reserved for missed critical doses, contraindication warnings, or irreversible deletions.\n- **Caution / Schedule Shift (`#C87B24` light / `#FBBF24` dark):** Warm amber signaling interval spacing alerts or pending intakes.\n\n## Typography\n\nThe type system is powered exclusively by **Noto Sans** for its universal clarity, broad multilingual glyph repertoire, and clinical authority.\n\n### Tabular Numbers & Dynamic Feeds\nAll timestamps, interval timers, pill counts, and dosage quantities must activate OpenType tabular figures:\n`font-feature-settings: \"tnum\" 1, \"cv05\" 1;`\nThis prevents layout jitter during real-time schedule updates, intake countdowns, or counter steppers.\n\n### Application Rules\n- **Display & Headlines:** Used strictly for date anchors (\"Today, Oct 24\") and view titles. Mobile screens scale `headline-xl` down to `headline-xl-mobile` to maintain single-line layout integrity.\n- **Metrics (`metric-lg`, `metric-md`):** Reserved for numerical values, dosages (e.g. `100 mg`, `2 drops`), and historical adherence statistics.\n- **Labels:** Set with medium weights and slight positive tracking to ensure fast glanceability on pill buttons, action triggers, and filter chips.\n\n## Layout & Spacing\n\nLayout adheres to a phone-first single-column structure designed for one-handed operation.\n\n### Spatial Rhythm\n- **Canvas Margins:** Fixed 16px (`1rem`) horizontal padding on mobile viewports (<480px).\n- **Responsive Max-Width:** On tablets and desktops, content remains anchored in a centered `640px` maximum column (`margin: 0 auto`), preventing excessive tracking list widths and preserving thumb reach.\n- **Vertical Spacing:** Modules adhere strictly to an 8px base rhythm (`space-sm`, `space-md`, `space-lg`, `space-xl`). Single-column card stacks keep attention focused on chronological order.\n\n### Touch Ergonomics\nAll actionable nodes—pill buttons, dosage steppers, list check triggers, and modal dismiss targets—enforce a bounding box of at least **48×48dp**, regardless of whether their internal visual asset is 16px or 24px.\n\n## Elevation & Depth\n\nVisual depth is achieved through delicate surface tinting, fine-line rim borders, and frosted glass filtration rather than dark, muddy drop shadows.\n\n### Surface Tiers\n- **Tier 0 (Canvas Base):** Ground color (`#F6F7F6` light / `#101715` dark). Flat, non-elevated viewport background.\n- **Tier 1 (Cards, Modules & Containers):** Solid resting cards (`#FFFFFF` light / `#192420` dark) paired with a 1px border (`#E2E6E4` light / `#23342E` dark). Zero drop shadow at rest.\n- **Tier 2 (Interactive Floating Docks):** Bottom navigation bars, floating quick-log docks, and dosage toolbars utilize frosted glass:\n  - *Light Glass:* `rgba(255, 255, 255, 0.76)`, `backdrop-filter: blur(16px)`, border `1px solid rgba(0, 0, 0, 0.06)`, shadow `0 8px 32px rgba(0, 0, 0, 0.04)`.\n  - *Dark Glass:* `rgba(25, 36, 32, 0.78)`, `backdrop-filter: blur(16px)`, border `1px solid rgba(255, 255, 255, 0.08)`, shadow `0 8px 32px rgba(0, 0, 0, 0.35)`.\n  - *Accessibility Variant:* Fall back to solid Tier 1 backgrounds if reduced-transparency preferences are detected.\n- **Tier 3 (Modals, Dialogs & Sheets):** Smooth 24px rounded surfaces elevated with a diffuse soft shadow (`0 20px 48px rgba(0, 0, 0, 0.08)` in light mode; `0 24px 64px rgba(0, 0, 0, 0.55)` in dark mode) and framed with a crisp boundary outline.\n\n## Shapes\n\nThe geometric signature combines generous, smooth radii on architectural enclosures with fully rounded pill profiles on all interactive touchpoints.\n\n### Architectural Containers (Smooth Radii: 16px & 24px)\n- **Standard Cards, Panels & Modules:** Standardized on `1rem` (16px / `ROUND_SIXTEEN`).\n- **Modals, Dialogs & Bottom Sheet Caps:** Enforced at `1.5rem` (24px / `ROUND_TWENTY_FOUR`).\n- **Input Fields & Textarea Frames:** Form containers and search fields utilize `1rem` (16px / `ROUND_SIXTEEN`) for a soft, approachable frame.\n- **Filter Segment Enclosures & Grouped Card Wrappers:** Bound by `1rem` (16px / `ROUND_SIXTEEN`).\n\n### Interactive Elements & Action Triggers (Fully Rounded Pills: 9999px)\n- **Buttons (Primary, Secondary, Ghost, Destructive):** Fully rounded pill geometry (`rounded-full` / `border-radius: 9999px`).\n- **Badges & Status Tags:** Pill geometry (`border-radius: 9999px`).\n- **Chips, Category Filters & Intake Toggles:** Pill geometry (`border-radius: 9999px`).\n- **Floating Action Buttons & Check Triggers:** Circular/pill geometry (`border-radius: 9999px`).\n- **Segmented Control Sliders & Micro Tabs:** Pill geometry (`border-radius: 9999px`).\n\n## Components\n\nComponents follow `shadcn_flutter` compositional primitives, styled with smooth rounded frames and fully rounded pill action elements.\n\n### Buttons & Action Triggers\n- **Geometry:** Height 48px, horizontal padding 24px, fully rounded pill (`border-radius: 9999px`).\n- **Primary Pill:** Background in Deep Teal (`#1A5C52` light / `#96D1BB` dark), text in Foreground (`#FFFFFF` light / `#101715` dark), font `label-md`. Active touch triggers a calm `transform: scale(0.98)` spring with 0.92 opacity.\n- **Secondary Pill:** Opaque surface (`#FFFFFF` light / `#192420` dark) with 1px border (`#E2E6E4` light / `#23342E` dark), text in Primary Ink.\n- **Ghost Pill:** Borderless, transparent fill, text in Text Secondary (`#5B6B68` / `#A7B6AE`), shifting to Primary Ink on pressed state.\n- **Destructive Pill:** Background tinted red surface or clear with Destructive border (`#C24134` / `#F87171`), text in Destructive.\n\n### Cards & Container Panels\n- **Anatomy:** Corner radius strictly 16px (`ROUND_SIXTEEN`). Opaque base surface, 1px border (`#E2E6E4` / `#23342E`), padding 16px.\n- **Substance Dose Card:** Contains scheduled intake time (`metric-md`), medication/supplement name (`title-md`), dosage specification (`body-md`), and a trailing circular direct-log trigger button (48×48dp hit area, `border-radius: 9999px`).\n- **Nested Inner Modules:** Inside 16px cards, internal sub-panels use 12px or 16px corner radii to maintain concentric harmony.\n\n### Chips, Filter Pills & Badges\n- **Status Badges & Chips:** Fully rounded pills (`border-radius: 9999px`), height 32px, padding 0 14px, typography `label-sm`.\n- **Intake State Indicators:** \n  - *Taken:* Primary Accent pill fill with white text.\n  - *Scheduled:* Hairline bordered pill with secondary text.\n  - *Skipped/Deferred:* Muted amber tint pill with amber text.\n\n### Form Inputs & Steppers\n- **Text Inputs:** Height 48px, smooth 16px corner radius (`ROUND_SIXTEEN`), padding 0 16px, framed with 1px structural border (`#E2E6E4` / `#23342E`). Focused state transitions border to Primary Teal Accent without an outer bloom.\n- **Dosage Stepper:** Enclosed in a 16px container or pill shell containing decrement and increment buttons (each 48×48dp, `border-radius: 9999px`) flanking tabular numeric dosage text (`metric-md`).\n\n### Modals, Dialogs & Sheets\n- **Modals & Dialogs:** 24px corner radius (`ROUND_TWENTY_FOUR`), solid background with 1px border and Tier 3 diffuse elevation. Inner action buttons use fully rounded pill shapes docked at the base.\n- **Bottom Sheets:** Top-left and top-right radii set to 24px (`ROUND_TWENTY_FOUR`). Top handle indicator is an 8-wide pill (`border-radius: 9999px`).\n\n### Navigation Bar\n- **Docked Translucent Island or Bar:** Frosted glass backing with 16px blur (solid Tier 1 fallback for accessibility).\n- **Tab Triggers:** 48dp minimum touch bounds. Active tabs highlight with a subtle pill backplate (`border-radius: 9999px`, `rgba(26, 92, 82, 0.08)` light / `rgba(150, 209, 187, 0.12)` dark) holding the Lucide icon and label.",
+    "font": "NOTO_SANS",
+    "headlineFont": "NOTO_SANS",
+    "headlineFontFamily": "Noto Sans",
+    "labelFont": "NOTO_SANS",
+    "labelFontFamily": "Noto Sans",
+    "namedColors": {
+      "background": "#f9f9f8",
+      "border-crisp": "#E2E6E4",
+      "dark-accent": "#96D1BB",
+      "dark-border": "#23342E",
+      "dark-canvas": "#101715",
+      "dark-surface": "#192420",
+      "dark-text-primary": "#E8F0EC",
+      "dark-text-secondary": "#A7B6AE",
+      "destructive": "#C24134",
+      "destructive-dark": "#F87171",
+      "error": "#ba1a1a",
+      "error_container": "#ffdad6",
+      "ink": "#182725",
+      "inverse_on_surface": "#f0f1f0",
+      "inverse_primary": "#94d2c6",
+      "inverse_surface": "#2e3131",
+      "on_background": "#191c1c",
+      "on_error": "#ffffff",
+      "on_error_container": "#93000a",
+      "on_primary": "#ffffff",
+      "on_primary_container": "#93d2c5",
+      "on_primary_fixed": "#00201b",
+      "on_primary_fixed_variant": "#065046",
+      "on_secondary": "#ffffff",
+      "on_secondary_container": "#566663",
+      "on_secondary_fixed": "#0f1e1c",
+      "on_secondary_fixed_variant": "#3a4a47",
+      "on_surface": "#191c1c",
+      "on_surface_variant": "#3f4946",
+      "on_tertiary": "#ffffff",
+      "on_tertiary_container": "#ffb771",
+      "on_tertiary_fixed": "#2d1600",
+      "on_tertiary_fixed_variant": "#6a3b00",
+      "outline": "#6f7976",
+      "outline_variant": "#bfc9c5",
+      "primary": "#00443b",
+      "primary_container": "#1a5c52",
+      "primary_fixed": "#afefe1",
+      "primary_fixed_dim": "#94d2c6",
+      "secondary": "#52625f",
+      "secondary_container": "#d2e3df",
+      "secondary_fixed": "#d5e6e2",
+      "secondary_fixed_dim": "#b9cac6",
+      "surface": "#f9f9f8",
+      "surface_bright": "#f9f9f8",
+      "surface_container": "#edeeed",
+      "surface_container_high": "#e7e8e7",
+      "surface_container_highest": "#e1e3e2",
+      "surface_container_low": "#f3f4f3",
+      "surface_container_lowest": "#ffffff",
+      "surface_dim": "#d9dad9",
+      "surface_tint": "#29685e",
+      "surface_variant": "#e1e3e2",
+      "tertiary": "#5a3100",
+      "tertiary_container": "#7b4500",
+      "tertiary_fixed": "#ffdcbf",
+      "tertiary_fixed_dim": "#ffb873",
+      "text-secondary": "#5B6B68"
+    },
+    "overrideNeutralColor": "#f6f7f6",
+    "overridePrimaryColor": "#1a5c52",
+    "overrideSecondaryColor": "#52625f",
+    "overrideTertiaryColor": "#c87b24",
+    "roundness": "ROUND_FULL",
+    "spacing": {
+      "gutter": "1rem",
+      "margin": "1rem",
+      "space-lg": "1.5rem",
+      "space-md": "1rem",
+      "space-sm": "0.5rem",
+      "space-xl": "2rem",
+      "space-xs": "0.25rem"
+    },
+    "spacingScale": 2,
+    "typography": {
+      "body-lg": {
+        "fontFamily": "Noto Sans",
+        "fontSize": "16px",
+        "fontWeight": "400",
+        "letterSpacing": "0em",
+        "lineHeight": "24px"
+      },
+      "body-md": {
+        "fontFamily": "Noto Sans",
+        "fontSize": "14px",
+        "fontWeight": "400",
+        "letterSpacing": "0em",
+        "lineHeight": "20px"
+      },
+      "body-sm": {
+        "fontFamily": "Noto Sans",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "letterSpacing": "0.01em",
+        "lineHeight": "16px"
+      },
+      "headline-lg": {
+        "fontFamily": "Noto Sans",
+        "fontSize": "24px",
+        "fontWeight": "600",
+        "letterSpacing": "-0.01em",
+        "lineHeight": "32px"
+      },
+      "headline-md": {
+        "fontFamily": "Noto Sans",
+        "fontSize": "20px",
+        "fontWeight": "600",
+        "letterSpacing": "-0.005em",
+        "lineHeight": "28px"
+      },
+      "headline-xl": {
+        "fontFamily": "Noto Sans",
+        "fontSize": "36px",
+        "fontWeight": "600",
+        "letterSpacing": "-0.02em",
+        "lineHeight": "44px"
+      },
+      "headline-xl-mobile": {
+        "fontFamily": "Noto Sans",
+        "fontSize": "28px",
+        "fontWeight": "600",
+        "letterSpacing": "-0.015em",
+        "lineHeight": "34px"
+      },
+      "label-md": {
+        "fontFamily": "Noto Sans",
+        "fontSize": "13px",
+        "fontWeight": "500",
+        "letterSpacing": "0.01em",
+        "lineHeight": "18px"
+      },
+      "label-sm": {
+        "fontFamily": "Noto Sans",
+        "fontSize": "11px",
+        "fontWeight": "500",
+        "letterSpacing": "0.02em",
+        "lineHeight": "14px"
+      },
+      "metric-lg": {
+        "fontFamily": "Noto Sans",
+        "fontSize": "32px",
+        "fontWeight": "500",
+        "letterSpacing": "-0.02em",
+        "lineHeight": "38px"
+      },
+      "metric-md": {
+        "fontFamily": "Noto Sans",
+        "fontSize": "20px",
+        "fontWeight": "500",
+        "letterSpacing": "-0.01em",
+        "lineHeight": "26px"
+      },
+      "title-md": {
+        "fontFamily": "Noto Sans",
+        "fontSize": "17px",
+        "fontWeight": "600",
+        "letterSpacing": "0em",
+        "lineHeight": "24px"
+      }
+    }
+  },
+  "deviceType": "MOBILE",
+  "metadata": {
+    "userRole": "OWNER"
+  },
+  "name": "projects/13558290148435280164",
+  "origin": "STITCH",
+  "projectType": "TEXT_TO_UI_PRO",
+  "screenInstances": [
+    {
+      "height": 2386,
+      "id": "0c7abb851ba84b4891ef72622b93b374",
+      "label": "Create Substance",
+      "sourceScreen": "projects/13558290148435280164/screens/0c7abb851ba84b4891ef72622b93b374",
+      "width": 390,
+      "x": 454,
+      "y": 9386
+    },
+    {
+      "height": 1466,
+      "id": "1ecd8e65d86b410cb5e6db6fb8b27f85",
+      "label": "Substances",
+      "sourceScreen": "projects/13558290148435280164/screens/1ecd8e65d86b410cb5e6db6fb8b27f85",
+      "width": 390,
+      "y": 7214
+    },
+    {
+      "height": 1528,
+      "hidden": true,
+      "id": "3d14cd60b213420b8ef3809f8af2c104",
+      "label": "Generating Screen...",
+      "sourceScreen": "projects/13558290148435280164/screens/3d14cd60b213420b8ef3809f8af2c104",
+      "width": 390,
+      "y": 3482
+    },
+    {
+      "height": 1725,
+      "id": "3d446a0c71de4a1ea9dea8b7ae9fd56b",
+      "label": "Panels",
+      "sourceScreen": "projects/13558290148435280164/screens/3d446a0c71de4a1ea9dea8b7ae9fd56b",
+      "width": 390,
+      "x": 454,
+      "y": 14332
+    },
+    {
+      "height": 1452,
+      "id": "42445af1ef014b4dbe0d0c6ecbf63da3",
+      "label": "dashboard",
+      "sourceScreen": "projects/13558290148435280164/screens/42445af1ef014b4dbe0d0c6ecbf63da3",
+      "width": 390,
+      "y": 17125
+    },
+    {
+      "height": 1954,
+      "hidden": true,
+      "id": "4f254d238aa1427b81603580eb201512",
+      "label": "Generating Screen...",
+      "sourceScreen": "projects/13558290148435280164/screens/4f254d238aa1427b81603580eb201512",
+      "width": 390,
+      "x": 908,
+      "y": 12028
+    },
+    {
+      "height": 1649,
+      "id": "5c227c48216f492d913e8361dc3c2a65",
+      "label": "Cycles and Prescriptions",
+      "sourceScreen": "projects/13558290148435280164/screens/5c227c48216f492d913e8361dc3c2a65",
+      "width": 390,
+      "x": 908,
+      "y": 7214
+    },
+    {
+      "height": 1985,
+      "id": "62fae5781a264ab89dcdc118df413a7e",
+      "label": "Settings",
+      "sourceScreen": "projects/13558290148435280164/screens/62fae5781a264ab89dcdc118df413a7e",
+      "width": 390,
+      "x": 454,
+      "y": 12028
+    },
+    {
+      "height": 2364,
+      "id": "66b415fc46344dd9ba496e0e676247a2",
+      "label": "History",
+      "sourceScreen": "projects/13558290148435280164/screens/66b415fc46344dd9ba496e0e676247a2",
+      "width": 390,
+      "y": 9386
+    },
+    {
+      "height": 1714,
+      "hidden": true,
+      "id": "68d720b70b1445ccb90af295a2a4ffbc",
+      "label": "Generating Screen...",
+      "sourceScreen": "projects/13558290148435280164/screens/68d720b70b1445ccb90af295a2a4ffbc",
+      "width": 390,
+      "x": 908,
+      "y": 17125
+    },
+    {
+      "height": 1226,
+      "id": "6c9e18ea66c44e3dacabfe5150645531",
+      "label": "Record Dose sheet",
+      "sourceScreen": "projects/13558290148435280164/screens/6c9e18ea66c44e3dacabfe5150645531",
+      "width": 390,
+      "x": 908,
+      "y": 9386
+    },
+    {
+      "height": 1626,
+      "id": "701bd467f63a426f87f2fb4fd057602c",
+      "label": "Generating Screen...",
+      "sourceScreen": "projects/13558290148435280164/screens/701bd467f63a426f87f2fb4fd057602c",
+      "width": 390,
+      "x": 454,
+      "y": 1592
+    },
+    {
+      "height": 1634,
+      "id": "8396a819568143678c5d1d4a7f9b3af7",
+      "label": "Generating Screen...",
+      "sourceScreen": "projects/13558290148435280164/screens/8396a819568143678c5d1d4a7f9b3af7",
+      "width": 390,
+      "y": 1592
+    },
+    {
+      "height": 1390,
+      "id": "89da3913908642198a6818befd913f48",
+      "label": "Substance detail",
+      "sourceScreen": "projects/13558290148435280164/screens/89da3913908642198a6818befd913f48",
+      "width": 390,
+      "x": 1362,
+      "y": 12028
+    },
+    {
+      "height": 1806,
+      "hidden": true,
+      "id": "9932b510d6964a94b25e8ea60bb0d5bf",
+      "label": "Settings",
+      "sourceScreen": "projects/13558290148435280164/screens/9932b510d6964a94b25e8ea60bb0d5bf",
+      "width": 390,
+      "y": 12028
+    },
+    {
+      "height": 540,
+      "id": "assets_1bcd9ea403ec4032a6f728e4aa9b3fc9",
+      "sourceAsset": "assets/1bcd9ea403ec4032a6f728e4aa9b3fc9",
+      "type": "DESIGN_SYSTEM_INSTANCE",
+      "width": 960,
+      "y": 796
+    },
+    {
+      "height": 540,
+      "id": "assets_f7e4e7c02a8145399990ce79d6f21baf",
+      "sourceAsset": "assets/f7e4e7c02a8145399990ce79d6f21baf",
+      "type": "DESIGN_SYSTEM_INSTANCE",
+      "width": 960
+    },
+    {
+      "height": 1692,
+      "hidden": true,
+      "id": "b5e179118aab48ca995a4357dc3e2456",
+      "label": "Generating Screen...",
+      "sourceScreen": "projects/13558290148435280164/screens/b5e179118aab48ca995a4357dc3e2456",
+      "width": 390,
+      "y": 5266
+    },
+    {
+      "height": 1077,
+      "hidden": true,
+      "id": "b84d421846f8414bb9a979219368541e",
+      "label": "Generating Screen...",
+      "sourceScreen": "projects/13558290148435280164/screens/b84d421846f8414bb9a979219368541e",
+      "width": 390,
+      "x": 454,
+      "y": 17125
+    },
+    {
+      "height": 1329,
+      "hidden": true,
+      "id": "c987181da74b4607ae4954af34d586fb",
+      "label": "Generating Screen...",
+      "sourceScreen": "projects/13558290148435280164/screens/c987181da74b4607ae4954af34d586fb",
+      "width": 390,
+      "x": 454,
+      "y": 3482
+    },
+    {
+      "height": 2048,
+      "id": "d33d9138af6840a2ae2f27b8c6f607df",
+      "label": "Lab Tests Dash",
+      "sourceScreen": "projects/13558290148435280164/screens/d33d9138af6840a2ae2f27b8c6f607df",
+      "width": 390,
+      "x": 1816,
+      "y": 12028
+    },
+    {
+      "height": 2538,
+      "id": "dba15fb96eeb4dca946f14ef941567c8",
+      "label": "Blood Panels",
+      "sourceScreen": "projects/13558290148435280164/screens/dba15fb96eeb4dca946f14ef941567c8",
+      "width": 390,
+      "y": 14332
+    },
+    {
+      "height": 1924,
+      "hidden": true,
+      "id": "dd33c85b4a5d4839a5482e72598b5c1b",
+      "label": "Generating Screen...",
+      "sourceScreen": "projects/13558290148435280164/screens/dd33c85b4a5d4839a5482e72598b5c1b",
+      "width": 390,
+      "x": 454,
+      "y": 7214
+    }
+  ],
+  "thumbnailScreenshot": {
+    "name": "projects/13558290148435280164/screens/8396a819568143678c5d1d4a7f9b3af7/fileEntries/screenshot"
+  },
+  "title": "True Grit: Vital",
+  "updateTime": "2026-10-20T18:25:10.564823Z",
+  "visibility": "PRIVATE"
+}

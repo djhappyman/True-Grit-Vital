@@ -70,6 +70,10 @@ linux/flutter/ephemeral/
 /docs/*
 !/docs/public/
 !/docs/implementation/
+!/docs/design/
+/docs/design/*
+!/docs/design/README.md
+!/docs/design/stitch/
 /docs/implementation/*
 !/docs/implementation/licenses/
 

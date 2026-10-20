@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "surface-variant": "#e1e3e2", "surface-container-high": "#e7e8e7", "secondary-fixed": "#d5e6e2", "on-secondary-fixed-variant": "#3a4a47", "surface-container-lowest": "#ffffff", "on-tertiary-fixed-variant": "#6a3b00", "surface-container-low": "#f3f4f3", "border-crisp": "#E2E6E4", "secondary": "#52625f", "ink": "#182725", "dark-text-secondary": "#A7B6AE", "surface-bright": "#f9f9f8", "on-secondary-container": "#566663", "surface": "#f9f9f8", "tertiary": "#5a3100", "on-tertiary-fixed": "#2d1600", "on-secondary-fixed": "#0f1e1c", "tertiary-fixed-dim": "#ffb873", "tertiary-fixed": "#ffdcbf", "on-primary-fixed": "#00201b", "on-primary": "#ffffff", "destructive": "#C24134", "surface-dim": "#d9dad9", "on-surface": "#191c1c", "outline-variant": "#bfc9c5", "secondary-fixed-dim": "#b9cac6", "surface-container-highest": "#e1e3e2", "on-error": "#ffffff", "primary-container": "#1a5c52", "on-surface-variant": "#3f4946", "inverse-surface": "#2e3131", "inverse-primary": "#94d2c6", "outline": "#6f7976", "surface-container": "#edeeed", "on-primary-container": "#93d2c5", "error": "#ba1a1a", "primary-fixed-dim": "#94d2c6", "primary": "#00443b", "on-tertiary-container": "#ffb771", "dark-accent": "#96D1BB", "dark-canvas": "#101715", "on-tertiary": "#ffffff", "on-primary-fixed-variant": "#065046", "surface-tint": "#29685e", "destructive-dark": "#F87171", "inverse-on-surface": "#f0f1f0", "dark-text-primary": "#E8F0EC", "on-error-container": "#93000a", "secondary-container": "#d2e3df", "error-container": "#ffdad6", "primary-fixed": "afefe1", "on-secondary": "#ffffff", "on-background": "#191c1c", "dark-border": "#23342E", "dark-surface": "#192420", "background": "#f9f9f8", "text-secondary": "#5B6B68", "tertiary-container": "#7b4500" }, borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" }, spacing: { "gutter": "1rem", "space-xl": "2rem", "space-xs": "0.25rem", "margin": "1rem", "space-md": "1rem", "space-sm": "0.5rem", "space-lg": "1.5rem" }, fontFamily: { "headline-xl-mobile": ["Noto Sans"], "body-md": ["Noto Sans"], "title-md": ["Noto Sans"], "headline-lg": ["Noto Sans"], "label-md": ["Noto Sans"], "metric-lg": ["Noto Sans"], "headline-md": ["Noto Sans"], "metric-md": ["Noto Sans"], "headline-xl": ["Noto Sans"], "label-sm": ["Noto Sans"], "body-lg": ["Noto Sans"], "body-sm": ["Noto Sans"] }, fontSize: { "headline-xl-mobile": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }], "title-md": ["17px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "label-md": ["13px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "500" }], "metric-lg": ["32px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "500" }], "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.005em", "fontWeight": "600" }], "metric-md": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "500" }], "headline-xl": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }], "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }], "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400" }] } } } }</script><style>@layer base{html,body{width:100vw;min-height:100%;margin:0;padding:0;background-color:#101715;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}}::-webkit-scrollbar{display:none;}</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-dark-canvas text-dark-text-primary font-body-md text-body-md antialiased min-h-screen flex flex-col"><header class="fixed top-0 w-full z-50 bg-dark-canvas/80 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.25)]"><div class="h-16 px-gutter flex items-center justify-between max-w-[640px] mx-auto w-full"><div class="flex flex-col justify-center"><span class="font-label-sm text-label-sm tracking-wider uppercase text-dark-accent font-semibold">TRUE GRIT: VITAL</span><span class="font-title-md text-title-md text-dark-text-primary tracking-tight font-semibold">Events</span></div><div class="flex items-center gap-space-sm"><a class="w-12 h-12 rounded-full flex items-center justify-center text-dark-text-secondary hover:text-dark-text-primary transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[22px]">settings</span></a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col relative w-full max-w-[640px] mx-auto px-gutter pt-16 pb-28 bg-dark-canvas"><div class="flex flex-col w-full pb-8">
+<!-- Top Intro & Primary Action Pill -->
+<section class="flex flex-col gap-space-sm mb-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-space-sm">
+<div class="flex flex-col">
+<h1 class="font-headline-xl-mobile text-headline-xl-mobile text-dark-text-primary tracking-tight">Biomarkers &amp; Labs</h1>
+<p class="font-body-md text-body-md text-dark-text-secondary mt-1 max-w-md">Correlate bloodwork panels and objective metrics directly with intake protocols.</p>
+</div>
+<button class="self-start sm:self-auto h-12 px-6 rounded-full bg-dark-accent text-dark-canvas font-label-md text-label-md flex items-center justify-center gap-2 shadow-md active:scale-95 transition-transform duration-150" id="open-log-modal-btn" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>Log New Lab Test</span>
+</button>
+</div>
+</section>
+<!-- Horizontal Filter Pills -->
+<section class="w-full mb-space-lg overflow-x-auto no-scrollbar -mx-gutter px-gutter">
+<div class="flex items-center gap-2 min-w-max py-1" id="filter-pill-group">
+<button class="filter-pill h-8 px-4 rounded-full bg-primary-container text-dark-accent font-label-sm text-label-sm transition-colors shadow-sm" data-filter="all" type="button">All Metrics</button>
+<button class="filter-pill h-8 px-4 rounded-full bg-dark-surface text-dark-text-secondary font-label-sm text-label-sm hover:text-dark-text-primary transition-colors" data-filter="cardio" type="button">Cardiovascular</button>
+<button class="filter-pill h-8 px-4 rounded-full bg-dark-surface text-dark-text-secondary font-label-sm text-label-sm hover:text-dark-text-primary transition-colors" data-filter="metabolic" type="button">Metabolic &amp; Lipids</button>
+<button class="filter-pill h-8 px-4 rounded-full bg-dark-surface text-dark-text-secondary font-label-sm text-label-sm hover:text-dark-text-primary transition-colors" data-filter="vitamins" type="button">Vitamins &amp; Minerals</button>
+<button class="filter-pill h-8 px-4 rounded-full bg-dark-surface text-dark-text-secondary font-label-sm text-label-sm hover:text-dark-text-primary transition-colors" data-filter="hormones" type="button">Hormones</button>
+</div>
+</section>
+<!-- Section Title -->
+<div class="flex items-center justify-between mb-space-sm">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-dark-accent font-semibold">Key Vitals &amp; Biomarker Trends</span>
+<span class="font-label-sm text-label-sm text-dark-text-secondary">4 Tracked Active</span>
+</div>
+<!-- Key Vitals Grid / Cards -->
+<section class="flex flex-col gap-space-md mb-space-xl">
+<!-- Card 1: Blood Pressure -->
+<div class="rounded-lg bg-dark-surface p-space-md flex flex-col gap-space-sm shadow-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-primary-container/40 flex items-center justify-center text-dark-accent">
+<span class="material-symbols-outlined text-[20px]">monitor_heart</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-dark-text-primary">Blood Pressure</span>
+<span class="font-label-sm text-label-sm text-dark-text-secondary">Target: &lt; 120/80 mmHg</span>
+</div>
+</div>
+<div class="flex items-center gap-1.5 h-7 px-3 rounded-full bg-primary-container text-dark-accent font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-dark-accent"></span>
+<span>Optimal</span>
+</div>
+</div>
+<div class="flex items-baseline justify-between mt-1">
+<div class="flex items-baseline gap-2">
+<span class="font-metric-lg text-metric-lg text-dark-text-primary font-semibold">118/76</span>
+<span class="font-body-sm text-body-sm text-dark-text-secondary">mmHg</span>
+</div>
+<span class="font-label-sm text-label-sm text-dark-text-secondary">Last measured Today, 08:15 AM</span>
+</div>
+<!-- Mini Trend Sparkline -->
+<div class="p-space-sm rounded-DEFAULT bg-dark-canvas/60 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-dark-text-secondary">7-Day Trend (Mean Arterial Steadying)</span>
+<span class="font-label-sm text-label-sm text-dark-accent font-semibold">-4.2%</span>
+</div>
+<div class="h-14 w-full flex items-end">
+<svg class="w-full h-full overflow-visible" fill="none" preserveaspectratio="none" viewbox="0 0 280 44">
+<defs>
+<lineargradient id="bpGrad" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#96D1BB" stop-opacity="0.35"></stop>
+<stop offset="100%" stop-color="#96D1BB" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<path d="M 0 38 Q 45 34, 90 28 T 180 20 T 280 12 L 280 44 L 0 44 Z" fill="url(#bpGrad)"></path>
+<path d="M 0 38 Q 45 34, 90 28 T 180 20 T 280 12" stroke="#96D1BB" stroke-linecap="round" stroke-width="2.5"></path>
+<circle cx="280" cy="12" fill="#96D1BB" r="3.5"></circle>
+</svg>
+</div>
+</div>
+<!-- Protocol Correlation Note Pill -->
+<div class="flex items-center justify-between pt-1">
+<div class="inline-flex items-center gap-2 h-7 px-3 rounded-full bg-primary-container/30 text-dark-accent font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">medication</span>
+<span>Linked to: Telmisartan 40mg Protocol</span>
+</div>
+<span class="material-symbols-outlined text-dark-text-secondary text-[18px]">verified</span>
+</div>
+</div>
+<!-- Card 2: Serum 25(OH) Vitamin D -->
+<div class="rounded-lg bg-dark-surface p-space-md flex flex-col gap-space-sm shadow-sm">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-primary-container/40 flex items-center justify-center text-dark-accent">
+<span class="material-symbols-outlined text-[20px]">sunny</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-dark-text-primary">Serum 25(OH) Vitamin D</span>
+<span class="font-label-sm text-label-sm text-dark-text-secondary">Target Range: 40–70 ng/mL</span>
+</div>
+</div>
+<div class="flex items-center gap-1.5 h-7 px-3 rounded-full bg-primary-container text-dark-accent font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-dark-accent"></span>
+<span>In Target</span>
+</div>
+</div>
+<div class="flex items-baseline justify-between mt-1">
+<div class="flex items-baseline gap-2">
+<span class="font-metric-lg text-metric-lg text-dark-text-primary font-semibold">58.4</span>
+<span class="font-body-sm text-body-sm text-dark-text-secondary">ng/mL</span>
+</div>
+<span class="font-label-sm text-label-sm text-dark-text-secondary">Oct 14 Panel</span>
+</div>
+<!-- Progression Track from Baseline -->
+<div class="p-space-sm rounded-DEFAULT bg-dark-canvas/60 flex flex-col gap-2">
+<div class="flex justify-between items-center text-dark-text-secondary font-label-sm text-label-sm">
+<span>Baseline: 32.0 ng/mL</span>
+<span class="text-dark-accent font-medium">+26.4 ng/mL (+82.5%)</span>
+</div>
+<div class="w-full bg-dark-surface h-2.5 rounded-full overflow-hidden flex relative">
+<div class="bg-dark-text-secondary/40 h-full w-[45%] rounded-l-full"></div>
+<div class="bg-dark-accent h-full w-[35%] rounded-r-full"></div>
+</div>
+<div class="flex justify-between text-dark-text-secondary font-label-sm text-label-sm">
+<span>Deficient (&lt;30)</span>
+<span class="text-dark-text-primary font-medium">Optimal Window</span>
+<span>Excess (&gt;100)</span>
+</div>
+</div>
+<div class="inline-flex items-center gap-2 h-7 px-3 rounded-full bg-primary-container/30 text-dark-accent font-label-sm text-label-sm self-start">
+<span class="material-symbols-outlined text-[16px]">vaccines</span>
+<span>Correlated: Vitamin D3 + K2 Softgels (5,000 IU/day)</span>
+</div>
+</div>
+<!-- Small 2-Grid: RHR & hs-CRP -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<!-- Card 3: Resting Heart Rate -->
+<div class="rounded-lg bg-dark-surface p-space-md flex flex-col justify-between gap-space-sm shadow-sm">
+<div class="flex items-start justify-between">
+<div class="w-10 h-10 rounded-full bg-primary-container/40 flex items-center justify-center text-dark-accent">
+<span class="material-symbols-outlined text-[20px]">ecg_heart</span>
+</div>
+<div class="h-6 px-2.5 rounded-full bg-primary-container text-dark-accent font-label-sm text-label-sm flex items-center">
+            Normal
+          </div>
+</div>
+<div>
+<span class="font-title-md text-title-md text-dark-text-primary">Resting Heart Rate</span>
+<div class="flex items-baseline gap-1.5 mt-1">
+<span class="font-metric-lg text-metric-lg text-dark-text-primary font-semibold">64</span>
+<span class="font-body-sm text-body-sm text-dark-text-secondary">bpm</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-sm text-label-sm text-dark-text-secondary">30-day Avg: 65 bpm</span>
+<span class="material-symbols-outlined text-dark-accent text-[18px]">trending_down</span>
+</div>
+</div>
+<!-- Card 4: hs-CRP -->
+<div class="rounded-lg bg-dark-surface p-space-md flex flex-col justify-between gap-space-sm shadow-sm">
+<div class="flex items-start justify-between">
+<div class="w-10 h-10 rounded-full bg-primary-container/40 flex items-center justify-center text-dark-accent">
+<span class="material-symbols-outlined text-[20px]">vital_signs</span>
+</div>
+<div class="h-6 px-2.5 rounded-full bg-primary-container text-dark-accent font-label-sm text-label-sm flex items-center">
+            Low Risk
+          </div>
+</div>
+<div>
+<span class="font-title-md text-title-md text-dark-text-primary">hs-CRP</span>
+<div class="flex items-baseline gap-1.5 mt-1">
+<span class="font-metric-lg text-metric-lg text-dark-text-primary font-semibold">0.45</span>
+<span class="font-body-sm text-body-sm text-dark-text-secondary">mg/L</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-sm text-label-sm text-dark-text-secondary">Systemic Inflammation</span>
+<span class="font-label-sm text-label-sm text-dark-accent font-medium">&lt; 1.0 Optimal</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Recent Lab Panels Section -->
+<div class="flex items-center justify-between mb-space-sm">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-dark-accent font-semibold">Recent Lab Panels &amp; Records</span>
+<span class="font-label-sm text-label-sm text-dark-text-secondary">Synced Archives</span>
+</div>
+<section class="flex flex-col gap-space-md mb-space-xl">
+<!-- Lab Card 1 -->
+<div class="rounded-lg bg-dark-surface p-space-md flex flex-col gap-space-md shadow-sm">
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between flex-wrap gap-2">
+<span class="font-title-md text-title-md text-dark-text-primary">Comprehensive Metabolic &amp; Lipid Panel</span>
+<span class="h-6 px-2.5 rounded-full bg-primary-container/50 text-dark-accent font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>24 Biomarkers</span>
+</span>
+</div>
+<span class="font-body-sm text-body-sm text-dark-text-secondary">14 October 2024 · LabCorp Outpatient Diagnostics</span>
+</div>
+<!-- Trust / Crypto Proof Pill Badge -->
+<div class="flex items-center gap-2 p-space-sm rounded-DEFAULT bg-dark-canvas/60">
+<span class="material-symbols-outlined text-dark-accent text-[20px]">format_image_left</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-dark-text-primary font-medium">Cryptographically Verified PDF Attached</span>
+<span class="font-body-sm text-body-sm text-dark-text-secondary">SHA-256 Validated · Zero out-of-range clinical flags detected</span>
+</div>
+</div>
+<!-- Action Pill Buttons -->
+<div class="flex items-center flex-wrap gap-space-sm pt-1">
+<button class="flex-1 min-w-[170px] h-12 px-6 rounded-full bg-dark-accent text-dark-canvas font-label-md text-label-md flex items-center justify-center gap-2 active:scale-95 transition-transform duration-150" type="button">
+<span class="material-symbols-outlined text-[18px]">query_stats</span>
+<span>View Full Panel</span>
+</button>
+<button class="h-12 px-5 rounded-full bg-primary-container/40 text-dark-accent font-label-md text-label-md flex items-center justify-center gap-1.5 active:scale-95 transition-transform duration-150" type="button">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Export PDF</span>
+</button>
+</div>
+</div>
+<!-- Lab Card 2 -->
+<div class="rounded-lg bg-dark-surface p-space-md flex flex-col gap-space-md shadow-sm">
+<div class="flex items-center justify-between flex-wrap gap-2">
+<div class="flex flex-col gap-1">
+<span class="font-title-md text-title-md text-dark-text-primary">Baseline Hormonal &amp; Micronutrient Panel</span>
+<span class="font-body-sm text-body-sm text-dark-text-secondary">15 August 2024 · Quest Diagnostics</span>
+</div>
+<button class="h-10 px-5 rounded-full bg-primary-container/50 text-dark-accent font-label-sm text-label-sm flex items-center justify-center gap-1 active:scale-95 transition-transform duration-150" type="button">
+<span>View Panel</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Sovereign Data Privacy Card -->
+<section class="rounded-lg bg-dark-surface p-space-md flex items-start gap-space-sm shadow-sm mb-space-lg">
+<div class="w-10 h-10 rounded-full bg-primary-container/40 flex items-center justify-center text-dark-accent shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[22px]">lock</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-dark-text-primary font-semibold">Protocol Correlation Privacy Notice</span>
+<p class="font-body-sm text-body-sm text-dark-text-secondary leading-relaxed">
+        Protocol Correlation: All biomarker trends are calculated 100% on-device. No health metrics, lab records, or pharmacological insights are shared or uploaded to third-party endpoints.
+      </p>
+</div>
+</section>
+<!-- Quick Log Dialog / Bottom Sheet (Hidden by default, triggered by primary button) -->
+<div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden transition-opacity duration-200" id="log-modal">
+<div class="w-full max-w-lg bg-dark-surface rounded-t-xl sm:rounded-lg p-space-lg flex flex-col gap-space-md shadow-2xl max-h-[795px] overflow-y-auto">
+<div class="flex items-center justify-between pb-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-dark-accent text-[24px]">science</span>
+<h2 class="font-title-md text-title-md text-dark-text-primary font-semibold">Log Lab Biomarker</h2>
+</div>
+<button class="w-10 h-10 rounded-full bg-dark-canvas/50 flex items-center justify-center text-dark-text-secondary hover:text-dark-text-primary transition-colors" id="close-log-modal-btn" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<p class="font-body-sm text-body-sm text-dark-text-secondary">Enter metrics manually or extract from a diagnostic report to link against active intake protocol cycles.</p>
+<form class="flex flex-col gap-space-md" id="lab-log-form">
+<div class="flex flex-col gap-1.5">
+<label class="font-label-sm text-label-sm text-dark-text-secondary">Biomarker Name</label>
+<input class="h-12 px-4 rounded-DEFAULT bg-dark-canvas text-dark-text-primary font-body-md text-body-md placeholder-dark-text-secondary/50 focus:outline-none focus:ring-1 focus:ring-dark-accent" placeholder="e.g. Total Testosterone, ApoB, Fasting Glucose" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-space-sm">
+<div class="flex flex-col gap-1.5">
+<label class="font-label-sm text-label-sm text-dark-text-secondary">Measured Value</label>
+<input class="h-12 px-4 rounded-DEFAULT bg-dark-canvas text-dark-text-primary font-body-md text-body-md placeholder-dark-text-secondary/50 focus:outline-none focus:ring-1 focus:ring-dark-accent" placeholder="e.g. 58.4" step="any" type="number"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="font-label-sm text-label-sm text-dark-text-secondary">Unit</label>
+<input class="h-12 px-4 rounded-DEFAULT bg-dark-canvas text-dark-text-primary font-body-md text-body-md placeholder-dark-text-secondary/50 focus:outline-none focus:ring-1 focus:ring-dark-accent" placeholder="e.g. ng/mL, mg/dL" type="text"/>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="font-label-sm text-label-sm text-dark-text-secondary">Correlate with Intake Protocol</label>
+<select class="h-12 px-4 rounded-DEFAULT bg-dark-canvas text-dark-text-primary font-body-md text-body-md focus:outline-none focus:ring-1 focus:ring-dark-accent">
+<option value="none">Independent Observation (No link)</option>
+<option value="telmisartan">Telmisartan 40mg (Morning)</option>
+<option value="vitamind">Vitamin D3 + K2 (Morning)</option>
+<option value="magnesium">Magnesium Glycinate 400mg (Evening)</option>
+<option value="omega3">High-EPA Omega-3 2000mg</option>
+</select>
+</div>
+<div class="flex items-center gap-space-sm pt-2">
+<button class="flex-1 h-12 rounded-full bg-dark-accent text-dark-canvas font-label-md text-label-md font-semibold flex items-center justify-center shadow-md active:scale-95 transition-transform duration-150" type="submit">
+            Save Metric Entry
+          </button>
+</div>
+</form>
+</div>
+</div>
+</div>
+<script>
+  // Simple Filter Pill Active State Switcher
+  const filterPills = document.querySelectorAll('.filter-pill');
+  filterPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      filterPills.forEach(p => {
+        p.classList.remove('bg-primary-container', 'text-dark-accent');
+        p.classList.add('bg-dark-surface', 'text-dark-text-secondary');
+      });
+      pill.classList.remove('bg-dark-surface', 'text-dark-text-secondary');
+      pill.classList.add('bg-primary-container', 'text-dark-accent');
+    });
+  });
+
+  // Modal open & close interactivity
+  const openModalBtn = document.getElementById('open-log-modal-btn');
+  const closeModalBtn = document.getElementById('close-log-modal-btn');
+  const logModal = document.getElementById('log-modal');
+  const labForm = document.getElementById('lab-log-form');
+
+  if (openModalBtn && logModal && closeModalBtn) {
+    openModalBtn.addEventListener('click', () => {
+      logModal.classList.remove('hidden');
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+      logModal.classList.add('hidden');
+    });
+
+    logModal.addEventListener('click', (e) => {
+      if (e.target === logModal) {
+        logModal.classList.add('hidden');
+      }
+    });
+
+    labForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      logModal.classList.add('hidden');
+    });
+  }
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe pointer-events-none" data-active-classes="bg-primary-container text-dark-accent font-semibold shadow-[0_4px_16px_rgba(26,92,82,0.4)]"><div class="max-w-[640px] mx-auto w-full px-gutter pb-space-md pt-space-xs flex justify-center"><div class="pointer-events-auto flex items-center justify-between gap-space-xs px-space-xs py-space-xs bg-dark-surface/85 backdrop-blur-xl rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.45)] w-full max-w-sm"><a class="flex-1 min-h-[48px] rounded-full flex flex-col items-center justify-center gap-0.5 text-dark-text-secondary transition-all" data-path="today" href="#"><span class="material-symbols-outlined text-[20px]">calendar_today</span><span class="font-label-sm text-label-sm">Today</span></a><a class="flex-1 min-h-[48px] rounded-full flex flex-col items-center justify-center gap-0.5 text-dark-text-secondary transition-all" data-path="substances" href="#"><span class="material-symbols-outlined text-[20px]">medication</span><span class="font-label-sm text-label-sm">Substances</span></a><a aria-current="page" class="flex-1 min-h-[48px] rounded-full flex flex-col items-center justify-center gap-0.5 transition-all bg-primary-container text-dark-accent font-semibold shadow-[0_4px_16px_rgba(26,92,82,0.4)]" data-path="events" href="#"><span class="material-symbols-outlined text-[20px]">bolt</span><span class="font-label-sm text-label-sm">Events</span></a><a class="flex-1 min-h-[48px] rounded-full flex flex-col items-center justify-center gap-0.5 text-dark-text-secondary transition-all" data-path="history" href="#"><span class="material-symbols-outlined text-[20px]">history</span><span class="font-label-sm text-label-sm">History</span></a></div></div></nav></body></html>

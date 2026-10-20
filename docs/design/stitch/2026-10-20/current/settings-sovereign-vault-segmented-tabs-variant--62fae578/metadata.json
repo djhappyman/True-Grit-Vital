@@ -1,0 +1,29 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "3938",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/62fae5781a264ab89dcdc118df413a7e/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/62fae5781a264ab89dcdc118df413a7e",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/62fae5781a264ab89dcdc118df413a7e/fileEntries/screenshot"
+    },
+    "title": "Settings & Sovereign Vault — Segmented Tabs Variant",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 1985,
+    "id": "62fae5781a264ab89dcdc118df413a7e",
+    "label": "Settings",
+    "sourceScreen": "projects/13558290148435280164/screens/62fae5781a264ab89dcdc118df413a7e",
+    "width": 390,
+    "x": 454,
+    "y": 12028
+  },
+  "downloadedDimensions": [
+    780,
+    3938
+  ]
+}

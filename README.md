@@ -29,6 +29,10 @@ Implemented areas include:
 
 There are no remote user accounts or cloud record synchronisation. Watch integrations and a general wellness dashboard are outside the current scope.
 
+## Design references
+
+UI contributors should start with the [Stitch design references](docs/design/README.md). Full-resolution screenshots, original HTML and design metadata are kept in the repository as the visual target for the Flutter interface. UI pull requests should identify the reference screen and include comparison screenshots.
+
 ## Prerequisites
 
 - Git and **Flutter 3.47.7 stable with its bundled Dart 3.13.5**. The pin is in [`.flutter-version`](.flutter-version).

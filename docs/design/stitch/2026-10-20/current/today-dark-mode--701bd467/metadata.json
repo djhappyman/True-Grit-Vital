@@ -1,0 +1,29 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "3252",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/701bd467f63a426f87f2fb4fd057602c/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/701bd467f63a426f87f2fb4fd057602c",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/701bd467f63a426f87f2fb4fd057602c/fileEntries/screenshot"
+    },
+    "title": "Today — Dark Mode",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 1626,
+    "id": "701bd467f63a426f87f2fb4fd057602c",
+    "label": "Generating Screen...",
+    "sourceScreen": "projects/13558290148435280164/screens/701bd467f63a426f87f2fb4fd057602c",
+    "width": 390,
+    "x": 454,
+    "y": 1592
+  },
+  "downloadedDimensions": [
+    780,
+    3252
+  ]
+}

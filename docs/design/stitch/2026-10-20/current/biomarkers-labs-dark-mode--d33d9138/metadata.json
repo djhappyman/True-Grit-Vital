@@ -1,0 +1,29 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "4096",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/d33d9138af6840a2ae2f27b8c6f607df/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/d33d9138af6840a2ae2f27b8c6f607df",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/d33d9138af6840a2ae2f27b8c6f607df/fileEntries/screenshot"
+    },
+    "title": "Biomarkers & Labs — Dark Mode",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 2048,
+    "id": "d33d9138af6840a2ae2f27b8c6f607df",
+    "label": "Lab Tests Dash",
+    "sourceScreen": "projects/13558290148435280164/screens/d33d9138af6840a2ae2f27b8c6f607df",
+    "width": 390,
+    "x": 1816,
+    "y": 12028
+  },
+  "downloadedDimensions": [
+    780,
+    4096
+  ]
+}

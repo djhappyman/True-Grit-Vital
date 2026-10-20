@@ -1,0 +1,30 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "2154",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/b84d421846f8414bb9a979219368541e/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/b84d421846f8414bb9a979219368541e",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/b84d421846f8414bb9a979219368541e/fileEntries/screenshot"
+    },
+    "title": "Dashboard — Minimal Sovereign Focus (Dark Mode)",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 1077,
+    "hidden": true,
+    "id": "b84d421846f8414bb9a979219368541e",
+    "label": "Generating Screen...",
+    "sourceScreen": "projects/13558290148435280164/screens/b84d421846f8414bb9a979219368541e",
+    "width": 390,
+    "x": 454,
+    "y": 17125
+  },
+  "downloadedDimensions": [
+    780,
+    2154
+  ]
+}

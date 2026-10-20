@@ -1,0 +1,30 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "2630",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/c987181da74b4607ae4954af34d586fb/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/c987181da74b4607ae4954af34d586fb",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/c987181da74b4607ae4954af34d586fb/fileEntries/screenshot"
+    },
+    "title": "Substances — Light Mode",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 1329,
+    "hidden": true,
+    "id": "c987181da74b4607ae4954af34d586fb",
+    "label": "Generating Screen...",
+    "sourceScreen": "projects/13558290148435280164/screens/c987181da74b4607ae4954af34d586fb",
+    "width": 390,
+    "x": 454,
+    "y": 3482
+  },
+  "downloadedDimensions": [
+    780,
+    2630
+  ]
+}

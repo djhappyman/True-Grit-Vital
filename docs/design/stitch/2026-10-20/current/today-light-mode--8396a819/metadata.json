@@ -1,0 +1,28 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "3268",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/8396a819568143678c5d1d4a7f9b3af7/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/8396a819568143678c5d1d4a7f9b3af7",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/8396a819568143678c5d1d4a7f9b3af7/fileEntries/screenshot"
+    },
+    "title": "Today — Light Mode",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 1634,
+    "id": "8396a819568143678c5d1d4a7f9b3af7",
+    "label": "Generating Screen...",
+    "sourceScreen": "projects/13558290148435280164/screens/8396a819568143678c5d1d4a7f9b3af7",
+    "width": 390,
+    "y": 1592
+  },
+  "downloadedDimensions": [
+    780,
+    3268
+  ]
+}

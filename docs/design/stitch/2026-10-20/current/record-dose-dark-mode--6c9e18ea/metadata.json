@@ -1,0 +1,29 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "2452",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/6c9e18ea66c44e3dacabfe5150645531/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/6c9e18ea66c44e3dacabfe5150645531",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/6c9e18ea66c44e3dacabfe5150645531/fileEntries/screenshot"
+    },
+    "title": "Record Dose — Dark Mode",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 1226,
+    "id": "6c9e18ea66c44e3dacabfe5150645531",
+    "label": "Record Dose sheet",
+    "sourceScreen": "projects/13558290148435280164/screens/6c9e18ea66c44e3dacabfe5150645531",
+    "width": 390,
+    "x": 908,
+    "y": 9386
+  },
+  "downloadedDimensions": [
+    780,
+    2452
+  ]
+}

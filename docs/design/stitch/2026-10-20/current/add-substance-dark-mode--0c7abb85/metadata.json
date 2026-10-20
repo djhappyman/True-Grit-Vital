@@ -1,0 +1,29 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "4772",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/0c7abb851ba84b4891ef72622b93b374/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/0c7abb851ba84b4891ef72622b93b374",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/0c7abb851ba84b4891ef72622b93b374/fileEntries/screenshot"
+    },
+    "title": "Add Substance — Dark Mode",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 2386,
+    "id": "0c7abb851ba84b4891ef72622b93b374",
+    "label": "Create Substance",
+    "sourceScreen": "projects/13558290148435280164/screens/0c7abb851ba84b4891ef72622b93b374",
+    "width": 390,
+    "x": 454,
+    "y": 9386
+  },
+  "downloadedDimensions": [
+    780,
+    4772
+  ]
+}

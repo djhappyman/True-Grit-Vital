@@ -1,0 +1,678 @@
+{
+  "retrievedAt": "2026-10-20T18:29:19.690958+00:00",
+  "project": "projects/13558290148435280164",
+  "projectUpdatedAt": "2026-10-20T18:25:10.564823Z",
+  "screens": [
+    {
+      "id": "42445af1ef014b4dbe0d0c6ecbf63da3",
+      "name": "projects/13558290148435280164/screens/42445af1ef014b4dbe0d0c6ecbf63da3",
+      "title": "Dashboard — Timeline & Velocity (Dark Mode)",
+      "canvasLabel": "dashboard",
+      "hidden": false,
+      "path": "current/dashboard-timeline-velocity-dark-mode--42445af1",
+      "width": 780,
+      "height": 2904
+    },
+    {
+      "id": "8396a819568143678c5d1d4a7f9b3af7",
+      "name": "projects/13558290148435280164/screens/8396a819568143678c5d1d4a7f9b3af7",
+      "title": "Today — Light Mode",
+      "canvasLabel": "Generating Screen...",
+      "hidden": false,
+      "path": "current/today-light-mode--8396a819",
+      "width": 780,
+      "height": 3268
+    },
+    {
+      "id": "89da3913908642198a6818befd913f48",
+      "name": "projects/13558290148435280164/screens/89da3913908642198a6818befd913f48",
+      "title": "Edit Cadence & Schedule — Dark Mode",
+      "canvasLabel": "Substance detail",
+      "hidden": false,
+      "path": "current/edit-cadence-schedule-dark-mode--89da3913",
+      "width": 780,
+      "height": 2668
+    },
+    {
+      "id": "701bd467f63a426f87f2fb4fd057602c",
+      "name": "projects/13558290148435280164/screens/701bd467f63a426f87f2fb4fd057602c",
+      "title": "Today — Dark Mode",
+      "canvasLabel": "Generating Screen...",
+      "hidden": false,
+      "path": "current/today-dark-mode--701bd467",
+      "width": 780,
+      "height": 3252
+    },
+    {
+      "id": "1ecd8e65d86b410cb5e6db6fb8b27f85",
+      "name": "projects/13558290148435280164/screens/1ecd8e65d86b410cb5e6db6fb8b27f85",
+      "title": "Substances — Dark Mode",
+      "canvasLabel": "Substances",
+      "hidden": false,
+      "path": "current/substances-dark-mode--1ecd8e65",
+      "width": 780,
+      "height": 2932
+    },
+    {
+      "id": "0c7abb851ba84b4891ef72622b93b374",
+      "name": "projects/13558290148435280164/screens/0c7abb851ba84b4891ef72622b93b374",
+      "title": "Add Substance — Dark Mode",
+      "canvasLabel": "Create Substance",
+      "hidden": false,
+      "path": "current/add-substance-dark-mode--0c7abb85",
+      "width": 780,
+      "height": 4772
+    },
+    {
+      "id": "dba15fb96eeb4dca946f14ef941567c8",
+      "name": "projects/13558290148435280164/screens/dba15fb96eeb4dca946f14ef941567c8",
+      "title": "Lab Panel Detail — Dark Mode",
+      "canvasLabel": "Blood Panels",
+      "hidden": false,
+      "path": "current/lab-panel-detail-dark-mode--dba15fb9",
+      "width": 780,
+      "height": 5076
+    },
+    {
+      "id": "3d446a0c71de4a1ea9dea8b7ae9fd56b",
+      "name": "projects/13558290148435280164/screens/3d446a0c71de4a1ea9dea8b7ae9fd56b",
+      "title": "Inventory & Refill Vault — Dark Mode",
+      "canvasLabel": "Panels",
+      "hidden": false,
+      "path": "current/inventory-refill-vault-dark-mode--3d446a0c",
+      "width": 780,
+      "height": 3492
+    },
+    {
+      "id": "5c227c48216f492d913e8361dc3c2a65",
+      "name": "projects/13558290148435280164/screens/5c227c48216f492d913e8361dc3c2a65",
+      "title": "Events — Dark Mode",
+      "canvasLabel": "Cycles and Prescriptions",
+      "hidden": false,
+      "path": "current/events-dark-mode--5c227c48",
+      "width": 780,
+      "height": 3298
+    },
+    {
+      "id": "d33d9138af6840a2ae2f27b8c6f607df",
+      "name": "projects/13558290148435280164/screens/d33d9138af6840a2ae2f27b8c6f607df",
+      "title": "Biomarkers & Labs — Dark Mode",
+      "canvasLabel": "Lab Tests Dash",
+      "hidden": false,
+      "path": "current/biomarkers-labs-dark-mode--d33d9138",
+      "width": 780,
+      "height": 4096
+    },
+    {
+      "id": "6c9e18ea66c44e3dacabfe5150645531",
+      "name": "projects/13558290148435280164/screens/6c9e18ea66c44e3dacabfe5150645531",
+      "title": "Record Dose — Dark Mode",
+      "canvasLabel": "Record Dose sheet",
+      "hidden": false,
+      "path": "current/record-dose-dark-mode--6c9e18ea",
+      "width": 780,
+      "height": 2452
+    },
+    {
+      "id": "62fae5781a264ab89dcdc118df413a7e",
+      "name": "projects/13558290148435280164/screens/62fae5781a264ab89dcdc118df413a7e",
+      "title": "Settings & Sovereign Vault — Segmented Tabs Variant",
+      "canvasLabel": "Settings",
+      "hidden": false,
+      "path": "current/settings-sovereign-vault-segmented-tabs-variant--62fae578",
+      "width": 780,
+      "height": 3938
+    },
+    {
+      "id": "66b415fc46344dd9ba496e0e676247a2",
+      "name": "projects/13558290148435280164/screens/66b415fc46344dd9ba496e0e676247a2",
+      "title": "History — Dark Mode",
+      "canvasLabel": "History",
+      "hidden": false,
+      "path": "current/history-dark-mode--66b415fc",
+      "width": 780,
+      "height": 4680
+    },
+    {
+      "id": "3d14cd60b213420b8ef3809f8af2c104",
+      "name": "projects/13558290148435280164/screens/3d14cd60b213420b8ef3809f8af2c104",
+      "title": "Substances — Dark Mode",
+      "canvasLabel": "Generating Screen...",
+      "hidden": true,
+      "path": "earlier/substances-dark-mode--3d14cd60",
+      "width": 780,
+      "height": 3056
+    },
+    {
+      "id": "4f254d238aa1427b81603580eb201512",
+      "name": "projects/13558290148435280164/screens/4f254d238aa1427b81603580eb201512",
+      "title": "Settings & Sovereign Vault — Inset Dashboard Variant",
+      "canvasLabel": "Generating Screen...",
+      "hidden": true,
+      "path": "earlier/settings-sovereign-vault-inset-dashboard-variant--4f254d23",
+      "width": 780,
+      "height": 3908
+    },
+    {
+      "id": "68d720b70b1445ccb90af295a2a4ffbc",
+      "name": "projects/13558290148435280164/screens/68d720b70b1445ccb90af295a2a4ffbc",
+      "title": "Dashboard — Clinical Telemetry & Rings (Dark Mode)",
+      "canvasLabel": "Generating Screen...",
+      "hidden": true,
+      "path": "earlier/dashboard-clinical-telemetry-rings-dark-mode--68d720b7",
+      "width": 780,
+      "height": 3428
+    },
+    {
+      "id": "9932b510d6964a94b25e8ea60bb0d5bf",
+      "name": "projects/13558290148435280164/screens/9932b510d6964a94b25e8ea60bb0d5bf",
+      "title": "Settings & Sovereign Vault — Dark Mode",
+      "canvasLabel": "Settings",
+      "hidden": true,
+      "path": "earlier/settings-sovereign-vault-dark-mode--9932b510",
+      "width": 780,
+      "height": 3612
+    },
+    {
+      "id": "b5e179118aab48ca995a4357dc3e2456",
+      "name": "projects/13558290148435280164/screens/b5e179118aab48ca995a4357dc3e2456",
+      "title": "Today — Dark Mode",
+      "canvasLabel": "Generating Screen...",
+      "hidden": true,
+      "path": "earlier/today-dark-mode--b5e17911",
+      "width": 780,
+      "height": 3384
+    },
+    {
+      "id": "b84d421846f8414bb9a979219368541e",
+      "name": "projects/13558290148435280164/screens/b84d421846f8414bb9a979219368541e",
+      "title": "Dashboard — Minimal Sovereign Focus (Dark Mode)",
+      "canvasLabel": "Generating Screen...",
+      "hidden": true,
+      "path": "earlier/dashboard-minimal-sovereign-focus-dark-mode--b84d4218",
+      "width": 780,
+      "height": 2154
+    },
+    {
+      "id": "c987181da74b4607ae4954af34d586fb",
+      "name": "projects/13558290148435280164/screens/c987181da74b4607ae4954af34d586fb",
+      "title": "Substances — Light Mode",
+      "canvasLabel": "Generating Screen...",
+      "hidden": true,
+      "path": "earlier/substances-light-mode--c987181d",
+      "width": 780,
+      "height": 2630
+    },
+    {
+      "id": "dd33c85b4a5d4839a5482e72598b5c1b",
+      "name": "projects/13558290148435280164/screens/dd33c85b4a5d4839a5482e72598b5c1b",
+      "title": "Substance Detail — Dark Mode",
+      "canvasLabel": "Generating Screen...",
+      "hidden": true,
+      "path": "earlier/substance-detail-dark-mode--dd33c85b",
+      "width": 780,
+      "height": 3848
+    }
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 5540,
+      "sha256": "fd7e6969b8a60c6574c90b6ab3214f1b7756380223b6e4cb18ce84ea6ef0955e"
+    },
+    {
+      "path": "assets/0a891f495b4ebfc1fd6d.ttf",
+      "bytes": 999788,
+      "sha256": "bcd5340a2f4e61721e0d1e384b0a6bacc11ed1fae29a90bdbb9ceb857dc036b0"
+    },
+    {
+      "path": "assets/1e7f73e980a85fe57272.ttf",
+      "bytes": 558012,
+      "sha256": "9f0ce911354e554bbac00c399dcea71c785962cebfd86e965656f0bd011dfca9"
+    },
+    {
+      "path": "assets/1fd6f9b825b8a510d393.ttf",
+      "bytes": 970512,
+      "sha256": "08a4a6a43de0c568bb338ad248d05545e09d30e5f3b24ae529a15d2c16985904"
+    },
+    {
+      "path": "assets/27dfce4247d9cdb059f4.css",
+      "bytes": 1060,
+      "sha256": "3840e65cbc86c5f8b7b642c9eb8c08c1838f7a206a05076e801c05959ad4f1d0"
+    },
+    {
+      "path": "assets/3f13e7495584e13deb5e.js",
+      "bytes": 407279,
+      "sha256": "176e894661aa9cdc9a5cba6c720044cbbf7b8bd80d1c9a142a7c24b1b6c50d15"
+    },
+    {
+      "path": "assets/420df9ed7ee4829323cb.ttf",
+      "bytes": 558412,
+      "sha256": "d28e6da8972668eff5b2faacb865cab11195aba6b0683aee040d20a04928817b"
+    },
+    {
+      "path": "assets/443af81d053d1a93c2f1.ttf",
+      "bytes": 556328,
+      "sha256": "5be701a9511117e73603bdab95947feef4f18bd1851dbddc30659370b26c69f1"
+    },
+    {
+      "path": "assets/55c9c215dd7d3df20a07.jpg",
+      "bytes": 35585,
+      "sha256": "5b658b23ca83056dfe29b7dd6ce071c90f9d930cf42e64887a7ebce17b4ff250"
+    },
+    {
+      "path": "assets/5bff49eb5fe8201e5a37.js",
+      "bytes": 418973,
+      "sha256": "a789ce5a73191759006b64a0c05f63afbf9aa43a86511bf798d688737429e60a"
+    },
+    {
+      "path": "assets/5da06d31f29eda380c36.ttf",
+      "bytes": 971636,
+      "sha256": "b337683ce45bfa5af6bcc2e11d8a65c1510bb757e32560723bde682a2771caa7"
+    },
+    {
+      "path": "assets/85b88de6c127390064ec.css",
+      "bytes": 2598,
+      "sha256": "0f4f2752c33f49cf0f325bfe3d48085507f07354ae8f50d8291306e577f41bed"
+    },
+    {
+      "path": "assets/9758617bfbf895344aef.ttf",
+      "bytes": 972772,
+      "sha256": "87db3f360fa0064935207ca820f3ea8eaf7c1a650df767d6574d2e74560b1430"
+    },
+    {
+      "path": "assets/9cceb18304adae4716dd.ttf",
+      "bytes": 558180,
+      "sha256": "94499fa8e77fbb927426767aa48e98f96e94dc4919d7bb7d98732ee985e2afe3"
+    },
+    {
+      "path": "assets/aa9b57d2aa2e91933e06.ttf",
+      "bytes": 1000196,
+      "sha256": "a7c7b54cf1f23f39cb8b03962ab8c6030d85a5ff88acb97c42de8d3d53a8d443"
+    },
+    {
+      "path": "assets/baa9d2506eb83bb4361e.png",
+      "bytes": 5399,
+      "sha256": "455aa30476e53634bf106e2db5ad46d315b7244f265cf43a43bd28a6449ea836"
+    },
+    {
+      "path": "assets/e6154908c44c742b6ee9.css",
+      "bytes": 2444,
+      "sha256": "39f31309345ea6361adb65d4edd50d017c904dd6fad41168ab86acdb482bec96"
+    },
+    {
+      "path": "assets/e947876bde21a2eed9b5.ttf",
+      "bytes": 998224,
+      "sha256": "ca159fb80c12f3e5058d2e1af160884354513d94b155be830cfacb21bf0dad4f"
+    },
+    {
+      "path": "assets/f66e82394c5d82730795.ttf",
+      "bytes": 971924,
+      "sha256": "361c5dd4084c0b6a7af229c7b965c7ecaec7aaa84c697888b9c52ff911b3780e"
+    },
+    {
+      "path": "assets.json",
+      "bytes": 4738,
+      "sha256": "31cfbfeb8a6231b9f4d296ce581aa144e8af3aba98189e5fcb6850d7e6ca4272"
+    },
+    {
+      "path": "current/add-substance-dark-mode--0c7abb85/metadata.json",
+      "bytes": 835,
+      "sha256": "fe7d9288842707db3cbde2702ee6303822bab0b62c509e18e4b67bddac0f025e"
+    },
+    {
+      "path": "current/add-substance-dark-mode--0c7abb85/screen.html",
+      "bytes": 30516,
+      "sha256": "53950dc29b1343293ce2fa3a43e9e11742a46cb2fe447d1164302f74d22d7108"
+    },
+    {
+      "path": "current/add-substance-dark-mode--0c7abb85/screen.png",
+      "bytes": 343171,
+      "sha256": "756a8620cf5f847817407ad712539e719b7399af2a90d4a0fe961d50c0a5fad6"
+    },
+    {
+      "path": "current/biomarkers-labs-dark-mode--d33d9138/metadata.json",
+      "bytes": 839,
+      "sha256": "c1a448fbed9659bccb784ff05c3ab8d225561646af568aa06f85b72b2e1870fc"
+    },
+    {
+      "path": "current/biomarkers-labs-dark-mode--d33d9138/screen.html",
+      "bytes": 26567,
+      "sha256": "f3036cebafb0053d25f65f99a490156d1e1e69100c5ce82b0a0431afe136e908"
+    },
+    {
+      "path": "current/biomarkers-labs-dark-mode--d33d9138/screen.png",
+      "bytes": 355593,
+      "sha256": "8866c02c3ef729bfb84988f5ba9b2edaba15b40f90e7b50fe1aa16b4a8633518"
+    },
+    {
+      "path": "current/dashboard-timeline-velocity-dark-mode--42445af1/metadata.json",
+      "bytes": 833,
+      "sha256": "7ed694b9ce08eb764767ec5ae6ef2e36bad5293c1995329db2e56c68eca26a9b"
+    },
+    {
+      "path": "current/dashboard-timeline-velocity-dark-mode--42445af1/screen.html",
+      "bytes": 26261,
+      "sha256": "4cf46f91a0d7fd7a7c2ab926c84c76fd538172639a8cf0d0aac6ac362785259f"
+    },
+    {
+      "path": "current/dashboard-timeline-velocity-dark-mode--42445af1/screen.png",
+      "bytes": 294029,
+      "sha256": "225d92dc4b19bb104e3a0f1f9d13f9f93539c514207f8ee54c64bc6fe5f9f9e4"
+    },
+    {
+      "path": "current/edit-cadence-schedule-dark-mode--89da3913/metadata.json",
+      "bytes": 847,
+      "sha256": "681468f241b698f3997658f08b9e599e2005a0b3c3d2651278044bae35da6424"
+    },
+    {
+      "path": "current/edit-cadence-schedule-dark-mode--89da3913/screen.html",
+      "bytes": 25012,
+      "sha256": "d82c499de442ea16fbcfcabee9d02a569f0e15c63ed6f7bcf89c9924fe1daf3c"
+    },
+    {
+      "path": "current/edit-cadence-schedule-dark-mode--89da3913/screen.png",
+      "bytes": 254388,
+      "sha256": "a8b860b6c4a606abf6343cf0ff397e0a452b3b282067badb04f57d51907cab52"
+    },
+    {
+      "path": "current/events-dark-mode--5c227c48/metadata.json",
+      "bytes": 836,
+      "sha256": "867811e9f89584c6bd2f0376925bd2dd8f648edf8e8d1b9f6705a9279f5c4d17"
+    },
+    {
+      "path": "current/events-dark-mode--5c227c48/screen.html",
+      "bytes": 23849,
+      "sha256": "87b4f4b7e6dc89be24310bb8df8afcce39cff23dffc6f566d1a64b94dcc87da7"
+    },
+    {
+      "path": "current/events-dark-mode--5c227c48/screen.png",
+      "bytes": 322291,
+      "sha256": "2136896eff3e70285b194ea9d0a4a9b07abbef7741822e45c9cca825a6baa32f"
+    },
+    {
+      "path": "current/history-dark-mode--66b415fc/metadata.json",
+      "bytes": 806,
+      "sha256": "0b2f4d56c0ae28748e0c1576f2dbae49c41a7660fbe4c4c20566af2e788a31e6"
+    },
+    {
+      "path": "current/history-dark-mode--66b415fc/screen.html",
+      "bytes": 33116,
+      "sha256": "487a0807102ce50f0c53b2ce03c7216fe2fceae7e4edb6bfc4fc3f9c7704bf15"
+    },
+    {
+      "path": "current/history-dark-mode--66b415fc/screen.png",
+      "bytes": 453425,
+      "sha256": "613a3e339bc6acf93325717b166465786bcc6e7c66cb77ab6eed311cb4dae316"
+    },
+    {
+      "path": "current/inventory-refill-vault-dark-mode--3d446a0c/metadata.json",
+      "bytes": 837,
+      "sha256": "9bf8f433a7743b389ca1acdf9b7bed10a53c9117008d7c5e5d464718f5b1b4cc"
+    },
+    {
+      "path": "current/inventory-refill-vault-dark-mode--3d446a0c/screen.html",
+      "bytes": 27851,
+      "sha256": "515302d4048a949e112ec10b669e59282416bb5ba0664b31f60d432545d1b911"
+    },
+    {
+      "path": "current/inventory-refill-vault-dark-mode--3d446a0c/screen.png",
+      "bytes": 389332,
+      "sha256": "ce39f9c5d1424ab65d9699aaaa665a5e412b1a5cdab4a979e6c6ddaa9b49dc60"
+    },
+    {
+      "path": "current/lab-panel-detail-dark-mode--dba15fb9/metadata.json",
+      "bytes": 821,
+      "sha256": "177f34cf8e37ab03e6560896592dd6910cc53bf03522644e1dfc81965b24c2d7"
+    },
+    {
+      "path": "current/lab-panel-detail-dark-mode--dba15fb9/screen.html",
+      "bytes": 29371,
+      "sha256": "fe1c232c9f9a4b2765d45427645fdbd110f6f49d76f0e004540ad8b9067cd144"
+    },
+    {
+      "path": "current/lab-panel-detail-dark-mode--dba15fb9/screen.png",
+      "bytes": 459182,
+      "sha256": "9b4112feb20df08e4bb34e930284d9ab2e0711ee7dcb4ec67678467aaae5bbd0"
+    },
+    {
+      "path": "current/record-dose-dark-mode--6c9e18ea/metadata.json",
+      "bytes": 834,
+      "sha256": "7687f73b702530aea0a7742bbb28bde3749c665cf03c3d40736a4e04feda5fbb"
+    },
+    {
+      "path": "current/record-dose-dark-mode--6c9e18ea/screen.html",
+      "bytes": 24318,
+      "sha256": "b47c90d8f4362dda91e12977d525a1ee567fa3459eb73ced980fa092f8f81769"
+    },
+    {
+      "path": "current/record-dose-dark-mode--6c9e18ea/screen.png",
+      "bytes": 204670,
+      "sha256": "f9f08b6b07dd25b345a590aa6e6bb0f4aea1bf7a3741857873876bffe608b3ee"
+    },
+    {
+      "path": "current/settings-sovereign-vault-segmented-tabs-variant--62fae578/metadata.json",
+      "bytes": 854,
+      "sha256": "4c86f9ad27ed4320ea8ff4977cdc4603d80d39368b841c201d5953043b880f27"
+    },
+    {
+      "path": "current/settings-sovereign-vault-segmented-tabs-variant--62fae578/screen.html",
+      "bytes": 29016,
+      "sha256": "51edecf28a6c90e78c23b1ff780e2e2ac35fdfc99c51d6ba9e8e7a7f2ee6721f"
+    },
+    {
+      "path": "current/settings-sovereign-vault-segmented-tabs-variant--62fae578/screen.png",
+      "bytes": 354641,
+      "sha256": "9b348fbd48d9de9169ac60a18ad2dd045cc1bd9cabf4dbff84d640256b48ef32"
+    },
+    {
+      "path": "current/substances-dark-mode--1ecd8e65/metadata.json",
+      "bytes": 812,
+      "sha256": "b559d5280787a9afd91df382e84ef586a6f118ac515509831c5332aef05ef328"
+    },
+    {
+      "path": "current/substances-dark-mode--1ecd8e65/screen.html",
+      "bytes": 26560,
+      "sha256": "bc1d9546c5745bd5643db55297c8f7cbd06b2b5630300859f0ad4b4fe39ce08d"
+    },
+    {
+      "path": "current/substances-dark-mode--1ecd8e65/screen.png",
+      "bytes": 290998,
+      "sha256": "fd66487be1046e8d34d2e2ebb7b744c0da9fdc21947229e5544f512769e41152"
+    },
+    {
+      "path": "current/today-dark-mode--701bd467/metadata.json",
+      "bytes": 831,
+      "sha256": "0fb1f06567ceb4590b576ca7bb7d94d577fb47f0fd5767019fc9afe512003447"
+    },
+    {
+      "path": "current/today-dark-mode--701bd467/screen.html",
+      "bytes": 24842,
+      "sha256": "d48d2f8eaab9662e26fed29484518f50a1279b86f978cd14965206360b1b1f29"
+    },
+    {
+      "path": "current/today-dark-mode--701bd467/screen.png",
+      "bytes": 315625,
+      "sha256": "fe8f24e8056fa47ac3799a839cbf07c536a6256a8b7b2825c0cacbbca1fa9dd9"
+    },
+    {
+      "path": "current/today-light-mode--8396a819/metadata.json",
+      "bytes": 818,
+      "sha256": "b453d2ee4bbe26e95c17887c57e5cc9eaa5501d95912446da66a41befd1809da"
+    },
+    {
+      "path": "current/today-light-mode--8396a819/screen.html",
+      "bytes": 25002,
+      "sha256": "a38135abedaea8de8b9a0cc2e7a9c5d4782b6af46dbd3b949dd3e5842a3049c2"
+    },
+    {
+      "path": "current/today-light-mode--8396a819/screen.png",
+      "bytes": 340665,
+      "sha256": "c42bf1dbb5d1f8fd98c644a42e187765cb5839ccd85c88edbfc082b0dba589b5"
+    },
+    {
+      "path": "design-system.md",
+      "bytes": 14507,
+      "sha256": "5b3f35af572cb58069c37762b6001a2fb2302e23b9867fd152290c4545a16921"
+    },
+    {
+      "path": "earlier/dashboard-clinical-telemetry-rings-dark-mode--68d720b7/metadata.json",
+      "bytes": 885,
+      "sha256": "64ca17e8c875e48085860d7b277383b4f4a28678417afd449fd4bc3ac4e52b26"
+    },
+    {
+      "path": "earlier/dashboard-clinical-telemetry-rings-dark-mode--68d720b7/screen.html",
+      "bytes": 29945,
+      "sha256": "88ff79460ff2f83a1499b3eb7d4f69b3aa90d85b7fc1fa2ebd0282d24f9fa31f"
+    },
+    {
+      "path": "earlier/dashboard-clinical-telemetry-rings-dark-mode--68d720b7/screen.png",
+      "bytes": 374205,
+      "sha256": "ea5765f959e8d37c96284f50c10407074fe98d022fd26bf01bf45783ce6c480e"
+    },
+    {
+      "path": "earlier/dashboard-minimal-sovereign-focus-dark-mode--b84d4218/metadata.json",
+      "bytes": 882,
+      "sha256": "298dcab7356a7203d438cafc908599475f2981dba2ff49ae8f420d5cad35234e"
+    },
+    {
+      "path": "earlier/dashboard-minimal-sovereign-focus-dark-mode--b84d4218/screen.html",
+      "bytes": 21455,
+      "sha256": "e98bd6f8ed69ac2e225484a1b453cb2208e36d425193953d944525d0314fccfd"
+    },
+    {
+      "path": "earlier/dashboard-minimal-sovereign-focus-dark-mode--b84d4218/screen.png",
+      "bytes": 307972,
+      "sha256": "10d47563e991b090432d5e46deb7d89596893847cf03bf3c1316a35e2c70beed"
+    },
+    {
+      "path": "earlier/settings-sovereign-vault-dark-mode--9932b510/metadata.json",
+      "bytes": 815,
+      "sha256": "f40eda4a51558860dd62dc330a21ee058a7dd80a978f1247c18e45b80b535636"
+    },
+    {
+      "path": "earlier/settings-sovereign-vault-dark-mode--9932b510/screen.html",
+      "bytes": 24097,
+      "sha256": "8da2a9b87f36d665f1ddb6765fa212ee5a9177f21fa43c3d96934acd370a5011"
+    },
+    {
+      "path": "earlier/settings-sovereign-vault-dark-mode--9932b510/screen.png",
+      "bytes": 315046,
+      "sha256": "052e477fc53041e8d73a547e0f48261a8301314256d4740547db349d77b63007"
+    },
+    {
+      "path": "earlier/settings-sovereign-vault-inset-dashboard-variant--4f254d23/metadata.json",
+      "bytes": 887,
+      "sha256": "1f64df87f90af6d54f1dbd01e584726ca49a0d4f80540c10451bc6dbf5b657a9"
+    },
+    {
+      "path": "earlier/settings-sovereign-vault-inset-dashboard-variant--4f254d23/screen.html",
+      "bytes": 26472,
+      "sha256": "ff0febcbff1267d3efbee73df58bcac52926a8346f933003f3cff3b045554715"
+    },
+    {
+      "path": "earlier/settings-sovereign-vault-inset-dashboard-variant--4f254d23/screen.png",
+      "bytes": 375455,
+      "sha256": "deb90e4c538dc82becdace9e7ed7ec1db27fafa52e715f4e82014c9b89408a1b"
+    },
+    {
+      "path": "earlier/substance-detail-dark-mode--dd33c85b/metadata.json",
+      "bytes": 862,
+      "sha256": "a11817644cba567fd79d64d5dd3c44629501b5bf34a3b84f51a4305aca103dea"
+    },
+    {
+      "path": "earlier/substance-detail-dark-mode--dd33c85b/screen.html",
+      "bytes": 25555,
+      "sha256": "20197de8f457d555718d1f51b519f91016966b79da49e592982ef7811eed6f12"
+    },
+    {
+      "path": "earlier/substance-detail-dark-mode--dd33c85b/screen.png",
+      "bytes": 350477,
+      "sha256": "b3c25e0a0cbe64fb7d4cf8f6e6a05ea77182a8c2933a6111f8442543f51873da"
+    },
+    {
+      "path": "earlier/substances-dark-mode--3d14cd60/metadata.json",
+      "bytes": 842,
+      "sha256": "aa498ffd99ef38901a0172ad0cc39eb852b8e919714a4dcc7438f5c585f7c0c0"
+    },
+    {
+      "path": "earlier/substances-dark-mode--3d14cd60/screen.html",
+      "bytes": 26941,
+      "sha256": "54237165f2c8e7784175a417094ccfc88c43b8e241a373dbfdbe79d985b67729"
+    },
+    {
+      "path": "earlier/substances-dark-mode--3d14cd60/screen.png",
+      "bytes": 285584,
+      "sha256": "32894bab738664ae2faf41f4e16448e7e84d793b547f49a571a145e78137dcd3"
+    },
+    {
+      "path": "earlier/substances-light-mode--c987181d/metadata.json",
+      "bytes": 857,
+      "sha256": "926c454111a6ed4f14a2795851fc6787a27587d8a5fff86b894913d2d9ffe469"
+    },
+    {
+      "path": "earlier/substances-light-mode--c987181d/screen.html",
+      "bytes": 24451,
+      "sha256": "6cbebaeaebc9e52fbf645e81701646395bc53fc8093cabf04d13d98959cf606f"
+    },
+    {
+      "path": "earlier/substances-light-mode--c987181d/screen.png",
+      "bytes": 257521,
+      "sha256": "aec823c224dff4c8b6889155476c5da7c37028cda00f24c0ad4980f0fefd64e6"
+    },
+    {
+      "path": "earlier/today-dark-mode--b5e17911/metadata.json",
+      "bytes": 837,
+      "sha256": "82090c865ff7697f13e4020b535470253a4f22469e9a1d721f357bd718c2991d"
+    },
+    {
+      "path": "earlier/today-dark-mode--b5e17911/screen.html",
+      "bytes": 25700,
+      "sha256": "5f29173413dcacbc0e3cfe4fa545d95d6a2c755792d3b57b9dbacf5c3eddbe55"
+    },
+    {
+      "path": "earlier/today-dark-mode--b5e17911/screen.png",
+      "bytes": 374222,
+      "sha256": "6a8835a6053439345b436fa7838131fc108caf5a11fc188701eb3c67adc315a4"
+    },
+    {
+      "path": "licenses/Material-Symbols-Apache-2.0.txt",
+      "bytes": 11357,
+      "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd"
+    },
+    {
+      "path": "licenses/NotoSans-OFL.txt",
+      "bytes": 4377,
+      "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb"
+    },
+    {
+      "path": "licenses/README.md",
+      "bytes": 1188,
+      "sha256": "a27f83282deb95828a0f07a96440a0ad8ddef3ca090b59c5d01e5cd75585d1cb"
+    },
+    {
+      "path": "licenses/TailwindCSS-3.4.17-MIT.txt",
+      "bytes": 1071,
+      "sha256": "60e0b68c0f35c078eef3a5d29419d0b03ff84ec1df9c3f9d6e39a519a5ae7985"
+    },
+    {
+      "path": "licenses/TailwindCSS-Container-Queries-MIT.txt",
+      "bytes": 1070,
+      "sha256": "d9948123980df2b9360a153d38eb88ad29cdd2eb141d801eeffb8e0b2ce333cb"
+    },
+    {
+      "path": "licenses/TailwindCSS-Forms-MIT.txt",
+      "bytes": 1071,
+      "sha256": "60e0b68c0f35c078eef3a5d29419d0b03ff84ec1df9c3f9d6e39a519a5ae7985"
+    },
+    {
+      "path": "project.json",
+      "bytes": 26520,
+      "sha256": "bb8f3f5a1c863cd27e47327d4754bb67c6568feb3b39656160a0ae9fdb891da9"
+    }
+  ],
+  "currentCount": 13,
+  "earlierCount": 8,
+  "assetCount": 18,
+  "unavailableAssets": 0
+}

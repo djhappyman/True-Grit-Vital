@@ -1,0 +1,30 @@
+{
+  "screen": {
+    "deviceType": "MOBILE",
+    "height": "3848",
+    "htmlCode": {
+      "mimeType": "text/html",
+      "name": "projects/13558290148435280164/screens/dd33c85b4a5d4839a5482e72598b5c1b/fileEntries/html"
+    },
+    "name": "projects/13558290148435280164/screens/dd33c85b4a5d4839a5482e72598b5c1b",
+    "screenshot": {
+      "name": "projects/13558290148435280164/screens/dd33c85b4a5d4839a5482e72598b5c1b/fileEntries/screenshot"
+    },
+    "title": "Substance Detail — Dark Mode",
+    "width": "780"
+  },
+  "canvasInstance": {
+    "height": 1924,
+    "hidden": true,
+    "id": "dd33c85b4a5d4839a5482e72598b5c1b",
+    "label": "Generating Screen...",
+    "sourceScreen": "projects/13558290148435280164/screens/dd33c85b4a5d4839a5482e72598b5c1b",
+    "width": 390,
+    "x": 454,
+    "y": 7214
+  },
+  "downloadedDimensions": [
+    780,
+    3848
+  ]
+}
