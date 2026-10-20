@@ -276,8 +276,7 @@ String ledgerAmountText(ReportLedgerEntry entry) {
       lines.add(
         '${ingredient.name}'
         '${ingredient.strength == null ? '' : ' (${ingredient.strength})'}: '
-        '${ingredient.amount == null ? 'Unknown' : formatAmount(ingredient.amount!)} '
-        '${ingredient.unit}',
+        '${ingredient.amount == null ? 'Unknown' : '${formatAmount(ingredient.amount!)} ${ingredient.unit}'}',
       );
     }
   }

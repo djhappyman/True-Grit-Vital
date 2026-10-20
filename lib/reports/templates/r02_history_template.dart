@@ -80,9 +80,11 @@ final class R02HistoryRenderer implements ReportTemplateRenderer {
         ..add(pw.SizedBox(height: 4))
         ..add(
           reportNote(
-            'Totals group administrations by item and keep unlike units and '
-            'product strengths separate. Ready-mixed volume is counted once '
-            'alongside its ingredient amounts.',
+            'Doses count administrations. Ingredient rows are amounts within '
+            'the same administrations, not extra doses. Totals group '
+            'administrations by item and keep unlike units and product '
+            'strengths separate. Ready-mixed volume is counted once alongside '
+            'its ingredient amounts.',
             size: 8,
           ),
         )
@@ -265,7 +267,7 @@ final class R02HistoryRenderer implements ReportTemplateRenderer {
                   reportCell('Volume', header: true, align: pw.TextAlign.right),
                 ],
               ),
-              for (final product in group.products)
+              for (final product in group.products) ...[
                 pw.TableRow(
                   children: [
                     reportCell(product.name),
@@ -282,6 +284,26 @@ final class R02HistoryRenderer implements ReportTemplateRenderer {
                     ),
                   ],
                 ),
+                for (final ingredient in product.ingredients)
+                  pw.TableRow(
+                    children: [
+                      reportCell(
+                        '  ${ingredient.name}'
+                        '${ingredient.strength == null ? '' : ' (${ingredient.strength})'}',
+                        muted: true,
+                      ),
+                      reportCell('Ingredient', muted: true),
+                      reportCell('', align: pw.TextAlign.right),
+                      reportCell(
+                        ingredient.complete
+                            ? '${formatAmount(ingredient.knownSubtotal!)} '
+                                  '${ingredient.unit}'
+                            : 'Unknown',
+                        align: pw.TextAlign.right,
+                      ),
+                    ],
+                  ),
+              ],
             ],
           ),
         ],

@@ -102,10 +102,16 @@ final class ReportEventData implements ReportTemplateData {
     final descriptors = {for (final item in items) item.itemId: item};
     bool selected(String itemId) =>
         selection.itemIds.isEmpty || selection.itemIds.contains(itemId);
-    final entries = [
-      for (final record in snapshot.records)
-        if (selected(record.itemId)) ReportLedgerEntry.fromRecord(record),
-    ]..sort((a, b) => a.occurredAt.compareTo(b.occurredAt));
+    final entries = <ReportLedgerEntry>[];
+    for (final record in snapshot.records) {
+      if (!selected(record.itemId)) {
+        // Totals derive from every snapshot record, so a record outside the
+        // selection would put member totals and the ledger out of step.
+        throw const ReportSelectionFailure('report_item');
+      }
+      entries.add(ReportLedgerEntry.fromRecord(record));
+    }
+    entries.sort((a, b) => a.occurredAt.compareTo(b.occurredAt));
     if (entries.length > maxEntries) {
       throw const ReportSelectionFailure('report_history_limit');
     }
@@ -289,6 +295,8 @@ final class ReportEventData implements ReportTemplateData {
       'Event review',
       '',
       'Person: ${snapshot.person.displayName}',
+      if (snapshot.reportIdentity != null)
+        'Report name: ${snapshot.reportIdentity}',
       'Event: $name',
       'Event type: $eventType',
       'Event zone: $zoneId',
@@ -299,14 +307,19 @@ final class ReportEventData implements ReportTemplateData {
         'Completed: ${formatInstant(completedAt!, selection.displayZone, use24Hour: use24Hour)}',
       'Report period: ${formatCivilDate(selection.fromDate)} to '
           '${formatCivilDate(selection.beforeDate.addDays(-1))}',
+      'Time zone: ${selection.displayZone}',
       'Generated: ${formatInstant(snapshot.cutoff.generatedAt, selection.displayZone, use24Hour: use24Hour)}',
       'Template: ${selection.template.id} version ${reportTemplateVersion(selection.template)}',
       'Report ID: ${snapshot.artifactId}',
       '',
+      'Includes ${members.length} event ${members.length == 1 ? 'member' : 'members'}.',
+      'Members with an open use period: ${ongoingMembers.length}.',
       'Recorded administrations: ${entries.length}',
       'Corrected: $correctedCount',
       'Skipped: $skippedCount',
       'Not recorded: $notRecordedCount',
+      'Skipped and not-recorded states are counted separately and are not '
+          'administrations. They do not prove a dose was missed.',
       '',
     ];
     if (boundsNeedReview) {
@@ -351,6 +364,8 @@ final class ReportEventData implements ReportTemplateData {
       );
     }
     lines
+      ..add('')
+      ..addAll(ReportText.contextLines(snapshot))
       ..add('')
       ..add(
         'An event is a grouping. An event end does not mean every included item stopped; '
@@ -492,7 +507,7 @@ String reportEventMemberUse(ReportEventMember member) {
     );
     for (final ingredient in product.ingredients) {
       lines.add(
-        '${ingredient.name}${ingredient.strength == null ? '' : ' (${ingredient.strength})'}: ${ingredient.complete ? formatAmount(ingredient.knownSubtotal!) : 'Unknown'} ${ingredient.unit}',
+        '${ingredient.name}${ingredient.strength == null ? '' : ' (${ingredient.strength})'}: ${ingredient.complete ? '${formatAmount(ingredient.knownSubtotal!)} ${ingredient.unit}' : 'Unknown'}',
       );
     }
   }

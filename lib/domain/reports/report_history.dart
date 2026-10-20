@@ -132,9 +132,12 @@ final class ReportHistoryData implements ReportTemplateData {
       if (record.revision < 1) {
         throw const ReportSelectionFailure('report_owner');
       }
-      if (selected(record.itemId)) {
-        addEntry(ReportLedgerEntry.fromRecord(record));
+      if (!selected(record.itemId)) {
+        // Totals derive from every snapshot record, so a record outside the
+        // selection would put totals and ledger out of step.
+        throw const ReportSelectionFailure('report_item');
       }
+      addEntry(ReportLedgerEntry.fromRecord(record));
     }
 
     if (snapshot.selection.includeSkipped) {
@@ -283,6 +286,8 @@ final class ReportHistoryData implements ReportTemplateData {
       'Detailed history',
       '',
       'Person: ${snapshot.person.displayName}',
+      if (snapshot.reportIdentity != null)
+        'Report name: ${snapshot.reportIdentity}',
       'Period: ${formatCivilDate(selection.fromDate)} to '
           '${formatCivilDate(selection.beforeDate.addDays(-1))}',
       'Time zone: ${selection.displayZone}',
@@ -327,8 +332,7 @@ final class ReportHistoryData implements ReportTemplateData {
           lines.add(
             '  Ingredient ${ingredient.name}'
             '${ingredient.strength == null ? '' : ' (${ingredient.strength})'}: '
-            '${ingredient.amount == null ? 'Unknown' : formatAmount(ingredient.amount!)} '
-            '${ingredient.unit}',
+            '${ingredient.amount == null ? 'Unknown' : '${formatAmount(ingredient.amount!)} ${ingredient.unit}'}',
           );
         }
       }
@@ -346,6 +350,9 @@ final class ReportHistoryData implements ReportTemplateData {
     }
     lines
       ..add('')
+      ..addAll(_compatibleTotals(snapshot))
+      ..addAll(ReportText.contextLines(snapshot))
+      ..add('')
       ..add(
         'Recorded rows are reported entries, not proof that a dose was taken. '
         'A not-recorded row means no dose and no explicit skip were saved for a planned occurrence. '
@@ -353,7 +360,55 @@ final class ReportHistoryData implements ReportTemplateData {
       );
     return lines.join('\n');
   }
+
+  /// Exact totals that mirror the reviewed PDF's compatible totals section.
+  ///
+  /// Ready-mixed volume and its ingredient amounts stay separate; an unknown
+  /// ingredient amount stays unknown instead of being guessed.
+  List<String> _compatibleTotals(ReportSnapshot snapshot) {
+    final totals = snapshot.totals;
+    final lines = <String>[
+      'Compatible totals',
+      'Doses count recorded administrations. Ingredient rows are amounts '
+          'within the same administrations, not extra doses.',
+      '',
+    ];
+    if (totals.limitReached) {
+      lines
+        ..add(
+          'One or more totals were too large to display. Narrow the period or item selection.',
+        )
+        ..add('');
+    }
+    for (final group in totals.groups) {
+      final type = group.type.trim().isEmpty ? 'Uncategorised' : group.type;
+      lines.add('Type: $type');
+      for (final item in group.items) {
+        lines.add(
+          '${item.name} · ${item.form} · ${_doseCountText(item.count)} · '
+          '${item.total == null ? 'Total unavailable' : 'Total ${formatAmount(item.total!)} ${item.unit}'}',
+        );
+      }
+      for (final product in group.products) {
+        lines.add(
+          '${product.name} · ${product.form} · ${_doseCountText(product.administrations)} · '
+          'Volume ${product.volume == null ? 'unavailable' : '${formatAmount(product.volume!)} ${product.volumeUnit}'}',
+        );
+        for (final ingredient in product.ingredients) {
+          lines.add(
+            '  Ingredient ${ingredient.name}'
+            '${ingredient.strength == null ? '' : ' (${ingredient.strength})'}: '
+            '${ingredient.complete ? '${formatAmount(ingredient.knownSubtotal!)} ${ingredient.unit}' : 'Unknown'}',
+          );
+        }
+      }
+      lines.add('');
+    }
+    return lines;
+  }
 }
+
+String _doseCountText(int count) => count == 1 ? '1 dose' : '$count doses';
 
 String _statusText(ReportLedgerStatus status) => switch (status) {
   ReportLedgerStatus.recorded => 'Recorded',

@@ -624,6 +624,64 @@ int _productCompare(ReportProductTotal a, ReportProductTotal b) {
 
 final class ReportText {
   const ReportText._();
+
+  /// Selected supporting records, private notes and source files for the
+  /// text alternative used by R02 and R03.
+  ///
+  /// Every option is stated, including its omission, so the accessible text
+  /// never implies that unselected content does not exist. Values keep their
+  /// original unit and reference range.
+  static List<String> contextLines(ReportSnapshot snapshot) {
+    final selection = snapshot.selection;
+    if (!selection.includeSupporting && !selection.includeAttachments) {
+      return const [
+        'Supporting records and source files: not included.',
+        'Private notes: not included.',
+      ];
+    }
+    final lines = <String>[
+      'Supporting records: ${selection.includeSupporting ? 'included' : 'not included'}.',
+      'Private notes: ${selection.includeNotes ? 'included where recorded' : 'not included'}.',
+      'Source files: ${selection.includeAttachments ? 'listed' : 'not included'}.',
+    ];
+    if (selection.includeSupporting) {
+      if (snapshot.supporting.isEmpty) {
+        lines.add('No supporting records fall inside this period.');
+      } else {
+        for (final entry in snapshot.supporting) {
+          lines
+            ..add('')
+            ..add('${entry.title} (${entry.kind.name})')
+            ..add('Measured: ${formatSupportingDate(entry.collectionDate)}');
+          for (final value in entry.values) {
+            lines.add(
+              '${value.name}: ${value.value}'
+              '${value.unit == null ? '' : ' ${value.unit}'}'
+              '${value.referenceRange == null ? '' : ' (range ${value.referenceRange})'}',
+            );
+          }
+          if (entry.notes != null) lines.add('Note: ${entry.notes}');
+        }
+      }
+      if (snapshot.supportingTruncated) {
+        lines.add('Supporting context is limited to the first 50 records.');
+      }
+    }
+    if (selection.includeAttachments) {
+      lines.add('');
+      if (snapshot.attachments.isEmpty) {
+        lines.add('No source files were selected.');
+      } else {
+        for (final attachment in snapshot.attachments) {
+          lines.add(
+            'Source: ${attachment.name} · ${attachment.byteCount} bytes · ${attachment.sha256}',
+          );
+        }
+      }
+    }
+    return lines;
+  }
+
   static String build({
     required ReportSnapshot snapshot,
     required bool use24Hour,
