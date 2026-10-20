@@ -347,6 +347,7 @@ final class ExportPreview {
       supportingRecords = document.supportingRecords,
       supportingResults = document.supportingResults,
       byteCount = bytes.length,
+      undatedCollection = document.undatedCollection,
       excerpt = _excerpt(bytes, limits.previewCharacters);
 
   final String personName, zoneId, sha256;
@@ -359,6 +360,9 @@ final class ExportPreview {
       supportingRecords,
       supportingResults,
       byteCount;
+
+  /// Disclosed exclusion of unpositionable supporting collection dates.
+  final ExportUndatedOmission? undatedCollection;
   final String excerpt;
 
   static String _excerpt(Uint8List bytes, int limit) {

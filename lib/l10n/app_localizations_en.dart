@@ -4359,6 +4359,22 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String exportUndatedExcluded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count supporting records have unknown or partial collection dates and are left out of this file.',
+      one: '1 supporting record has an unknown or partial collection date and is left out of this file.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get exportUndatedUncounted =>
+      'Supporting records with unknown or partial collection dates were not all counted and are left out of this file.';
+
+  @override
   String exportByteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

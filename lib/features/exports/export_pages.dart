@@ -263,6 +263,14 @@ class _ExportPageState extends ConsumerState<ExportPage> {
     ExportHandoff handoff,
   ) {
     final preview = artifact.preview;
+    final omission = preview.undatedCollection;
+    final String? undatedMessage = omission == null
+        ? null
+        : !omission.counted
+        ? t.exportUndatedUncounted
+        : (omission.records ?? 0) > 0
+        ? t.exportUndatedExcluded(omission.records!)
+        : null;
     final contents = [
       if (preview.contents.contains(ExportContent.doses)) t.exportDoses,
       if (preview.contents.contains(ExportContent.supporting))
@@ -292,6 +300,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
             Text(t.exportRevisionCount(preview.doseRevisions)),
             Text(t.exportSupportingCount(preview.supportingRecords)),
             Text(t.exportSupportingResultCount(preview.supportingResults)),
+            if (undatedMessage != null) Text(undatedMessage),
             Text(t.exportByteCount(preview.byteCount)),
             Text(t.exportFileName(artifact.fileName)),
             Text(t.exportChecksumLabel),

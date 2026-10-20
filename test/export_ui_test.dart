@@ -14,18 +14,38 @@ import 'package:true_grit_vital/ui/vital_ui.dart';
 
 import 'vital_app_test.dart' show appTest, runIo, settle, tap, waitForText;
 
-ExportDocument _emptyDocument(ExportSelection selection) => ExportDocument(
+ExportDocument _emptyDocument(
+  ExportSelection selection, {
+  ExportUndatedOmission? undatedCollection,
+}) => ExportDocument(
   selection: selection,
   generatedAt: DateTime.utc(2026, 10, 20, 12),
   personName: 'Alex',
   doses: const [],
   supporting: const [],
+  undatedCollection: undatedCollection,
 );
 
 Future<ExportDocument> _capture(
   ExportSelection selection, {
   ExportCancellation? cancellation,
 }) async => _emptyDocument(selection);
+
+Future<ExportDocument> _undatedCapture(
+  ExportSelection selection, {
+  ExportCancellation? cancellation,
+}) async => _emptyDocument(
+  selection,
+  undatedCollection: const ExportUndatedOmission.counted(2),
+);
+
+Future<ExportDocument> _uncountedCapture(
+  ExportSelection selection, {
+  ExportCancellation? cancellation,
+}) async => _emptyDocument(
+  selection,
+  undatedCollection: const ExportUndatedOmission.uncounted(),
+);
 
 Future<ExportDocument> _slowCapture(
   ExportSelection selection, {
@@ -149,6 +169,11 @@ void main() {
     await waitForText(tester, 'Review');
     expect(find.text('No dose records'), findsOneWidget);
     expect(find.text('Supporting notes excluded.'), findsOneWidget);
+    expect(
+      find.textContaining('left out of this file'),
+      findsNothing,
+      reason: 'no omission is claimed when none was counted',
+    );
     expect(find.text('SHA-256'), findsOneWidget);
 
     await tap(tester, 'Save');
@@ -202,6 +227,34 @@ void main() {
     await tap(tester, 'Cancel');
     await waitForText(tester, 'Save cancelled. The preview is unchanged.');
     expect(handoff.received, isNotNull);
+  });
+
+  appTest('the review discloses supporting records it cannot place', (
+    tester,
+  ) async {
+    await _launch(tester, capture: _undatedCapture);
+    await waitForText(tester, 'Export');
+    await tap(tester, 'Preview');
+    await waitForText(
+      tester,
+      '2 supporting records have unknown or partial collection dates and are'
+      ' left out of this file.',
+    );
+    await tap(tester, 'Change');
+    await waitForText(tester, 'Content');
+  });
+
+  appTest('an uncounted surplus says so without a fabricated number', (
+    tester,
+  ) async {
+    await _launch(tester, capture: _uncountedCapture);
+    await waitForText(tester, 'Export');
+    await tap(tester, 'Preview');
+    await waitForText(
+      tester,
+      'Supporting records with unknown or partial collection dates were not all'
+      ' counted and are left out of this file.',
+    );
   });
 
   appTest('large text keeps selection and review readable', (tester) async {

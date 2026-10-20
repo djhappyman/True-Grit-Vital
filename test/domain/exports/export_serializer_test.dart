@@ -297,6 +297,73 @@ void main() {
         throwsA(isA<ExportCancelled>()),
       );
     });
+
+    test('undated omissions are revealed exactly and without content', () {
+      final json = document().toJson();
+      expect(json.containsKey('omissions'), isFalse);
+      final disclosed =
+          ((ExportDocument(
+                    selection: selection(),
+                    generatedAt: DateTime.utc(2026, 10, 20, 12),
+                    personName: 'Alex',
+                    doses: const [],
+                    supporting: [supporting()],
+                    undatedCollection: const ExportUndatedOmission.counted(2),
+                  ).toJson()['omissions']
+                  as Map)['collectionDateUnknownOrPartial']
+              as Map);
+      expect(disclosed, {'records': 2, 'counted': true});
+
+      final uncounted =
+          ((ExportDocument(
+                    selection: selection(),
+                    generatedAt: DateTime.utc(2026, 10, 20, 12),
+                    personName: 'Alex',
+                    doses: const [],
+                    supporting: [supporting()],
+                    undatedCollection: const ExportUndatedOmission.uncounted(),
+                  ).toJson()['omissions']
+                  as Map)['collectionDateUnknownOrPartial']
+              as Map);
+      expect(uncounted, {'records': null, 'counted': false});
+    });
+
+    test('an omission is impossible without supporting content', () {
+      final dosed = ExportSelection(
+        personId: meId,
+        fromDay: CivilDate(2026, 10, 1),
+        beforeDay: CivilDate(2026, 11, 1),
+        zoneId: 'UTC',
+        contents: const [ExportContent.doses],
+      );
+      expect(
+        () => ExportDocument(
+          selection: dosed,
+          generatedAt: DateTime.utc(2026, 10, 20),
+          personName: 'Alex',
+          doses: const [],
+          supporting: const [],
+          undatedCollection: const ExportUndatedOmission.counted(1),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('unchanged CSV rows stay disclosure-free data rows', () {
+      final text = encodeExportCsv(
+        document(
+          format: ExportFormat.csv,
+          doses: [dose(amount: ExactAmount(BigInt.one))],
+          supportingRows: [supporting()],
+        ),
+      ).split('\r\n');
+      expect(text, hasLength(3));
+      expect(text.last, isNot(contains('omission')));
+      expect(
+        text.every((line) => _fieldCount(line) == exportCsvHeader.length),
+        isTrue,
+      );
+    });
   });
 
   group('selection bounds', () {

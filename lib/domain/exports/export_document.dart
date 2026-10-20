@@ -245,6 +245,23 @@ Map<String, Object?>? _withoutSources(Object? value) {
   return {...Map<String, Object?>.from(value), 'sourceReferences': <Object?>[]};
 }
 
+/// Truthful disclosure of the supporting records left out of a structured
+/// export because their collection date is unknown or partial and therefore
+/// not positionable inside the selected range.
+///
+/// Nothing about the omitted records' content reaches the export. A reached
+/// counting bound reports [counted] false instead of a fabricated number.
+final class ExportUndatedOmission {
+  const ExportUndatedOmission.counted(int this.records)
+    : assert(records >= 0),
+      counted = true;
+  const ExportUndatedOmission.uncounted() : records = null, counted = false;
+
+  /// Number of omitted records, or null when they were not counted.
+  final int? records;
+  final bool counted;
+}
+
 /// One immutable capture of a selected person's records.
 ///
 /// Reading happens in one database transaction. Formatting happens afterwards
@@ -257,11 +274,16 @@ final class ExportDocument {
     required this.personName,
     required Iterable<ExportDoseRevision> doses,
     required Iterable<ExportSupportingRevision> supporting,
+    this.undatedCollection,
     this.reportName,
     this.recordSchemaVersion = 21,
   }) : doses = List.unmodifiable(doses),
        supporting = List.unmodifiable(supporting) {
     if (!generatedAt.isUtc) throw ArgumentError('generated_at_utc');
+    if (!selection.includes(ExportContent.supporting) &&
+        undatedCollection != null) {
+      throw ArgumentError('export_omissions');
+    }
   }
 
   final ExportSelection selection;
@@ -271,6 +293,10 @@ final class ExportDocument {
   final int recordSchemaVersion;
   final List<ExportDoseRevision> doses;
   final List<ExportSupportingRevision> supporting;
+
+  /// Set exactly when supporting content is selected. Discloses the records
+  /// excluded for an unknown or partial collection date without their content.
+  final ExportUndatedOmission? undatedCollection;
 
   int get doseRecords => doses.map((row) => row.recordId).toSet().length;
   int get supportingRecords =>
@@ -302,16 +328,31 @@ final class ExportDocument {
       'notesIncluded': selection.includeNotes,
     },
     'semantics': _semantics,
+    if (undatedCollection != null)
+      'omissions': {
+        'collectionDateUnknownOrPartial': {
+          'records': undatedCollection!.records,
+          'counted': undatedCollection!.counted,
+        },
+      },
     'doses': [for (final row in doses) row.toJson()],
     'supporting': [for (final row in supporting) row.toJson()],
   };
 }
 
 const _semantics = <String, String>{
-  'quantities': 'amountExact is numerator/denominator. amountDecimal is an exact decimal only when it terminates within 12 places; otherwise it is null. No rounded value is labelled exact.',
-  'units': 'Units are stored as entered. No unit conversion, rounding or inferred concentration is applied.',
-  'times': 'Instants are ISO 8601 UTC. fromDay is inclusive and beforeDay is exclusive in selection.timeZone.',
-  'provenance': 'source is unspecified, selfReported or recordedOnBehalf. Catalogue, product, strength and site values are immutable snapshots saved with the revision.',
-  'corrections': 'Every saved revision is included. Revision 1 enteredAt is the original entry time. Later enteredAt values are correction times. isCurrent marks the revision used by the app.',
-  'privacy': 'Only the selected adult is exported. Supporting notes appear only when notesIncluded is true. File attachments and their internal references are never included.',
+  'quantities':
+      'amountExact is numerator/denominator. amountDecimal is an exact decimal only when it terminates within 12 places; otherwise it is null. No rounded value is labelled exact.',
+  'units':
+      'Units are stored as entered. No unit conversion, rounding or inferred concentration is applied.',
+  'times':
+      'Instants are ISO 8601 UTC. fromDay is inclusive and beforeDay is exclusive in selection.timeZone.',
+  'provenance':
+      'source is unspecified, selfReported or recordedOnBehalf. Catalogue, product, strength and site values are immutable snapshots saved with the revision.',
+  'corrections':
+      'Every saved revision is included. Revision 1 enteredAt is the original entry time. Later enteredAt values are correction times. isCurrent marks the revision used by the app.',
+  'privacy':
+      'Only the selected adult is exported. Supporting notes appear only when notesIncluded is true. File attachments and their internal references are never included.',
+  'omissions':
+      'Supporting records whose collection date is unknown or partial have no positionable date inside the selected range and are excluded. omissions.collectionDateUnknownOrPartial discloses how many were omitted, never their content. counted false means they exceeded the bounded counting window and records is null.',
 };

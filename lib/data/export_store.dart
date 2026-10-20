@@ -39,6 +39,9 @@ extension ExportRecordStore on RecordStore {
             )
           : <ExportSupportingRevision>[];
       cancellation?.throwIfCancelled();
+      final undated = selection.includes(ExportContent.supporting)
+          ? await _countUnpositionedSupporting(selection)
+          : null;
       return ExportDocument(
         selection: selection,
         generatedAt: generatedAt,
@@ -47,8 +50,27 @@ extension ExportRecordStore on RecordStore {
         recordSchemaVersion: _db.schemaVersion,
         doses: doses,
         supporting: supporting,
+        undatedCollection: undated,
       );
     });
+  }
+
+  /// Bounded, snapshot-coherent count of this person's supporting records that
+  /// cannot be positioned in the selected range.
+  ///
+  /// The dedicated partial index stops the scan at the bound; a reached bound
+  /// is reported as uncounted instead of a fabricated number. The queried rows
+  /// never enter the returned document.
+  Future<ExportUndatedOmission> _countUnpositionedSupporting(
+    ExportSelection selection,
+  ) async {
+    final rows = await _rows(
+      'SELECT id FROM supporting_record WHERE person=? AND collection_at IS NULL AND collection_day IS NULL LIMIT ?',
+      [selection.personId, selection.limits.maxSupportingRecords + 1],
+    );
+    return rows.length > selection.limits.maxSupportingRecords
+        ? const ExportUndatedOmission.uncounted()
+        : ExportUndatedOmission.counted(rows.length);
   }
 
   Future<List<ExportDoseRevision>> _captureDoses(

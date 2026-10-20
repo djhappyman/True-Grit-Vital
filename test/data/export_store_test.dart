@@ -35,12 +35,16 @@ void main() {
     bool includeNotes = false,
     ExportLimits limits = ExportLimits.standard,
     String personId = meId,
+    Iterable<ExportContent> contents = const [
+      ExportContent.doses,
+      ExportContent.supporting,
+    ],
   }) => ExportSelection(
     personId: personId,
     fromDay: CivilDate(2026, 10, 1),
     beforeDay: CivilDate(2026, 11, 1),
     zoneId: 'UTC',
-    contents: const [ExportContent.doses, ExportContent.supporting],
+    contents: contents,
     format: format,
     includeNotes: includeNotes,
     limits: limits,
@@ -57,42 +61,46 @@ void main() {
         type: 'Medicine',
       );
 
-  Future<SupportingRevision> panel({String? notes = 'Private note'}) =>
-      store.saveLabPanel(
-        SaveLabPanelCommand(
-          commandId: 'panel',
-          generation: store.generation,
-          expectedPersonRevision: 2,
-          panel: LabPanelSnapshot(
-            id: SupportingRecordId(id: 'panel-1', personId: meId),
-            title: 'Synthetic report',
-            collectionDate: SupportingDate.day(CivilDate(2026, 10, 2)),
-            reportDate: SupportingDate.day(CivilDate(2026, 10, 4)),
-            provenance: SupportingProvenance(
-              mode: SupportingProvenanceMode.manualTranscription,
-              laboratoryName: 'Synthetic laboratory',
-              sourceReferences: [
-                SupportingSourceReference(
-                  id: 'report-source-1',
-                  personId: meId,
-                  version: 1,
-                  kind: SupportingSourceKind.report,
-                ),
-              ],
+  Future<SupportingRevision> panel({
+    String? notes = 'Private note',
+    String id = 'panel-1',
+    SupportingDate? collectionDate,
+  }) => store.saveLabPanel(
+    SaveLabPanelCommand(
+      commandId: 'panel-$id',
+      generation: store.generation,
+      expectedPersonRevision: 2,
+      panel: LabPanelSnapshot(
+        id: SupportingRecordId(id: id, personId: meId),
+        title: 'Synthetic report',
+        collectionDate:
+            collectionDate ?? SupportingDate.day(CivilDate(2026, 10, 2)),
+        reportDate: SupportingDate.day(CivilDate(2026, 10, 4)),
+        provenance: SupportingProvenance(
+          mode: SupportingProvenanceMode.manualTranscription,
+          laboratoryName: 'Synthetic laboratory',
+          sourceReferences: [
+            SupportingSourceReference(
+              id: 'report-source-1',
+              personId: meId,
+              version: 1,
+              kind: SupportingSourceKind.report,
             ),
-            results: [
-              LabResultSnapshot(
-                id: 'result-1',
-                metricId: 'metric-1',
-                markerName: 'Marker',
-                value: SupportingValue.numeric('1.5'),
-                unit: 'mg/L',
-              ),
-            ],
-            notes: notes,
-          ),
+          ],
         ),
-      );
+        results: [
+          LabResultSnapshot(
+            id: 'result-1',
+            metricId: 'metric-1',
+            markerName: 'Marker',
+            value: SupportingValue.numeric('1.5'),
+            unit: 'mg/L',
+          ),
+        ],
+        notes: notes,
+      ),
+    ),
+  );
 
   test('captures one person, every correction and original units', () async {
     final mine = await item(meId);
@@ -182,6 +190,146 @@ void main() {
       isEmpty,
       reason: 'file references never enter a structured export',
     );
+  });
+
+  test(
+    'unknown and partial collection dates are excluded and disclosed',
+    () async {
+      await item(meId);
+      await panel();
+      await panel(
+        id: 'panel-2',
+        notes: null,
+        collectionDate: SupportingDate.unknown(
+          originalText: 'Unknown sample time',
+        ),
+      );
+      await store.saveLabPanel(
+        SaveLabPanelCommand(
+          commandId: 'panel-3',
+          generation: store.generation,
+          expectedPersonRevision: 2,
+          panel: LabPanelSnapshot(
+            id: SupportingRecordId(id: 'panel-3', personId: meId),
+            title: 'Secret partial report',
+            collectionDate: SupportingDate.partial(
+              year: 2024,
+              month: 10,
+              originalText: '2024-10',
+            ),
+            reportDate: SupportingDate.day(CivilDate(2026, 10, 4)),
+            provenance: SupportingProvenance(
+              mode: SupportingProvenanceMode.manualTranscription,
+              laboratoryName: 'Synthetic laboratory',
+            ),
+            results: [
+              LabResultSnapshot(
+                id: 'result-3',
+                metricId: 'metric-1',
+                markerName: 'Marker',
+                value: SupportingValue.numeric('2'),
+                unit: 'mg/L',
+              ),
+            ],
+            notes: 'Secret partial note',
+          ),
+        ),
+      );
+
+      final document = await store.captureExport(selection());
+      expect(document.undatedCollection, isNotNull);
+      expect(document.undatedCollection!.counted, isTrue);
+      expect(document.undatedCollection!.records, 2);
+      // The positioned record keeps its exact in-range cutoff.
+      expect(document.supporting.map((row) => row.recordId), ['panel-1']);
+      expect(
+        document.supporting.single.snapshot.collectionDate.civilDate,
+        CivilDate(2026, 10, 2),
+      );
+
+      final json = document.toJson();
+      final omissions = json['omissions'] as Map<String, Object?>;
+      final disclosed =
+          omissions['collectionDateUnknownOrPartial'] as Map<String, Object?>;
+      expect(disclosed['records'], 2);
+      expect(disclosed['counted'], true);
+      expect(disclosed.containsKey('title'), isFalse);
+      expect(disclosed.containsKey('notes'), isFalse);
+      expect(json['supporting'], hasLength(1));
+
+      final bytes = utf8.decode(ExportArtifact.build(document).bytes);
+      expect(bytes, contains('collectionDateUnknownOrPartial'));
+      expect(bytes, contains('"records": 2'));
+      expect(bytes, isNot(contains('Secret partial report')));
+      expect(bytes, isNot(contains('Secret partial note')));
+      expect(bytes, isNot(contains('2024-10')));
+
+      final csv = await store.captureExport(
+        selection(format: ExportFormat.csv),
+      );
+      final csvBytes = utf8.decode(ExportArtifact.build(csv).bytes);
+      expect(csvBytes, isNot(contains('Secret partial report')));
+      expect(csvBytes, contains('2026-10-02'));
+    },
+  );
+
+  test('a voided unpositioned record is disclosed without leaking', () async {
+    await panel(
+      id: 'panel-2',
+      notes: null,
+      collectionDate: SupportingDate.unknown(),
+    );
+    await store.voidSupportingRecord(
+      VoidSupportingRecordCommand(
+        commandId: 'void',
+        generation: store.generation,
+        personId: meId,
+        id: 'panel-2',
+        expectedPersonRevision: 2,
+        expectedRevision: 1,
+        isVoided: true,
+      ),
+    );
+    final document = await store.captureExport(selection());
+    expect(document.supporting, isEmpty);
+    expect(document.undatedCollection!.records, 1);
+  });
+
+  test('omissions respect the supporting selection', () async {
+    await panel(
+      id: 'panel-2',
+      notes: null,
+      collectionDate: SupportingDate.unknown(),
+    );
+    final dosed = await store.captureExport(
+      selection(contents: const [ExportContent.doses]),
+    );
+    expect(dosed.undatedCollection, isNull);
+    expect((dosed.toJson()).containsKey('omissions'), isFalse);
+  });
+
+  test('a reached counting bound is uncounted, never fabricated', () async {
+    await panel(
+      id: 'panel-2',
+      notes: null,
+      collectionDate: SupportingDate.unknown(),
+    );
+    await panel(
+      id: 'panel-3',
+      notes: null,
+      collectionDate: SupportingDate.partial(originalText: 'unknown month'),
+    );
+    final document = await store.captureExport(
+      selection(limits: const ExportLimits(maxSupportingRecords: 1)),
+    );
+    expect(document.undatedCollection!.counted, isFalse);
+    expect(document.undatedCollection!.records, isNull);
+    final disclosed =
+        ((document.toJson()['omissions']
+                as Map<String, Object?>)['collectionDateUnknownOrPartial']
+            as Map<String, Object?>);
+    expect(disclosed['records'], isNull);
+    expect(disclosed['counted'], isFalse);
   });
 
   test(

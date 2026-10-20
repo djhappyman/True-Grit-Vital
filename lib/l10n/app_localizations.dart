@@ -7036,6 +7036,18 @@ abstract class AppLocalizations {
   /// **'{count, plural, =0{No supporting results} =1{1 supporting result} other{{count} supporting results}}'**
   String exportSupportingResultCount(int count);
 
+  /// Complete summary of the supporting records the reviewed export deliberately leaves out because their collection date cannot be placed in the selected range.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 supporting record has an unknown or partial collection date and is left out of this file.} other{{count} supporting records have unknown or partial collection dates and are left out of this file.}}'**
+  String exportUndatedExcluded(int count);
+
+  /// Review state when the unknown or partial collection dates exceeded the bounded counting window, so no exact number is claimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Supporting records with unknown or partial collection dates were not all counted and are left out of this file.'**
+  String get exportUndatedUncounted;
+
   /// Exact byte size of the reviewed export file.
   ///
   /// In en, this message translates to:
