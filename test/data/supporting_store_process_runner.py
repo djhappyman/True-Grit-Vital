@@ -40,12 +40,15 @@ for modes in [
     ('migration-init', 'migration-before-20', 'migration-retry'),
     ('migration-init', 'migration-before-99', 'migration-retry'),
     ('migration-init', 'migration-after', 'migration-verify'),
+    ('migration-init19', 'migration-before20-1', 'migration-retry20', 'migration-verify'),
+    ('migration-init19', 'migration-before20-3', 'migration-retry20', 'migration-verify'),
+    ('migration-init19', 'migration-before20-99', 'migration-retry20', 'migration-verify'),
 ]:
     directory = tempfile.mkdtemp(prefix='vital-supporting-migration-')
     try:
         for mode in modes:
             result = subprocess.run([str(dart), 'run', str(root / 'test/data/supporting_store_process.dart'), directory, mode], cwd=root, text=True, capture_output=True, timeout=120)
-            expected = 91 if mode.startswith('migration-before-') else 92 if mode == 'migration-after' else 0
+            expected = 91 if mode.startswith('migration-before') else 92 if mode == 'migration-after' else 0
             if result.returncode != expected:
                 raise RuntimeError(f'{mode}: expected {expected}, got {result.returncode}\n{result.stdout[-4000:]}\n{result.stderr[-4000:]}')
             print(result.stdout.strip() or f'PASS supporting {mode} expected-exit={expected}', flush=True)

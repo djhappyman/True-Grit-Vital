@@ -6218,14 +6218,20 @@ abstract class AppLocalizations {
   /// Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word.
   ///
   /// In en, this message translates to:
-  /// **'Results are grouped by marker, original unit, laboratory, method and specimen. Points are shown separately. No totals or clinical interpretation are calculated.'**
+  /// **'Results are grouped by marker, original unit, laboratory, method and specimen. The table shows exact source values first. Points are separate. No totals or clinical interpretation are calculated.'**
   String get supportingTrendScope;
 
   /// Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word.
   ///
   /// In en, this message translates to:
-  /// **'No results for this marker and date range.'**
+  /// **'No numeric results for this marker and date range. Use the table to inspect every result.'**
   String get supportingNoTrend;
+
+  /// Empty supporting trend for the selected marker and date range.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for this marker in the selected dates.'**
+  String get supportingNoMatches;
 
   /// Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word.
   ///
@@ -6374,7 +6380,7 @@ abstract class AppLocalizations {
   /// Complete supporting record message.
   ///
   /// In en, this message translates to:
-  /// **'{count} exact numeric results. Use the table to inspect every result.'**
+  /// **'{count, plural, =1{1 exact numeric result. Use the table to inspect every result.} other{{count} exact numeric results. Use the table to inspect every result.}}'**
   String supportingPlotLabel(int count);
 
   /// Supporting records context and precise display state.
@@ -6476,8 +6482,2299 @@ abstract class AppLocalizations {
   /// Manual supporting form heading or essential save requirement.
   ///
   /// In en, this message translates to:
-  /// **'Enter at least one value or text result. Save before attaching source files.'**
+  /// **'Add a value, text or note. Save before attaching source files.'**
   String get supportingObservationManual;
+
+  /// Supporting observation component field.
+  ///
+  /// In en, this message translates to:
+  /// **'Component'**
+  String get supportingComponent;
+
+  /// Search field label in the saved marker picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Search markers'**
+  String get supportingSearchMarkers;
+
+  /// Draft supporting form with no result rows yet.
+  ///
+  /// In en, this message translates to:
+  /// **'No values entered.'**
+  String get supportingNoValues;
+
+  /// Helper for retaining a source qualifier in the original value text.
+  ///
+  /// In en, this message translates to:
+  /// **'Type <, ≤, > or ≥ before the value when the source uses a limit.'**
+  String get supportingValueHint;
+
+  /// Disclosure label for optional saved laboratory, method and specimen identity values.
+  ///
+  /// In en, this message translates to:
+  /// **'Identifiers'**
+  String get supportingIdentifiers;
+
+  /// Explicit supporting result state distinct from zero and from a missing unit.
+  ///
+  /// In en, this message translates to:
+  /// **'No result supplied.'**
+  String get supportingResultMissing;
+
+  /// Explicit missing supporting unit distinct from an entered unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit not supplied.'**
+  String get supportingUnitMissing;
+
+  /// Explicit missing supporting source range.
+  ///
+  /// In en, this message translates to:
+  /// **'Range not supplied.'**
+  String get supportingRangeMissing;
+
+  /// Original saved date, zone and offset shown separately from the display date.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved source: {source}.'**
+  String supportingSavedSource(String source);
+
+  /// The requested zone used for displayed exact dates.
+  ///
+  /// In en, this message translates to:
+  /// **'Display zone: {zone}.'**
+  String supportingDisplayZone(String zone);
+
+  /// Accessible summary for one saved supporting result row.
+  ///
+  /// In en, this message translates to:
+  /// **'{marker}. Original value: {value}. Unit: {unit}. Source range: {range}.'**
+  String supportingResultSemantics(
+    String marker,
+    String value,
+    String unit,
+    String range,
+  );
+
+  /// Accessible name for a result row marker disclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose marker for result {position}.'**
+  String supportingMarkerDisclosure(int position);
+
+  /// One-word action that opens a saved supporting record or source.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get supportingOpen;
+
+  /// Honest state when a saved supporting source version cannot be opened.
+  ///
+  /// In en, this message translates to:
+  /// **'This saved source is no longer available. The record keeps its saved source details.'**
+  String get supportingSourceUnavailable;
+
+  /// The captured source revision or content version is no longer the current attachment.
+  ///
+  /// In en, this message translates to:
+  /// **'This saved source changed after it was saved. Its exact original is not available.'**
+  String get supportingSourceChanged;
+
+  /// A source reference that is a report text rather than an attachment.
+  ///
+  /// In en, this message translates to:
+  /// **'This source is saved as text only. No file is attached.'**
+  String get supportingSourceTextOnly;
+
+  /// Identifies the exact saved attachment version being viewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved source version {version}.'**
+  String supportingSourceViewing(int version);
+
+  /// Visible label for one saved supporting source reference.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved source, version {version}'**
+  String supportingSavedSourceReference(int version);
+
+  /// Section label for saved supporting source references.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved sources'**
+  String get supportingSourceReferences;
+
+  /// Accessible name for opening one exact saved source version.
+  ///
+  /// In en, this message translates to:
+  /// **'Open saved source version {version}.'**
+  String supportingOpenSourceVersion(int version);
+
+  /// Labelled supporting trend table section for results without a full date.
+  ///
+  /// In en, this message translates to:
+  /// **'Undated results'**
+  String get supportingUndatedResults;
+
+  /// Explains why undated or partial-date results cannot be plotted.
+  ///
+  /// In en, this message translates to:
+  /// **'Results without a full date are kept here. They are not placed on the trend.'**
+  String get supportingUndatedHelp;
+
+  /// Short group reference for a supporting trend row without a full date.
+  ///
+  /// In en, this message translates to:
+  /// **'Undated group'**
+  String get supportingUndatedGroup;
+
+  /// Visible and accessible summary of a supporting trend comparison group.
+  ///
+  /// In en, this message translates to:
+  /// **'{marker}. Unit: {unit}. Laboratory: {laboratory}. Method: {method}. Specimen: {specimen}.'**
+  String supportingGroupSummary(
+    String marker,
+    String unit,
+    String laboratory,
+    String method,
+    String specimen,
+  );
+
+  /// Comparison group summary for an observed component without laboratory metadata.
+  ///
+  /// In en, this message translates to:
+  /// **'{marker}. Unit: {unit}. Observation.'**
+  String supportingGroupObservation(String marker, String unit);
+
+  /// Conservative comparison state for observed components without laboratory identity.
+  ///
+  /// In en, this message translates to:
+  /// **'Observed components are kept separate. No trend line joins them.'**
+  String get supportingGroupObservationSeparate;
+
+  /// Stable visible number for one supporting trend group.
+  ///
+  /// In en, this message translates to:
+  /// **'Group {current} of {count}.'**
+  String supportingGroupNumber(int current, int count);
+
+  /// Short group reference shown in a supporting trend table row.
+  ///
+  /// In en, this message translates to:
+  /// **'Group {number}'**
+  String supportingGroupShort(int number);
+
+  /// Labels the currently selected supporting trend group.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected group'**
+  String get supportingSelectedGroup;
+
+  /// Heading for the supporting trend comparison group selector.
+  ///
+  /// In en, this message translates to:
+  /// **'Groups'**
+  String get supportingGroups;
+
+  /// Explains the exact supporting table order.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest results first for the chosen date basis.'**
+  String get supportingTableOrder;
+
+  /// Accessible name for opening one saved supporting record.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {title}.'**
+  String supportingOpenRecord(String title);
+
+  /// Authored page heading for the supporting record list.
+  ///
+  /// In en, this message translates to:
+  /// **'Supporting records'**
+  String get supportingRecordsHeading;
+
+  /// Supporting date filter error with a recovery step.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter valid dates. The end date must be after the start.'**
+  String get supportingFilterInvalid;
+
+  /// Positive description for the supporting unknown-date filter toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show records without a full date separately.'**
+  String get supportingIncludeUnknownHint;
+
+  /// Summary when no supporting date filter is applied.
+  ///
+  /// In en, this message translates to:
+  /// **'All dates'**
+  String get supportingAllDates;
+
+  /// Heading for observation values in the draft form.
+  ///
+  /// In en, this message translates to:
+  /// **'Values'**
+  String get supportingValues;
+
+  /// Plain helper for a saved supporting date.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the date as written on the source.'**
+  String get supportingDateHelp;
+
+  /// Helper for an exact supporting source time.
+  ///
+  /// In en, this message translates to:
+  /// **'Include the source time and offset, for example 2026-10-19T09:30+01:00.'**
+  String get supportingExactDateHelp;
+
+  /// Helper for optional source time zone provenance.
+  ///
+  /// In en, this message translates to:
+  /// **'The source time zone, when the report names one.'**
+  String get supportingZoneHelp;
+
+  /// Files help for a supporting record rather than a dose.
+  ///
+  /// In en, this message translates to:
+  /// **'A source file does not confirm a recorded result. Keep the original report with its saved values.'**
+  String get attachmentSupportingHelp;
+
+  /// Explains disabled file addition for a voided supporting record.
+  ///
+  /// In en, this message translates to:
+  /// **'This supporting record is voided. Its saved files stay available to view, but new files cannot be added.'**
+  String get attachmentSupportingVoided;
+
+  /// No description provided for @supportingVoidPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Void pending'**
+  String get supportingVoidPending;
+
+  /// No description provided for @supportingRestorePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore pending'**
+  String get supportingRestorePending;
+
+  /// No description provided for @supportingVoidPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request is saved on this device. Resume to check and finish it, or discard it.'**
+  String get supportingVoidPendingBody;
+
+  /// No description provided for @supportingVoidNotSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Request not saved. Nothing changed. Try again.'**
+  String get supportingVoidNotSaved;
+
+  /// No description provided for @supportingVoidChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Record changed. Review the latest revision, then discard the saved request.'**
+  String get supportingVoidChanged;
+
+  /// No description provided for @supportingVoidUncertain.
+  ///
+  /// In en, this message translates to:
+  /// **'The outcome is not confirmed. Your request is saved. Resume to check it.'**
+  String get supportingVoidUncertain;
+
+  /// No description provided for @supportingVoidArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'This adult is archived. Discard the saved request or restore the adult first.'**
+  String get supportingVoidArchived;
+
+  /// No description provided for @supportingVoidMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'This record is unavailable. Discard the saved request.'**
+  String get supportingVoidMissing;
+
+  /// No description provided for @supportingVoidSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Record voided.'**
+  String get supportingVoidSaved;
+
+  /// No description provided for @supportingRestoreSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Record restored.'**
+  String get supportingRestoreSaved;
+
+  /// No description provided for @supportingVoidDiscarded.
+  ///
+  /// In en, this message translates to:
+  /// **'Request discarded.'**
+  String get supportingVoidDiscarded;
+
+  /// Page title for structured JSON or CSV export.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get exportTitle;
+
+  /// Explains the single-person structured export selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one adult, a date range and the content to include. The preview is the exact file you can save.'**
+  String get exportSelectionHelp;
+
+  /// Label for choosing the one adult whose records are exported.
+  ///
+  /// In en, this message translates to:
+  /// **'Adult'**
+  String get exportPerson;
+
+  /// Marks an archived adult that can still be exported deliberately.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (archived)'**
+  String exportArchivedLabel(String name);
+
+  /// Heading for the export date range.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get exportRange;
+
+  /// Label for the inclusive start date.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get exportFrom;
+
+  /// Label for the exclusive end date.
+  ///
+  /// In en, this message translates to:
+  /// **'Before'**
+  String get exportBefore;
+
+  /// Plain explanation of the export date boundaries and time zone.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates use {zone}. From is included. Before is not.'**
+  String exportRangeHelp(String zone);
+
+  /// Heading for choosing which record types are exported.
+  ///
+  /// In en, this message translates to:
+  /// **'Content'**
+  String get exportContent;
+
+  /// Toggle label for recorded dose revisions.
+  ///
+  /// In en, this message translates to:
+  /// **'Doses'**
+  String get exportDoses;
+
+  /// Explains that dose corrections and original units are included.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded doses with every saved correction and the units used at entry.'**
+  String get exportDosesHelp;
+
+  /// Toggle label for observations and lab panels.
+  ///
+  /// In en, this message translates to:
+  /// **'Supporting'**
+  String get exportSupporting;
+
+  /// Explains which supporting records are included.
+  ///
+  /// In en, this message translates to:
+  /// **'Observations and lab panels recorded in the selected dates.'**
+  String get exportSupportingHelp;
+
+  /// Privacy statement for single-person export.
+  ///
+  /// In en, this message translates to:
+  /// **'Only this adult is included. Other adults and their records are never exported.'**
+  String get exportPrivateHelp;
+
+  /// Heading for private inclusion choices.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get exportPrivacy;
+
+  /// Toggle label for including supporting notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get exportNotes;
+
+  /// Explains the notes toggle and that attachments are excluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Include supporting notes in the file. Source files are never included.'**
+  String get exportNotesHelp;
+
+  /// Confirms the one adult included in the export.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected: {name}'**
+  String exportSinglePerson(String name);
+
+  /// Heading for choosing JSON or CSV.
+  ///
+  /// In en, this message translates to:
+  /// **'Format'**
+  String get exportFormat;
+
+  /// JSON format choice. Not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'JSON'**
+  String get exportFormatJson;
+
+  /// CSV format choice. Not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV'**
+  String get exportFormatCsv;
+
+  /// Explains the difference between JSON and CSV exports.
+  ///
+  /// In en, this message translates to:
+  /// **'JSON keeps the full structure and meanings. CSV is a flat table for spreadsheets.'**
+  String get exportFormatHelp;
+
+  /// Command button that prepares the exact reviewed file.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get exportPreview;
+
+  /// Status heading while the export is captured and encoded.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing'**
+  String get exportPreparing;
+
+  /// Explains the bounded export preparation while it runs.
+  ///
+  /// In en, this message translates to:
+  /// **'Building one file from the selected records. Cancel leaves nothing saved.'**
+  String get exportPreparingHelp;
+
+  /// Status while the destination handoff is running.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving the reviewed file.'**
+  String get exportSaving;
+
+  /// Command button that stops export preparation or saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get exportCancel;
+
+  /// Heading for the export summary before saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get exportReview;
+
+  /// Complete summary of the export date boundaries.
+  ///
+  /// In en, this message translates to:
+  /// **'From {from} up to, but not including, {before}.'**
+  String exportDateRange(String from, String before);
+
+  /// Shows the time zone used for the date boundaries.
+  ///
+  /// In en, this message translates to:
+  /// **'Time zone: {zone}'**
+  String exportZoneLabel(String zone);
+
+  /// Lists the selected record types in the review.
+  ///
+  /// In en, this message translates to:
+  /// **'Content: {content}'**
+  String exportContentLabel(String content);
+
+  /// Review state when supporting notes are included.
+  ///
+  /// In en, this message translates to:
+  /// **'Supporting notes included.'**
+  String get exportNotesIncluded;
+
+  /// Review state when supporting notes are excluded.
+  ///
+  /// In en, this message translates to:
+  /// **'Supporting notes excluded.'**
+  String get exportNotesExcluded;
+
+  /// Number of dose records in the reviewed export.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No dose records} =1{1 dose record} other{{count} dose records}}'**
+  String exportDoseCount(int count);
+
+  /// Number of saved dose revisions, including corrections.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No dose revisions} =1{1 saved dose revision} other{{count} saved dose revisions}}'**
+  String exportRevisionCount(int count);
+
+  /// Number of supporting records in the reviewed export.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No supporting records} =1{1 supporting record} other{{count} supporting records}}'**
+  String exportSupportingCount(int count);
+
+  /// Number of supporting results across saved revisions.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No supporting results} =1{1 supporting result} other{{count} supporting results}}'**
+  String exportSupportingResultCount(int count);
+
+  /// Exact byte size of the reviewed export file.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 byte} other{{count} bytes}}'**
+  String exportByteCount(int count);
+
+  /// Neutral generated file name shown in the review.
+  ///
+  /// In en, this message translates to:
+  /// **'File: {name}'**
+  String exportFileName(String name);
+
+  /// Label for the checksum of the exact reviewed file.
+  ///
+  /// In en, this message translates to:
+  /// **'SHA-256'**
+  String get exportChecksumLabel;
+
+  /// Explains that the preview and saved file are identical bytes.
+  ///
+  /// In en, this message translates to:
+  /// **'This preview is the start of the exact file Save delivers.'**
+  String get exportExactArtifact;
+
+  /// Command button that hands the reviewed file to the destination.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get exportSave;
+
+  /// Command button that returns to the export selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get exportChange;
+
+  /// Confirmation after the destination reports a saved file.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved.'**
+  String get exportSaved;
+
+  /// Confirmation after the destination reports a share handoff.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared.'**
+  String get exportShared;
+
+  /// Honest state when no destination handoff is installed.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving is not available on this device. Preview only.'**
+  String get exportUnavailable;
+
+  /// Shown when export is requested behind the app lock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock the app to export records.'**
+  String get exportLocked;
+
+  /// Recovery message when the display zone cannot be resolved.
+  ///
+  /// In en, this message translates to:
+  /// **'The display time zone is unavailable. Check the device time zone, then try again.'**
+  String get exportZone;
+
+  /// Confirmation that cancellation saved nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Export cancelled. Nothing was saved.'**
+  String get exportCancelled;
+
+  /// Recovery message when an export bound is reached.
+  ///
+  /// In en, this message translates to:
+  /// **'This selection is too large. Choose a shorter date range or less content.'**
+  String get exportTooLarge;
+
+  /// Validation message when no export content is selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose at least one content type.'**
+  String get exportChooseContent;
+
+  /// Validation message for an invalid export date range.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter valid dates. Before must be later than From.'**
+  String get exportInvalidRange;
+
+  /// Generic export preparation failure with recovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to prepare the export. Nothing was saved. Try again.'**
+  String get exportFailed;
+
+  /// Confirmation that a cancelled save copied nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'Save cancelled. The preview is unchanged.'**
+  String get exportHandoffCancelled;
+
+  /// Save failure that preserves the reviewed preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save. The preview is unchanged. Try again.'**
+  String get exportSaveFailed;
+
+  /// Disclosure containing optional source details, saved files and notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get supportingDetails;
+
+  /// Visible one-word command that captures an existing saved file as this record source.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach'**
+  String get supportingAttach;
+
+  /// Non-actionable state showing that the current saved file version is already a source.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached'**
+  String get supportingAttached;
+
+  /// Heading for saved files that can be captured as a source.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved files'**
+  String get supportingSourceFiles;
+
+  /// Explains the frozen source version; no claim that the file proves a result.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a file for this adult. The saved file version stays linked if the file changes later.'**
+  String get supportingSourceFilesHelp;
+
+  /// Empty state for saved source candidates.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved files for this adult.'**
+  String get supportingNoSourceFiles;
+
+  /// Truthful trend limitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Some results in this group have no full date. They are listed separately and do not connect the line.'**
+  String get supportingGroupUndated;
+
+  /// Supporting form stale-record recovery; no History or Today instruction.
+  ///
+  /// In en, this message translates to:
+  /// **'This supporting record changed. Open Supporting records and review the latest revision before editing.'**
+  String get supportingConflict;
+
+  /// Supporting draft invalidated by deletion or dataset replacement.
+  ///
+  /// In en, this message translates to:
+  /// **'This entry is no longer available. Open Supporting records to review saved records.'**
+  String get supportingDraftUnavailable;
+
+  /// Supporting entry whose operation already committed.
+  ///
+  /// In en, this message translates to:
+  /// **'This supporting record was already saved. Open it to review the latest revision.'**
+  String get supportingDraftSaved;
+
+  /// Supporting local draft persistence failure.
+  ///
+  /// In en, this message translates to:
+  /// **'Your latest changes were not kept on this device. Stay here and try again.'**
+  String get supportingDraftFailure;
+
+  /// Supporting save failure after an unconfirmed operation.
+  ///
+  /// In en, this message translates to:
+  /// **'The supporting record could not be saved. Retry with the same details.'**
+  String get supportingSaveFailure;
+
+  /// Empty observation state with a truthful next action.
+  ///
+  /// In en, this message translates to:
+  /// **'No values entered. Add a value, or add a note in Details.'**
+  String get supportingNoValuesObservation;
+
+  /// Accessible name for the one-word Attach command on a saved file.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach {name}.'**
+  String supportingAttachSource(String name);
+
+  /// Accessible name for the one-word Remove command on a captured source.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove saved source {name}.'**
+  String supportingRemoveSource(String name);
+
+  /// Observation empty-state validation with a concrete next action.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a value or a note before saving this observation.'**
+  String get supportingObservationRequired;
+
+  /// No description provided for @reminderLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'Limits'**
+  String get reminderLimits;
+
+  /// No description provided for @reminderLimitsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Android may delay or drop alerts after a force stop, battery limit or long gap. Reopen Vital to prepare more.'**
+  String get reminderLimitsBody;
+
+  /// Settings screen heading and shell navigation label.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// Short introduction to the settings inventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance, people, privacy and help.'**
+  String get settingsBody;
+
+  /// Settings notice when appearance or time format persistence failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Some display changes were not saved. Try again in Appearance.'**
+  String get settingsDisplayUnsaved;
+
+  /// People row helper in Settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Add or edit adults.'**
+  String get settingsPeopleBody;
+
+  /// Privacy row helper in Settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive, delete or review copies.'**
+  String get settingsPrivacyBody;
+
+  /// Settings group heading for appearance and time controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get display;
+
+  /// Appearance row helper in Settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme, motion, app lock and time.'**
+  String get settingsAppearanceBody;
+
+  /// Settings group heading for reminder controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts'**
+  String get alerts;
+
+  /// Reminders row helper in Settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification settings and checks.'**
+  String get settingsRemindersBody;
+
+  /// Settings group heading for report, export, backup and restore routes.
+  ///
+  /// In en, this message translates to:
+  /// **'Data'**
+  String get data;
+
+  /// Reports row label, shown only when the report capability is available.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get reports;
+
+  /// Reports row helper in Settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Review a person’s substance report.'**
+  String get settingsReportsBody;
+
+  /// Exports row label, shown only when the export capability is available.
+  ///
+  /// In en, this message translates to:
+  /// **'Exports'**
+  String get exports;
+
+  /// Exports row helper in Settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Save structured data for one person.'**
+  String get settingsExportsBody;
+
+  /// Backup row label, shown only when the backup capability is available.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get backup;
+
+  /// Backup row helper in Settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a protected full copy.'**
+  String get settingsBackupBody;
+
+  /// Restore row label, shown only when the restore capability is available.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restore;
+
+  /// Restore row helper in Settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace this installation from a backup.'**
+  String get settingsRestoreBody;
+
+  /// Settings group heading for diagnostics, help and licence information.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get support;
+
+  /// Diagnostics screen heading and Settings row label.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics'**
+  String get diagnostics;
+
+  /// Diagnostics row helper in Settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent local error codes.'**
+  String get settingsDiagnosticsBody;
+
+  /// Help screen heading and Settings row label.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get help;
+
+  /// Help row helper in Settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery, privacy and sources.'**
+  String get settingsHelpBody;
+
+  /// Licence screen heading and Settings row label.
+  ///
+  /// In en, this message translates to:
+  /// **'Licences'**
+  String get licences;
+
+  /// Licence row helper in Settings and Help.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundled open-source notices.'**
+  String get settingsLicencesBody;
+
+  /// Privacy screen heading and Settings row label.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get privacy;
+
+  /// Privacy screen introduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Records stay on this device. They leave only when you export or back up.'**
+  String get privacyBody;
+
+  /// Truthful limit of local adult profiles: they express relationship and ownership, not separate access rights.
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone who can unlock this device can see every local profile. Adult profiles are not separate accounts.'**
+  String get privacyOperator;
+
+  /// Explains the difference between archive and delete without exposing another person’s data.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive keeps history and stops reminders. Delete removes only that person’s records, files and drafts. Me stays available.'**
+  String get privacyArchiveHelp;
+
+  /// Privacy section heading for already-shared and stale backup copies.
+  ///
+  /// In en, this message translates to:
+  /// **'Copies'**
+  String get copies;
+
+  /// Explains stale backup and already-shared copy limits.
+  ///
+  /// In en, this message translates to:
+  /// **'Copies you saved or shared are outside Vital’s control. Restoring an old backup can bring back records you deleted here.'**
+  String get privacyCopies;
+
+  /// Privacy section heading listing retained archived adults.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived people'**
+  String get archivedPeople;
+
+  /// Explains retained history and stopped reminders until the operator explicitly resumes plans.
+  ///
+  /// In en, this message translates to:
+  /// **'History is kept. Reminders stay stopped until you set them again.'**
+  String get privacyArchivedHelp;
+
+  /// Empty state for the archived people section.
+  ///
+  /// In en, this message translates to:
+  /// **'No archived people.'**
+  String get privacyNoneArchived;
+
+  /// Explains that Me is retained when its records are deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Your records. Me stays available after deletion.'**
+  String get privacyMeOwner;
+
+  /// Ownership label for another adult in the privacy list.
+  ///
+  /// In en, this message translates to:
+  /// **'Records for this adult.'**
+  String get privacyOtherOwner;
+
+  /// Confirms deletion of only the main user’s records.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all saved records for Me? This cannot be undone. Me stays available and other people are not changed.'**
+  String get deleteMeBody;
+
+  /// Live result after archiving one adult.
+  ///
+  /// In en, this message translates to:
+  /// **'{person} archived. History is kept and reminders are stopped.'**
+  String privacyArchived(String person);
+
+  /// Accessible name for the visible one-word Archive command, naming the selected adult.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive {person}'**
+  String privacyArchiveSemantic(String person);
+
+  /// Accessible name for the visible one-word Reactivate command, naming the selected adult.
+  ///
+  /// In en, this message translates to:
+  /// **'Reactivate {person}'**
+  String privacyReactivateSemantic(String person);
+
+  /// Accessible name for the visible one-word Delete command, naming the selected adult.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {person}'**
+  String privacyDeleteSemantic(String person);
+
+  /// Accessible name for deleting only the main user’s records while Me stays available.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete records for {person}'**
+  String privacyDeleteRecordsSemantic(String person);
+
+  /// Live result after reactivating one adult.
+  ///
+  /// In en, this message translates to:
+  /// **'{person} reactivated. Reminders stay stopped until you set them again.'**
+  String privacyReactivated(String person);
+
+  /// Live result after deleting the main user’s records.
+  ///
+  /// In en, this message translates to:
+  /// **'Records deleted. Me is still available.'**
+  String get privacyMeDeleted;
+
+  /// Live result after deleting another adult.
+  ///
+  /// In en, this message translates to:
+  /// **'{person} deleted.'**
+  String privacyDeleted(String person);
+
+  /// Failure result for an archive, reactivation or deletion write.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not confirm the change. Review the people shown here before trying again.'**
+  String get privacyNotSaved;
+
+  /// Explains the bounded content of local diagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics stay on this device. They contain error codes and the platform only.'**
+  String get diagnosticsBody;
+
+  /// Truthfully states that no remote diagnostic sender exists.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is sent automatically. This build has no diagnostic uploader.'**
+  String get diagnosticsNoSend;
+
+  /// Empty state for the bounded local diagnostic log.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent issues.'**
+  String get diagnosticsEmpty;
+
+  /// Live result after clearing the local diagnostic log.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics cleared.'**
+  String get diagnosticsCleared;
+
+  /// Failure result when clearing the local diagnostic log did not persist.
+  ///
+  /// In en, this message translates to:
+  /// **'Not cleared. Try again.'**
+  String get diagnosticsClearFailure;
+
+  /// Local diagnostic event label for a data load failure.
+  ///
+  /// In en, this message translates to:
+  /// **'Data load failed'**
+  String get diagnosticDataLoad;
+
+  /// Local diagnostic event label for an unavailable bundled notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Licence notice failed'**
+  String get diagnosticLicenceNotice;
+
+  /// Local diagnostic event label for a profile archive or reactivation failure.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive failed'**
+  String get diagnosticProfileArchive;
+
+  /// Local diagnostic event label for a scoped deletion failure.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete failed'**
+  String get diagnosticProfileDelete;
+
+  /// Help screen introduction.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery, privacy and source information for this device.'**
+  String get helpBody;
+
+  /// Help section heading for truthful recovery steps.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery'**
+  String get recovery;
+
+  /// Recovery explanation for an unopened dataset.
+  ///
+  /// In en, this message translates to:
+  /// **'If Vital cannot open your records, it never starts an empty replacement. Unlock your device and retry.'**
+  String get recoveryOpen;
+
+  /// Linux-specific keyring recovery step.
+  ///
+  /// In en, this message translates to:
+  /// **'On Linux, unlock the login keyring so Vital can reach its key.'**
+  String get recoveryKeyring;
+
+  /// Recovery explanation for app lock authentication failure.
+  ///
+  /// In en, this message translates to:
+  /// **'If app lock fails, records stay hidden. Retry after your device unlocks.'**
+  String get recoveryLock;
+
+  /// Local-only privacy statement that avoids certification claims.
+  ///
+  /// In en, this message translates to:
+  /// **'Vital has no accounts, ads or analytics. Your records stay here unless you save or share a copy.'**
+  String get privacyLocal;
+
+  /// Explains generic notification text.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders use a generic message without names or amounts.'**
+  String get privacyNotifications;
+
+  /// Explains app-switcher preview protection when app lock is enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent-app previews are hidden while app lock is on.'**
+  String get privacySwitcher;
+
+  /// Explains the limit of an already-shared copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copies you share are outside Vital’s control.'**
+  String get privacyShared;
+
+  /// Help section heading for catalogue source metadata.
+  ///
+  /// In en, this message translates to:
+  /// **'Sources'**
+  String get sources;
+
+  /// Truthful source empty state when no catalogue is admitted.
+  ///
+  /// In en, this message translates to:
+  /// **'No catalogue is installed. Custom items are still available.'**
+  String get sourcesNone;
+
+  /// Failure result when catalogue metadata cannot be read.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalogue source details are unavailable.'**
+  String get sourcesUnavailable;
+
+  /// Help section heading for the product description.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
+  /// Short truthful product description without a medical claim.
+  ///
+  /// In en, this message translates to:
+  /// **'Vital keeps substance records for adults on this device.'**
+  String get aboutBody;
+
+  /// Truthful intended-purpose limit without claiming certification or clinical authority.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a personal record, not a clinical record or an emergency monitor.'**
+  String get aboutLimit;
+
+  /// Licence row label for the application’s own MIT licence.
+  ///
+  /// In en, this message translates to:
+  /// **'Vital licence'**
+  String get appLicence;
+
+  /// Licence row helper for the application licence.
+  ///
+  /// In en, this message translates to:
+  /// **'MIT licence text.'**
+  String get appLicenceBody;
+
+  /// Licence list heading for adopted open-source package notices.
+  ///
+  /// In en, this message translates to:
+  /// **'Package notices'**
+  String get packageNotices;
+
+  /// Explains the bundled licence information without claiming certification.
+  ///
+  /// In en, this message translates to:
+  /// **'Vital is open source under the MIT licence. Adopted package notices are bundled with the app.'**
+  String get licencesBody;
+
+  /// Detail screen heading for one bundled licence notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Licence'**
+  String get licence;
+
+  /// Licence list row helper for one package notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundled licence text.'**
+  String get licenceDetailBody;
+
+  /// Failure result when bundled licence notices cannot be read.
+  ///
+  /// In en, this message translates to:
+  /// **'Licence notices are unavailable in this build.'**
+  String get licencesUnavailable;
+
+  /// Page heading and History entry for person-scoped report selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get reportsTitle;
+
+  /// Plain explanation of the report selection before generation.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one adult, exact dates, and whether to include private context.'**
+  String get reportScopeHelp;
+
+  /// Adult selection label.
+  ///
+  /// In en, this message translates to:
+  /// **'Person'**
+  String get reportPerson;
+
+  /// Start date label.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get reportFrom;
+
+  /// Inclusive end date label.
+  ///
+  /// In en, this message translates to:
+  /// **'Through'**
+  String get reportThrough;
+
+  /// Exact date entry format.
+  ///
+  /// In en, this message translates to:
+  /// **'Use YYYY-MM-DD.'**
+  String get reportDateHelp;
+
+  /// Explains that the end date is included.
+  ///
+  /// In en, this message translates to:
+  /// **'The end date is included.'**
+  String get reportThroughHelp;
+
+  /// Explains the optional report identity.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Shown on the first page.'**
+  String get reportNameHelp;
+
+  /// Heading for item content selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Content'**
+  String get reportContent;
+
+  /// Explains the default all-items scope.
+  ///
+  /// In en, this message translates to:
+  /// **'All items are included unless you choose specific items.'**
+  String get reportContentHelp;
+
+  /// Selects every recorded item.
+  ///
+  /// In en, this message translates to:
+  /// **'All items'**
+  String get reportAllItems;
+
+  /// Empty item content state.
+  ///
+  /// In en, this message translates to:
+  /// **'No recorded items in this period.'**
+  String get reportNoItems;
+
+  /// Toggle label for supporting context.
+  ///
+  /// In en, this message translates to:
+  /// **'Supporting records'**
+  String get reportContext;
+
+  /// Explains supporting context inclusion.
+  ///
+  /// In en, this message translates to:
+  /// **'Include supporting records from the selected period.'**
+  String get reportContextHelp;
+
+  /// Toggle label for private notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Private notes'**
+  String get reportNotes;
+
+  /// Explains private note inclusion.
+  ///
+  /// In en, this message translates to:
+  /// **'Include saved notes for selected supporting records.'**
+  String get reportNotesHelp;
+
+  /// Toggle label for source files.
+  ///
+  /// In en, this message translates to:
+  /// **'Source files'**
+  String get reportSources;
+
+  /// Explains source file listing without embedding contents.
+  ///
+  /// In en, this message translates to:
+  /// **'List attached source file names. File contents stay separate.'**
+  String get reportSourcesHelp;
+
+  /// Heading for the selection review panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get reportReview;
+
+  /// Selected adult in the review summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Person: {name}'**
+  String reportPersonValue(String name);
+
+  /// Selected period and shown time zone.
+  ///
+  /// In en, this message translates to:
+  /// **'Period: {from} to {to}. Times shown in {zone}.'**
+  String reportPeriodValue(String from, String to, String zone);
+
+  /// Selected item count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 selected item} other{{count} selected items}}'**
+  String reportItemCount(int count);
+
+  /// Template identifier and version.
+  ///
+  /// In en, this message translates to:
+  /// **'Template {id} version {version}'**
+  String reportTemplateValue(String id, String version);
+
+  /// Progress state while reading records.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading records'**
+  String get reportCapturing;
+
+  /// Progress state while building the PDF.
+  ///
+  /// In en, this message translates to:
+  /// **'Building report'**
+  String get reportRendering;
+
+  /// One-word command to generate and preview the report.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get reportPreview;
+
+  /// Cancellation result with unchanged choices.
+  ///
+  /// In en, this message translates to:
+  /// **'Report cancelled. Your choices are unchanged.'**
+  String get reportCancelled;
+
+  /// Generic report failure with a recovery step.
+  ///
+  /// In en, this message translates to:
+  /// **'Report not created. Try again.'**
+  String get reportFailure;
+
+  /// Source limit failure with a recovery step.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many doses for one summary. Narrow the dates or items, then try again.'**
+  String get reportSourceLimit;
+
+  /// Attachment limit failure with a recovery step.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many source files for one summary. Choose fewer items, then try again.'**
+  String get reportAttachmentLimit;
+
+  /// Missing adult recovery.
+  ///
+  /// In en, this message translates to:
+  /// **'This adult is unavailable. Choose another adult.'**
+  String get reportPersonMissing;
+
+  /// Archived adult recovery.
+  ///
+  /// In en, this message translates to:
+  /// **'This adult is archived. Restore the adult or choose another adult.'**
+  String get reportPersonArchived;
+
+  /// Unavailable time zone recovery.
+  ///
+  /// In en, this message translates to:
+  /// **'The time zone is unavailable. Choose the device time zone, then try again.'**
+  String get reportZoneUnavailable;
+
+  /// Locked app recovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Vital is locked. Unlock it, then try again.'**
+  String get reportLocked;
+
+  /// Artifact ready state.
+  ///
+  /// In en, this message translates to:
+  /// **'Report ready.'**
+  String get reportGenerated;
+
+  /// Preview page heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Report preview'**
+  String get reportPreviewTitle;
+
+  /// Empty preview state.
+  ///
+  /// In en, this message translates to:
+  /// **'No report is ready. Return to Reports and preview one.'**
+  String get reportUnavailable;
+
+  /// Preview mode label.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get reportPreviewMode;
+
+  /// Structured text alternative mode label.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get reportText;
+
+  /// Page count and file size.
+  ///
+  /// In en, this message translates to:
+  /// **'{pages, plural, =1{1 page} other{{pages} pages}} · {kilobytes} KB'**
+  String reportArtifactValue(int pages, int kilobytes);
+
+  /// Truthful unavailable save and share notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Save and share are unavailable in this build. The preview is complete.'**
+  String get reportHandoffUnavailable;
+
+  /// Truthful unavailable save notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Save is unavailable in this build.'**
+  String get reportSaveUnavailable;
+
+  /// Truthful unavailable share notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Share is unavailable in this build.'**
+  String get reportShareUnavailable;
+
+  /// Completed handoff result.
+  ///
+  /// In en, this message translates to:
+  /// **'Report saved to the chosen location.'**
+  String get reportHandoffComplete;
+
+  /// Cancelled handoff result.
+  ///
+  /// In en, this message translates to:
+  /// **'Handoff cancelled.'**
+  String get reportHandoffCancelled;
+
+  /// Failed handoff result with a recovery step.
+  ///
+  /// In en, this message translates to:
+  /// **'Handoff failed. Try again.'**
+  String get reportHandoffFailed;
+
+  /// Neutral report id and document fingerprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Report {id} · Fingerprint {hash}'**
+  String reportArtifactIdentity(String id, String hash);
+
+  /// Accessibility and recipient-copy limitations.
+  ///
+  /// In en, this message translates to:
+  /// **'The PDF is not tagged. Use Text for the accessible structured version. Recipients\' copies are outside this app\'s control.'**
+  String get reportArtifactLimits;
+
+  /// One-word share command.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// Optional report identity field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Report name'**
+  String get reportIdentity;
+
+  /// Source changed during capture; recovery step is to retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Records changed while the report was prepared. Try again.'**
+  String get reportSourceChanged;
+
+  /// Page/item count limit with a recovery step.
+  ///
+  /// In en, this message translates to:
+  /// **'This report is too large. Narrow the dates or items, then try again.'**
+  String get reportPageLimit;
+
+  /// Share-sheet handoff does not prove receipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Report offered to the chosen app. Vital cannot confirm receipt.'**
+  String get reportShareOffered;
+
+  /// Report selection or validation message.
+  ///
+  /// In en, this message translates to:
+  /// **'Substance summary'**
+  String get reportSummaryTemplate;
+
+  /// Report selection or validation message.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed history'**
+  String get reportHistoryTemplate;
+
+  /// Report selection or validation message.
+  ///
+  /// In en, this message translates to:
+  /// **'Event review'**
+  String get reportEventTemplate;
+
+  /// Report selection or validation message.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped entries'**
+  String get reportSkippedRows;
+
+  /// Report selection or validation message.
+  ///
+  /// In en, this message translates to:
+  /// **'Include entries marked as skipped.'**
+  String get reportSkippedRowsHelp;
+
+  /// Report selection or validation message.
+  ///
+  /// In en, this message translates to:
+  /// **'Unrecorded entries'**
+  String get reportUnrecordedRows;
+
+  /// Report selection or validation message.
+  ///
+  /// In en, this message translates to:
+  /// **'Include past planned entries with no recorded action. These do not prove a missed dose.'**
+  String get reportUnrecordedRowsHelp;
+
+  /// Report selection or validation message.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an event to review.'**
+  String get reportEventRequired;
+
+  /// Report selection or validation message.
+  ///
+  /// In en, this message translates to:
+  /// **'This event is no longer available. Choose another event.'**
+  String get reportEventMissing;
+
+  /// Report selection or validation message.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose dates that cover the event’s recorded start and end.'**
+  String get reportEventRange;
+
+  /// Report selection or validation message.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one event and dates that cover its recorded start and end. Dates without a known boundary stay uncertain.'**
+  String get reportEventRangeHelp;
+
+  /// Report selection or validation message.
+  ///
+  /// In en, this message translates to:
+  /// **'No events are available for this person.'**
+  String get reportNoEvents;
+
+  /// Report selection or validation message.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a report name of 120 characters or fewer.'**
+  String get reportNameLimit;
+
+  /// Section heading above the backup password fields.
+  ///
+  /// In en, this message translates to:
+  /// **'Create backup'**
+  String get backupCreateHeading;
+
+  /// Prominent scope label; a full backup is not single-person.
+  ///
+  /// In en, this message translates to:
+  /// **'All adults included'**
+  String get backupAllAdults;
+
+  /// Prominent label that attached files are inside the full backup.
+  ///
+  /// In en, this message translates to:
+  /// **'Attached files included'**
+  String get backupIncludesFiles;
+
+  /// Visible label for the password used to protect a backup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup password'**
+  String get backupPasswordLabel;
+
+  /// Visible label for repeating the backup password.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get backupConfirmLabel;
+
+  /// Password length requirement shown before entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least 12 characters.'**
+  String get backupPasswordHelper;
+
+  /// Essential consequence before creating a password-protected backup.
+  ///
+  /// In en, this message translates to:
+  /// **'You need this password to restore your records. It cannot be recovered.'**
+  String get backupPasswordLoss;
+
+  /// Confirms that the backup password is not persisted.
+  ///
+  /// In en, this message translates to:
+  /// **'The password is not stored.'**
+  String get backupPasswordNotStored;
+
+  /// Progress state while a coherent database snapshot is captured.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing records'**
+  String get backupPreparing;
+
+  /// Progress state while the archive is authenticated and encrypted.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypting backup'**
+  String get backupEncrypting;
+
+  /// Progress state while the completed archive is reopened and verified.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking backup'**
+  String get backupChecking;
+
+  /// Result heading after a complete validated archive exists.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup ready'**
+  String get backupReadyHeading;
+
+  /// Verified full-backup scope counts.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes {people, plural, =1{1 adult} other{{people} adults}} and {attachments, plural, =1{1 file} other{{attachments} files}}.'**
+  String backupContents(int people, int attachments);
+
+  /// Neutral archive size.
+  ///
+  /// In en, this message translates to:
+  /// **'Size {size}.'**
+  String backupSize(String size);
+
+  /// Local creation date and time for the archive.
+  ///
+  /// In en, this message translates to:
+  /// **'Created {date}.'**
+  String backupCreated(String date);
+
+  /// Recovery explanation after a backup is ready.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the file and password safe. Restore needs both.'**
+  String get backupKeepSafe;
+
+  /// Consequence of leaving a ready backup without saving it.
+  ///
+  /// In en, this message translates to:
+  /// **'Save before leaving. An unsaved backup is deleted at the next launch.'**
+  String get backupUnsavedWarning;
+
+  /// Short heading when no generated-artifact save handoff is integrated.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot save'**
+  String get backupCannotSave;
+
+  /// Truthful capability statement when no save handoff is integrated.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving backup files is unavailable on this device.'**
+  String get backupSavingUnavailable;
+
+  /// Result heading after the destination confirms a completed save.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved'**
+  String get backupSavedHeading;
+
+  /// Neutral saved file name shown after the destination confirms the copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved as {name}.'**
+  String backupSavedBody(String name);
+
+  /// Confirmation title before deleting the staged backup file.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete backup?'**
+  String get backupDeleteHeading;
+
+  /// Consequence before deleting an unsaved backup file.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup file will be deleted. Your records are not changed.'**
+  String get backupDeleteBody;
+
+  /// Result heading after a user cancellation.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup cancelled'**
+  String get backupCancelled;
+
+  /// Confirms cancellation left no reported archive.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup was created.'**
+  String get backupCancelledBody;
+
+  /// Generic failure heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed'**
+  String get backupFailedHeading;
+
+  /// Recovery step and live-data assurance after a failed backup.
+  ///
+  /// In en, this message translates to:
+  /// **'Your records were not changed. Try again.'**
+  String get backupFailedBody;
+
+  /// Failure heading for a storage-capacity problem.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough space'**
+  String get backupNoSpaceHeading;
+
+  /// Recovery step and live-data assurance after low storage.
+  ///
+  /// In en, this message translates to:
+  /// **'Free some space and try again. Your records were not changed.'**
+  String get backupNoSpaceBody;
+
+  /// Failure heading when archive authentication rejects the password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password not accepted'**
+  String get backupWrongPassword;
+
+  /// Recovery step after a rejected backup password.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the password and try again.'**
+  String get backupWrongPasswordBody;
+
+  /// Failure heading when a file is not a valid or intact Vital backup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup damaged'**
+  String get backupDamagedHeading;
+
+  /// Truthful cause for rejected archive bytes.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is damaged or not a Vital backup.'**
+  String get backupDamagedBody;
+
+  /// Failure heading for a format or database version this build cannot open.
+  ///
+  /// In en, this message translates to:
+  /// **'Newer backup'**
+  String get backupNewerHeading;
+
+  /// Explains a version mismatch without inventing an upgrade path.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup needs a newer version of Vital.'**
+  String get backupNewerBody;
+
+  /// Failure heading when the archive does not match its own records.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup incomplete'**
+  String get backupIncompleteHeading;
+
+  /// Integrity failure explanation and live-data assurance.
+  ///
+  /// In en, this message translates to:
+  /// **'The file did not match its records. Your records were not changed.'**
+  String get backupIncompleteBody;
+
+  /// Instruction when app lock prevents a protected snapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to create a backup.'**
+  String get backupLocked;
+
+  /// Short failure heading for a locked app.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock first'**
+  String get backupLockedHeading;
+
+  /// Validation error for a short backup password.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least 12 characters.'**
+  String get backupShortPassword;
+
+  /// Validation error when the confirmation differs.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match.'**
+  String get backupPasswordMismatch;
+
+  /// Validation error for an unreasonably long password.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a shorter password.'**
+  String get backupPasswordLong;
+
+  /// Failure heading when another backup operation is already running.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup busy'**
+  String get backupBusyHeading;
+
+  /// Recovery step for a concurrent backup attempt.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish the current backup before starting another.'**
+  String get backupBusyBody;
+
+  /// Heading when protected storage or the backup service is not ready.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup unavailable'**
+  String get backupUnavailableHeading;
+
+  /// Guidance when the record store cannot provide a protected snapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Open your records before creating a backup.'**
+  String get backupUnavailableBody;
+
+  /// Heading when the destination did not confirm the save; the staged archive remains.
+  ///
+  /// In en, this message translates to:
+  /// **'Not saved'**
+  String get backupSaveFailedHeading;
+
+  /// Recovery step after the save handoff fails or is interrupted.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup file is still here. Try again.'**
+  String get backupSaveFailedBody;
+
+  /// One-word action that closes a completed result state.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// A backup exceeds the actual destination transfer limit; do not suggest a retry can fix it.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is larger than this device’s save limit. The staged backup is kept.'**
+  String get backupSaveLimit;
+
+  /// Heading for replacing this installation from a protected backup.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreTitle;
+
+  /// Explains the restore scope before choosing an archive.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a Vital backup to replace every record on this device. You review the backup before anything changes.'**
+  String get restoreIntro;
+
+  /// One-word button that opens the file picker for a backup archive.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get restoreChoose;
+
+  /// Label for the chosen backup archive name.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup file'**
+  String get restoreArchiveLabel;
+
+  /// Empty state for the backup file selection.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup chosen'**
+  String get restoreArchiveNone;
+
+  /// Label for the password that opens the chosen backup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup password'**
+  String get restorePasswordLabel;
+
+  /// Helper for the backup password field.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the password used when this backup was created.'**
+  String get restorePasswordHelp;
+
+  /// One-word button that validates the archive into protected staging.
+  ///
+  /// In en, this message translates to:
+  /// **'Check'**
+  String get restoreCheck;
+
+  /// Status while the archive is decrypted, verified and inspected.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking archive'**
+  String get restoreChecking;
+
+  /// Heading for the validated archive contents before replacement.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup contents'**
+  String get restorePreviewTitle;
+
+  /// Shows the archive creation date.
+  ///
+  /// In en, this message translates to:
+  /// **'Created {date}'**
+  String restoreCreated(String date);
+
+  /// Label for the people represented in the archive.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get restorePeople;
+
+  /// Count of people represented in the archive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No people} =1{1 person} other{{count} people}}'**
+  String restorePeopleCount(int count);
+
+  /// Explains that the preview list is bounded.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the first {count} people.'**
+  String restorePeopleMore(int count);
+
+  /// Suffix for an archived adult in the backup preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get restoreArchived;
+
+  /// Label for the earliest and latest dated records in the archive.
+  ///
+  /// In en, this message translates to:
+  /// **'Record dates'**
+  String get restoreCoverage;
+
+  /// Exact date range for restored records.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String restoreCoverageRange(String from, String to);
+
+  /// States that the archive contains no records with dates.
+  ///
+  /// In en, this message translates to:
+  /// **'No dated records'**
+  String get restoreCoverageEmpty;
+
+  /// Clarifies the time zone used for coverage dates.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates use this device\'s time zone.'**
+  String get restoreLocalDates;
+
+  /// Count of current non-voided administration records in the archive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No records} =1{1 record} other{{count} records}}'**
+  String restoreRecords(int count);
+
+  /// Count of tracked substances in the archive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No substances} =1{1 substance} other{{count} substances}}'**
+  String restoreSubstances(int count);
+
+  /// Count of non-voided supporting records in the archive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No supporting records} =1{1 supporting record} other{{count} supporting records}}'**
+  String restoreSupporting(int count);
+
+  /// Count of ready linked attachments in the archive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No attachments} =1{1 attachment} other{{count} attachments}}'**
+  String restoreAttachments(int count);
+
+  /// Warns that an older schema is migrated during restore.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup uses older app data. Vital will update it during restore.'**
+  String get restoreOlderWarning;
+
+  /// Explains that a full backup keeps adult records separate.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup contains {count} people. Their records stay separate.'**
+  String restoreMultipleWarning(int count);
+
+  /// States the full-replacement consequence and rollback boundary.
+  ///
+  /// In en, this message translates to:
+  /// **'Replacing removes current records, drafts and reminder settings for every person on this device. A rollback copy is kept until the restored dataset opens.'**
+  String get restoreConsequence;
+
+  /// Positive confirmation switch for a full replacement.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace all records'**
+  String get restoreReplaceAll;
+
+  /// Helper for the full replacement confirmation switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Current records will be replaced. Switch this on only after reviewing the backup contents.'**
+  String get restoreReplaceAllHelp;
+
+  /// One-word button that starts the confirmed full replacement.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get restoreReplace;
+
+  /// One-word button that abandons the current restore attempt.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get restoreCancel;
+
+  /// Status while the staged dataset is re-keyed and scrubbed.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing records'**
+  String get restorePreparing;
+
+  /// Status while the live dataset is replaced and verified.
+  ///
+  /// In en, this message translates to:
+  /// **'Replacing records'**
+  String get restoreReplacing;
+
+  /// Explains that replacement must not be interrupted.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep Vital open while this finishes.'**
+  String get restoreWorking;
+
+  /// Heading after the replacement dataset opened successfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore complete'**
+  String get restoreCompleteTitle;
+
+  /// Confirms which archive now supplies this device's records.
+  ///
+  /// In en, this message translates to:
+  /// **'This device now uses the records from {name}.'**
+  String restoreCompleteBody(String name);
+
+  /// Confirms device-local state was invalidated after replacement.
+  ///
+  /// In en, this message translates to:
+  /// **'Old drafts and reminder actions were cleared.'**
+  String get restoreCompleteCleared;
+
+  /// Explains reminder intention rebuilding after restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders will be rebuilt when you continue.'**
+  String get restoreCompleteReminder;
+
+  /// Truthful warning when the native reminder epoch could not be retired.
+  ///
+  /// In en, this message translates to:
+  /// **'Records were restored. Reminder schedules could not be cleared. Check reminder settings after reopening Vital.'**
+  String get restoreReminderWarning;
+
+  /// One-word button that leaves the completed restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get restoreDone;
+
+  /// Heading when the archive or replacement could not complete.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore failed'**
+  String get restoreFailedTitle;
+
+  /// One-word button that returns to the chooser with the same file.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get restoreRetry;
+
+  /// Heading when this host cannot run restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore unavailable'**
+  String get restoreUnavailable;
+
+  /// Truthful explanation for unavailable restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore needs the protected record store. Open Vital again and retry.'**
+  String get restoreUnavailableBody;
+
+  /// Shown when the app lock prevents restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Vital to restore records.'**
+  String get restoreLocked;
+
+  /// Recovery step after an incorrect backup password.
+  ///
+  /// In en, this message translates to:
+  /// **'That password does not open this backup. Check the password and try again.'**
+  String get restoreWrongPassword;
+
+  /// Safe failure for a damaged or unverifiable archive.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup cannot be opened safely. Current records were kept. Choose another backup.'**
+  String get restoreCorrupt;
+
+  /// Failure for an archive from a newer schema.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup was made by a newer version of Vital. Update Vital before restoring it.'**
+  String get restoreUnsupportedVersion;
+
+  /// Failure for an archive above the bounded intake or database limit.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is too large to restore on this device.'**
+  String get restoreTooLarge;
+
+  /// Validation message when no archive is selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a backup first.'**
+  String get restoreChooseArchive;
+
+  /// Validation message for an empty backup password.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the backup password.'**
+  String get restorePasswordRequired;
+
+  /// Validation message for a password above the byte limit.
+  ///
+  /// In en, this message translates to:
+  /// **'That password is too long.'**
+  String get restorePasswordLong;
+
+  /// Validation message when full replacement was not confirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch on Replace all records before replacing.'**
+  String get restoreConfirmationRequired;
+
+  /// Failure when a rollback copy and journal must be resolved at startup.
+  ///
+  /// In en, this message translates to:
+  /// **'Vital could not finish the last restore safely. Reopen Vital before trying again.'**
+  String get restoreRecoveryRequired;
+
+  /// Failure when staging or the rollback copy cannot be written.
+  ///
+  /// In en, this message translates to:
+  /// **'There is not enough protected storage to replace these records. Free some space and try again.'**
+  String get restoreStorage;
+
+  /// Failure when the picked archive byte count no longer matches.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup changed while it was being read. Choose it again.'**
+  String get restoreArchiveChanged;
+
+  /// Generic safe failure after a rejected or incomplete replacement.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing was replaced. Check the backup and try again.'**
+  String get restoreFailedBody;
+
+  /// States that a cancelled check left current records unchanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore cancelled. Current records were not changed.'**
+  String get restoreCancelled;
+
+  /// Shown when another restore action is still running.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore is already running.'**
+  String get restoreBusy;
+
+  /// Truthful in-memory notice after verified dataset recovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore complete. Vital is using the restored records.'**
+  String get restoreRecoveryCompleted;
+
+  /// Truthful in-memory notice after verified dataset recovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Vital recovered the previous records after an interrupted restore.'**
+  String get restoreRecoveryRolledBack;
+
+  /// Truthful in-memory notice after verified dataset recovery.
+  ///
+  /// In en, this message translates to:
+  /// **'An interrupted restore was cleared. Your existing records are still in use.'**
+  String get restoreRecoveryCleaned;
 }
 
 class _AppLocalizationsDelegate

@@ -1,5 +1,8 @@
 part of 'record_store.dart';
 
+// Identifier columns are validated text, never display names. A supporting
+// metric ID is globally unique and is never reused across adults; the app
+// creates a fresh ID for each new marker, so equal marker names stay separate.
 const supportingSchemaV19 = [
   '''CREATE TABLE supporting_record(id TEXT PRIMARY KEY,person TEXT NOT NULL REFERENCES person(id),kind TEXT NOT NULL CHECK(kind IN ('labPanel','observation')),revision INTEGER NOT NULL CHECK(revision>0),entered_at INTEGER NOT NULL,entry_day TEXT NOT NULL,voided INTEGER NOT NULL CHECK(voided IN (0,1)),collection_day TEXT,collection_at INTEGER,report_day TEXT,report_at INTEGER,UNIQUE(id,person),FOREIGN KEY(id,person,revision) REFERENCES supporting_revision(record,person,revision) DEFERRABLE INITIALLY DEFERRED) STRICT''',
   '''CREATE TABLE supporting_revision(record TEXT NOT NULL,person TEXT NOT NULL,revision INTEGER NOT NULL CHECK(revision>0),operation TEXT NOT NULL UNIQUE,entered_at INTEGER NOT NULL,snapshot TEXT NOT NULL CHECK(json_valid(snapshot)),header TEXT NOT NULL CHECK(json_valid(header)),PRIMARY KEY(record,person,revision),FOREIGN KEY(record,person) REFERENCES supporting_record(id,person) ON DELETE CASCADE) STRICT''',
@@ -35,6 +38,26 @@ const supportingSchemaV19 = [
   'DROP TABLE ordinary_draft_v18',
 ];
 
+/// Schema 20 adds only the bounded chronology access paths. Prior tables,
+/// rows, triggers and indexes from v19 remain untouched.
+const supportingSchemaV20 = [
+  // Exact instants: display-zone day ranges become instant ranges.
+  'CREATE INDEX supporting_collection_instant ON supporting_record(person,collection_at DESC,id) WHERE collection_at IS NOT NULL',
+  'CREATE INDEX supporting_report_instant ON supporting_record(person,report_at DESC,id) WHERE report_at IS NOT NULL',
+  // Supplied civil days, never converted between zones.
+  'CREATE INDEX supporting_collection_civil ON supporting_record(person,collection_day DESC,id) WHERE collection_at IS NULL AND collection_day IS NOT NULL',
+  'CREATE INDEX supporting_report_civil ON supporting_record(person,report_day DESC,id) WHERE report_at IS NULL AND report_day IS NOT NULL',
+  // Unknown and partial dates remain an explicit, separately bounded section.
+  'CREATE INDEX supporting_collection_unpositioned ON supporting_record(person,id) WHERE collection_at IS NULL AND collection_day IS NULL',
+  'CREATE INDEX supporting_report_unpositioned ON supporting_record(person,id) WHERE report_at IS NULL AND report_day IS NULL',
+];
+
+Future<void> _migrateSupportingV20(_Database db) async {
+  for (final sql in supportingSchemaV20) {
+    await db.customStatement(sql);
+  }
+}
+
 Future<void> _migrateSupportingV19(_Database db) async {
   // Rebuild only the known child before its parent, without disabling FKs.
   // A future unexpected child must receive an explicit migration design.
@@ -63,6 +86,35 @@ Future<void> _migrateSupportingV19(_Database db) async {
 
 Map<String, dynamic> _supportingObject(Object? value) =>
     Map<String, dynamic>.from(value as Map);
+
+/// One row of the merged collection/report chronology.
+///
+/// [day] is the display-zone day for exact instants and the supplied civil day
+/// for day-only records. Unknown and partial dates have no day and sort last.
+final class _SupportingFeedRow {
+  const _SupportingFeedRow(this.id, this.day, this.at);
+  final String id;
+  final String? day;
+  final int? at;
+}
+
+int _supportingFeedCompare(_SupportingFeedRow a, _SupportingFeedRow b) {
+  final aDay = a.day, bDay = b.day;
+  if (aDay == null && bDay != null) return 1;
+  if (aDay != null && bDay == null) return -1;
+  if (aDay != null && bDay != null) {
+    final order = bDay.compareTo(aDay);
+    if (order != 0) return order;
+  }
+  final aAt = a.at, bAt = b.at;
+  if (aAt == null && bAt != null) return 1;
+  if (aAt != null && bAt == null) return -1;
+  if (aAt != null && bAt != null) {
+    final order = bAt.compareTo(aAt);
+    if (order != 0) return order;
+  }
+  return a.id.compareTo(b.id);
+}
 
 final class SaveLabPanelCommand {
   const SaveLabPanelCommand({
@@ -203,6 +255,7 @@ final class SupportingQuery {
             eventId,
             includeVoided,
             displayZone,
+            limit,
           ]),
         ),
       )
@@ -472,13 +525,11 @@ extension SupportingRecordStore on RecordStore {
     return SupportingRevision.fromJson(_supportingObject(result['supporting']));
   }
 
-  String? _supportingDay(SupportingDate date) =>
-      date.civilDate?.toString() ??
-      (date.instant == null
-          ? null
-          : _supportingUtcDay(
-              date.instant!.add(Duration(minutes: date.utcOffsetMinutes ?? 0)),
-            ));
+  /// The supplied civil day only. An exact instant is never projected onto a
+  /// saved-offset day here: collection/report chronology uses the requested
+  /// display-zone date at query time, while the snapshot keeps the source zone
+  /// and offset facts unchanged.
+  String? _supportingDay(SupportingDate date) => date.civilDate?.toString();
   String _supportingUtcDay(DateTime instant) =>
       '${instant.year.toString().padLeft(4, '0')}-${instant.month.toString().padLeft(2, '0')}-${instant.day.toString().padLeft(2, '0')}';
 
@@ -643,42 +694,24 @@ extension SupportingRecordStore on RecordStore {
     }
   }
 
-  _HistorySql _supportingDateFilter(
-    SupportingDateBasis basis,
+  /// Disjoint record branches for one date basis.
+  ///
+  /// Chronology contract:
+  /// - exact instant: the requested display-zone civil date, ordered by instant;
+  /// - supplied day: that civil day, never converted between zones;
+  /// - unknown/partial: unpositioned, after every known day.
+  /// The branches are disjoint, so a record can appear in only one page stream.
+  List<_HistorySql> _supportingDateBranches({
+    required String at,
+    required String day,
     CivilDate? from,
     CivilDate? before,
-    String zone,
-    bool includeUnknown,
-  ) {
-    final day = basis == SupportingDateBasis.report
-        ? 's.report_day'
-        : basis == SupportingDateBasis.entry
-        ? 's.entry_day'
-        : 's.collection_day';
-    final at = basis == SupportingDateBasis.report
-        ? 's.report_at'
-        : basis == SupportingDateBasis.entry
-        ? 's.entered_at'
-        : 's.collection_at';
-    final known = <String>[], args = <Object?>[];
-    if (basis == SupportingDateBasis.entry) {
-      if (from != null) {
-        known.add('$at>=?');
-        args.add(
-          DisplayTime().dayBounds(from, zone).start.microsecondsSinceEpoch,
-        );
-      }
-      if (before != null) {
-        known.add('$at<?');
-        args.add(
-          DisplayTime().dayBounds(before, zone).start.microsecondsSinceEpoch,
-        );
-      }
-      return _HistorySql(known.isEmpty ? '1' : known.join(' AND '), args);
-    }
-    final exact = <String>['$at IS NOT NULL'],
-        civil = <String>['$at IS NULL', '$day IS NOT NULL'];
-    final exactArgs = <Object?>[], civilArgs = <Object?>[];
+    required String zone,
+    required bool includeUnknown,
+  }) {
+    final exact = <String>['$at IS NOT NULL'], exactArgs = <Object?>[];
+    final civil = <String>['$at IS NULL', '$day IS NOT NULL'],
+        civilArgs = <Object?>[];
     if (from != null) {
       exact.add('$at>=?');
       exactArgs.add(
@@ -695,11 +728,66 @@ extension SupportingRecordStore on RecordStore {
       civil.add('$day<?');
       civilArgs.add(before.toString());
     }
-    return _HistorySql(
-      '((${exact.join(' AND ')}) OR (${civil.join(' AND ')}) ${includeUnknown ? 'OR ($at IS NULL AND $day IS NULL)' : ''})',
-      [...exactArgs, ...civilArgs],
-    );
+    return [
+      _HistorySql(exact.join(' AND '), exactArgs),
+      _HistorySql(civil.join(' AND '), civilArgs),
+      if (includeUnknown) _HistorySql('$at IS NULL AND $day IS NULL', const []),
+    ];
   }
+
+  String _supportingDisplayDay(int microseconds, String zone) => DisplayTime()
+      .instant(
+        DateTime.fromMicrosecondsSinceEpoch(microseconds, isUtc: true),
+        zone,
+      )
+      .civilDate
+      .toString();
+
+  /// Cursor continuation for the exact/instant branch.
+  ///
+  /// An exact cursor continues below its instant. A civil cursor has already
+  /// passed every exact row on its display day, so only earlier instants remain.
+  _HistorySql _supportingExactCursor(
+    String at,
+    SupportingCursor cursor,
+    String zone,
+  ) {
+    if (cursor.at != null) {
+      return _HistorySql('($at<? OR ($at=? AND s.id>?))', [
+        cursor.at,
+        cursor.at,
+        cursor.id,
+      ]);
+    }
+    final day = cursor.day;
+    if (day == null) return _HistorySql('0', const []);
+    return _HistorySql('$at<?', [
+      DisplayTime()
+          .dayBounds(CivilDate.parse(day), zone)
+          .start
+          .microsecondsSinceEpoch,
+    ]);
+  }
+
+  /// Cursor continuation for the supplied-civil-day branch.
+  ///
+  /// Civil rows within one day follow every exact row on that day. An exact
+  /// cursor therefore leaves all civil rows of its display day. A civil cursor
+  /// continues by id within the same day and then by earlier days.
+  _HistorySql _supportingCivilCursor(String day, SupportingCursor cursor) {
+    if (cursor.day == null) return _HistorySql('0', const []);
+    if (cursor.at != null) return _HistorySql('$day<=?', [cursor.day]);
+    return _HistorySql('($day<? OR ($day=? AND s.id>?))', [
+      cursor.day,
+      cursor.day,
+      cursor.id,
+    ]);
+  }
+
+  _HistorySql _supportingUnknownCursor(SupportingCursor cursor) =>
+      cursor.day != null
+      ? _HistorySql('1', const [])
+      : _HistorySql('s.id>?', [cursor.id]);
 
   Future<SupportingPage> supportingRecords(
     SupportingQuery query, {
@@ -714,58 +802,127 @@ extension SupportingRecordStore on RecordStore {
               cursor.datasetGeneration != generation)) {
         throw const TimelineCursorException('cursor_expired');
       }
-      final day = query.dateBasis == SupportingDateBasis.report
-          ? 's.report_day'
-          : query.dateBasis == SupportingDateBasis.entry
-          ? 's.entry_day'
-          : 's.collection_day';
-      final at = query.dateBasis == SupportingDateBasis.report
-          ? 's.report_at'
-          : query.dateBasis == SupportingDateBasis.entry
-          ? 's.entered_at'
-          : 's.collection_at';
-      final date = _supportingDateFilter(
-        query.dateBasis,
-        query.fromDate,
-        query.beforeDate,
-        query.displayZone,
-        query.includeUnknownDates,
-      );
-      final clauses = <String>['s.person=?', date.sql],
-          args = <Object?>[query.personId, ...date.args];
-      if (!query.includeVoided) clauses.add('s.voided=0');
+      final common = <String>['s.person=?'],
+          commonArgs = <Object?>[query.personId];
+      if (!query.includeVoided) common.add('s.voided=0');
       if (query.kind != null) {
-        clauses.add('s.kind=?');
-        args.add(query.kind!.name);
+        common.add('s.kind=?');
+        commonArgs.add(query.kind!.name);
       }
       for (final pair in [(query.itemId, 'item'), (query.eventId, 'event')]) {
         if (pair.$1 != null) {
-          clauses.add(
+          common.add(
             'EXISTS(SELECT 1 FROM supporting_context c WHERE c.record=s.id AND c.person=s.person AND c.revision=s.revision AND c.${pair.$2}=?)',
           );
-          args.add(pair.$1);
+          commonArgs.add(pair.$1);
         }
       }
-      if (cursor != null) {
-        final time = cursor.at == null
-            ? '($at IS NULL AND s.id>?)'
-            : '($at<? OR $at IS NULL OR ($at=? AND s.id>?))';
-        if (cursor.day == null) {
-          clauses.add('($day IS NULL AND $time)');
-        } else {
-          clauses.add('($day<? OR $day IS NULL OR ($day=? AND $time))');
-          args.addAll([cursor.day, cursor.day]);
+      final found = <_SupportingFeedRow>[];
+      if (query.dateBasis == SupportingDateBasis.entry) {
+        // Entry is audit browsing only: a display-zone instant feed, never a
+        // measurement chronology.
+        final date = <String>[], args = <Object?>[];
+        if (query.fromDate != null) {
+          date.add('s.entered_at>=?');
+          args.add(
+            DisplayTime()
+                .dayBounds(query.fromDate!, query.displayZone)
+                .start
+                .microsecondsSinceEpoch,
+          );
         }
-        args.addAll(
-          cursor.at == null ? [cursor.id] : [cursor.at, cursor.at, cursor.id],
+        if (query.beforeDate != null) {
+          date.add('s.entered_at<?');
+          args.add(
+            DisplayTime()
+                .dayBounds(query.beforeDate!, query.displayZone)
+                .start
+                .microsecondsSinceEpoch,
+          );
+        }
+        if (cursor != null) {
+          final more = _supportingExactCursor(
+            's.entered_at',
+            cursor,
+            query.displayZone,
+          );
+          date.add(more.sql);
+          args.addAll(more.args);
+        }
+        final rows = await _rows(
+          'SELECT s.id,s.entered_at AS ordering_at FROM supporting_record s WHERE ${[...common, ...date].join(' AND ')} ORDER BY s.entered_at DESC,s.id LIMIT ?',
+          [...commonArgs, ...args, query.limit + 1],
         );
+        for (final row in rows) {
+          final at = row['ordering_at'] as int;
+          found.add(
+            _SupportingFeedRow(
+              row['id'] as String,
+              _supportingDisplayDay(at, query.displayZone),
+              at,
+            ),
+          );
+        }
+      } else {
+        final at = query.dateBasis == SupportingDateBasis.report
+            ? 's.report_at'
+            : 's.collection_at';
+        final day = query.dateBasis == SupportingDateBasis.report
+            ? 's.report_day'
+            : 's.collection_day';
+        final branches = _supportingDateBranches(
+          at: at,
+          day: day,
+          from: query.fromDate,
+          before: query.beforeDate,
+          zone: query.displayZone,
+          includeUnknown: query.includeUnknownDates,
+        );
+        for (var branch = 0; branch < branches.length; branch++) {
+          final clauses = <String>[...common, branches[branch].sql],
+              args = <Object?>[...commonArgs, ...branches[branch].args];
+          if (cursor != null) {
+            final more = switch (branch) {
+              0 => _supportingExactCursor(at, cursor, query.displayZone),
+              1 => _supportingCivilCursor(day, cursor),
+              _ => _supportingUnknownCursor(cursor),
+            };
+            clauses.add(more.sql);
+            args.addAll(more.args);
+          }
+          final order = switch (branch) {
+            0 => '$at DESC,s.id',
+            1 => '$day DESC,s.id',
+            _ => 's.id',
+          };
+          final rows = await _rows(
+            'SELECT s.id,${branch == 0
+                ? at
+                : branch == 1
+                ? day
+                : 'NULL'} AS ordering_day,${branch == 0 ? at : 'NULL'} AS ordering_at FROM supporting_record s WHERE ${clauses.join(' AND ')} ORDER BY $order LIMIT ?',
+            [...args, query.limit + 1],
+          );
+          for (final row in rows) {
+            final instant = row['ordering_at'] as int?;
+            found.add(
+              _SupportingFeedRow(
+                row['id'] as String,
+                branch == 0
+                    ? _supportingDisplayDay(instant!, query.displayZone)
+                    : branch == 1
+                    ? row['ordering_day'] as String
+                    : null,
+                instant,
+              ),
+            );
+          }
+        }
       }
-      final rows = await _rows(
-        'SELECT s.id,s.person,s.revision,$day AS ordering_day,$at AS ordering_at FROM supporting_record s WHERE ${clauses.join(' AND ')} ORDER BY $day DESC,$at DESC,s.id LIMIT ?',
-        [...args, query.limit + 1],
-      );
-      final parents = rows.take(query.limit).toList();
-      final ids = parents.map((r) => r['id']).toList();
+      found.sort(_supportingFeedCompare);
+      final window = found.take(query.limit + 1).toList(),
+          parents = window.take(query.limit).toList(),
+          ids = parents.map((r) => r.id).toList();
       final loaded = ids.isEmpty
           ? <Map<String, Object?>>[]
           : await _rows(
@@ -781,16 +938,16 @@ extension SupportingRecordStore on RecordStore {
         queryIdentity: query.identity,
         schemaVersion: _db.schemaVersion,
         datasetGeneration: generation,
-        entries: parents.map((p) => byId[p['id']]!),
-        next: rows.length <= query.limit || last == null
+        entries: parents.map((p) => byId[p.id]!),
+        next: window.length <= query.limit || last == null
             ? null
             : SupportingCursor._(
                 query.identity,
                 _db.schemaVersion,
                 generation,
-                last['ordering_day'] as String?,
-                last['ordering_at'] as int?,
-                last['id'] as String,
+                last.day,
+                last.at,
+                last.id,
               ),
       );
     });
@@ -806,26 +963,140 @@ extension SupportingRecordStore on RecordStore {
     int requestGeneration = 0,
   }) async {
     _requireWritable();
+    if (query.dateBasis == SupportingDateBasis.entry) {
+      // Entry is audit browsing, not a measurement chronology. A trend must
+      // use the collection or report date the source actually supplied.
+      throw ArgumentError('trend_basis');
+    }
     return _db.transaction(() async {
       await _chartGeneration();
-      final date = _supportingDateFilter(
-        query.dateBasis,
-        query.fromDate,
-        query.beforeDate,
-        query.displayZone,
-        true,
+      final at = query.dateBasis == SupportingDateBasis.report
+          ? 's.report_at'
+          : 's.collection_at';
+      final day = query.dateBasis == SupportingDateBasis.report
+          ? 's.report_day'
+          : 's.collection_day';
+      // Bound the head-record window first, then fetch results for only those
+      // head records. A narrow date range never scans the metric's lifetime.
+      // Unknown/partial records remain a separate unpositioned source.
+      final report = query.dateBasis == SupportingDateBasis.report;
+      final branches = _supportingDateBranches(
+        at: at,
+        day: day,
+        from: query.fromDate,
+        before: query.beforeDate,
+        zone: query.displayZone,
+        includeUnknown: true,
       );
-      final rows = await _rows(
-        'SELECT s.id,v.header,r.position,r.snapshot FROM supporting_result r INDEXED BY supporting_result_metric JOIN supporting_record s ON s.id=r.record AND s.person=r.person AND s.revision=r.revision JOIN supporting_revision v ON v.record=s.id AND v.person=s.person AND v.revision=s.revision WHERE r.person=? AND r.metric=? AND s.voided=0 AND ${date.sql} LIMIT ?',
-        [
-          query.personId,
-          query.metricId,
-          ...date.args,
-          SupportingLimits.maxTrendRows + 1,
-        ],
-      );
-      if (rows.length > SupportingLimits.maxTrendRows) {
-        throw const SupportingLimitException('trend_rows');
+      final branchIndexes = report
+          ? [
+              'supporting_report_instant',
+              'supporting_report_civil',
+              'supporting_report_unpositioned',
+            ]
+          : [
+              'supporting_collection_instant',
+              'supporting_collection_civil',
+              'supporting_collection_unpositioned',
+            ];
+      final branchSql = <String>[], branchArgs = <Object?>[];
+      for (var i = 0; i < branches.length; i++) {
+        branchSql.add(
+          'SELECT s.id,s.person,s.revision FROM supporting_record s INDEXED BY ${branchIndexes[i]} '
+          'WHERE s.person=? AND s.voided=0 AND (${branches[i].sql})',
+        );
+        branchArgs
+          ..add(query.personId)
+          ..addAll(branches[i].args);
+      }
+      // A UNION ALL keeps the three index paths disjoint. A single OR predicate
+      // lets SQLite fall back to one person-only index and scan the lifetime.
+      final matchedSql =
+          'WITH matched AS MATERIALIZED (${branchSql.join(' UNION ALL ')}) '
+          'SELECT r.record AS id,r.revision AS revision,r.position,v.header,r.snapshot FROM supporting_result r INDEXED BY supporting_result_metric '
+          'JOIN matched m ON m.id=r.record AND m.person=r.person AND m.revision=r.revision '
+          'JOIN supporting_revision v ON v.record=m.id AND v.person=m.person AND v.revision=m.revision '
+          'WHERE r.person=? AND r.metric=?';
+      final rows = <Map<String, Object?>>[];
+      final comparison = query.comparisonGroup;
+      if (comparison == null) {
+        rows.addAll(
+          await _rows('$matchedSql LIMIT ?', [
+            ...branchArgs,
+            query.personId,
+            query.metricId,
+            SupportingLimits.maxTrendRows + 1,
+          ]),
+        );
+        if (rows.length > SupportingLimits.maxTrendRows) {
+          throw const SupportingLimitException('trend_rows');
+        }
+      } else {
+        // The 10,000-row bound applies to the chosen comparison group. A single
+        // SQL LIMIT would let unrelated groups exhaust the bound before the
+        // requested group is reached, so a filtered query reads bounded batches
+        // and counts only its own group. The keyset batch is bounded by
+        // maxTrendRows + 1 and reads only the date-bounded matched head window,
+        // never the metric's lifetime revisions.
+        final records = <String, SupportingRevision>{};
+        SupportingRevision recordFor(
+          Map<String, Object?> row,
+        ) => records.putIfAbsent(row['id'] as String, () {
+          final header = _supportingObject(jsonDecode(row['header'] as String));
+          final snapshot = _supportingObject(header['snapshot']);
+          // A revision needs at least one result to decode an observation;
+          // the comparison key itself only reads record identity/provenance.
+          snapshot['results'] = [jsonDecode(row['snapshot'] as String)];
+          header['snapshot'] = snapshot;
+          return SupportingRevision.fromJson(header);
+        });
+        String? afterRecord;
+        int? afterRevision;
+        int? afterPosition;
+        while (true) {
+          final more = afterRecord == null
+              ? _HistorySql('1', const [])
+              : _HistorySql(
+                  '(r.record>? OR (r.record=? AND (r.revision>? OR (r.revision=? AND r.position>?))))',
+                  [
+                    afterRecord,
+                    afterRecord,
+                    afterRevision,
+                    afterRevision,
+                    afterPosition,
+                  ],
+                );
+          final batch = await _rows(
+            '$matchedSql AND ${more.sql} ORDER BY r.record,r.revision,r.position LIMIT ?',
+            [
+              ...branchArgs,
+              query.personId,
+              query.metricId,
+              ...more.args,
+              SupportingLimits.maxTrendRows + 1,
+            ],
+          );
+          if (batch.isEmpty) break;
+          for (final row in batch) {
+            final result = LabResultSnapshot.fromJson(
+              _supportingObject(jsonDecode(row['snapshot'] as String)),
+            );
+            final group = SupportingComparisonKey.forResult(
+              recordFor(row),
+              result,
+            );
+            if (group.identity != comparison) continue;
+            rows.add(row);
+            if (rows.length > SupportingLimits.maxTrendRows) {
+              throw const SupportingLimitException('trend_rows');
+            }
+          }
+          if (batch.length < SupportingLimits.maxTrendRows + 1) break;
+          final last = batch.last;
+          afterRecord = last['id'] as String;
+          afterRevision = last['revision'] as int;
+          afterPosition = last['position'] as int;
+        }
       }
       final grouped = <String, List<Map<String, Object?>>>{};
       for (final row in rows) {

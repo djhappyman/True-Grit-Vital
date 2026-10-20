@@ -220,5 +220,39 @@ fun main() {
         e.invalidate("epoch1", "epoch2")
         check(!e.capture("epoch1", "event", "event", "open"))
     }
+    test("installed epoch exposes the handover target for a restored dataset") {
+        val j = MemoryJournal(); val f = Effects(); var e = ReminderEngine(j, f)
+        check(e.installedEpoch() == null)
+        e.apply("epoch1", 1, listOf(request()), emptyList())
+        check(e.installedEpoch() == "epoch1")
+        e = ReminderEngine(j, f)
+        check(e.installedEpoch() == "epoch1")
+        check(e.apply("epoch2", 1, listOf(request("restored").copy(epoch = "epoch2")), emptyList())["reason"] == "epoch_rejected")
+        check(e.installedEpoch() == "epoch1")
+        check(e.invalidate("epoch1", "epoch2"))
+        check(e.installedEpoch() == "epoch2")
+        check(e.apply("epoch2", 1, listOf(request("restored").copy(epoch = "epoch2")), emptyList())["accepted"] == true)
+    }
+    test("restored record ids cannot resurrect a retired epoch request") {
+        val j = MemoryJournal(); val f = Effects(); val e = ReminderEngine(j, f)
+        e.apply("epoch1", 3, listOf(request()), emptyList())
+        check(e.invalidate("epoch1", "epoch2"))
+        // An epoch1 request cannot ride in under the new epoch...
+        check(runCatching { e.apply("epoch2", 0, listOf(request()), emptyList()) }.isFailure)
+        // ...and the retired epoch itself is refused outright.
+        check(e.apply("epoch1", 4, listOf(request()), emptyList())["accepted"] == false)
+        check(f.scheduled.isEmpty())
+    }
+    test("unconfirmed cancellation stays terminal and reports its reason once retried") {
+        val j = MemoryJournal(); val f = Effects(); val e = ReminderEngine(j, f)
+        e.apply("epoch1", 1, listOf(request()), emptyList())
+        f.cancelFailure = true
+        val first = e.apply("epoch1", 2, emptyList(), listOf("r1"))
+        check((first["receipts"] as List<*>).map { it as Map<*, *> }.first()["reason"] == "cancellation_unknown")
+        f.cancelFailure = false
+        val second = e.apply("epoch1", 2, emptyList(), listOf("r1"))
+        check((second["receipts"] as List<*>).map { it as Map<*, *> }.first()["reason"] == null)
+        check(f.scheduled.isEmpty())
+    }
     println("$passed reminder engine tests passed")
 }

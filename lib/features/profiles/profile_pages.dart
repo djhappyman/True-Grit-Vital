@@ -1,3 +1,4 @@
+import '../../app/privacy.dart';
 import '../../ui/vital_ui.dart';
 
 import 'package:flutter/material.dart' show showDialog;
@@ -308,11 +309,13 @@ class _ProfileFormState extends DurableFormState<ProfileForm> {
           expectedRevision: capturedPersonRevision!,
         );
       case 'delete':
-        await store.deleteProfile(
-          commandId: command,
-          personId: original!.id,
-          expectedRevision: capturedPersonRevision!,
-        );
+        await ref
+            .read(profilePrivacyActionsProvider)
+            .delete(
+              commandId: command,
+              personId: original!.id,
+              expectedRevision: capturedPersonRevision!,
+            );
       default:
         throw StateError('profile_action');
     }

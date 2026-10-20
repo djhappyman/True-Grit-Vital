@@ -90,8 +90,29 @@ void main() {
     final result = await const AndroidReminders().capabilities();
     expect(result.notificationPermission, false);
     expect(result.exactAlarm, false);
+    expect(result.installedEpoch, isNull);
     expect(calls, ['capabilities']);
   });
+  test(
+    'capabilities carry the installed epoch for a restore handshake',
+    () async {
+      messenger.setMockMethodCallHandler(AndroidReminders.channel, (_) async {
+        return {
+          'supported': true,
+          'notificationPermission': true,
+          'appEnabled': true,
+          'channelEnabled': true,
+          'exactAlarm': true,
+          'protectedStorageAvailable': true,
+          'bootIdentityAvailable': true,
+          'fingerprint': 'v1',
+          'installedEpoch': 'epoch-old',
+        };
+      });
+      final result = await const AndroidReminders().capabilities();
+      expect(result.installedEpoch, 'epoch-old');
+    },
+  );
   test(
     'action observation does not implicitly acknowledge durable transport',
     () async {

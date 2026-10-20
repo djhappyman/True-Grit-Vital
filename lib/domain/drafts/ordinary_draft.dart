@@ -23,6 +23,7 @@ enum DraftKind {
   attachmentRename,
   labPanel,
   supportingObservation,
+  supportingVoid,
 }
 
 final class OrdinaryDraft {
@@ -39,6 +40,7 @@ final class OrdinaryDraft {
     this.submitted = false,
   }) : fields = Map.unmodifiable(fields) {
     final allowed = switch (kind) {
+      DraftKind.supportingVoid => {'isVoided'},
       DraftKind.attachmentRename => {'name', 'frozen'},
       DraftKind.labPanel ||
       DraftKind.supportingObservation => {'payload', 'frozen'},
@@ -253,6 +255,15 @@ final class OrdinaryDraft {
         targetRevision != null && targetRevision! < 1) {
       throw const FormatException('draft_fields');
     }
+    if (kind == DraftKind.supportingVoid &&
+        (personId == null ||
+            personRevision == null ||
+            targetId == null ||
+            targetRevision == null ||
+            (fields['isVoided'] != 'true' && fields['isVoided'] != 'false'))) {
+      // A recovery intent is meaningful only with its exact captured identity.
+      throw const FormatException('draft_identity');
+    }
   }
   final String id, generation, operationId;
   final DraftKind kind;
@@ -260,7 +271,33 @@ final class OrdinaryDraft {
   final int? personRevision, targetRevision;
   final Map<String, String> fields;
   final bool submitted;
+
+  /// The exact confirmed void or restore request, kept as closed fields rather
+  /// than a mutable copy of the record. Resume reconstruction must never infer
+  /// the intended action from the record's current state.
+  factory OrdinaryDraft.supportingVoid({
+    required String id,
+    required String operationId,
+    required String generation,
+    required String personId,
+    required int personRevision,
+    required String recordId,
+    required int recordRevision,
+    required bool isVoided,
+  }) => OrdinaryDraft(
+    id: id,
+    generation: generation,
+    operationId: operationId,
+    kind: DraftKind.supportingVoid,
+    personId: personId,
+    personRevision: personRevision,
+    targetId: recordId,
+    targetRevision: recordRevision,
+    fields: {'isVoided': isVoided.toString()},
+  );
+
   String get route => switch (kind) {
+    DraftKind.supportingVoid => '/supporting/$personId/$targetId?resume=$id',
     DraftKind.attachmentRename => '/attachment/$targetId/rename',
     DraftKind.labPanel || DraftKind.supportingObservation =>
       targetId == null

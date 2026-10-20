@@ -43,6 +43,28 @@ Future<void> main(List<String> args) async {
     );
     File('$directory/before.json').writeAsStringSync(rows(db));
     db.close();
+  } else if (mode == 'migration-init19') {
+    final db = raw();
+    db.execute(
+      File('test/data/fixtures/record_store_v19.sql').readAsStringSync(),
+    );
+    File('$directory/before.json').writeAsStringSync(rows(db));
+    db.close();
+  } else if (mode.startsWith('migration-before20-')) {
+    final db = raw();
+    db.execute('BEGIN');
+    final count = int.parse(mode.substring('migration-before20-'.length));
+    for (final sql in supportingSchemaV20.take(count)) {
+      db.execute(sql);
+    }
+    exit(91);
+  } else if (mode == 'migration-retry20') {
+    final db = raw();
+    if (db.select('PRAGMA user_version').single.values.single != 19 ||
+        rows(db) != File('$directory/before.json').readAsStringSync()) {
+      throw StateError('migration_not_atomic');
+    }
+    db.close();
   } else if (mode.startsWith('migration-before-')) {
     final db = raw();
     db.execute('BEGIN');
@@ -74,7 +96,7 @@ Future<void> main(List<String> args) async {
     if (before.entries.any(
           (e) => jsonEncode(e.value) != jsonEncode(after[e.key]),
         ) ||
-        db.select('PRAGMA user_version').single.values.single != 19 ||
+        db.select('PRAGMA user_version').single.values.single != 21 ||
         db.select('PRAGMA foreign_key_check').isNotEmpty) {
       throw StateError('migration_integrity');
     }

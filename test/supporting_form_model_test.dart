@@ -5,10 +5,14 @@ import 'package:true_grit_vital/domain/supporting/supporting.dart';
 import 'package:true_grit_vital/features/supporting/supporting_form_model.dart';
 
 void main() {
-  SupportingFormModel model({bool observation = false}) => SupportingFormModel(
+  SupportingFormModel model({
+    bool observation = false,
+    SupportingNumberFormat numberFormat = const SupportingNumberFormat(),
+  }) => SupportingFormModel(
     id: 'panel',
     personId: 'adult',
     observation: observation,
+    numberFormat: numberFormat,
   )..fields['title'] = 'Source report';
   Map<String, String> row(
     String value, {
@@ -32,8 +36,12 @@ void main() {
     expect(s.collectionDate.precision, SupportingDatePrecision.unknown);
     expect(s.reportDate.precision, SupportingDatePrecision.unknown);
   });
-  test('observation requires an explicit component', () {
+  test('observation requires a component or a note', () {
     expect(() => model(observation: true).snapshot(), throwsArgumentError);
+    final noteOnly = model(observation: true)..fields['notes'] = 'Source note';
+    final saved = noteOnly.snapshot();
+    expect(saved.results, isEmpty);
+    expect(saved.notes, 'Source note');
   });
   for (final value in ['-0', '+1.20e-3', '<0.01', '≤2', '>9', '>=4']) {
     test('preserves numeric source lexeme $value', () {
@@ -161,5 +169,67 @@ void main() {
     final fresh = model()
       ..restore(Map<String, dynamic>.from(jsonDecode(f.encode()) as Map));
     expect(fresh.snapshot().toJson(), s.toJson());
+  });
+  test('locale decimal input keeps the typed source text and reopens', () {
+    const format = SupportingNumberFormat(
+      decimalSeparator: ',',
+      groupSeparator: '.',
+    );
+    final f = model(numberFormat: format)..rows.add(row('1.000,5'));
+    final s = f.snapshot();
+    expect(s.results.single.value.originalText, '1.000,5');
+    expect(s.results.single.value.exactAmount, parseSupportingNumber('1000.5'));
+    final restored = model(numberFormat: format)
+      ..restore(Map<String, dynamic>.from(jsonDecode(f.encode()) as Map));
+    expect(restored.snapshot().toJson(), s.toJson());
+  });
+  test(
+    'saved source references survive draft restore and reach the snapshot',
+    () {
+      final f = model()
+        ..sourceReferences.add(
+          SupportingSourceReference(
+            id: 'file',
+            personId: 'adult',
+            version: 4,
+            kind: SupportingSourceKind.attachment,
+            contentVersionId: 'content-v3',
+            originalText: 'Original report',
+          ),
+        );
+      final restored = model()
+        ..restore(Map<String, dynamic>.from(jsonDecode(f.encode()) as Map));
+      expect(restored.sourceReferences, hasLength(1));
+      final s = restored.snapshot();
+      expect(s.provenance.sourceReferences.single.id, 'file');
+      expect(s.provenance.sourceReferences.single.version, 4);
+      expect(
+        s.provenance.sourceReferences.single.contentVersionId,
+        'content-v3',
+      );
+    },
+  );
+  test('an older draft without a source list keeps its captured sources', () {
+    final raw = model().toJson();
+    raw.remove('sourceReferences');
+    raw['retainedProvenance'] = SupportingProvenance(
+      mode: SupportingProvenanceMode.manualTranscription,
+      sourceReferences: [
+        SupportingSourceReference(
+          id: 'legacy-file',
+          personId: 'adult',
+          version: 1,
+          kind: SupportingSourceKind.attachment,
+          contentVersionId: 'legacy-content',
+        ),
+      ],
+    ).toJson();
+    final restored = model()
+      ..restore(Map<String, dynamic>.from(jsonDecode(jsonEncode(raw)) as Map));
+    expect(restored.sourceReferences.single.id, 'legacy-file');
+    expect(
+      restored.snapshot().provenance.sourceReferences.single.contentVersionId,
+      'legacy-content',
+    );
   });
 }

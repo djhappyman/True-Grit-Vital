@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/record_store.dart';
+import '../domain/restore/restore.dart';
 import '../platform/linux_storage_bootstrap.dart';
 import '../platform/storage_bootstrap.dart';
+import '../restore/restore_activation.dart';
+import 'restore_notice.dart';
 
 /// Tests override this boundary with an explicitly keyed temporary database.
 final storeLoaderProvider = Provider<Future<RecordStore> Function()>(
@@ -18,6 +21,11 @@ final storeLoaderProvider = Provider<Future<RecordStore> Function()>(
       throw const StorageBootstrapException('unsupported_host');
     }
     final location = await bootstrap.prepare();
+    final recovery = await RestoreActivation(databasePath: location.path)
+        .recoverInterrupted(key: location.key);
+    if (recovery.outcome != RestoreRecoveryOutcome.none) {
+      ref.read(restoreRecoveryNoticeProvider.notifier).record(recovery);
+    }
     final store = await RecordStore.open(
       path: location.path,
       key: location.key,

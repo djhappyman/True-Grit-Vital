@@ -458,16 +458,18 @@ void main() {
       ),
     );
     expect(report.groups.single.entries, hasLength(3));
-    final entry = await store.supportingTrend(
-      SupportingTrendQuery(
-        personId: meId,
-        metricId: 'metric',
-        fromDate: CivilDate(2026, 10, 1),
-        beforeDate: CivilDate(2026, 10, 3),
-        dateBasis: SupportingDateBasis.entry,
+    await expectLater(
+      () => store.supportingTrend(
+        SupportingTrendQuery(
+          personId: meId,
+          metricId: 'metric',
+          fromDate: CivilDate(2026, 10, 1),
+          beforeDate: CivilDate(2026, 10, 3),
+          dateBasis: SupportingDateBasis.entry,
+        ),
       ),
+      throwsArgumentError,
     );
-    expect(entry.groups, isEmpty);
   });
 
   test(
@@ -655,6 +657,58 @@ void main() {
       'Original report',
     );
   });
+  test(
+    'metric identity never reuses another adult and same names stay separate',
+    () async {
+      await save(panel('me-panel'));
+      final adult = await store.createProfile(
+        commandId: 'adult',
+        name: 'Alex',
+        adultConfirmed: true,
+      );
+      Future<SupportingRevision> saveForAdult(
+        String id,
+        LabResultSnapshot row,
+        String command,
+      ) => store.saveLabPanel(
+        SaveLabPanelCommand(
+          commandId: command,
+          generation: store.generation,
+          expectedPersonRevision: adult.revision,
+          panel: panel(id, person: adult.id, results: [row]),
+        ),
+      );
+      await saveForAdult(
+        'adult-panel',
+        result(id: 'adult-row', metric: 'shared-identity'),
+        'adult-save',
+      );
+      await expectLater(
+        saveForAdult(
+          'adult-clash',
+          result(id: 'clash-row', metric: 'metric'),
+          'adult-clash',
+        ),
+        throwsA(isA<CommandConflict>()),
+      );
+      await saveForAdult(
+        'adult-same-name',
+        result(id: 'same-name-row', metric: 'adult-metric'),
+        'adult-same-name',
+      );
+      final db = raw();
+      final rows = db
+          .select('SELECT id,person,name FROM supporting_metric ORDER BY id')
+          .map((row) => row.values)
+          .toList();
+      db.close();
+      expect(rows, [
+        ['adult-metric', adult.id, 'Full original marker'],
+        ['metric', meId, 'Full original marker'],
+        ['shared-identity', adult.id, 'Full original marker'],
+      ]);
+    },
+  );
   test(
     'supporting drafts stay private and profile deletion clears captured graph',
     () async {

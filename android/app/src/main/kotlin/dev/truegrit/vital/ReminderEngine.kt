@@ -62,6 +62,8 @@ internal class ReminderEngine(private val journal: ReminderJournal, private val 
     }
     fun repairReason(): String? = state().repairReason
     fun bootAvailable(): Boolean { val s = state(); return effects.bootId(s.installation) != null }
+    /** The epoch currently installed, so a restored dataset can hand it over. */
+    fun installedEpoch(): String? = state().epoch
     fun apply(epoch: String, sequence: Long, desired: List<ReminderRequest>, obsolete: List<String>): Map<String, Any?> {
         token(epoch)
         if (sequence < 0 || desired.size > 256 || obsolete.size > 512 || desired.map { it.requestToken }.distinct().size != desired.size) {

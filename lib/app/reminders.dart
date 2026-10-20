@@ -249,17 +249,20 @@ class ReminderController extends Notifier<ReminderState>
           .capabilities()
           .timeout(const Duration(seconds: 5));
       if (_current(session) && revision == _refreshRevision) {
+        final previous = state.report;
+        final unchanged =
+            previous.revision == revision &&
+            _sameCapabilities(previous.capabilities, capabilities);
         state = ReminderState(
-          report: ReminderRepairReport(
-            capabilities: capabilities,
-            projection:
-                state.report.revision == revision &&
-                    _sameCapabilities(state.report.capabilities, capabilities)
-                ? state.report.projection
-                : null,
-            revision: revision,
-            failed: state.report.failed,
-          ),
+          // A parallel capability read may finish after repair. Preserve its
+          // convergence and evidence when this is still the same observation.
+          report: unchanged
+              ? previous
+              : ReminderRepairReport(
+                  capabilities: capabilities,
+                  revision: revision,
+                  failed: previous.failed,
+                ),
           pending: state.pending,
           eventPending: state.eventPending,
           busy: state.busy,
@@ -280,7 +283,9 @@ class ReminderController extends Notifier<ReminderState>
       a.exactAlarm == b.exactAlarm &&
       a.protectedStorageAvailable == b.protectedStorageAvailable &&
       a.bootIdentityAvailable == b.bootIdentityAvailable &&
-      a.fingerprint == b.fingerprint;
+      a.fingerprint == b.fingerprint &&
+      a.repairReason == b.repairReason &&
+      a.installedEpoch == b.installedEpoch;
 
   bool get _unlocked {
     if (_disposed || !ref.mounted || !_foreground) return false;

@@ -536,14 +536,15 @@ class _PagedRecordListState extends ConsumerState<PagedRecordList> {
 }
 
 class LoadFailure extends StatelessWidget {
-  const LoadFailure({super.key, required this.onRetry});
+  const LoadFailure({super.key, required this.onRetry, this.message});
   final VoidCallback onRetry;
+  final String? message;
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     return Column(
       children: [
-        Text(t.historyUnavailable),
+        Text(message ?? t.historyUnavailable),
         VitalButton.secondary(onPressed: onRetry, child: Text(t.retry)),
       ],
     );
@@ -899,6 +900,7 @@ class LabelledInput extends StatelessWidget {
     this.enabled = true,
     this.error,
     this.semanticLabel,
+    this.maxLines = 1,
   });
   final String label;
   final TextEditingController controller;
@@ -906,6 +908,7 @@ class LabelledInput extends StatelessWidget {
   final String? helper;
   final bool enabled;
   final String? error, semanticLabel;
+  final int maxLines;
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 20),
@@ -920,7 +923,11 @@ class LabelledInput extends StatelessWidget {
             controller: controller,
             enabled: enabled,
             keyboardType: keyboardType,
-            textInputAction: TextInputAction.next,
+            maxLines: maxLines,
+            minLines: maxLines > 1 ? 1 : null,
+            textInputAction: maxLines > 1
+                ? TextInputAction.newline
+                : TextInputAction.next,
           ),
         ),
         if (helper != null) Text(helper!),
@@ -958,6 +965,14 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
   String? get entryTarget;
   String get entryFallback => '/substances';
   int? get entryTargetRevision => null;
+
+  /// Feature-specific recovery wording. Existing forms keep the shared copy.
+  String get conflictMessage => AppLocalizations.of(context).conflictFailure;
+  String get draftUnavailableMessage =>
+      AppLocalizations.of(context).draftUnavailable;
+  String get draftFailureMessage => AppLocalizations.of(context).draftFailure;
+  String get draftSavedMessage => AppLocalizations.of(context).draftSaved;
+  String get saveFailureMessage => AppLocalizations.of(context).saveFailure;
   Map<String, String> captureEntry();
   void restoreEntry(Map<String, String> fields);
 
@@ -982,7 +997,7 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
             await store.discardDraft(draft.id);
             if (!mounted) return;
             conflict = true;
-            error = AppLocalizations.of(context).draftSaved;
+            error = draftSavedMessage;
           } else {
             _restoring = true;
             restoreEntry(draft.fields);
@@ -1135,7 +1150,6 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
       }
     } catch (e) {
       if (mounted) {
-        final t = AppLocalizations.of(context);
         setState(() {
           final recovery = recoverableCommandFailure(e);
           uncertain = recovery == null && e is! CommandConflict;
@@ -1143,7 +1157,7 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
               recovery == null &&
               e is CommandConflict &&
               e.code != 'app_locked';
-          error = recovery ?? (conflict ? t.conflictFailure : t.saveFailure);
+          error = recovery ?? (conflict ? conflictMessage : saveFailureMessage);
         });
       }
     } finally {
@@ -1158,9 +1172,7 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
     if (operation == DraftOperationStatus.invalidated) {
       dirty = false;
       conflict = true;
-      return EntryPage(
-        children: [Text(AppLocalizations.of(context).draftUnavailable)],
-      );
+      return EntryPage(children: [Text(draftUnavailableMessage)]);
     }
     final currentGeneration = ref.watch(recordStoreProvider).value?.generation;
     if (_generation != null &&
@@ -1168,9 +1180,7 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
         currentGeneration != _generation) {
       dirty = false;
       conflict = true;
-      return EntryPage(
-        children: [Text(AppLocalizations.of(context).draftUnavailable)],
-      );
+      return EntryPage(children: [Text(draftUnavailableMessage)]);
     }
     ref.listen(appLockProvider, (previous, next) {
       if (!next.locked && _completedPath != null) {
@@ -1190,10 +1200,7 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
         onBack: leave,
         children: [
           if (draftFailed)
-            Semantics(
-              liveRegion: true,
-              child: Text(AppLocalizations.of(context).draftFailure),
-            ),
+            Semantics(liveRegion: true, child: Text(draftFailureMessage)),
           if (draftFailed)
             VitalButton.secondary(
               onPressed: busy ? null : persistEntry,
@@ -2474,6 +2481,10 @@ class _DraftListState extends ConsumerState<DraftList> {
                       : t.profileOwner(ownerLabel(ref, t, draft.personId!)),
                 ),
                 Text(switch (draft.kind) {
+                  DraftKind.supportingVoid =>
+                    draft.fields['isVoided'] == 'true'
+                        ? t.supportingVoid
+                        : t.supportingRestore,
                   DraftKind.labPanel => t.supportingPanel,
                   DraftKind.supportingObservation => t.supportingObservation,
                   DraftKind.attachmentRename => t.attachmentRename,

@@ -374,11 +374,16 @@ class _AttachmentListPageState extends ConsumerState<AttachmentListPage> {
           kind: widget.kind,
           targetId: widget.targetId,
         ),
-        Text(t.attachmentHelp),
+        Text(
+          widget.kind == AttachmentTargetKind.supporting
+              ? t.attachmentSupportingHelp
+              : t.attachmentHelp,
+        ),
         if (owner == null || revision == null) Text(t.attachmentStale),
         if (owner != null && owner.isArchived)
           Text(t.attachmentArchivedProfile),
         if (actual?.isVoided == true) Text(t.attachmentVoidedRecord),
+        if (supporting?.isVoided == true) Text(t.attachmentSupportingVoided),
         const SizedBox(height: 16),
         if (!capabilities.pickFile && !capabilities.photo)
           Text(t.attachmentUnavailable),
@@ -769,6 +774,103 @@ class _AttachmentViewerPageState extends ConsumerState<AttachmentViewerPage> {
           LoadFailure(
             onRetry: () =>
                 ref.invalidate(attachmentLookupProvider(widget.attachmentId)),
+          ),
+        ],
+      ),
+      loading: () => EntryPage(children: [Text(t.loadingRecords)]),
+    );
+  }
+}
+
+enum SupportingSourceAvailability { available, changed, unavailable }
+
+/// The saved source must match the captured owner, attachment revision and
+/// content version. A renamed or current attachment never substitutes for it.
+SupportingSourceAvailability supportingSourceAvailability({
+  required AttachmentRecord? attachment,
+  required String personId,
+  required int revision,
+  required String contentVersionId,
+}) {
+  if (attachment == null ||
+      attachment.personId != personId ||
+      attachment.targetKind != AttachmentTargetKind.supporting) {
+    return SupportingSourceAvailability.unavailable;
+  }
+  if (attachment.revision != revision ||
+      attachment.versionId != contentVersionId) {
+    return SupportingSourceAvailability.changed;
+  }
+  if (attachment.state != AttachmentState.ready ||
+      attachment.inspection == null) {
+    return SupportingSourceAvailability.unavailable;
+  }
+  return SupportingSourceAvailability.available;
+}
+
+class SupportingSourceViewerPage extends ConsumerWidget {
+  const SupportingSourceViewerPage({
+    super.key,
+    required this.personId,
+    required this.attachmentId,
+    required this.revision,
+    required this.contentVersionId,
+  });
+  final String personId, attachmentId, contentVersionId;
+  final int revision;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
+    if (ref.watch(appLockProvider.select((s) => s.locked))) {
+      return EntryPage(
+        children: [Heading(t.supportingSource), Text(t.supportingLocked)],
+      );
+    }
+    final result = ref.watch(attachmentLookupProvider(attachmentId));
+    return result.when(
+      data: (record) {
+        final availability = supportingSourceAvailability(
+          attachment: record,
+          personId: personId,
+          revision: revision,
+          contentVersionId: contentVersionId,
+        );
+        return EntryPage(
+          onBack: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(
+                Uri(
+                  path: '/supporting',
+                  queryParameters: {'person': personId},
+                ).toString(),
+              );
+            }
+          },
+          children: [
+            Heading(t.supportingSource),
+            if (availability == SupportingSourceAvailability.available) ...[
+              Text(t.profileOwner(ownerLabel(ref, t, personId))),
+              Text(record!.name),
+              Text(t.supportingSourceViewing(record.revision)),
+              Text(t.attachmentBytes(record.inspection!.byteCount)),
+              AttachmentPreviewSurface(attachment: record),
+            ] else if (availability == SupportingSourceAvailability.changed)
+              // Do not show the current name or bytes: they are not the saved
+              // source the record points at.
+              Text(t.supportingSourceChanged)
+            else
+              Text(t.supportingSourceUnavailable),
+          ],
+        );
+      },
+      error: (_, _) => EntryPage(
+        children: [
+          LoadFailure(
+            message: t.supportingLoadFailure,
+            onRetry: () =>
+                ref.invalidate(attachmentLookupProvider(attachmentId)),
           ),
         ],
       ),

@@ -175,7 +175,7 @@ void main() {
     await record('exclusive', time: before);
     final batch = await RecordStoreChartSource(store).read(source());
     expect(batch.truncated, isFalse);
-    expect(batch.schemaVersion, 19);
+    expect(batch.schemaVersion, 21);
     expect(batch.datasetGeneration, store.generation);
     expect(batch.observationCount, 3);
     final corrected = batch.observations.singleWhere(
@@ -1329,7 +1329,7 @@ void main() {
       occurredAt: start.add(const Duration(seconds: 10)),
       sortKey: 'r:chart-fixture-000010',
       query: drillRequest.timelineQuery,
-      schemaVersion: 19,
+      schemaVersion: 21,
       datasetGeneration: store.generation,
     );
     final lateCursor = ChartDrilldownCursor.decode(

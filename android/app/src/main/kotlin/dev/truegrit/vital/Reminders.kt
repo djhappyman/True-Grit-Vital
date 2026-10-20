@@ -215,13 +215,14 @@ internal class Reminders(private val activity: MainActivity, messenger: BinaryMe
     }
     private fun capabilities(engine: ReminderEngine): Map<String, Any?> {
         val effects = AndroidReminderEffects(context)
-        var storage = false; var boot = false; var reason: String? = null
-        try { reason = engine.repairReason(); boot = engine.bootAvailable(); storage = true }
+        var storage = false; var boot = false; var reason: String? = null; var installed: String? = null
+        try { reason = engine.repairReason(); boot = engine.bootAvailable(); installed = engine.installedEpoch(); storage = true }
         catch (e: ReminderFailure) { reason = e.code }
         catch (_: Exception) { reason = "protected_storage_unavailable" }
         return mapOf("supported" to true, "notificationPermission" to effects.permission(), "appEnabled" to effects.appEnabled(),
             "channelEnabled" to effects.channelEnabled(), "exactAlarm" to effects.exact(), "protectedStorageAvailable" to storage,
-            "bootIdentityAvailable" to boot, "fingerprint" to ReminderEngine.FINGERPRINT, "repairReason" to reason)
+            "bootIdentityAvailable" to boot, "fingerprint" to ReminderEngine.FINGERPRINT, "repairReason" to reason,
+            "installedEpoch" to installed)
     }
     fun acceptIntent(intent: Intent?) {
         val uri = intent?.data ?: return

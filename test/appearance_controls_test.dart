@@ -80,6 +80,7 @@ void main() {
       Theme.of(tester.element(find.byType(VitalShell))).brightness,
       Brightness.dark,
     );
+    await tap(tester, 'Settings');
     await tap(tester, 'Appearance');
     await tap(tester, 'Light');
     expect(

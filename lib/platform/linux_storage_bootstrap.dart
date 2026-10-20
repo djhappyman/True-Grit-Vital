@@ -120,8 +120,8 @@ final class LinuxStorageBootstrap implements StorageBootstrap {
 
   @override
   Future<StorageLocation> prepare() => _locked((directory) async {
-    final entries = await directory.list(followLinks: false).take(9).toList();
-    if (entries.length > 8) _recovery();
+    final entries = await directory.list(followLinks: false).take(10).toList();
+    if (entries.length > 9) _recovery();
     final artifacts = entries.where(
       (entry) => entry.path.split('/').last != '.bootstrap.lock',
     );
@@ -176,8 +176,8 @@ final class LinuxStorageBootstrap implements StorageBootstrap {
     String? secret,
   ) async {
     if (secret == null) _recovery();
-    final entries = await directory.list(followLinks: false).take(9).toList();
-    if (entries.length > 8) _recovery();
+    final entries = await directory.list(followLinks: false).take(10).toList();
+    if (entries.length > 9) _recovery();
     const allowed = {
       '.bootstrap.lock',
       'initializing',
@@ -186,11 +186,20 @@ final class LinuxStorageBootstrap implements StorageBootstrap {
       'records.sqlite-wal',
       'records.sqlite-shm',
       'records.sqlite-journal',
+      'restore',
+      'backup-staging',
     };
     for (final entry in entries) {
-      if (!allowed.contains(entry.path.split('/').last) ||
-          await FileSystemEntity.type(entry.path, followLinks: false) !=
-              FileSystemEntityType.file) {
+      final name = entry.path.split('/').last;
+      final type = await FileSystemEntity.type(entry.path, followLinks: false);
+      if ((name == 'restore' || name == 'backup-staging') &&
+          type == FileSystemEntityType.directory) {
+        // Restore staging/rollback lives in one private child directory. Its
+        // files are journalled and verified by the restore engine.
+        await _mode(entry.path, '0700');
+        continue;
+      }
+      if (!allowed.contains(name) || type != FileSystemEntityType.file) {
         _recovery();
       }
       // SQLite creates sidecars inside a private directory. Harden every

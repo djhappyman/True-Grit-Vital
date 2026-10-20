@@ -4079,13 +4079,17 @@
   "@supportingGroupUncertain": {
     "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
   },
-  "supportingTrendScope": "Results are grouped by marker, original unit, laboratory, method and specimen. Points are shown separately. No totals or clinical interpretation are calculated.",
+  "supportingTrendScope": "Results are grouped by marker, original unit, laboratory, method and specimen. The table shows exact source values first. Points are separate. No totals or clinical interpretation are calculated.",
   "@supportingTrendScope": {
     "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
   },
-  "supportingNoTrend": "No results for this marker and date range.",
+  "supportingNoTrend": "No numeric results for this marker and date range. Use the table to inspect every result.",
   "@supportingNoTrend": {
     "description": "Manual supporting record flow. Preserve original values, ownership and date precision. Commands use one word."
+  },
+  "supportingNoMatches": "No results for this marker in the selected dates.",
+  "@supportingNoMatches": {
+    "description": "Empty supporting trend for the selected marker and date range."
   },
   "supportingTooMany": "This view is too large. Narrow the date range and retry.",
   "@supportingTooMany": {
@@ -4217,7 +4221,7 @@
       }
     }
   },
-  "supportingPlotLabel": "{count} exact numeric results. Use the table to inspect every result.",
+  "supportingPlotLabel": "{count, plural, =1{1 exact numeric result. Use the table to inspect every result.} other{{count} exact numeric results. Use the table to inspect every result.}}",
   "@supportingPlotLabel": {
     "description": "Complete supporting record message.",
     "placeholders": {
@@ -4322,8 +4326,1820 @@
   "@supportingEditObservation": {
     "description": "Manual supporting form heading or essential save requirement."
   },
-  "supportingObservationManual": "Enter at least one value or text result. Save before attaching source files.",
+  "supportingObservationManual": "Add a value, text or note. Save before attaching source files.",
   "@supportingObservationManual": {
     "description": "Manual supporting form heading or essential save requirement."
+  },
+  "supportingComponent": "Component",
+  "@supportingComponent": {
+    "description": "Supporting observation component field."
+  },
+  "supportingSearchMarkers": "Search markers",
+  "@supportingSearchMarkers": {
+    "description": "Search field label in the saved marker picker."
+  },
+  "supportingNoValues": "No values entered.",
+  "@supportingNoValues": {
+    "description": "Draft supporting form with no result rows yet."
+  },
+  "supportingValueHint": "Type <, ≤, > or ≥ before the value when the source uses a limit.",
+  "@supportingValueHint": {
+    "description": "Helper for retaining a source qualifier in the original value text."
+  },
+  "supportingIdentifiers": "Identifiers",
+  "@supportingIdentifiers": {
+    "description": "Disclosure label for optional saved laboratory, method and specimen identity values."
+  },
+  "supportingResultMissing": "No result supplied.",
+  "@supportingResultMissing": {
+    "description": "Explicit supporting result state distinct from zero and from a missing unit."
+  },
+  "supportingUnitMissing": "Unit not supplied.",
+  "@supportingUnitMissing": {
+    "description": "Explicit missing supporting unit distinct from an entered unit."
+  },
+  "supportingRangeMissing": "Range not supplied.",
+  "@supportingRangeMissing": {
+    "description": "Explicit missing supporting source range."
+  },
+  "supportingSavedSource": "Saved source: {source}.",
+  "@supportingSavedSource": {
+    "description": "Original saved date, zone and offset shown separately from the display date.",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingDisplayZone": "Display zone: {zone}.",
+  "@supportingDisplayZone": {
+    "description": "The requested zone used for displayed exact dates.",
+    "placeholders": {
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingResultSemantics": "{marker}. Original value: {value}. Unit: {unit}. Source range: {range}.",
+  "@supportingResultSemantics": {
+    "description": "Accessible summary for one saved supporting result row.",
+    "placeholders": {
+      "marker": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingMarkerDisclosure": "Choose marker for result {position}.",
+  "@supportingMarkerDisclosure": {
+    "description": "Accessible name for a result row marker disclosure.",
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "supportingOpen": "Open",
+  "@supportingOpen": {
+    "description": "One-word action that opens a saved supporting record or source."
+  },
+  "supportingSourceUnavailable": "This saved source is no longer available. The record keeps its saved source details.",
+  "@supportingSourceUnavailable": {
+    "description": "Honest state when a saved supporting source version cannot be opened."
+  },
+  "supportingSourceChanged": "This saved source changed after it was saved. Its exact original is not available.",
+  "@supportingSourceChanged": {
+    "description": "The captured source revision or content version is no longer the current attachment."
+  },
+  "supportingSourceTextOnly": "This source is saved as text only. No file is attached.",
+  "@supportingSourceTextOnly": {
+    "description": "A source reference that is a report text rather than an attachment."
+  },
+  "supportingSourceViewing": "Saved source version {version}.",
+  "@supportingSourceViewing": {
+    "description": "Identifies the exact saved attachment version being viewed.",
+    "placeholders": {
+      "version": {
+        "type": "int"
+      }
+    }
+  },
+  "supportingSavedSourceReference": "Saved source, version {version}",
+  "@supportingSavedSourceReference": {
+    "description": "Visible label for one saved supporting source reference.",
+    "placeholders": {
+      "version": {
+        "type": "int"
+      }
+    }
+  },
+  "supportingSourceReferences": "Saved sources",
+  "@supportingSourceReferences": {
+    "description": "Section label for saved supporting source references."
+  },
+  "supportingOpenSourceVersion": "Open saved source version {version}.",
+  "@supportingOpenSourceVersion": {
+    "description": "Accessible name for opening one exact saved source version.",
+    "placeholders": {
+      "version": {
+        "type": "int"
+      }
+    }
+  },
+  "supportingUndatedResults": "Undated results",
+  "@supportingUndatedResults": {
+    "description": "Labelled supporting trend table section for results without a full date."
+  },
+  "supportingUndatedHelp": "Results without a full date are kept here. They are not placed on the trend.",
+  "@supportingUndatedHelp": {
+    "description": "Explains why undated or partial-date results cannot be plotted."
+  },
+  "supportingUndatedGroup": "Undated group",
+  "@supportingUndatedGroup": {
+    "description": "Short group reference for a supporting trend row without a full date."
+  },
+  "supportingGroupSummary": "{marker}. Unit: {unit}. Laboratory: {laboratory}. Method: {method}. Specimen: {specimen}.",
+  "@supportingGroupSummary": {
+    "description": "Visible and accessible summary of a supporting trend comparison group.",
+    "placeholders": {
+      "marker": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "laboratory": {
+        "type": "String"
+      },
+      "method": {
+        "type": "String"
+      },
+      "specimen": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingGroupObservation": "{marker}. Unit: {unit}. Observation.",
+  "@supportingGroupObservation": {
+    "description": "Comparison group summary for an observed component without laboratory metadata.",
+    "placeholders": {
+      "marker": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingGroupObservationSeparate": "Observed components are kept separate. No trend line joins them.",
+  "@supportingGroupObservationSeparate": {
+    "description": "Conservative comparison state for observed components without laboratory identity."
+  },
+  "supportingGroupNumber": "Group {current} of {count}.",
+  "@supportingGroupNumber": {
+    "description": "Stable visible number for one supporting trend group.",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "supportingGroupShort": "Group {number}",
+  "@supportingGroupShort": {
+    "description": "Short group reference shown in a supporting trend table row.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "supportingSelectedGroup": "Selected group",
+  "@supportingSelectedGroup": {
+    "description": "Labels the currently selected supporting trend group."
+  },
+  "supportingGroups": "Groups",
+  "@supportingGroups": {
+    "description": "Heading for the supporting trend comparison group selector."
+  },
+  "supportingTableOrder": "Oldest results first for the chosen date basis.",
+  "@supportingTableOrder": {
+    "description": "Explains the exact supporting table order."
+  },
+  "supportingOpenRecord": "Open {title}.",
+  "@supportingOpenRecord": {
+    "description": "Accessible name for opening one saved supporting record.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingRecordsHeading": "Supporting records",
+  "@supportingRecordsHeading": {
+    "description": "Authored page heading for the supporting record list."
+  },
+  "supportingFilterInvalid": "Enter valid dates. The end date must be after the start.",
+  "@supportingFilterInvalid": {
+    "description": "Supporting date filter error with a recovery step."
+  },
+  "supportingIncludeUnknownHint": "Show records without a full date separately.",
+  "@supportingIncludeUnknownHint": {
+    "description": "Positive description for the supporting unknown-date filter toggle."
+  },
+  "supportingAllDates": "All dates",
+  "@supportingAllDates": {
+    "description": "Summary when no supporting date filter is applied."
+  },
+  "supportingValues": "Values",
+  "@supportingValues": {
+    "description": "Heading for observation values in the draft form."
+  },
+  "supportingDateHelp": "Enter the date as written on the source.",
+  "@supportingDateHelp": {
+    "description": "Plain helper for a saved supporting date."
+  },
+  "supportingExactDateHelp": "Include the source time and offset, for example 2026-10-19T09:30+01:00.",
+  "@supportingExactDateHelp": {
+    "description": "Helper for an exact supporting source time."
+  },
+  "supportingZoneHelp": "The source time zone, when the report names one.",
+  "@supportingZoneHelp": {
+    "description": "Helper for optional source time zone provenance."
+  },
+  "attachmentSupportingHelp": "A source file does not confirm a recorded result. Keep the original report with its saved values.",
+  "@attachmentSupportingHelp": {
+    "description": "Files help for a supporting record rather than a dose."
+  },
+  "attachmentSupportingVoided": "This supporting record is voided. Its saved files stay available to view, but new files cannot be added.",
+  "@attachmentSupportingVoided": {
+    "description": "Explains disabled file addition for a voided supporting record."
+  },
+  "supportingVoidPending": "Void pending",
+  "supportingRestorePending": "Restore pending",
+  "supportingVoidPendingBody": "Your request is saved on this device. Resume to check and finish it, or discard it.",
+  "supportingVoidNotSaved": "Request not saved. Nothing changed. Try again.",
+  "supportingVoidChanged": "Record changed. Review the latest revision, then discard the saved request.",
+  "supportingVoidUncertain": "The outcome is not confirmed. Your request is saved. Resume to check it.",
+  "supportingVoidArchived": "This adult is archived. Discard the saved request or restore the adult first.",
+  "supportingVoidMissing": "This record is unavailable. Discard the saved request.",
+  "supportingVoidSaved": "Record voided.",
+  "supportingRestoreSaved": "Record restored.",
+  "supportingVoidDiscarded": "Request discarded.",
+  "exportTitle": "Export",
+  "@exportTitle": {
+    "description": "Page title for structured JSON or CSV export."
+  },
+  "exportSelectionHelp": "Choose one adult, a date range and the content to include. The preview is the exact file you can save.",
+  "@exportSelectionHelp": {
+    "description": "Explains the single-person structured export selection."
+  },
+  "exportPerson": "Adult",
+  "@exportPerson": {
+    "description": "Label for choosing the one adult whose records are exported."
+  },
+  "exportArchivedLabel": "{name} (archived)",
+  "@exportArchivedLabel": {
+    "description": "Marks an archived adult that can still be exported deliberately.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alex"
+      }
+    }
+  },
+  "exportRange": "Dates",
+  "@exportRange": {
+    "description": "Heading for the export date range."
+  },
+  "exportFrom": "From",
+  "@exportFrom": {
+    "description": "Label for the inclusive start date."
+  },
+  "exportBefore": "Before",
+  "@exportBefore": {
+    "description": "Label for the exclusive end date."
+  },
+  "exportRangeHelp": "Dates use {zone}. From is included. Before is not.",
+  "@exportRangeHelp": {
+    "description": "Plain explanation of the export date boundaries and time zone.",
+    "placeholders": {
+      "zone": {
+        "type": "String",
+        "example": "Europe/London"
+      }
+    }
+  },
+  "exportContent": "Content",
+  "@exportContent": {
+    "description": "Heading for choosing which record types are exported."
+  },
+  "exportDoses": "Doses",
+  "@exportDoses": {
+    "description": "Toggle label for recorded dose revisions."
+  },
+  "exportDosesHelp": "Recorded doses with every saved correction and the units used at entry.",
+  "@exportDosesHelp": {
+    "description": "Explains that dose corrections and original units are included."
+  },
+  "exportSupporting": "Supporting",
+  "@exportSupporting": {
+    "description": "Toggle label for observations and lab panels."
+  },
+  "exportSupportingHelp": "Observations and lab panels recorded in the selected dates.",
+  "@exportSupportingHelp": {
+    "description": "Explains which supporting records are included."
+  },
+  "exportPrivateHelp": "Only this adult is included. Other adults and their records are never exported.",
+  "@exportPrivateHelp": {
+    "description": "Privacy statement for single-person export."
+  },
+  "exportPrivacy": "Privacy",
+  "@exportPrivacy": {
+    "description": "Heading for private inclusion choices."
+  },
+  "exportNotes": "Notes",
+  "@exportNotes": {
+    "description": "Toggle label for including supporting notes."
+  },
+  "exportNotesHelp": "Include supporting notes in the file. Source files are never included.",
+  "@exportNotesHelp": {
+    "description": "Explains the notes toggle and that attachments are excluded."
+  },
+  "exportSinglePerson": "Selected: {name}",
+  "@exportSinglePerson": {
+    "description": "Confirms the one adult included in the export.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Alex"
+      }
+    }
+  },
+  "exportFormat": "Format",
+  "@exportFormat": {
+    "description": "Heading for choosing JSON or CSV."
+  },
+  "exportFormatJson": "JSON",
+  "@exportFormatJson": {
+    "description": "JSON format choice. Not translated."
+  },
+  "exportFormatCsv": "CSV",
+  "@exportFormatCsv": {
+    "description": "CSV format choice. Not translated."
+  },
+  "exportFormatHelp": "JSON keeps the full structure and meanings. CSV is a flat table for spreadsheets.",
+  "@exportFormatHelp": {
+    "description": "Explains the difference between JSON and CSV exports."
+  },
+  "exportPreview": "Preview",
+  "@exportPreview": {
+    "description": "Command button that prepares the exact reviewed file."
+  },
+  "exportPreparing": "Preparing",
+  "@exportPreparing": {
+    "description": "Status heading while the export is captured and encoded."
+  },
+  "exportPreparingHelp": "Building one file from the selected records. Cancel leaves nothing saved.",
+  "@exportPreparingHelp": {
+    "description": "Explains the bounded export preparation while it runs."
+  },
+  "exportSaving": "Saving the reviewed file.",
+  "@exportSaving": {
+    "description": "Status while the destination handoff is running."
+  },
+  "exportCancel": "Cancel",
+  "@exportCancel": {
+    "description": "Command button that stops export preparation or saving."
+  },
+  "exportReview": "Review",
+  "@exportReview": {
+    "description": "Heading for the export summary before saving."
+  },
+  "exportDateRange": "From {from} up to, but not including, {before}.",
+  "@exportDateRange": {
+    "description": "Complete summary of the export date boundaries.",
+    "placeholders": {
+      "from": {
+        "type": "String",
+        "example": "2026-09-21"
+      },
+      "before": {
+        "type": "String",
+        "example": "2026-10-21"
+      }
+    }
+  },
+  "exportZoneLabel": "Time zone: {zone}",
+  "@exportZoneLabel": {
+    "description": "Shows the time zone used for the date boundaries.",
+    "placeholders": {
+      "zone": {
+        "type": "String",
+        "example": "Europe/London"
+      }
+    }
+  },
+  "exportContentLabel": "Content: {content}",
+  "@exportContentLabel": {
+    "description": "Lists the selected record types in the review.",
+    "placeholders": {
+      "content": {
+        "type": "String",
+        "example": "Doses, Supporting"
+      }
+    }
+  },
+  "exportNotesIncluded": "Supporting notes included.",
+  "@exportNotesIncluded": {
+    "description": "Review state when supporting notes are included."
+  },
+  "exportNotesExcluded": "Supporting notes excluded.",
+  "@exportNotesExcluded": {
+    "description": "Review state when supporting notes are excluded."
+  },
+  "exportDoseCount": "{count, plural, =0{No dose records} =1{1 dose record} other{{count} dose records}}",
+  "@exportDoseCount": {
+    "description": "Number of dose records in the reviewed export.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportRevisionCount": "{count, plural, =0{No dose revisions} =1{1 saved dose revision} other{{count} saved dose revisions}}",
+  "@exportRevisionCount": {
+    "description": "Number of saved dose revisions, including corrections.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportSupportingCount": "{count, plural, =0{No supporting records} =1{1 supporting record} other{{count} supporting records}}",
+  "@exportSupportingCount": {
+    "description": "Number of supporting records in the reviewed export.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportSupportingResultCount": "{count, plural, =0{No supporting results} =1{1 supporting result} other{{count} supporting results}}",
+  "@exportSupportingResultCount": {
+    "description": "Number of supporting results across saved revisions.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportByteCount": "{count, plural, =1{1 byte} other{{count} bytes}}",
+  "@exportByteCount": {
+    "description": "Exact byte size of the reviewed export file.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportFileName": "File: {name}",
+  "@exportFileName": {
+    "description": "Neutral generated file name shown in the review.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "vital-export-20261020-a1b2c3d4.json"
+      }
+    }
+  },
+  "exportChecksumLabel": "SHA-256",
+  "@exportChecksumLabel": {
+    "description": "Label for the checksum of the exact reviewed file."
+  },
+  "exportExactArtifact": "This preview is the start of the exact file Save delivers.",
+  "@exportExactArtifact": {
+    "description": "Explains that the preview and saved file are identical bytes."
+  },
+  "exportSave": "Save",
+  "@exportSave": {
+    "description": "Command button that hands the reviewed file to the destination."
+  },
+  "exportChange": "Change",
+  "@exportChange": {
+    "description": "Command button that returns to the export selection."
+  },
+  "exportSaved": "Saved.",
+  "@exportSaved": {
+    "description": "Confirmation after the destination reports a saved file."
+  },
+  "exportShared": "Shared.",
+  "@exportShared": {
+    "description": "Confirmation after the destination reports a share handoff."
+  },
+  "exportUnavailable": "Saving is not available on this device. Preview only.",
+  "@exportUnavailable": {
+    "description": "Honest state when no destination handoff is installed."
+  },
+  "exportLocked": "Unlock the app to export records.",
+  "@exportLocked": {
+    "description": "Shown when export is requested behind the app lock."
+  },
+  "exportZone": "The display time zone is unavailable. Check the device time zone, then try again.",
+  "@exportZone": {
+    "description": "Recovery message when the display zone cannot be resolved."
+  },
+  "exportCancelled": "Export cancelled. Nothing was saved.",
+  "@exportCancelled": {
+    "description": "Confirmation that cancellation saved nothing."
+  },
+  "exportTooLarge": "This selection is too large. Choose a shorter date range or less content.",
+  "@exportTooLarge": {
+    "description": "Recovery message when an export bound is reached."
+  },
+  "exportChooseContent": "Choose at least one content type.",
+  "@exportChooseContent": {
+    "description": "Validation message when no export content is selected."
+  },
+  "exportInvalidRange": "Enter valid dates. Before must be later than From.",
+  "@exportInvalidRange": {
+    "description": "Validation message for an invalid export date range."
+  },
+  "exportFailed": "Unable to prepare the export. Nothing was saved. Try again.",
+  "@exportFailed": {
+    "description": "Generic export preparation failure with recovery."
+  },
+  "exportHandoffCancelled": "Save cancelled. The preview is unchanged.",
+  "@exportHandoffCancelled": {
+    "description": "Confirmation that a cancelled save copied nothing."
+  },
+  "exportSaveFailed": "Unable to save. The preview is unchanged. Try again.",
+  "@exportSaveFailed": {
+    "description": "Save failure that preserves the reviewed preview."
+  },
+  "supportingDetails": "Details",
+  "@supportingDetails": {
+    "description": "Disclosure containing optional source details, saved files and notes."
+  },
+  "supportingAttach": "Attach",
+  "@supportingAttach": {
+    "description": "Visible one-word command that captures an existing saved file as this record source."
+  },
+  "supportingAttached": "Attached",
+  "@supportingAttached": {
+    "description": "Non-actionable state showing that the current saved file version is already a source."
+  },
+  "supportingSourceFiles": "Saved files",
+  "@supportingSourceFiles": {
+    "description": "Heading for saved files that can be captured as a source."
+  },
+  "supportingSourceFilesHelp": "Choose a file for this adult. The saved file version stays linked if the file changes later.",
+  "@supportingSourceFilesHelp": {
+    "description": "Explains the frozen source version; no claim that the file proves a result."
+  },
+  "supportingNoSourceFiles": "No saved files for this adult.",
+  "@supportingNoSourceFiles": {
+    "description": "Empty state for saved source candidates."
+  },
+  "supportingGroupUndated": "Some results in this group have no full date. They are listed separately and do not connect the line.",
+  "@supportingGroupUndated": {
+    "description": "Truthful trend limitation."
+  },
+  "supportingConflict": "This supporting record changed. Open Supporting records and review the latest revision before editing.",
+  "@supportingConflict": {
+    "description": "Supporting form stale-record recovery; no History or Today instruction."
+  },
+  "supportingDraftUnavailable": "This entry is no longer available. Open Supporting records to review saved records.",
+  "@supportingDraftUnavailable": {
+    "description": "Supporting draft invalidated by deletion or dataset replacement."
+  },
+  "supportingDraftSaved": "This supporting record was already saved. Open it to review the latest revision.",
+  "@supportingDraftSaved": {
+    "description": "Supporting entry whose operation already committed."
+  },
+  "supportingDraftFailure": "Your latest changes were not kept on this device. Stay here and try again.",
+  "@supportingDraftFailure": {
+    "description": "Supporting local draft persistence failure."
+  },
+  "supportingSaveFailure": "The supporting record could not be saved. Retry with the same details.",
+  "@supportingSaveFailure": {
+    "description": "Supporting save failure after an unconfirmed operation."
+  },
+  "supportingNoValuesObservation": "No values entered. Add a value, or add a note in Details.",
+  "@supportingNoValuesObservation": {
+    "description": "Empty observation state with a truthful next action."
+  },
+  "supportingAttachSource": "Attach {name}.",
+  "@supportingAttachSource": {
+    "description": "Accessible name for the one-word Attach command on a saved file.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingRemoveSource": "Remove saved source {name}.",
+  "@supportingRemoveSource": {
+    "description": "Accessible name for the one-word Remove command on a captured source.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "supportingObservationRequired": "Add a value or a note before saving this observation.",
+  "@supportingObservationRequired": {
+    "description": "Observation empty-state validation with a concrete next action."
+  },
+  "reminderLimits": "Limits",
+  "reminderLimitsBody": "Android may delay or drop alerts after a force stop, battery limit or long gap. Reopen Vital to prepare more.",
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings screen heading and shell navigation label."
+  },
+  "settingsBody": "Appearance, people, privacy and help.",
+  "@settingsBody": {
+    "description": "Short introduction to the settings inventory."
+  },
+  "settingsDisplayUnsaved": "Some display changes were not saved. Try again in Appearance.",
+  "@settingsDisplayUnsaved": {
+    "description": "Settings notice when appearance or time format persistence failed."
+  },
+  "settingsPeopleBody": "Add or edit adults.",
+  "@settingsPeopleBody": {
+    "description": "People row helper in Settings."
+  },
+  "settingsPrivacyBody": "Archive, delete or review copies.",
+  "@settingsPrivacyBody": {
+    "description": "Privacy row helper in Settings."
+  },
+  "display": "Display",
+  "@display": {
+    "description": "Settings group heading for appearance and time controls."
+  },
+  "settingsAppearanceBody": "Theme, motion, app lock and time.",
+  "@settingsAppearanceBody": {
+    "description": "Appearance row helper in Settings."
+  },
+  "alerts": "Alerts",
+  "@alerts": {
+    "description": "Settings group heading for reminder controls."
+  },
+  "settingsRemindersBody": "Notification settings and checks.",
+  "@settingsRemindersBody": {
+    "description": "Reminders row helper in Settings."
+  },
+  "data": "Data",
+  "@data": {
+    "description": "Settings group heading for report, export, backup and restore routes."
+  },
+  "reports": "Reports",
+  "@reports": {
+    "description": "Reports row label, shown only when the report capability is available."
+  },
+  "settingsReportsBody": "Review a person’s substance report.",
+  "@settingsReportsBody": {
+    "description": "Reports row helper in Settings."
+  },
+  "exports": "Exports",
+  "@exports": {
+    "description": "Exports row label, shown only when the export capability is available."
+  },
+  "settingsExportsBody": "Save structured data for one person.",
+  "@settingsExportsBody": {
+    "description": "Exports row helper in Settings."
+  },
+  "backup": "Backup",
+  "@backup": {
+    "description": "Backup row label, shown only when the backup capability is available."
+  },
+  "settingsBackupBody": "Create a protected full copy.",
+  "@settingsBackupBody": {
+    "description": "Backup row helper in Settings."
+  },
+  "restore": "Restore",
+  "@restore": {
+    "description": "Restore row label, shown only when the restore capability is available."
+  },
+  "settingsRestoreBody": "Replace this installation from a backup.",
+  "@settingsRestoreBody": {
+    "description": "Restore row helper in Settings."
+  },
+  "support": "Support",
+  "@support": {
+    "description": "Settings group heading for diagnostics, help and licence information."
+  },
+  "diagnostics": "Diagnostics",
+  "@diagnostics": {
+    "description": "Diagnostics screen heading and Settings row label."
+  },
+  "settingsDiagnosticsBody": "Recent local error codes.",
+  "@settingsDiagnosticsBody": {
+    "description": "Diagnostics row helper in Settings."
+  },
+  "help": "Help",
+  "@help": {
+    "description": "Help screen heading and Settings row label."
+  },
+  "settingsHelpBody": "Recovery, privacy and sources.",
+  "@settingsHelpBody": {
+    "description": "Help row helper in Settings."
+  },
+  "licences": "Licences",
+  "@licences": {
+    "description": "Licence screen heading and Settings row label."
+  },
+  "settingsLicencesBody": "Bundled open-source notices.",
+  "@settingsLicencesBody": {
+    "description": "Licence row helper in Settings and Help."
+  },
+  "privacy": "Privacy",
+  "@privacy": {
+    "description": "Privacy screen heading and Settings row label."
+  },
+  "privacyBody": "Records stay on this device. They leave only when you export or back up.",
+  "@privacyBody": {
+    "description": "Privacy screen introduction."
+  },
+  "privacyOperator": "Anyone who can unlock this device can see every local profile. Adult profiles are not separate accounts.",
+  "@privacyOperator": {
+    "description": "Truthful limit of local adult profiles: they express relationship and ownership, not separate access rights."
+  },
+  "privacyArchiveHelp": "Archive keeps history and stops reminders. Delete removes only that person’s records, files and drafts. Me stays available.",
+  "@privacyArchiveHelp": {
+    "description": "Explains the difference between archive and delete without exposing another person’s data."
+  },
+  "copies": "Copies",
+  "@copies": {
+    "description": "Privacy section heading for already-shared and stale backup copies."
+  },
+  "privacyCopies": "Copies you saved or shared are outside Vital’s control. Restoring an old backup can bring back records you deleted here.",
+  "@privacyCopies": {
+    "description": "Explains stale backup and already-shared copy limits."
+  },
+  "archivedPeople": "Archived people",
+  "@archivedPeople": {
+    "description": "Privacy section heading listing retained archived adults."
+  },
+  "privacyArchivedHelp": "History is kept. Reminders stay stopped until you set them again.",
+  "@privacyArchivedHelp": {
+    "description": "Explains retained history and stopped reminders until the operator explicitly resumes plans."
+  },
+  "privacyNoneArchived": "No archived people.",
+  "@privacyNoneArchived": {
+    "description": "Empty state for the archived people section."
+  },
+  "privacyMeOwner": "Your records. Me stays available after deletion.",
+  "@privacyMeOwner": {
+    "description": "Explains that Me is retained when its records are deleted."
+  },
+  "privacyOtherOwner": "Records for this adult.",
+  "@privacyOtherOwner": {
+    "description": "Ownership label for another adult in the privacy list."
+  },
+  "deleteMeBody": "Delete all saved records for Me? This cannot be undone. Me stays available and other people are not changed.",
+  "@deleteMeBody": {
+    "description": "Confirms deletion of only the main user’s records."
+  },
+  "privacyArchived": "{person} archived. History is kept and reminders are stopped.",
+  "@privacyArchived": {
+    "description": "Live result after archiving one adult.",
+    "placeholders": {
+      "person": {
+        "type": "String",
+        "example": "Alex Example"
+      }
+    }
+  },
+  "privacyArchiveSemantic": "Archive {person}",
+  "@privacyArchiveSemantic": {
+    "description": "Accessible name for the visible one-word Archive command, naming the selected adult.",
+    "placeholders": {
+      "person": {
+        "type": "String",
+        "example": "Alex Example"
+      }
+    }
+  },
+  "privacyReactivateSemantic": "Reactivate {person}",
+  "@privacyReactivateSemantic": {
+    "description": "Accessible name for the visible one-word Reactivate command, naming the selected adult.",
+    "placeholders": {
+      "person": {
+        "type": "String",
+        "example": "Alex Example"
+      }
+    }
+  },
+  "privacyDeleteSemantic": "Delete {person}",
+  "@privacyDeleteSemantic": {
+    "description": "Accessible name for the visible one-word Delete command, naming the selected adult.",
+    "placeholders": {
+      "person": {
+        "type": "String",
+        "example": "Alex Example"
+      }
+    }
+  },
+  "privacyDeleteRecordsSemantic": "Delete records for {person}",
+  "@privacyDeleteRecordsSemantic": {
+    "description": "Accessible name for deleting only the main user’s records while Me stays available.",
+    "placeholders": {
+      "person": {
+        "type": "String",
+        "example": "Me"
+      }
+    }
+  },
+  "privacyReactivated": "{person} reactivated. Reminders stay stopped until you set them again.",
+  "@privacyReactivated": {
+    "description": "Live result after reactivating one adult.",
+    "placeholders": {
+      "person": {
+        "type": "String",
+        "example": "Alex Example"
+      }
+    }
+  },
+  "privacyMeDeleted": "Records deleted. Me is still available.",
+  "@privacyMeDeleted": {
+    "description": "Live result after deleting the main user’s records."
+  },
+  "privacyDeleted": "{person} deleted.",
+  "@privacyDeleted": {
+    "description": "Live result after deleting another adult.",
+    "placeholders": {
+      "person": {
+        "type": "String",
+        "example": "Alex Example"
+      }
+    }
+  },
+  "privacyNotSaved": "Could not confirm the change. Review the people shown here before trying again.",
+  "@privacyNotSaved": {
+    "description": "Failure result for an archive, reactivation or deletion write."
+  },
+  "diagnosticsBody": "Diagnostics stay on this device. They contain error codes and the platform only.",
+  "@diagnosticsBody": {
+    "description": "Explains the bounded content of local diagnostics."
+  },
+  "diagnosticsNoSend": "Nothing is sent automatically. This build has no diagnostic uploader.",
+  "@diagnosticsNoSend": {
+    "description": "Truthfully states that no remote diagnostic sender exists."
+  },
+  "diagnosticsEmpty": "No recent issues.",
+  "@diagnosticsEmpty": {
+    "description": "Empty state for the bounded local diagnostic log."
+  },
+  "diagnosticsCleared": "Diagnostics cleared.",
+  "@diagnosticsCleared": {
+    "description": "Live result after clearing the local diagnostic log."
+  },
+  "diagnosticsClearFailure": "Not cleared. Try again.",
+  "@diagnosticsClearFailure": {
+    "description": "Failure result when clearing the local diagnostic log did not persist."
+  },
+  "diagnosticDataLoad": "Data load failed",
+  "@diagnosticDataLoad": {
+    "description": "Local diagnostic event label for a data load failure."
+  },
+  "diagnosticLicenceNotice": "Licence notice failed",
+  "@diagnosticLicenceNotice": {
+    "description": "Local diagnostic event label for an unavailable bundled notice."
+  },
+  "diagnosticProfileArchive": "Archive failed",
+  "@diagnosticProfileArchive": {
+    "description": "Local diagnostic event label for a profile archive or reactivation failure."
+  },
+  "diagnosticProfileDelete": "Delete failed",
+  "@diagnosticProfileDelete": {
+    "description": "Local diagnostic event label for a scoped deletion failure."
+  },
+  "helpBody": "Recovery, privacy and source information for this device.",
+  "@helpBody": {
+    "description": "Help screen introduction."
+  },
+  "recovery": "Recovery",
+  "@recovery": {
+    "description": "Help section heading for truthful recovery steps."
+  },
+  "recoveryOpen": "If Vital cannot open your records, it never starts an empty replacement. Unlock your device and retry.",
+  "@recoveryOpen": {
+    "description": "Recovery explanation for an unopened dataset."
+  },
+  "recoveryKeyring": "On Linux, unlock the login keyring so Vital can reach its key.",
+  "@recoveryKeyring": {
+    "description": "Linux-specific keyring recovery step."
+  },
+  "recoveryLock": "If app lock fails, records stay hidden. Retry after your device unlocks.",
+  "@recoveryLock": {
+    "description": "Recovery explanation for app lock authentication failure."
+  },
+  "privacyLocal": "Vital has no accounts, ads or analytics. Your records stay here unless you save or share a copy.",
+  "@privacyLocal": {
+    "description": "Local-only privacy statement that avoids certification claims."
+  },
+  "privacyNotifications": "Reminders use a generic message without names or amounts.",
+  "@privacyNotifications": {
+    "description": "Explains generic notification text."
+  },
+  "privacySwitcher": "Recent-app previews are hidden while app lock is on.",
+  "@privacySwitcher": {
+    "description": "Explains app-switcher preview protection when app lock is enabled."
+  },
+  "privacyShared": "Copies you share are outside Vital’s control.",
+  "@privacyShared": {
+    "description": "Explains the limit of an already-shared copy."
+  },
+  "sources": "Sources",
+  "@sources": {
+    "description": "Help section heading for catalogue source metadata."
+  },
+  "sourcesNone": "No catalogue is installed. Custom items are still available.",
+  "@sourcesNone": {
+    "description": "Truthful source empty state when no catalogue is admitted."
+  },
+  "sourcesUnavailable": "Catalogue source details are unavailable.",
+  "@sourcesUnavailable": {
+    "description": "Failure result when catalogue metadata cannot be read."
+  },
+  "about": "About",
+  "@about": {
+    "description": "Help section heading for the product description."
+  },
+  "aboutBody": "Vital keeps substance records for adults on this device.",
+  "@aboutBody": {
+    "description": "Short truthful product description without a medical claim."
+  },
+  "aboutLimit": "This is a personal record, not a clinical record or an emergency monitor.",
+  "@aboutLimit": {
+    "description": "Truthful intended-purpose limit without claiming certification or clinical authority."
+  },
+  "appLicence": "Vital licence",
+  "@appLicence": {
+    "description": "Licence row label for the application’s own MIT licence."
+  },
+  "appLicenceBody": "MIT licence text.",
+  "@appLicenceBody": {
+    "description": "Licence row helper for the application licence."
+  },
+  "packageNotices": "Package notices",
+  "@packageNotices": {
+    "description": "Licence list heading for adopted open-source package notices."
+  },
+  "licencesBody": "Vital is open source under the MIT licence. Adopted package notices are bundled with the app.",
+  "@licencesBody": {
+    "description": "Explains the bundled licence information without claiming certification."
+  },
+  "licence": "Licence",
+  "@licence": {
+    "description": "Detail screen heading for one bundled licence notice."
+  },
+  "licenceDetailBody": "Bundled licence text.",
+  "@licenceDetailBody": {
+    "description": "Licence list row helper for one package notice."
+  },
+  "licencesUnavailable": "Licence notices are unavailable in this build.",
+  "@licencesUnavailable": {
+    "description": "Failure result when bundled licence notices cannot be read."
+  },
+  "reportsTitle": "Reports",
+  "@reportsTitle": {
+    "description": "Page heading and History entry for person-scoped report selection."
+  },
+  "reportScopeHelp": "Choose one adult, exact dates, and whether to include private context.",
+  "@reportScopeHelp": {
+    "description": "Plain explanation of the report selection before generation."
+  },
+  "reportPerson": "Person",
+  "@reportPerson": {
+    "description": "Adult selection label."
+  },
+  "reportFrom": "From",
+  "@reportFrom": {
+    "description": "Start date label."
+  },
+  "reportThrough": "Through",
+  "@reportThrough": {
+    "description": "Inclusive end date label."
+  },
+  "reportDateHelp": "Use YYYY-MM-DD.",
+  "@reportDateHelp": {
+    "description": "Exact date entry format."
+  },
+  "reportThroughHelp": "The end date is included.",
+  "@reportThroughHelp": {
+    "description": "Explains that the end date is included."
+  },
+  "reportNameHelp": "Optional. Shown on the first page.",
+  "@reportNameHelp": {
+    "description": "Explains the optional report identity."
+  },
+  "reportContent": "Content",
+  "@reportContent": {
+    "description": "Heading for item content selection."
+  },
+  "reportContentHelp": "All items are included unless you choose specific items.",
+  "@reportContentHelp": {
+    "description": "Explains the default all-items scope."
+  },
+  "reportAllItems": "All items",
+  "@reportAllItems": {
+    "description": "Selects every recorded item."
+  },
+  "reportNoItems": "No recorded items in this period.",
+  "@reportNoItems": {
+    "description": "Empty item content state."
+  },
+  "reportContext": "Supporting records",
+  "@reportContext": {
+    "description": "Toggle label for supporting context."
+  },
+  "reportContextHelp": "Include supporting records from the selected period.",
+  "@reportContextHelp": {
+    "description": "Explains supporting context inclusion."
+  },
+  "reportNotes": "Private notes",
+  "@reportNotes": {
+    "description": "Toggle label for private notes."
+  },
+  "reportNotesHelp": "Include saved notes for selected supporting records.",
+  "@reportNotesHelp": {
+    "description": "Explains private note inclusion."
+  },
+  "reportSources": "Source files",
+  "@reportSources": {
+    "description": "Toggle label for source files."
+  },
+  "reportSourcesHelp": "List attached source file names. File contents stay separate.",
+  "@reportSourcesHelp": {
+    "description": "Explains source file listing without embedding contents."
+  },
+  "reportReview": "Review",
+  "@reportReview": {
+    "description": "Heading for the selection review panel."
+  },
+  "reportPersonValue": "Person: {name}",
+  "@reportPersonValue": {
+    "description": "Selected adult in the review summary.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reportPeriodValue": "Period: {from} to {to}. Times shown in {zone}.",
+  "@reportPeriodValue": {
+    "description": "Selected period and shown time zone.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "reportItemCount": "{count, plural, =1{1 selected item} other{{count} selected items}}",
+  "@reportItemCount": {
+    "description": "Selected item count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportTemplateValue": "Template {id} version {version}",
+  "@reportTemplateValue": {
+    "description": "Template identifier and version.",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "reportCapturing": "Reading records",
+  "@reportCapturing": {
+    "description": "Progress state while reading records."
+  },
+  "reportRendering": "Building report",
+  "@reportRendering": {
+    "description": "Progress state while building the PDF."
+  },
+  "reportPreview": "Preview",
+  "@reportPreview": {
+    "description": "One-word command to generate and preview the report."
+  },
+  "reportCancelled": "Report cancelled. Your choices are unchanged.",
+  "@reportCancelled": {
+    "description": "Cancellation result with unchanged choices."
+  },
+  "reportFailure": "Report not created. Try again.",
+  "@reportFailure": {
+    "description": "Generic report failure with a recovery step."
+  },
+  "reportSourceLimit": "Too many doses for one summary. Narrow the dates or items, then try again.",
+  "@reportSourceLimit": {
+    "description": "Source limit failure with a recovery step."
+  },
+  "reportAttachmentLimit": "Too many source files for one summary. Choose fewer items, then try again.",
+  "@reportAttachmentLimit": {
+    "description": "Attachment limit failure with a recovery step."
+  },
+  "reportPersonMissing": "This adult is unavailable. Choose another adult.",
+  "@reportPersonMissing": {
+    "description": "Missing adult recovery."
+  },
+  "reportPersonArchived": "This adult is archived. Restore the adult or choose another adult.",
+  "@reportPersonArchived": {
+    "description": "Archived adult recovery."
+  },
+  "reportZoneUnavailable": "The time zone is unavailable. Choose the device time zone, then try again.",
+  "@reportZoneUnavailable": {
+    "description": "Unavailable time zone recovery."
+  },
+  "reportLocked": "Vital is locked. Unlock it, then try again.",
+  "@reportLocked": {
+    "description": "Locked app recovery."
+  },
+  "reportGenerated": "Report ready.",
+  "@reportGenerated": {
+    "description": "Artifact ready state."
+  },
+  "reportPreviewTitle": "Report preview",
+  "@reportPreviewTitle": {
+    "description": "Preview page heading."
+  },
+  "reportUnavailable": "No report is ready. Return to Reports and preview one.",
+  "@reportUnavailable": {
+    "description": "Empty preview state."
+  },
+  "reportPreviewMode": "Preview",
+  "@reportPreviewMode": {
+    "description": "Preview mode label."
+  },
+  "reportText": "Text",
+  "@reportText": {
+    "description": "Structured text alternative mode label."
+  },
+  "reportArtifactValue": "{pages, plural, =1{1 page} other{{pages} pages}} · {kilobytes} KB",
+  "@reportArtifactValue": {
+    "description": "Page count and file size.",
+    "placeholders": {
+      "pages": {
+        "type": "int"
+      },
+      "kilobytes": {
+        "type": "int"
+      }
+    }
+  },
+  "reportHandoffUnavailable": "Save and share are unavailable in this build. The preview is complete.",
+  "@reportHandoffUnavailable": {
+    "description": "Truthful unavailable save and share notice."
+  },
+  "reportSaveUnavailable": "Save is unavailable in this build.",
+  "@reportSaveUnavailable": {
+    "description": "Truthful unavailable save notice."
+  },
+  "reportShareUnavailable": "Share is unavailable in this build.",
+  "@reportShareUnavailable": {
+    "description": "Truthful unavailable share notice."
+  },
+  "reportHandoffComplete": "Report saved to the chosen location.",
+  "@reportHandoffComplete": {
+    "description": "Completed handoff result."
+  },
+  "reportHandoffCancelled": "Handoff cancelled.",
+  "@reportHandoffCancelled": {
+    "description": "Cancelled handoff result."
+  },
+  "reportHandoffFailed": "Handoff failed. Try again.",
+  "@reportHandoffFailed": {
+    "description": "Failed handoff result with a recovery step."
+  },
+  "reportArtifactIdentity": "Report {id} · Fingerprint {hash}",
+  "@reportArtifactIdentity": {
+    "description": "Neutral report id and document fingerprint.",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "hash": {
+        "type": "String"
+      }
+    }
+  },
+  "reportArtifactLimits": "The PDF is not tagged. Use Text for the accessible structured version. Recipients' copies are outside this app's control.",
+  "@reportArtifactLimits": {
+    "description": "Accessibility and recipient-copy limitations."
+  },
+  "share": "Share",
+  "@share": {
+    "description": "One-word share command."
+  },
+  "reportIdentity": "Report name",
+  "@reportIdentity": {
+    "description": "Optional report identity field label."
+  },
+  "reportSourceChanged": "Records changed while the report was prepared. Try again.",
+  "@reportSourceChanged": {
+    "description": "Source changed during capture; recovery step is to retry."
+  },
+  "reportPageLimit": "This report is too large. Narrow the dates or items, then try again.",
+  "@reportPageLimit": {
+    "description": "Page/item count limit with a recovery step."
+  },
+  "reportShareOffered": "Report offered to the chosen app. Vital cannot confirm receipt.",
+  "@reportShareOffered": {
+    "description": "Share-sheet handoff does not prove receipt."
+  },
+  "reportSummaryTemplate": "Substance summary",
+  "@reportSummaryTemplate": {
+    "description": "Report selection or validation message."
+  },
+  "reportHistoryTemplate": "Detailed history",
+  "@reportHistoryTemplate": {
+    "description": "Report selection or validation message."
+  },
+  "reportEventTemplate": "Event review",
+  "@reportEventTemplate": {
+    "description": "Report selection or validation message."
+  },
+  "reportSkippedRows": "Skipped entries",
+  "@reportSkippedRows": {
+    "description": "Report selection or validation message."
+  },
+  "reportSkippedRowsHelp": "Include entries marked as skipped.",
+  "@reportSkippedRowsHelp": {
+    "description": "Report selection or validation message."
+  },
+  "reportUnrecordedRows": "Unrecorded entries",
+  "@reportUnrecordedRows": {
+    "description": "Report selection or validation message."
+  },
+  "reportUnrecordedRowsHelp": "Include past planned entries with no recorded action. These do not prove a missed dose.",
+  "@reportUnrecordedRowsHelp": {
+    "description": "Report selection or validation message."
+  },
+  "reportEventRequired": "Choose an event to review.",
+  "@reportEventRequired": {
+    "description": "Report selection or validation message."
+  },
+  "reportEventMissing": "This event is no longer available. Choose another event.",
+  "@reportEventMissing": {
+    "description": "Report selection or validation message."
+  },
+  "reportEventRange": "Choose dates that cover the event’s recorded start and end.",
+  "@reportEventRange": {
+    "description": "Report selection or validation message."
+  },
+  "reportEventRangeHelp": "Choose one event and dates that cover its recorded start and end. Dates without a known boundary stay uncertain.",
+  "@reportEventRangeHelp": {
+    "description": "Report selection or validation message."
+  },
+  "reportNoEvents": "No events are available for this person.",
+  "@reportNoEvents": {
+    "description": "Report selection or validation message."
+  },
+  "reportNameLimit": "Use a report name of 120 characters or fewer.",
+  "@reportNameLimit": {
+    "description": "Report selection or validation message."
+  },
+  "backupCreateHeading": "Create backup",
+  "@backupCreateHeading": {
+    "description": "Section heading above the backup password fields."
+  },
+  "backupAllAdults": "All adults included",
+  "@backupAllAdults": {
+    "description": "Prominent scope label; a full backup is not single-person."
+  },
+  "backupIncludesFiles": "Attached files included",
+  "@backupIncludesFiles": {
+    "description": "Prominent label that attached files are inside the full backup."
+  },
+  "backupPasswordLabel": "Backup password",
+  "@backupPasswordLabel": {
+    "description": "Visible label for the password used to protect a backup."
+  },
+  "backupConfirmLabel": "Confirm password",
+  "@backupConfirmLabel": {
+    "description": "Visible label for repeating the backup password."
+  },
+  "backupPasswordHelper": "Use at least 12 characters.",
+  "@backupPasswordHelper": {
+    "description": "Password length requirement shown before entry."
+  },
+  "backupPasswordLoss": "You need this password to restore your records. It cannot be recovered.",
+  "@backupPasswordLoss": {
+    "description": "Essential consequence before creating a password-protected backup."
+  },
+  "backupPasswordNotStored": "The password is not stored.",
+  "@backupPasswordNotStored": {
+    "description": "Confirms that the backup password is not persisted."
+  },
+  "backupPreparing": "Preparing records",
+  "@backupPreparing": {
+    "description": "Progress state while a coherent database snapshot is captured."
+  },
+  "backupEncrypting": "Encrypting backup",
+  "@backupEncrypting": {
+    "description": "Progress state while the archive is authenticated and encrypted."
+  },
+  "backupChecking": "Checking backup",
+  "@backupChecking": {
+    "description": "Progress state while the completed archive is reopened and verified."
+  },
+  "backupReadyHeading": "Backup ready",
+  "@backupReadyHeading": {
+    "description": "Result heading after a complete validated archive exists."
+  },
+  "backupContents": "Includes {people, plural, =1{1 adult} other{{people} adults}} and {attachments, plural, =1{1 file} other{{attachments} files}}.",
+  "@backupContents": {
+    "description": "Verified full-backup scope counts.",
+    "placeholders": {
+      "people": {
+        "type": "int"
+      },
+      "attachments": {
+        "type": "int"
+      }
+    }
+  },
+  "backupSize": "Size {size}.",
+  "@backupSize": {
+    "description": "Neutral archive size.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "backupCreated": "Created {date}.",
+  "@backupCreated": {
+    "description": "Local creation date and time for the archive.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "backupKeepSafe": "Keep the file and password safe. Restore needs both.",
+  "backupUnsavedWarning": "Save before leaving. An unsaved backup is deleted at the next launch.",
+  "@backupKeepSafe": {
+    "description": "Recovery explanation after a backup is ready."
+  },
+  "@backupUnsavedWarning": {
+    "description": "Consequence of leaving a ready backup without saving it."
+  },
+  "backupCannotSave": "Cannot save",
+  "@backupCannotSave": {
+    "description": "Short heading when no generated-artifact save handoff is integrated."
+  },
+  "backupSavingUnavailable": "Saving backup files is unavailable on this device.",
+  "@backupSavingUnavailable": {
+    "description": "Truthful capability statement when no save handoff is integrated."
+  },
+  "backupSavedHeading": "Backup saved",
+  "@backupSavedHeading": {
+    "description": "Result heading after the destination confirms a completed save."
+  },
+  "backupSavedBody": "Saved as {name}.",
+  "@backupSavedBody": {
+    "description": "Neutral saved file name shown after the destination confirms the copy.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "backupDeleteHeading": "Delete backup?",
+  "@backupDeleteHeading": {
+    "description": "Confirmation title before deleting the staged backup file."
+  },
+  "backupDeleteBody": "The backup file will be deleted. Your records are not changed.",
+  "@backupDeleteBody": {
+    "description": "Consequence before deleting an unsaved backup file."
+  },
+  "backupCancelled": "Backup cancelled",
+  "@backupCancelled": {
+    "description": "Result heading after a user cancellation."
+  },
+  "backupCancelledBody": "No backup was created.",
+  "@backupCancelledBody": {
+    "description": "Confirms cancellation left no reported archive."
+  },
+  "backupFailedHeading": "Backup failed",
+  "@backupFailedHeading": {
+    "description": "Generic failure heading."
+  },
+  "backupFailedBody": "Your records were not changed. Try again.",
+  "@backupFailedBody": {
+    "description": "Recovery step and live-data assurance after a failed backup."
+  },
+  "backupNoSpaceHeading": "Not enough space",
+  "@backupNoSpaceHeading": {
+    "description": "Failure heading for a storage-capacity problem."
+  },
+  "backupNoSpaceBody": "Free some space and try again. Your records were not changed.",
+  "@backupNoSpaceBody": {
+    "description": "Recovery step and live-data assurance after low storage."
+  },
+  "backupWrongPassword": "Password not accepted",
+  "@backupWrongPassword": {
+    "description": "Failure heading when archive authentication rejects the password."
+  },
+  "backupWrongPasswordBody": "Check the password and try again.",
+  "@backupWrongPasswordBody": {
+    "description": "Recovery step after a rejected backup password."
+  },
+  "backupDamagedHeading": "Backup damaged",
+  "@backupDamagedHeading": {
+    "description": "Failure heading when a file is not a valid or intact Vital backup."
+  },
+  "backupDamagedBody": "The file is damaged or not a Vital backup.",
+  "@backupDamagedBody": {
+    "description": "Truthful cause for rejected archive bytes."
+  },
+  "backupNewerHeading": "Newer backup",
+  "@backupNewerHeading": {
+    "description": "Failure heading for a format or database version this build cannot open."
+  },
+  "backupNewerBody": "This backup needs a newer version of Vital.",
+  "@backupNewerBody": {
+    "description": "Explains a version mismatch without inventing an upgrade path."
+  },
+  "backupIncompleteHeading": "Backup incomplete",
+  "@backupIncompleteHeading": {
+    "description": "Failure heading when the archive does not match its own records."
+  },
+  "backupIncompleteBody": "The file did not match its records. Your records were not changed.",
+  "@backupIncompleteBody": {
+    "description": "Integrity failure explanation and live-data assurance."
+  },
+  "backupLocked": "Unlock to create a backup.",
+  "backupLockedHeading": "Unlock first",
+  "@backupLocked": {
+    "description": "Instruction when app lock prevents a protected snapshot."
+  },
+  "@backupLockedHeading": {
+    "description": "Short failure heading for a locked app."
+  },
+  "backupShortPassword": "Use at least 12 characters.",
+  "@backupShortPassword": {
+    "description": "Validation error for a short backup password."
+  },
+  "backupPasswordMismatch": "Passwords do not match.",
+  "@backupPasswordMismatch": {
+    "description": "Validation error when the confirmation differs."
+  },
+  "backupPasswordLong": "Use a shorter password.",
+  "@backupPasswordLong": {
+    "description": "Validation error for an unreasonably long password."
+  },
+  "backupBusyHeading": "Backup busy",
+  "@backupBusyHeading": {
+    "description": "Failure heading when another backup operation is already running."
+  },
+  "backupBusyBody": "Finish the current backup before starting another.",
+  "@backupBusyBody": {
+    "description": "Recovery step for a concurrent backup attempt."
+  },
+  "backupUnavailableHeading": "Backup unavailable",
+  "@backupUnavailableHeading": {
+    "description": "Heading when protected storage or the backup service is not ready."
+  },
+  "backupUnavailableBody": "Open your records before creating a backup.",
+  "@backupUnavailableBody": {
+    "description": "Guidance when the record store cannot provide a protected snapshot."
+  },
+  "backupSaveFailedHeading": "Not saved",
+  "@backupSaveFailedHeading": {
+    "description": "Heading when the destination did not confirm the save; the staged archive remains."
+  },
+  "backupSaveFailedBody": "The backup file is still here. Try again.",
+  "@backupSaveFailedBody": {
+    "description": "Recovery step after the save handoff fails or is interrupted."
+  },
+  "done": "Done",
+  "@done": {
+    "description": "One-word action that closes a completed result state."
+  },
+  "backupSaveLimit": "This backup is larger than this device’s save limit. The staged backup is kept.",
+  "@backupSaveLimit": {
+    "description": "A backup exceeds the actual destination transfer limit; do not suggest a retry can fix it."
+  },
+  "restoreTitle": "Restore",
+  "@restoreTitle": {
+    "description": "Heading for replacing this installation from a protected backup."
+  },
+  "restoreIntro": "Use a Vital backup to replace every record on this device. You review the backup before anything changes.",
+  "@restoreIntro": {
+    "description": "Explains the restore scope before choosing an archive."
+  },
+  "restoreChoose": "Choose",
+  "@restoreChoose": {
+    "description": "One-word button that opens the file picker for a backup archive."
+  },
+  "restoreArchiveLabel": "Backup file",
+  "@restoreArchiveLabel": {
+    "description": "Label for the chosen backup archive name."
+  },
+  "restoreArchiveNone": "No backup chosen",
+  "@restoreArchiveNone": {
+    "description": "Empty state for the backup file selection."
+  },
+  "restorePasswordLabel": "Backup password",
+  "@restorePasswordLabel": {
+    "description": "Label for the password that opens the chosen backup."
+  },
+  "restorePasswordHelp": "Enter the password used when this backup was created.",
+  "@restorePasswordHelp": {
+    "description": "Helper for the backup password field."
+  },
+  "restoreCheck": "Check",
+  "@restoreCheck": {
+    "description": "One-word button that validates the archive into protected staging."
+  },
+  "restoreChecking": "Checking archive",
+  "@restoreChecking": {
+    "description": "Status while the archive is decrypted, verified and inspected."
+  },
+  "restorePreviewTitle": "Backup contents",
+  "@restorePreviewTitle": {
+    "description": "Heading for the validated archive contents before replacement."
+  },
+  "restoreCreated": "Created {date}",
+  "@restoreCreated": {
+    "description": "Shows the archive creation date.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "restorePeople": "People",
+  "@restorePeople": {
+    "description": "Label for the people represented in the archive."
+  },
+  "restorePeopleCount": "{count, plural, =0{No people} =1{1 person} other{{count} people}}",
+  "@restorePeopleCount": {
+    "description": "Count of people represented in the archive.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restorePeopleMore": "Showing the first {count} people.",
+  "@restorePeopleMore": {
+    "description": "Explains that the preview list is bounded.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreArchived": "Archived",
+  "@restoreArchived": {
+    "description": "Suffix for an archived adult in the backup preview."
+  },
+  "restoreCoverage": "Record dates",
+  "@restoreCoverage": {
+    "description": "Label for the earliest and latest dated records in the archive."
+  },
+  "restoreCoverageRange": "{from} to {to}",
+  "@restoreCoverageRange": {
+    "description": "Exact date range for restored records.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreCoverageEmpty": "No dated records",
+  "@restoreCoverageEmpty": {
+    "description": "States that the archive contains no records with dates."
+  },
+  "restoreLocalDates": "Dates use this device's time zone.",
+  "@restoreLocalDates": {
+    "description": "Clarifies the time zone used for coverage dates."
+  },
+  "restoreRecords": "{count, plural, =0{No records} =1{1 record} other{{count} records}}",
+  "@restoreRecords": {
+    "description": "Count of current non-voided administration records in the archive.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreSubstances": "{count, plural, =0{No substances} =1{1 substance} other{{count} substances}}",
+  "@restoreSubstances": {
+    "description": "Count of tracked substances in the archive.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreSupporting": "{count, plural, =0{No supporting records} =1{1 supporting record} other{{count} supporting records}}",
+  "@restoreSupporting": {
+    "description": "Count of non-voided supporting records in the archive.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreAttachments": "{count, plural, =0{No attachments} =1{1 attachment} other{{count} attachments}}",
+  "@restoreAttachments": {
+    "description": "Count of ready linked attachments in the archive.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreOlderWarning": "This backup uses older app data. Vital will update it during restore.",
+  "@restoreOlderWarning": {
+    "description": "Warns that an older schema is migrated during restore."
+  },
+  "restoreMultipleWarning": "This backup contains {count} people. Their records stay separate.",
+  "@restoreMultipleWarning": {
+    "description": "Explains that a full backup keeps adult records separate.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreConsequence": "Replacing removes current records, drafts and reminder settings for every person on this device. A rollback copy is kept until the restored dataset opens.",
+  "@restoreConsequence": {
+    "description": "States the full-replacement consequence and rollback boundary."
+  },
+  "restoreReplaceAll": "Replace all records",
+  "@restoreReplaceAll": {
+    "description": "Positive confirmation switch for a full replacement."
+  },
+  "restoreReplaceAllHelp": "Current records will be replaced. Switch this on only after reviewing the backup contents.",
+  "@restoreReplaceAllHelp": {
+    "description": "Helper for the full replacement confirmation switch."
+  },
+  "restoreReplace": "Replace",
+  "@restoreReplace": {
+    "description": "One-word button that starts the confirmed full replacement."
+  },
+  "restoreCancel": "Cancel",
+  "@restoreCancel": {
+    "description": "One-word button that abandons the current restore attempt."
+  },
+  "restorePreparing": "Preparing records",
+  "@restorePreparing": {
+    "description": "Status while the staged dataset is re-keyed and scrubbed."
+  },
+  "restoreReplacing": "Replacing records",
+  "@restoreReplacing": {
+    "description": "Status while the live dataset is replaced and verified."
+  },
+  "restoreWorking": "Keep Vital open while this finishes.",
+  "@restoreWorking": {
+    "description": "Explains that replacement must not be interrupted."
+  },
+  "restoreCompleteTitle": "Restore complete",
+  "@restoreCompleteTitle": {
+    "description": "Heading after the replacement dataset opened successfully."
+  },
+  "restoreCompleteBody": "This device now uses the records from {name}.",
+  "@restoreCompleteBody": {
+    "description": "Confirms which archive now supplies this device's records.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreCompleteCleared": "Old drafts and reminder actions were cleared.",
+  "@restoreCompleteCleared": {
+    "description": "Confirms device-local state was invalidated after replacement."
+  },
+  "restoreCompleteReminder": "Reminders will be rebuilt when you continue.",
+  "@restoreCompleteReminder": {
+    "description": "Explains reminder intention rebuilding after restore."
+  },
+  "restoreReminderWarning": "Records were restored. Reminder schedules could not be cleared. Check reminder settings after reopening Vital.",
+  "@restoreReminderWarning": {
+    "description": "Truthful warning when the native reminder epoch could not be retired."
+  },
+  "restoreDone": "Done",
+  "@restoreDone": {
+    "description": "One-word button that leaves the completed restore."
+  },
+  "restoreFailedTitle": "Restore failed",
+  "@restoreFailedTitle": {
+    "description": "Heading when the archive or replacement could not complete."
+  },
+  "restoreRetry": "Retry",
+  "@restoreRetry": {
+    "description": "One-word button that returns to the chooser with the same file."
+  },
+  "restoreUnavailable": "Restore unavailable",
+  "@restoreUnavailable": {
+    "description": "Heading when this host cannot run restore."
+  },
+  "restoreUnavailableBody": "Restore needs the protected record store. Open Vital again and retry.",
+  "@restoreUnavailableBody": {
+    "description": "Truthful explanation for unavailable restore."
+  },
+  "restoreLocked": "Unlock Vital to restore records.",
+  "@restoreLocked": {
+    "description": "Shown when the app lock prevents restore."
+  },
+  "restoreWrongPassword": "That password does not open this backup. Check the password and try again.",
+  "@restoreWrongPassword": {
+    "description": "Recovery step after an incorrect backup password."
+  },
+  "restoreCorrupt": "This backup cannot be opened safely. Current records were kept. Choose another backup.",
+  "@restoreCorrupt": {
+    "description": "Safe failure for a damaged or unverifiable archive."
+  },
+  "restoreUnsupportedVersion": "This backup was made by a newer version of Vital. Update Vital before restoring it.",
+  "@restoreUnsupportedVersion": {
+    "description": "Failure for an archive from a newer schema."
+  },
+  "restoreTooLarge": "This backup is too large to restore on this device.",
+  "@restoreTooLarge": {
+    "description": "Failure for an archive above the bounded intake or database limit."
+  },
+  "restoreChooseArchive": "Choose a backup first.",
+  "@restoreChooseArchive": {
+    "description": "Validation message when no archive is selected."
+  },
+  "restorePasswordRequired": "Enter the backup password.",
+  "@restorePasswordRequired": {
+    "description": "Validation message for an empty backup password."
+  },
+  "restorePasswordLong": "That password is too long.",
+  "@restorePasswordLong": {
+    "description": "Validation message for a password above the byte limit."
+  },
+  "restoreConfirmationRequired": "Switch on Replace all records before replacing.",
+  "@restoreConfirmationRequired": {
+    "description": "Validation message when full replacement was not confirmed."
+  },
+  "restoreRecoveryRequired": "Vital could not finish the last restore safely. Reopen Vital before trying again.",
+  "@restoreRecoveryRequired": {
+    "description": "Failure when a rollback copy and journal must be resolved at startup."
+  },
+  "restoreStorage": "There is not enough protected storage to replace these records. Free some space and try again.",
+  "@restoreStorage": {
+    "description": "Failure when staging or the rollback copy cannot be written."
+  },
+  "restoreArchiveChanged": "The backup changed while it was being read. Choose it again.",
+  "@restoreArchiveChanged": {
+    "description": "Failure when the picked archive byte count no longer matches."
+  },
+  "restoreFailedBody": "Nothing was replaced. Check the backup and try again.",
+  "@restoreFailedBody": {
+    "description": "Generic safe failure after a rejected or incomplete replacement."
+  },
+  "restoreCancelled": "Restore cancelled. Current records were not changed.",
+  "@restoreCancelled": {
+    "description": "States that a cancelled check left current records unchanged."
+  },
+  "restoreBusy": "Restore is already running.",
+  "@restoreBusy": {
+    "description": "Shown when another restore action is still running."
+  },
+  "restoreRecoveryCompleted": "Restore complete. Vital is using the restored records.",
+  "@restoreRecoveryCompleted": {
+    "description": "Truthful in-memory notice after verified dataset recovery."
+  },
+  "restoreRecoveryRolledBack": "Vital recovered the previous records after an interrupted restore.",
+  "@restoreRecoveryRolledBack": {
+    "description": "Truthful in-memory notice after verified dataset recovery."
+  },
+  "restoreRecoveryCleaned": "An interrupted restore was cleared. Your existing records are still in use.",
+  "@restoreRecoveryCleaned": {
+    "description": "Truthful in-memory notice after verified dataset recovery."
   }
 }

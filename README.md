@@ -18,9 +18,14 @@ Implemented areas include:
 - Ready-mixed products, combined logging, optional sites, cycles and courses.
 - Protected file/photo attachments, bounded image/PDF previews and explicit sharing.
 - Person-specific History, a medication calendar, charts and source-record inspection.
-- Initial manual lab panels and supporting observations, with original values, units and ranges.
+- Manual lab panels and supporting observations, with original values, units, source links and ranges.
+- R01 substance summaries, R02 detailed history and R03 event reports, with PDF/text previews and reviewed-artifact saving or sharing.
+- Person-scoped JSON/CSV exports with exact quantities, corrections, private defaults and reviewed-file saving.
+- Password-protected full-installation backups, staged restore, fresh dataset generations and interruption recovery.
+- Settings, scoped archive/deletion, local help, bundled licences and bounded redacted diagnostics.
+- Reminder health, bounded reconciliation and release preflight/evidence tools.
 
-**Not a finished or clinically validated release.** Supporting records still have documented limitations. Reports, structured exports, protected backup/restore and release hardening remain ahead. Physical-device accessibility, performance and lifecycle validation are incomplete. See [current progress and next work](docs/public/STATUS.md).
+**Not a finished or clinically validated release.** The new flows are implemented and host tested. Physical-device accessibility, performance, Android lifecycle and destination behaviour, backup-format review and distribution clearance remain open. See [current progress and next work](docs/public/STATUS.md) and the [20 October implementation report](docs/public/IMPLEMENTATION-2026-10-20.md).
 
 There are no remote user accounts or cloud record synchronisation. Multiple profiles are local records, not separate remote access permissions. Watch integrations and a general wellness dashboard are outside the current scope.
 
@@ -71,7 +76,7 @@ To compile an installable debug APK without launching it:
 ./tool/flutterw build apk --debug --no-pub
 ```
 
-Output: `build/app/outputs/flutter-apk/app-debug.apk`. This is a development build, not a signed production release. The current release build configuration also uses development signing; publishing to an app store needs separate signing and release work.
+Output: `build/app/outputs/flutter-apk/app-debug.apk`. This is a development build, not a signed production release. Release builds fail closed until owner-supplied signing is configured; the source tree contains no release signing material. App distribution still requires the documented release checks.
 
 ### Linux bundle
 
@@ -91,6 +96,10 @@ The complete bundle and archive are written under `output/linux/`. Keep its `lib
 # Individual checks during development.
 ./tool/flutterw analyze --no-pub
 ./tool/flutterw test --no-pub
+
+# Also run native Android ledger tests and compile a debug APK.
+# Requires the admitted Android/Kotlin toolchain and its cached compiler jars.
+./tool/verify android
 ```
 
 The checks use synthetic test records. Some native/keyring checks are explicitly opt-in. Passing host tests or compiling an APK does not replace physical-device testing.

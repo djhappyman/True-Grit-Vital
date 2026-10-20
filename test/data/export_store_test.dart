@@ -1,0 +1,335 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:true_grit_vital/data/record_store.dart';
+import 'package:true_grit_vital/domain/exports/exports.dart';
+
+void main() {
+  late Directory directory;
+  late String path;
+  late RecordStore store;
+  final key = List.generate(32, (i) => i + 1);
+
+  setUp(() async {
+    directory = await Directory.systemTemp.createTemp('vital-export-');
+    path = '${directory.path}/test.db';
+    store = await RecordStore.open(path: path, key: key, isNew: true);
+    await store.editProfile(
+      commandId: 'profile',
+      personId: meId,
+      expectedRevision: 1,
+      name: 'Alex',
+      adultConfirmed: true,
+      reportName: 'A. Example',
+    );
+  });
+
+  tearDown(() async {
+    await store.close();
+    await directory.delete(recursive: true);
+  });
+
+  ExportSelection selection({
+    ExportFormat format = ExportFormat.json,
+    bool includeNotes = false,
+    ExportLimits limits = ExportLimits.standard,
+    String personId = meId,
+  }) => ExportSelection(
+    personId: personId,
+    fromDay: CivilDate(2026, 10, 1),
+    beforeDay: CivilDate(2026, 11, 1),
+    zoneId: 'UTC',
+    contents: const [ExportContent.doses, ExportContent.supporting],
+    format: format,
+    includeNotes: includeNotes,
+    limits: limits,
+  );
+
+  Future<SubstanceItem> item(String personId, {int personRevision = 2}) =>
+      store.createItem(
+        commandId: 'item-$personId',
+        personId: personId,
+        expectedPersonRevision: personRevision,
+        name: 'Synthetic item $personId',
+        form: 'Liquid',
+        unit: 'ml',
+        type: 'Medicine',
+      );
+
+  Future<SupportingRevision> panel({String? notes = 'Private note'}) =>
+      store.saveLabPanel(
+        SaveLabPanelCommand(
+          commandId: 'panel',
+          generation: store.generation,
+          expectedPersonRevision: 2,
+          panel: LabPanelSnapshot(
+            id: SupportingRecordId(id: 'panel-1', personId: meId),
+            title: 'Synthetic report',
+            collectionDate: SupportingDate.day(CivilDate(2026, 10, 2)),
+            reportDate: SupportingDate.day(CivilDate(2026, 10, 4)),
+            provenance: SupportingProvenance(
+              mode: SupportingProvenanceMode.manualTranscription,
+              laboratoryName: 'Synthetic laboratory',
+              sourceReferences: [
+                SupportingSourceReference(
+                  id: 'report-source-1',
+                  personId: meId,
+                  version: 1,
+                  kind: SupportingSourceKind.report,
+                ),
+              ],
+            ),
+            results: [
+              LabResultSnapshot(
+                id: 'result-1',
+                metricId: 'metric-1',
+                markerName: 'Marker',
+                value: SupportingValue.numeric('1.5'),
+                unit: 'mg/L',
+              ),
+            ],
+            notes: notes,
+          ),
+        ),
+      );
+
+  test('captures one person, every correction and original units', () async {
+    final mine = await item(meId);
+    final recorded = await store.record(
+      commandId: 'dose-1',
+      itemId: mine.id,
+      amount: '2.5',
+      actualAt: DateTime.utc(2026, 10, 5, 10),
+      expectedPersonRevision: 2,
+    );
+    await store.correct(
+      commandId: 'dose-2',
+      recordId: recorded.id,
+      expectedRevision: 1,
+      amount: '3',
+      actualAt: DateTime.utc(2026, 10, 5, 11),
+      expectedPersonRevision: 2,
+    );
+    await store.voidRecord(
+      commandId: 'dose-3',
+      recordId: recorded.id,
+      expectedRevision: 2,
+      expectedPersonRevision: 2,
+    );
+    // Outside the selected range and owned by another adult.
+    await store.record(
+      commandId: 'outside',
+      itemId: mine.id,
+      amount: '1',
+      actualAt: DateTime.utc(2026, 9, 1, 10),
+      expectedPersonRevision: 2,
+    );
+    final other = await store.createProfile(
+      commandId: 'other',
+      name: 'Other adult',
+      adultConfirmed: true,
+    );
+    final otherItem = await item(other.id, personRevision: 1);
+    await store.record(
+      commandId: 'other-dose',
+      personId: other.id,
+      itemId: otherItem.id,
+      amount: '9',
+      actualAt: DateTime.utc(2026, 10, 6, 10),
+      expectedPersonRevision: 1,
+    );
+    await panel();
+
+    final document = await store.captureExport(selection());
+
+    expect(document.personName, 'Alex');
+    expect(document.reportName, 'A. Example');
+    expect(document.recordSchemaVersion, 21);
+    expect(document.doseRecords, 1, reason: 'only the selected adult');
+    expect(document.doses.map((row) => row.revision), [1, 2, 3]);
+    expect(document.doses.map((row) => row.isCurrent), [false, false, true]);
+    expect(document.doses.map((row) => row.isVoided), [false, false, true]);
+    expect(document.doses.map((row) => row.enteredAmount), ['2.5', '3', '3']);
+    expect(document.doses.every((row) => row.enteredUnit == 'ml'), true);
+    expect(document.doses.every((row) => row.actualUnit == 'ml'), true);
+    expect(document.doses.first.source, RecordSource.selfReported);
+    expect(document.doses.first.correctedAt, isNull);
+    expect(document.doses[1].correctedAt, isNotNull);
+    expect(document.doses.last.actualAt, DateTime.utc(2026, 10, 5, 11));
+    expect(document.supportingRecords, 1);
+    expect(
+      document.supporting.single.snapshot.provenance.laboratoryName,
+      'Synthetic laboratory',
+    );
+
+    final bytes = utf8.decode(ExportArtifact.build(document).bytes);
+    expect(bytes, contains('Alex'));
+    expect(bytes, isNot(contains('Other adult')));
+    expect(bytes, isNot(contains('999999')));
+    expect(bytes, isNot(contains('Private note')));
+    expect(bytes, isNot(contains('report-source-1')));
+  });
+
+  test('notes require an explicit selection', () async {
+    await panel(notes: 'Selected note');
+    final hidden = await store.captureExport(selection());
+    expect(hidden.supporting.single.snapshot.notes, isNull);
+    final shown = await store.captureExport(selection(includeNotes: true));
+    expect(shown.supporting.single.snapshot.notes, 'Selected note');
+    expect(
+      shown.supporting.single.snapshot.provenance.sourceReferences,
+      isEmpty,
+      reason: 'file references never enter a structured export',
+    );
+  });
+
+  test(
+    'supporting capture crosses bounded pages without dropping revisions',
+    () async {
+      await panel();
+      for (var revision = 1; revision <= 3; revision++) {
+        await store.voidSupportingRecord(
+          VoidSupportingRecordCommand(
+            commandId: 'toggle-$revision',
+            generation: store.generation,
+            personId: meId,
+            id: 'panel-1',
+            expectedPersonRevision: 2,
+            expectedRevision: revision,
+            isVoided: revision.isOdd,
+          ),
+        );
+      }
+      final captured = await store.captureExport(
+        selection(limits: const ExportLimits(chunk: 1)),
+      );
+      expect(captured.supporting.map((row) => row.revision), [1, 2, 3, 4]);
+      expect(captured.supporting.map((row) => row.isCurrent), [
+        false,
+        false,
+        false,
+        true,
+      ]);
+    },
+  );
+
+  test(
+    'revision overflow fails instead of returning a truncated history',
+    () async {
+      final mine = await item(meId);
+      final recorded = await store.record(
+        commandId: 'dose',
+        itemId: mine.id,
+        amount: '1',
+        actualAt: DateTime.utc(2026, 10, 5),
+        expectedPersonRevision: 2,
+      );
+      await store.correct(
+        commandId: 'correct',
+        recordId: recorded.id,
+        expectedRevision: 1,
+        amount: '2',
+        actualAt: DateTime.utc(2026, 10, 5),
+        expectedPersonRevision: 2,
+      );
+      await expectLater(
+        store.captureExport(
+          selection(limits: const ExportLimits(maxDoseRevisions: 1)),
+        ),
+        throwsA(
+          isA<ExportLimitException>().having(
+            (error) => error.code,
+            'code',
+            'export_dose_revisions',
+          ),
+        ),
+      );
+    },
+  );
+
+  test('a cancelled capture reads nothing and returns no document', () async {
+    final token = ExportCancellation()..cancel();
+    await expectLater(
+      store.captureExport(selection(), cancellation: token),
+      throwsA(isA<ExportCancelled>()),
+    );
+  });
+
+  test('record bounds fail explicitly instead of truncating', () async {
+    final mine = await item(meId);
+    await store.record(
+      commandId: 'dose-a',
+      itemId: mine.id,
+      amount: '1',
+      actualAt: DateTime.utc(2026, 10, 5, 10),
+      expectedPersonRevision: 2,
+    );
+    await store.record(
+      commandId: 'dose-b',
+      itemId: mine.id,
+      amount: '1',
+      actualAt: DateTime.utc(2026, 10, 5, 11),
+      expectedPersonRevision: 2,
+    );
+    await expectLater(
+      store.captureExport(
+        selection(limits: const ExportLimits(maxDoseRecords: 1)),
+      ),
+      throwsA(
+        isA<ExportLimitException>().having(
+          (error) => error.code,
+          'code',
+          'export_dose_records',
+        ),
+      ),
+    );
+  });
+
+  test(
+    'capture enforces the byte bound before a giant document exists',
+    () async {
+      final mine = await item(meId);
+      await store.record(
+        commandId: 'dose',
+        itemId: mine.id,
+        amount: '1',
+        actualAt: DateTime.utc(2026, 10, 5, 10),
+        expectedPersonRevision: 2,
+      );
+      await expectLater(
+        store.captureExport(
+          selection(limits: const ExportLimits(maxBytes: 1024)),
+        ),
+        throwsA(
+          isA<ExportLimitException>().having(
+            (error) => error.code,
+            'code',
+            'export_bytes',
+          ),
+        ),
+      );
+    },
+  );
+
+  test('CSV and JSON artifacts share the same captured selection', () async {
+    final mine = await item(meId);
+    await store.record(
+      commandId: 'dose',
+      itemId: mine.id,
+      amount: '0.125',
+      actualAt: DateTime.utc(2026, 10, 5, 10),
+      expectedPersonRevision: 2,
+    );
+    final json = await store.captureExport(selection());
+    final csv = await store.captureExport(selection(format: ExportFormat.csv));
+    final csvText = utf8.decode(ExportArtifact.build(csv).bytes);
+    expect(csvText.split('\r\n').first, contains('actual_amount_exact'));
+    expect(csvText, contains('0.125'));
+    expect(csvText, contains('1/8'));
+    expect(
+      json.doses.single.actualAmount,
+      ExactAmount(BigInt.one, BigInt.from(8)),
+    );
+  });
+}

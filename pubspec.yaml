@@ -15,8 +15,11 @@ dependencies:
   drift: 2.35.2
   sqlite3: 3.7.1
   crypto: 3.0.7
+  intl: 0.20.3
+  cryptography: 2.9.0
   file_picker: 13.1.0
   fl_chart: 1.2.0
+  pdf: 3.13.1
   pdfrx: 2.6.6
   timezone: 0.11.2
   flutter_riverpod: ^3.4.3
@@ -38,6 +41,9 @@ dev_dependencies:
 flutter:
   generate: true
   assets:
+    - LICENSE
+    - assets/fonts/
+    - assets/legal/
     - docs/implementation/licenses/
 
 hooks:

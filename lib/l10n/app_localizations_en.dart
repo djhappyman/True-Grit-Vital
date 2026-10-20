@@ -3807,10 +3807,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get supportingTrendScope =>
-      'Results are grouped by marker, original unit, laboratory, method and specimen. Points are shown separately. No totals or clinical interpretation are calculated.';
+      'Results are grouped by marker, original unit, laboratory, method and specimen. The table shows exact source values first. Points are separate. No totals or clinical interpretation are calculated.';
 
   @override
-  String get supportingNoTrend => 'No results for this marker and date range.';
+  String get supportingNoTrend =>
+      'No numeric results for this marker and date range. Use the table to inspect every result.';
+
+  @override
+  String get supportingNoMatches =>
+      'No results for this marker in the selected dates.';
 
   @override
   String get supportingTooMany =>
@@ -3902,7 +3907,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String supportingPlotLabel(int count) {
-    return '$count exact numeric results. Use the table to inspect every result.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count exact numeric results. Use the table to inspect every result.',
+      one: '1 exact numeric result. Use the table to inspect every result.',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -3966,5 +3978,1475 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get supportingObservationManual =>
-      'Enter at least one value or text result. Save before attaching source files.';
+      'Add a value, text or note. Save before attaching source files.';
+
+  @override
+  String get supportingComponent => 'Component';
+
+  @override
+  String get supportingSearchMarkers => 'Search markers';
+
+  @override
+  String get supportingNoValues => 'No values entered.';
+
+  @override
+  String get supportingValueHint =>
+      'Type <, ≤, > or ≥ before the value when the source uses a limit.';
+
+  @override
+  String get supportingIdentifiers => 'Identifiers';
+
+  @override
+  String get supportingResultMissing => 'No result supplied.';
+
+  @override
+  String get supportingUnitMissing => 'Unit not supplied.';
+
+  @override
+  String get supportingRangeMissing => 'Range not supplied.';
+
+  @override
+  String supportingSavedSource(String source) {
+    return 'Saved source: $source.';
+  }
+
+  @override
+  String supportingDisplayZone(String zone) {
+    return 'Display zone: $zone.';
+  }
+
+  @override
+  String supportingResultSemantics(
+    String marker,
+    String value,
+    String unit,
+    String range,
+  ) {
+    return '$marker. Original value: $value. Unit: $unit. Source range: $range.';
+  }
+
+  @override
+  String supportingMarkerDisclosure(int position) {
+    return 'Choose marker for result $position.';
+  }
+
+  @override
+  String get supportingOpen => 'Open';
+
+  @override
+  String get supportingSourceUnavailable =>
+      'This saved source is no longer available. The record keeps its saved source details.';
+
+  @override
+  String get supportingSourceChanged =>
+      'This saved source changed after it was saved. Its exact original is not available.';
+
+  @override
+  String get supportingSourceTextOnly =>
+      'This source is saved as text only. No file is attached.';
+
+  @override
+  String supportingSourceViewing(int version) {
+    return 'Saved source version $version.';
+  }
+
+  @override
+  String supportingSavedSourceReference(int version) {
+    return 'Saved source, version $version';
+  }
+
+  @override
+  String get supportingSourceReferences => 'Saved sources';
+
+  @override
+  String supportingOpenSourceVersion(int version) {
+    return 'Open saved source version $version.';
+  }
+
+  @override
+  String get supportingUndatedResults => 'Undated results';
+
+  @override
+  String get supportingUndatedHelp =>
+      'Results without a full date are kept here. They are not placed on the trend.';
+
+  @override
+  String get supportingUndatedGroup => 'Undated group';
+
+  @override
+  String supportingGroupSummary(
+    String marker,
+    String unit,
+    String laboratory,
+    String method,
+    String specimen,
+  ) {
+    return '$marker. Unit: $unit. Laboratory: $laboratory. Method: $method. Specimen: $specimen.';
+  }
+
+  @override
+  String supportingGroupObservation(String marker, String unit) {
+    return '$marker. Unit: $unit. Observation.';
+  }
+
+  @override
+  String get supportingGroupObservationSeparate =>
+      'Observed components are kept separate. No trend line joins them.';
+
+  @override
+  String supportingGroupNumber(int current, int count) {
+    return 'Group $current of $count.';
+  }
+
+  @override
+  String supportingGroupShort(int number) {
+    return 'Group $number';
+  }
+
+  @override
+  String get supportingSelectedGroup => 'Selected group';
+
+  @override
+  String get supportingGroups => 'Groups';
+
+  @override
+  String get supportingTableOrder =>
+      'Oldest results first for the chosen date basis.';
+
+  @override
+  String supportingOpenRecord(String title) {
+    return 'Open $title.';
+  }
+
+  @override
+  String get supportingRecordsHeading => 'Supporting records';
+
+  @override
+  String get supportingFilterInvalid =>
+      'Enter valid dates. The end date must be after the start.';
+
+  @override
+  String get supportingIncludeUnknownHint =>
+      'Show records without a full date separately.';
+
+  @override
+  String get supportingAllDates => 'All dates';
+
+  @override
+  String get supportingValues => 'Values';
+
+  @override
+  String get supportingDateHelp => 'Enter the date as written on the source.';
+
+  @override
+  String get supportingExactDateHelp =>
+      'Include the source time and offset, for example 2026-10-19T09:30+01:00.';
+
+  @override
+  String get supportingZoneHelp =>
+      'The source time zone, when the report names one.';
+
+  @override
+  String get attachmentSupportingHelp =>
+      'A source file does not confirm a recorded result. Keep the original report with its saved values.';
+
+  @override
+  String get attachmentSupportingVoided =>
+      'This supporting record is voided. Its saved files stay available to view, but new files cannot be added.';
+
+  @override
+  String get supportingVoidPending => 'Void pending';
+
+  @override
+  String get supportingRestorePending => 'Restore pending';
+
+  @override
+  String get supportingVoidPendingBody =>
+      'Your request is saved on this device. Resume to check and finish it, or discard it.';
+
+  @override
+  String get supportingVoidNotSaved =>
+      'Request not saved. Nothing changed. Try again.';
+
+  @override
+  String get supportingVoidChanged =>
+      'Record changed. Review the latest revision, then discard the saved request.';
+
+  @override
+  String get supportingVoidUncertain =>
+      'The outcome is not confirmed. Your request is saved. Resume to check it.';
+
+  @override
+  String get supportingVoidArchived =>
+      'This adult is archived. Discard the saved request or restore the adult first.';
+
+  @override
+  String get supportingVoidMissing =>
+      'This record is unavailable. Discard the saved request.';
+
+  @override
+  String get supportingVoidSaved => 'Record voided.';
+
+  @override
+  String get supportingRestoreSaved => 'Record restored.';
+
+  @override
+  String get supportingVoidDiscarded => 'Request discarded.';
+
+  @override
+  String get exportTitle => 'Export';
+
+  @override
+  String get exportSelectionHelp =>
+      'Choose one adult, a date range and the content to include. The preview is the exact file you can save.';
+
+  @override
+  String get exportPerson => 'Adult';
+
+  @override
+  String exportArchivedLabel(String name) {
+    return '$name (archived)';
+  }
+
+  @override
+  String get exportRange => 'Dates';
+
+  @override
+  String get exportFrom => 'From';
+
+  @override
+  String get exportBefore => 'Before';
+
+  @override
+  String exportRangeHelp(String zone) {
+    return 'Dates use $zone. From is included. Before is not.';
+  }
+
+  @override
+  String get exportContent => 'Content';
+
+  @override
+  String get exportDoses => 'Doses';
+
+  @override
+  String get exportDosesHelp =>
+      'Recorded doses with every saved correction and the units used at entry.';
+
+  @override
+  String get exportSupporting => 'Supporting';
+
+  @override
+  String get exportSupportingHelp =>
+      'Observations and lab panels recorded in the selected dates.';
+
+  @override
+  String get exportPrivateHelp =>
+      'Only this adult is included. Other adults and their records are never exported.';
+
+  @override
+  String get exportPrivacy => 'Privacy';
+
+  @override
+  String get exportNotes => 'Notes';
+
+  @override
+  String get exportNotesHelp =>
+      'Include supporting notes in the file. Source files are never included.';
+
+  @override
+  String exportSinglePerson(String name) {
+    return 'Selected: $name';
+  }
+
+  @override
+  String get exportFormat => 'Format';
+
+  @override
+  String get exportFormatJson => 'JSON';
+
+  @override
+  String get exportFormatCsv => 'CSV';
+
+  @override
+  String get exportFormatHelp =>
+      'JSON keeps the full structure and meanings. CSV is a flat table for spreadsheets.';
+
+  @override
+  String get exportPreview => 'Preview';
+
+  @override
+  String get exportPreparing => 'Preparing';
+
+  @override
+  String get exportPreparingHelp =>
+      'Building one file from the selected records. Cancel leaves nothing saved.';
+
+  @override
+  String get exportSaving => 'Saving the reviewed file.';
+
+  @override
+  String get exportCancel => 'Cancel';
+
+  @override
+  String get exportReview => 'Review';
+
+  @override
+  String exportDateRange(String from, String before) {
+    return 'From $from up to, but not including, $before.';
+  }
+
+  @override
+  String exportZoneLabel(String zone) {
+    return 'Time zone: $zone';
+  }
+
+  @override
+  String exportContentLabel(String content) {
+    return 'Content: $content';
+  }
+
+  @override
+  String get exportNotesIncluded => 'Supporting notes included.';
+
+  @override
+  String get exportNotesExcluded => 'Supporting notes excluded.';
+
+  @override
+  String exportDoseCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dose records',
+      one: '1 dose record',
+      zero: 'No dose records',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String exportRevisionCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count saved dose revisions',
+      one: '1 saved dose revision',
+      zero: 'No dose revisions',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String exportSupportingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count supporting records',
+      one: '1 supporting record',
+      zero: 'No supporting records',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String exportSupportingResultCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count supporting results',
+      one: '1 supporting result',
+      zero: 'No supporting results',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String exportByteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bytes',
+      one: '1 byte',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String exportFileName(String name) {
+    return 'File: $name';
+  }
+
+  @override
+  String get exportChecksumLabel => 'SHA-256';
+
+  @override
+  String get exportExactArtifact =>
+      'This preview is the start of the exact file Save delivers.';
+
+  @override
+  String get exportSave => 'Save';
+
+  @override
+  String get exportChange => 'Change';
+
+  @override
+  String get exportSaved => 'Saved.';
+
+  @override
+  String get exportShared => 'Shared.';
+
+  @override
+  String get exportUnavailable =>
+      'Saving is not available on this device. Preview only.';
+
+  @override
+  String get exportLocked => 'Unlock the app to export records.';
+
+  @override
+  String get exportZone =>
+      'The display time zone is unavailable. Check the device time zone, then try again.';
+
+  @override
+  String get exportCancelled => 'Export cancelled. Nothing was saved.';
+
+  @override
+  String get exportTooLarge =>
+      'This selection is too large. Choose a shorter date range or less content.';
+
+  @override
+  String get exportChooseContent => 'Choose at least one content type.';
+
+  @override
+  String get exportInvalidRange =>
+      'Enter valid dates. Before must be later than From.';
+
+  @override
+  String get exportFailed =>
+      'Unable to prepare the export. Nothing was saved. Try again.';
+
+  @override
+  String get exportHandoffCancelled =>
+      'Save cancelled. The preview is unchanged.';
+
+  @override
+  String get exportSaveFailed =>
+      'Unable to save. The preview is unchanged. Try again.';
+
+  @override
+  String get supportingDetails => 'Details';
+
+  @override
+  String get supportingAttach => 'Attach';
+
+  @override
+  String get supportingAttached => 'Attached';
+
+  @override
+  String get supportingSourceFiles => 'Saved files';
+
+  @override
+  String get supportingSourceFilesHelp =>
+      'Choose a file for this adult. The saved file version stays linked if the file changes later.';
+
+  @override
+  String get supportingNoSourceFiles => 'No saved files for this adult.';
+
+  @override
+  String get supportingGroupUndated =>
+      'Some results in this group have no full date. They are listed separately and do not connect the line.';
+
+  @override
+  String get supportingConflict =>
+      'This supporting record changed. Open Supporting records and review the latest revision before editing.';
+
+  @override
+  String get supportingDraftUnavailable =>
+      'This entry is no longer available. Open Supporting records to review saved records.';
+
+  @override
+  String get supportingDraftSaved =>
+      'This supporting record was already saved. Open it to review the latest revision.';
+
+  @override
+  String get supportingDraftFailure =>
+      'Your latest changes were not kept on this device. Stay here and try again.';
+
+  @override
+  String get supportingSaveFailure =>
+      'The supporting record could not be saved. Retry with the same details.';
+
+  @override
+  String get supportingNoValuesObservation =>
+      'No values entered. Add a value, or add a note in Details.';
+
+  @override
+  String supportingAttachSource(String name) {
+    return 'Attach $name.';
+  }
+
+  @override
+  String supportingRemoveSource(String name) {
+    return 'Remove saved source $name.';
+  }
+
+  @override
+  String get supportingObservationRequired =>
+      'Add a value or a note before saving this observation.';
+
+  @override
+  String get reminderLimits => 'Limits';
+
+  @override
+  String get reminderLimitsBody =>
+      'Android may delay or drop alerts after a force stop, battery limit or long gap. Reopen Vital to prepare more.';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get settingsBody => 'Appearance, people, privacy and help.';
+
+  @override
+  String get settingsDisplayUnsaved =>
+      'Some display changes were not saved. Try again in Appearance.';
+
+  @override
+  String get settingsPeopleBody => 'Add or edit adults.';
+
+  @override
+  String get settingsPrivacyBody => 'Archive, delete or review copies.';
+
+  @override
+  String get display => 'Display';
+
+  @override
+  String get settingsAppearanceBody => 'Theme, motion, app lock and time.';
+
+  @override
+  String get alerts => 'Alerts';
+
+  @override
+  String get settingsRemindersBody => 'Notification settings and checks.';
+
+  @override
+  String get data => 'Data';
+
+  @override
+  String get reports => 'Reports';
+
+  @override
+  String get settingsReportsBody => 'Review a person’s substance report.';
+
+  @override
+  String get exports => 'Exports';
+
+  @override
+  String get settingsExportsBody => 'Save structured data for one person.';
+
+  @override
+  String get backup => 'Backup';
+
+  @override
+  String get settingsBackupBody => 'Create a protected full copy.';
+
+  @override
+  String get restore => 'Restore';
+
+  @override
+  String get settingsRestoreBody => 'Replace this installation from a backup.';
+
+  @override
+  String get support => 'Support';
+
+  @override
+  String get diagnostics => 'Diagnostics';
+
+  @override
+  String get settingsDiagnosticsBody => 'Recent local error codes.';
+
+  @override
+  String get help => 'Help';
+
+  @override
+  String get settingsHelpBody => 'Recovery, privacy and sources.';
+
+  @override
+  String get licences => 'Licences';
+
+  @override
+  String get settingsLicencesBody => 'Bundled open-source notices.';
+
+  @override
+  String get privacy => 'Privacy';
+
+  @override
+  String get privacyBody =>
+      'Records stay on this device. They leave only when you export or back up.';
+
+  @override
+  String get privacyOperator =>
+      'Anyone who can unlock this device can see every local profile. Adult profiles are not separate accounts.';
+
+  @override
+  String get privacyArchiveHelp =>
+      'Archive keeps history and stops reminders. Delete removes only that person’s records, files and drafts. Me stays available.';
+
+  @override
+  String get copies => 'Copies';
+
+  @override
+  String get privacyCopies =>
+      'Copies you saved or shared are outside Vital’s control. Restoring an old backup can bring back records you deleted here.';
+
+  @override
+  String get archivedPeople => 'Archived people';
+
+  @override
+  String get privacyArchivedHelp =>
+      'History is kept. Reminders stay stopped until you set them again.';
+
+  @override
+  String get privacyNoneArchived => 'No archived people.';
+
+  @override
+  String get privacyMeOwner =>
+      'Your records. Me stays available after deletion.';
+
+  @override
+  String get privacyOtherOwner => 'Records for this adult.';
+
+  @override
+  String get deleteMeBody =>
+      'Delete all saved records for Me? This cannot be undone. Me stays available and other people are not changed.';
+
+  @override
+  String privacyArchived(String person) {
+    return '$person archived. History is kept and reminders are stopped.';
+  }
+
+  @override
+  String privacyArchiveSemantic(String person) {
+    return 'Archive $person';
+  }
+
+  @override
+  String privacyReactivateSemantic(String person) {
+    return 'Reactivate $person';
+  }
+
+  @override
+  String privacyDeleteSemantic(String person) {
+    return 'Delete $person';
+  }
+
+  @override
+  String privacyDeleteRecordsSemantic(String person) {
+    return 'Delete records for $person';
+  }
+
+  @override
+  String privacyReactivated(String person) {
+    return '$person reactivated. Reminders stay stopped until you set them again.';
+  }
+
+  @override
+  String get privacyMeDeleted => 'Records deleted. Me is still available.';
+
+  @override
+  String privacyDeleted(String person) {
+    return '$person deleted.';
+  }
+
+  @override
+  String get privacyNotSaved =>
+      'Could not confirm the change. Review the people shown here before trying again.';
+
+  @override
+  String get diagnosticsBody =>
+      'Diagnostics stay on this device. They contain error codes and the platform only.';
+
+  @override
+  String get diagnosticsNoSend =>
+      'Nothing is sent automatically. This build has no diagnostic uploader.';
+
+  @override
+  String get diagnosticsEmpty => 'No recent issues.';
+
+  @override
+  String get diagnosticsCleared => 'Diagnostics cleared.';
+
+  @override
+  String get diagnosticsClearFailure => 'Not cleared. Try again.';
+
+  @override
+  String get diagnosticDataLoad => 'Data load failed';
+
+  @override
+  String get diagnosticLicenceNotice => 'Licence notice failed';
+
+  @override
+  String get diagnosticProfileArchive => 'Archive failed';
+
+  @override
+  String get diagnosticProfileDelete => 'Delete failed';
+
+  @override
+  String get helpBody =>
+      'Recovery, privacy and source information for this device.';
+
+  @override
+  String get recovery => 'Recovery';
+
+  @override
+  String get recoveryOpen =>
+      'If Vital cannot open your records, it never starts an empty replacement. Unlock your device and retry.';
+
+  @override
+  String get recoveryKeyring =>
+      'On Linux, unlock the login keyring so Vital can reach its key.';
+
+  @override
+  String get recoveryLock =>
+      'If app lock fails, records stay hidden. Retry after your device unlocks.';
+
+  @override
+  String get privacyLocal =>
+      'Vital has no accounts, ads or analytics. Your records stay here unless you save or share a copy.';
+
+  @override
+  String get privacyNotifications =>
+      'Reminders use a generic message without names or amounts.';
+
+  @override
+  String get privacySwitcher =>
+      'Recent-app previews are hidden while app lock is on.';
+
+  @override
+  String get privacyShared => 'Copies you share are outside Vital’s control.';
+
+  @override
+  String get sources => 'Sources';
+
+  @override
+  String get sourcesNone =>
+      'No catalogue is installed. Custom items are still available.';
+
+  @override
+  String get sourcesUnavailable => 'Catalogue source details are unavailable.';
+
+  @override
+  String get about => 'About';
+
+  @override
+  String get aboutBody =>
+      'Vital keeps substance records for adults on this device.';
+
+  @override
+  String get aboutLimit =>
+      'This is a personal record, not a clinical record or an emergency monitor.';
+
+  @override
+  String get appLicence => 'Vital licence';
+
+  @override
+  String get appLicenceBody => 'MIT licence text.';
+
+  @override
+  String get packageNotices => 'Package notices';
+
+  @override
+  String get licencesBody =>
+      'Vital is open source under the MIT licence. Adopted package notices are bundled with the app.';
+
+  @override
+  String get licence => 'Licence';
+
+  @override
+  String get licenceDetailBody => 'Bundled licence text.';
+
+  @override
+  String get licencesUnavailable =>
+      'Licence notices are unavailable in this build.';
+
+  @override
+  String get reportsTitle => 'Reports';
+
+  @override
+  String get reportScopeHelp =>
+      'Choose one adult, exact dates, and whether to include private context.';
+
+  @override
+  String get reportPerson => 'Person';
+
+  @override
+  String get reportFrom => 'From';
+
+  @override
+  String get reportThrough => 'Through';
+
+  @override
+  String get reportDateHelp => 'Use YYYY-MM-DD.';
+
+  @override
+  String get reportThroughHelp => 'The end date is included.';
+
+  @override
+  String get reportNameHelp => 'Optional. Shown on the first page.';
+
+  @override
+  String get reportContent => 'Content';
+
+  @override
+  String get reportContentHelp =>
+      'All items are included unless you choose specific items.';
+
+  @override
+  String get reportAllItems => 'All items';
+
+  @override
+  String get reportNoItems => 'No recorded items in this period.';
+
+  @override
+  String get reportContext => 'Supporting records';
+
+  @override
+  String get reportContextHelp =>
+      'Include supporting records from the selected period.';
+
+  @override
+  String get reportNotes => 'Private notes';
+
+  @override
+  String get reportNotesHelp =>
+      'Include saved notes for selected supporting records.';
+
+  @override
+  String get reportSources => 'Source files';
+
+  @override
+  String get reportSourcesHelp =>
+      'List attached source file names. File contents stay separate.';
+
+  @override
+  String get reportReview => 'Review';
+
+  @override
+  String reportPersonValue(String name) {
+    return 'Person: $name';
+  }
+
+  @override
+  String reportPeriodValue(String from, String to, String zone) {
+    return 'Period: $from to $to. Times shown in $zone.';
+  }
+
+  @override
+  String reportItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count selected items',
+      one: '1 selected item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String reportTemplateValue(String id, String version) {
+    return 'Template $id version $version';
+  }
+
+  @override
+  String get reportCapturing => 'Reading records';
+
+  @override
+  String get reportRendering => 'Building report';
+
+  @override
+  String get reportPreview => 'Preview';
+
+  @override
+  String get reportCancelled => 'Report cancelled. Your choices are unchanged.';
+
+  @override
+  String get reportFailure => 'Report not created. Try again.';
+
+  @override
+  String get reportSourceLimit =>
+      'Too many doses for one summary. Narrow the dates or items, then try again.';
+
+  @override
+  String get reportAttachmentLimit =>
+      'Too many source files for one summary. Choose fewer items, then try again.';
+
+  @override
+  String get reportPersonMissing =>
+      'This adult is unavailable. Choose another adult.';
+
+  @override
+  String get reportPersonArchived =>
+      'This adult is archived. Restore the adult or choose another adult.';
+
+  @override
+  String get reportZoneUnavailable =>
+      'The time zone is unavailable. Choose the device time zone, then try again.';
+
+  @override
+  String get reportLocked => 'Vital is locked. Unlock it, then try again.';
+
+  @override
+  String get reportGenerated => 'Report ready.';
+
+  @override
+  String get reportPreviewTitle => 'Report preview';
+
+  @override
+  String get reportUnavailable =>
+      'No report is ready. Return to Reports and preview one.';
+
+  @override
+  String get reportPreviewMode => 'Preview';
+
+  @override
+  String get reportText => 'Text';
+
+  @override
+  String reportArtifactValue(int pages, int kilobytes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      pages,
+      locale: localeName,
+      other: '$pages pages',
+      one: '1 page',
+    );
+    return '$_temp0 · $kilobytes KB';
+  }
+
+  @override
+  String get reportHandoffUnavailable =>
+      'Save and share are unavailable in this build. The preview is complete.';
+
+  @override
+  String get reportSaveUnavailable => 'Save is unavailable in this build.';
+
+  @override
+  String get reportShareUnavailable => 'Share is unavailable in this build.';
+
+  @override
+  String get reportHandoffComplete => 'Report saved to the chosen location.';
+
+  @override
+  String get reportHandoffCancelled => 'Handoff cancelled.';
+
+  @override
+  String get reportHandoffFailed => 'Handoff failed. Try again.';
+
+  @override
+  String reportArtifactIdentity(String id, String hash) {
+    return 'Report $id · Fingerprint $hash';
+  }
+
+  @override
+  String get reportArtifactLimits =>
+      'The PDF is not tagged. Use Text for the accessible structured version. Recipients\' copies are outside this app\'s control.';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get reportIdentity => 'Report name';
+
+  @override
+  String get reportSourceChanged =>
+      'Records changed while the report was prepared. Try again.';
+
+  @override
+  String get reportPageLimit =>
+      'This report is too large. Narrow the dates or items, then try again.';
+
+  @override
+  String get reportShareOffered =>
+      'Report offered to the chosen app. Vital cannot confirm receipt.';
+
+  @override
+  String get reportSummaryTemplate => 'Substance summary';
+
+  @override
+  String get reportHistoryTemplate => 'Detailed history';
+
+  @override
+  String get reportEventTemplate => 'Event review';
+
+  @override
+  String get reportSkippedRows => 'Skipped entries';
+
+  @override
+  String get reportSkippedRowsHelp => 'Include entries marked as skipped.';
+
+  @override
+  String get reportUnrecordedRows => 'Unrecorded entries';
+
+  @override
+  String get reportUnrecordedRowsHelp =>
+      'Include past planned entries with no recorded action. These do not prove a missed dose.';
+
+  @override
+  String get reportEventRequired => 'Choose an event to review.';
+
+  @override
+  String get reportEventMissing =>
+      'This event is no longer available. Choose another event.';
+
+  @override
+  String get reportEventRange =>
+      'Choose dates that cover the event’s recorded start and end.';
+
+  @override
+  String get reportEventRangeHelp =>
+      'Choose one event and dates that cover its recorded start and end. Dates without a known boundary stay uncertain.';
+
+  @override
+  String get reportNoEvents => 'No events are available for this person.';
+
+  @override
+  String get reportNameLimit => 'Use a report name of 120 characters or fewer.';
+
+  @override
+  String get backupCreateHeading => 'Create backup';
+
+  @override
+  String get backupAllAdults => 'All adults included';
+
+  @override
+  String get backupIncludesFiles => 'Attached files included';
+
+  @override
+  String get backupPasswordLabel => 'Backup password';
+
+  @override
+  String get backupConfirmLabel => 'Confirm password';
+
+  @override
+  String get backupPasswordHelper => 'Use at least 12 characters.';
+
+  @override
+  String get backupPasswordLoss =>
+      'You need this password to restore your records. It cannot be recovered.';
+
+  @override
+  String get backupPasswordNotStored => 'The password is not stored.';
+
+  @override
+  String get backupPreparing => 'Preparing records';
+
+  @override
+  String get backupEncrypting => 'Encrypting backup';
+
+  @override
+  String get backupChecking => 'Checking backup';
+
+  @override
+  String get backupReadyHeading => 'Backup ready';
+
+  @override
+  String backupContents(int people, int attachments) {
+    String _temp0 = intl.Intl.pluralLogic(
+      people,
+      locale: localeName,
+      other: '$people adults',
+      one: '1 adult',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      attachments,
+      locale: localeName,
+      other: '$attachments files',
+      one: '1 file',
+    );
+    return 'Includes $_temp0 and $_temp1.';
+  }
+
+  @override
+  String backupSize(String size) {
+    return 'Size $size.';
+  }
+
+  @override
+  String backupCreated(String date) {
+    return 'Created $date.';
+  }
+
+  @override
+  String get backupKeepSafe =>
+      'Keep the file and password safe. Restore needs both.';
+
+  @override
+  String get backupUnsavedWarning =>
+      'Save before leaving. An unsaved backup is deleted at the next launch.';
+
+  @override
+  String get backupCannotSave => 'Cannot save';
+
+  @override
+  String get backupSavingUnavailable =>
+      'Saving backup files is unavailable on this device.';
+
+  @override
+  String get backupSavedHeading => 'Backup saved';
+
+  @override
+  String backupSavedBody(String name) {
+    return 'Saved as $name.';
+  }
+
+  @override
+  String get backupDeleteHeading => 'Delete backup?';
+
+  @override
+  String get backupDeleteBody =>
+      'The backup file will be deleted. Your records are not changed.';
+
+  @override
+  String get backupCancelled => 'Backup cancelled';
+
+  @override
+  String get backupCancelledBody => 'No backup was created.';
+
+  @override
+  String get backupFailedHeading => 'Backup failed';
+
+  @override
+  String get backupFailedBody => 'Your records were not changed. Try again.';
+
+  @override
+  String get backupNoSpaceHeading => 'Not enough space';
+
+  @override
+  String get backupNoSpaceBody =>
+      'Free some space and try again. Your records were not changed.';
+
+  @override
+  String get backupWrongPassword => 'Password not accepted';
+
+  @override
+  String get backupWrongPasswordBody => 'Check the password and try again.';
+
+  @override
+  String get backupDamagedHeading => 'Backup damaged';
+
+  @override
+  String get backupDamagedBody => 'The file is damaged or not a Vital backup.';
+
+  @override
+  String get backupNewerHeading => 'Newer backup';
+
+  @override
+  String get backupNewerBody => 'This backup needs a newer version of Vital.';
+
+  @override
+  String get backupIncompleteHeading => 'Backup incomplete';
+
+  @override
+  String get backupIncompleteBody =>
+      'The file did not match its records. Your records were not changed.';
+
+  @override
+  String get backupLocked => 'Unlock to create a backup.';
+
+  @override
+  String get backupLockedHeading => 'Unlock first';
+
+  @override
+  String get backupShortPassword => 'Use at least 12 characters.';
+
+  @override
+  String get backupPasswordMismatch => 'Passwords do not match.';
+
+  @override
+  String get backupPasswordLong => 'Use a shorter password.';
+
+  @override
+  String get backupBusyHeading => 'Backup busy';
+
+  @override
+  String get backupBusyBody =>
+      'Finish the current backup before starting another.';
+
+  @override
+  String get backupUnavailableHeading => 'Backup unavailable';
+
+  @override
+  String get backupUnavailableBody =>
+      'Open your records before creating a backup.';
+
+  @override
+  String get backupSaveFailedHeading => 'Not saved';
+
+  @override
+  String get backupSaveFailedBody =>
+      'The backup file is still here. Try again.';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get backupSaveLimit =>
+      'This backup is larger than this device’s save limit. The staged backup is kept.';
+
+  @override
+  String get restoreTitle => 'Restore';
+
+  @override
+  String get restoreIntro =>
+      'Use a Vital backup to replace every record on this device. You review the backup before anything changes.';
+
+  @override
+  String get restoreChoose => 'Choose';
+
+  @override
+  String get restoreArchiveLabel => 'Backup file';
+
+  @override
+  String get restoreArchiveNone => 'No backup chosen';
+
+  @override
+  String get restorePasswordLabel => 'Backup password';
+
+  @override
+  String get restorePasswordHelp =>
+      'Enter the password used when this backup was created.';
+
+  @override
+  String get restoreCheck => 'Check';
+
+  @override
+  String get restoreChecking => 'Checking archive';
+
+  @override
+  String get restorePreviewTitle => 'Backup contents';
+
+  @override
+  String restoreCreated(String date) {
+    return 'Created $date';
+  }
+
+  @override
+  String get restorePeople => 'People';
+
+  @override
+  String restorePeopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people',
+      one: '1 person',
+      zero: 'No people',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String restorePeopleMore(int count) {
+    return 'Showing the first $count people.';
+  }
+
+  @override
+  String get restoreArchived => 'Archived';
+
+  @override
+  String get restoreCoverage => 'Record dates';
+
+  @override
+  String restoreCoverageRange(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String get restoreCoverageEmpty => 'No dated records';
+
+  @override
+  String get restoreLocalDates => 'Dates use this device\'s time zone.';
+
+  @override
+  String restoreRecords(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count records',
+      one: '1 record',
+      zero: 'No records',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String restoreSubstances(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count substances',
+      one: '1 substance',
+      zero: 'No substances',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String restoreSupporting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count supporting records',
+      one: '1 supporting record',
+      zero: 'No supporting records',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String restoreAttachments(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attachments',
+      one: '1 attachment',
+      zero: 'No attachments',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get restoreOlderWarning =>
+      'This backup uses older app data. Vital will update it during restore.';
+
+  @override
+  String restoreMultipleWarning(int count) {
+    return 'This backup contains $count people. Their records stay separate.';
+  }
+
+  @override
+  String get restoreConsequence =>
+      'Replacing removes current records, drafts and reminder settings for every person on this device. A rollback copy is kept until the restored dataset opens.';
+
+  @override
+  String get restoreReplaceAll => 'Replace all records';
+
+  @override
+  String get restoreReplaceAllHelp =>
+      'Current records will be replaced. Switch this on only after reviewing the backup contents.';
+
+  @override
+  String get restoreReplace => 'Replace';
+
+  @override
+  String get restoreCancel => 'Cancel';
+
+  @override
+  String get restorePreparing => 'Preparing records';
+
+  @override
+  String get restoreReplacing => 'Replacing records';
+
+  @override
+  String get restoreWorking => 'Keep Vital open while this finishes.';
+
+  @override
+  String get restoreCompleteTitle => 'Restore complete';
+
+  @override
+  String restoreCompleteBody(String name) {
+    return 'This device now uses the records from $name.';
+  }
+
+  @override
+  String get restoreCompleteCleared =>
+      'Old drafts and reminder actions were cleared.';
+
+  @override
+  String get restoreCompleteReminder =>
+      'Reminders will be rebuilt when you continue.';
+
+  @override
+  String get restoreReminderWarning =>
+      'Records were restored. Reminder schedules could not be cleared. Check reminder settings after reopening Vital.';
+
+  @override
+  String get restoreDone => 'Done';
+
+  @override
+  String get restoreFailedTitle => 'Restore failed';
+
+  @override
+  String get restoreRetry => 'Retry';
+
+  @override
+  String get restoreUnavailable => 'Restore unavailable';
+
+  @override
+  String get restoreUnavailableBody =>
+      'Restore needs the protected record store. Open Vital again and retry.';
+
+  @override
+  String get restoreLocked => 'Unlock Vital to restore records.';
+
+  @override
+  String get restoreWrongPassword =>
+      'That password does not open this backup. Check the password and try again.';
+
+  @override
+  String get restoreCorrupt =>
+      'This backup cannot be opened safely. Current records were kept. Choose another backup.';
+
+  @override
+  String get restoreUnsupportedVersion =>
+      'This backup was made by a newer version of Vital. Update Vital before restoring it.';
+
+  @override
+  String get restoreTooLarge =>
+      'This backup is too large to restore on this device.';
+
+  @override
+  String get restoreChooseArchive => 'Choose a backup first.';
+
+  @override
+  String get restorePasswordRequired => 'Enter the backup password.';
+
+  @override
+  String get restorePasswordLong => 'That password is too long.';
+
+  @override
+  String get restoreConfirmationRequired =>
+      'Switch on Replace all records before replacing.';
+
+  @override
+  String get restoreRecoveryRequired =>
+      'Vital could not finish the last restore safely. Reopen Vital before trying again.';
+
+  @override
+  String get restoreStorage =>
+      'There is not enough protected storage to replace these records. Free some space and try again.';
+
+  @override
+  String get restoreArchiveChanged =>
+      'The backup changed while it was being read. Choose it again.';
+
+  @override
+  String get restoreFailedBody =>
+      'Nothing was replaced. Check the backup and try again.';
+
+  @override
+  String get restoreCancelled =>
+      'Restore cancelled. Current records were not changed.';
+
+  @override
+  String get restoreBusy => 'Restore is already running.';
+
+  @override
+  String get restoreRecoveryCompleted =>
+      'Restore complete. Vital is using the restored records.';
+
+  @override
+  String get restoreRecoveryRolledBack =>
+      'Vital recovered the previous records after an interrupted restore.';
+
+  @override
+  String get restoreRecoveryCleaned =>
+      'An interrupted restore was cleared. Your existing records are still in use.';
 }

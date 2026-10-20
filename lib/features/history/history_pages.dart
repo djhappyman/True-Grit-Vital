@@ -338,6 +338,25 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                       ),
                       child: Text(t.supportingTitle),
                     ),
+                    VitalButton.secondary(
+                      onPressed: () {
+                        final start = parseDate(from.text);
+                        final end = parseDate(through.text);
+                        context.push(
+                          Uri(
+                            path: '/reports',
+                            queryParameters: {
+                              'person': personId,
+                              'from': (start ?? CivilDate(today.year, 1, 1))
+                                  .toString(),
+                              'before': (end ?? today).addDays(1).toString(),
+                              'return': viewLocation(personId),
+                            },
+                          ).toString(),
+                        );
+                      },
+                      child: Text(t.reportsTitle),
+                    ),
                   ],
                 ),
                 if (peopleOpen)

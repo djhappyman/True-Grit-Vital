@@ -37,13 +37,20 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
   late CivilDate start = CivilDate.parse(from.text),
       end = CivilDate.parse(before.text);
   SupportingDateBasis basis = SupportingDateBasis.collection;
-  int selectedGroup = 0, groupPage = 0, tablePage = 0;
+  int selectedGroup = 0, groupPage = 0, tablePage = 0, undatedPage = 0;
   String? error;
   @override
   void dispose() {
     from.dispose();
     before.dispose();
     super.dispose();
+  }
+
+  void resetPages() {
+    selectedGroup = 0;
+    groupPage = 0;
+    tablePage = 0;
+    undatedPage = 0;
   }
 
   @override
@@ -69,13 +76,38 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
         result = ref.watch(supportingTrendProvider(encoded));
     final model = result.value;
     final groups = model?.groups ?? <SupportingTrendGroup>[];
-    final group = groups.isEmpty
+    // The selector follows the first positioned date, not comparison-key hash
+    // order, so the first group is the earliest saved result in this view.
+    final orderedGroups = [...groups]..sort(_compareGroup);
+    final group = orderedGroups.isEmpty
         ? null
-        : groups[selectedGroup.clamp(0, groups.length - 1)];
-    final entries = [
+        : orderedGroups[selectedGroup.clamp(0, orderedGroups.length - 1)];
+    final groupNumbers = <String, int>{
+      for (var i = 0; i < orderedGroups.length; i++)
+        orderedGroups[i].key.identity: i + 1,
+    };
+    final undated = <SupportingTrendEntry>[...?model?.unpositioned]
+      ..sort((a, b) => a.identity.compareTo(b.identity));
+    final groupSummaries = <String, String>{
+      for (var i = 0; i < orderedGroups.length; i++)
+        orderedGroups[i].key.identity: _entrySummary(
+          t,
+          orderedGroups[i].entries.first,
+          number: i + 1,
+          count: orderedGroups.length,
+        ),
+    };
+    final undatedSummaries = <String, String>{
+      for (final entry in undated)
+        entry.identity: _entrySummary(t, entry, number: null, count: 0),
+    };
+    // The exact table is the primary view. Flattening the groups and sorting
+    // again restores the declared date-basis chronology instead of leaving
+    // entries in comparison-key batches. Each row keeps its group number so
+    // identical marker/unit labels cannot hide a different source identity.
+    final positioned = <SupportingTrendEntry>[
       for (final g in groups) ...g.entries,
-      ...?model?.unpositioned,
-    ];
+    ]..sort(_compareEntry);
     return EntryPage(
       children: [
         Heading(t.supportingTrends),
@@ -90,9 +122,7 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
           selected: basis,
           onChanged: (v) => setState(() {
             basis = v;
-            selectedGroup = 0;
-            groupPage = 0;
-            tablePage = 0;
+            resetPages();
           }),
           label: (v) => switch (v) {
             SupportingDateBasis.collection => t.supportingCollection,
@@ -103,7 +133,7 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
         LabelledInput(label: t.supportingFrom, controller: from),
         LabelledInput(label: t.supportingBefore, controller: before),
         Text(t.chartRangeSummary(start.toString(), end.toString())),
-        Text(query.displayZone),
+        Text(t.supportingDisplayZone(query.displayZone)),
         VitalButton.secondary(
           onPressed: () {
             try {
@@ -113,13 +143,11 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
               setState(() {
                 start = a;
                 end = b;
-                selectedGroup = 0;
-                groupPage = 0;
-                tablePage = 0;
+                resetPages();
                 error = null;
               });
             } catch (_) {
-              setState(() => error = t.supportingInvalid);
+              setState(() => error = t.supportingFilterInvalid);
             }
           },
           child: Text(t.supportingApply),
@@ -137,108 +165,274 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage> {
           ),
         ],
         if (result.isLoading) Text(t.loadingRecords),
-        if (model != null && entries.isEmpty) Text(t.supportingNoTrend),
-        if (groups.isNotEmpty)
+        if (model != null && groups.isEmpty && undated.isEmpty)
+          Text(t.supportingNoMatches),
+        if (positioned.isNotEmpty)
           VitalSection(
-            title: Text(t.supportingMetrics),
+            title: Text(t.supportingTable),
             children: [
-              for (
-                var i = groupPage * 25;
-                i < groups.length && i < (groupPage + 1) * 25;
-                i++
-              )
-                VitalButton.secondary(
-                  multiline: true,
-                  onPressed: () => setState(() => selectedGroup = i),
-                  child: Text(
-                    t.supportingGroupLabel(
-                      groups[i].entries.first.result.markerName,
-                      groups[i].key.unit ?? t.supportingUnknown,
-                    ),
+              Text(t.supportingTableOrder),
+              for (final entry in positioned.skip(tablePage * 25).take(25))
+                _TrendTableRow(
+                  entry: entry,
+                  groupLabel: t.supportingGroupShort(
+                    groupNumbers[entry.groupKey.identity] ?? 0,
+                  ),
+                  groupSummary: groupSummaries[entry.groupKey.identity] ?? '',
+                  ref: ref,
+                  onOpen: () => context.push(
+                    '/supporting/${widget.personId}/${entry.record.id.id}?revision=${entry.record.revision}',
                   ),
                 ),
-              if (groups.length > 25)
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    VitalButton.secondary(
-                      onPressed: groupPage > 0
-                          ? () => setState(() => groupPage--)
-                          : null,
-                      child: Text(t.supportingPrevious),
-                    ),
-                    VitalButton.secondary(
-                      onPressed: (groupPage + 1) * 25 < groups.length
-                          ? () => setState(() => groupPage++)
-                          : null,
-                      child: Text(t.supportingNext),
-                    ),
-                  ],
+              if (positioned.length > 25)
+                _pager(
+                  t,
+                  page: tablePage,
+                  count: positioned.length,
+                  onChanged: (value) => setState(() => tablePage = value),
+                ),
+            ],
+          ),
+        if (undated.isNotEmpty)
+          VitalSection(
+            title: Text(t.supportingUndatedResults),
+            children: [
+              Text(t.supportingUndatedHelp),
+              for (final entry in undated.skip(undatedPage * 25).take(25))
+                _TrendTableRow(
+                  entry: entry,
+                  groupLabel: t.supportingUndatedGroup,
+                  groupSummary: undatedSummaries[entry.identity] ?? '',
+                  ref: ref,
+                  onOpen: () => context.push(
+                    '/supporting/${widget.personId}/${entry.record.id.id}?revision=${entry.record.revision}',
+                  ),
+                ),
+              if (undated.length > 25)
+                _pager(
+                  t,
+                  page: undatedPage,
+                  count: undated.length,
+                  onChanged: (value) => setState(() => undatedPage = value),
                 ),
             ],
           ),
         if (group != null) ...[
-          Text(
-            t.supportingGroupLabel(
-              group.entries.first.result.markerName,
-              group.key.unit ?? t.supportingUnknown,
+          VitalSection(
+            title: Text(t.chartPlot),
+            children: [
+              if (orderedGroups.length > 1) ...[
+                Text(t.supportingGroups),
+                for (
+                  var i = groupPage * 25;
+                  i < orderedGroups.length && i < (groupPage + 1) * 25;
+                  i++
+                )
+                  MergeSemantics(
+                    child: Semantics(
+                      selected: i == selectedGroup,
+                      child: i == selectedGroup
+                          ? VitalButton(
+                              multiline: true,
+                              onPressed: () =>
+                                  setState(() => selectedGroup = i),
+                              child: Text(
+                                groupSummaries[orderedGroups[i].key.identity]!,
+                              ),
+                            )
+                          : VitalButton.secondary(
+                              multiline: true,
+                              onPressed: () =>
+                                  setState(() => selectedGroup = i),
+                              child: Text(
+                                groupSummaries[orderedGroups[i].key.identity]!,
+                              ),
+                            ),
+                    ),
+                  ),
+                if (orderedGroups.length > 25)
+                  _pager(
+                    t,
+                    page: groupPage,
+                    count: orderedGroups.length,
+                    onChanged: (value) => setState(() => groupPage = value),
+                  ),
+              ],
+              Text(t.supportingSelectedGroup),
+              Text(
+                groupSummaries[group.key.identity] ??
+                    _entrySummary(
+                      t,
+                      group.entries.first,
+                      number: groupNumbers[group.key.identity] ?? 0,
+                      count: orderedGroups.length,
+                    ),
+              ),
+              SupportingProvenanceView(
+                provenance:
+                    group.entries.first.result.provenance ??
+                    group.entries.first.record.snapshot.provenance,
+              ),
+              if (group.hasUnpositionedGap) Text(t.supportingGroupUndated),
+              SupportingPlot(group: group),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+Widget _pager(
+  AppLocalizations t, {
+  required int page,
+  required int count,
+  required ValueChanged<int> onChanged,
+}) => Wrap(
+  spacing: 12,
+  runSpacing: 12,
+  children: [
+    VitalButton.secondary(
+      onPressed: page > 0 ? () => onChanged(page - 1) : null,
+      child: Text(t.supportingPrevious),
+    ),
+    VitalButton.secondary(
+      onPressed: (page + 1) * 25 < count ? () => onChanged(page + 1) : null,
+      child: Text(t.supportingNext),
+    ),
+  ],
+);
+
+String _identityPart(String? name, String? id, String unknown) {
+  if (name == null || name.isEmpty) return id ?? unknown;
+  if (id == null || id.isEmpty || id == name) return name;
+  return '$name ($id)';
+}
+
+int _compareGroup(SupportingTrendGroup a, SupportingTrendGroup b) {
+  final ad = a.entries.firstOrNull?.day, bd = b.entries.firstOrNull?.day;
+  if (ad != null && bd != null) {
+    final byDay = ad.compareTo(bd);
+    if (byDay != 0) return byDay;
+  } else if (ad != null) {
+    return -1;
+  } else if (bd != null) {
+    return 1;
+  }
+  return a.key.identity.compareTo(b.key.identity);
+}
+
+String _entrySummary(
+  AppLocalizations t,
+  SupportingTrendEntry entry, {
+  required int? number,
+  required int count,
+}) {
+  final key = entry.groupKey;
+  final provenance =
+      entry.result.provenance ?? entry.record.snapshot.provenance;
+  final summary = key.kind == SupportingMetricKind.observation
+      ? t.supportingGroupObservation(
+          entry.result.markerName,
+          key.unit ?? t.supportingUnknown,
+        )
+      : t.supportingGroupSummary(
+          entry.result.markerName,
+          key.unit ?? t.supportingUnknown,
+          _identityPart(
+            provenance.laboratoryName,
+            provenance.laboratoryId,
+            t.supportingUnknown,
+          ),
+          _identityPart(
+            provenance.methodText,
+            provenance.methodId,
+            t.supportingUnknown,
+          ),
+          _identityPart(
+            provenance.specimenText,
+            provenance.specimenId,
+            t.supportingUnknown,
+          ),
+        );
+  final uncertain = key.certain
+      ? ''
+      : key.kind == SupportingMetricKind.observation
+      ? ' ${t.supportingGroupObservationSeparate}'
+      : ' ${t.supportingGroupUncertain} '
+            '${t.supportingTarget(entry.record.snapshot.title)} '
+            '${t.supportingRevisionLabel(entry.record.revision)}';
+  return number == null
+      ? '$summary$uncertain'
+      : '${t.supportingGroupNumber(number, count)} $summary$uncertain';
+}
+
+int _compareEntry(SupportingTrendEntry a, SupportingTrendEntry b) {
+  final day = a.day!.compareTo(b.day!);
+  if (day != 0) return day;
+  final ai = a.exactInstant, bi = b.exactInstant;
+  if (ai != null && bi != null) {
+    final at = ai.compareTo(bi);
+    if (at != 0) return at;
+  } else if (ai != null) {
+    return -1;
+  } else if (bi != null) {
+    return 1;
+  }
+  return a.identity.compareTo(b.identity);
+}
+
+class _TrendTableRow extends StatelessWidget {
+  const _TrendTableRow({
+    required this.entry,
+    required this.groupLabel,
+    required this.groupSummary,
+    required this.ref,
+    required this.onOpen,
+  });
+  final SupportingTrendEntry entry;
+  final String groupLabel;
+  final String groupSummary;
+  final WidgetRef ref;
+  final VoidCallback onOpen;
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    return VitalSurface(
+      key: ValueKey(entry.identity),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            label: groupSummary,
+            child: Text(
+              groupLabel,
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
-          SupportingProvenanceView(
-            provenance:
-                group.entries.first.result.provenance ??
-                group.entries.first.record.snapshot.provenance,
+          Text(
+            entry.record.snapshot.title,
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
-          if (!group.canConnect) Text(t.supportingGroupUncertain),
-          SupportingPlot(group: group),
+          Text(supportingDateLabel(context, ref, entry.date)),
+          if (supportingDateSourceLabel(context, ref, entry.date)
+              case final source?)
+            Text(source),
+          if (entry.positionZoneFallback) Text(t.supportingOffsetFallback),
+          SupportingResultView(result: entry.result),
+          Text(t.supportingRevisionLabel(entry.record.revision)),
+          Semantics(
+            label: t.supportingOpenRecord(entry.record.snapshot.title),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: VitalButton.secondary(
+                onPressed: onOpen,
+                child: Text(t.supportingOpen),
+              ),
+            ),
+          ),
         ],
-        VitalSection(
-          title: Text(t.supportingTable),
-          children: [
-            for (final entry in entries.skip(tablePage * 25).take(25))
-              VitalSurface(
-                key: ValueKey(entry.identity),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(entry.record.snapshot.title),
-                    Text(supportingDateLabel(context, ref, entry.date)),
-                    if (entry.positionZoneFallback)
-                      Text(t.supportingOffsetFallback),
-                    SupportingResultView(result: entry.result),
-                    Text(t.supportingRevisionLabel(entry.record.revision)),
-                    VitalButton.secondary(
-                      onPressed: () => context.push(
-                        '/supporting/${widget.personId}/${entry.record.id.id}?revision=${entry.record.revision}',
-                      ),
-                      child: Text(t.supportingSource),
-                    ),
-                  ],
-                ),
-              ),
-            if (entries.length > 25)
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  VitalButton.secondary(
-                    onPressed: tablePage > 0
-                        ? () => setState(() => tablePage--)
-                        : null,
-                    child: Text(t.supportingPrevious),
-                  ),
-                  VitalButton.secondary(
-                    onPressed: (tablePage + 1) * 25 < entries.length
-                        ? () => setState(() => tablePage++)
-                        : null,
-                    child: Text(t.supportingNext),
-                  ),
-                ],
-              ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 }
@@ -251,7 +445,13 @@ class SupportingPlot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    if (!group.canConnect) return Text(t.supportingGroupUncertain);
+    if (!group.canConnect) {
+      return Text(
+        group.key.kind == SupportingMetricKind.observation
+            ? t.supportingGroupObservationSeparate
+            : t.supportingGroupUncertain,
+      );
+    }
     final numeric = group.entries.where((e) => e.numericValue != null).toList();
     if (numeric.isEmpty) return Text(t.supportingNoTrend);
     var min = numeric.first.numericValue!, max = min;

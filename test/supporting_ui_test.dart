@@ -3,6 +3,8 @@ import 'package:true_grit_vital/platform/device_zone.dart';
 
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
+
 import 'package:true_grit_vital/app/app_lock.dart';
 import 'package:true_grit_vital/app/storage.dart';
 import 'package:true_grit_vital/app/supporting.dart';
@@ -99,6 +101,76 @@ class SupportingOpenLock extends AppLockController {
   AppLockState build() => const AppLockState(ready: true, locked: false);
 }
 
+LabPanelSnapshot supportingUiPanel(
+  String id, {
+  String title = 'Source report',
+}) => LabPanelSnapshot(
+  id: SupportingRecordId(id: id, personId: meId),
+  title: title,
+  collectionDate: SupportingDate.day(CivilDate(2026, 10, 19)),
+  reportDate: SupportingDate.day(CivilDate(2026, 10, 20)),
+  provenance: SupportingProvenance(
+    mode: SupportingProvenanceMode.manualTranscription,
+    laboratoryId: 'lab',
+    laboratoryName: 'Source laboratory',
+    methodId: 'method',
+    methodText: 'Immunoassay',
+    specimenId: 'serum',
+    specimenText: 'Serum',
+  ),
+  results: [
+    LabResultSnapshot(
+      id: 'result-$id',
+      metricId: 'metric',
+      markerName: 'Marker',
+      value: SupportingValue.numeric('2'),
+      unit: 'mg/L',
+    ),
+  ],
+);
+
+Future<AttachmentRecord> seedSupportingFile(
+  RecordStore store,
+  SupportingRevision record,
+) async {
+  final bytes = Uint8List.fromList('Synthetic source report'.codeUnits);
+  final job = AttachmentJob(
+    id: newCommandId(),
+    generation: store.generation,
+    personId: record.id.personId,
+    expectedPersonRevision: (await store.profileById(record.id.personId))!
+        .revision,
+    targetKind: AttachmentTargetKind.supporting,
+    targetId: record.id.id,
+    targetRevision: record.revision,
+    attachmentId: newCommandId(),
+    versionId: newCommandId(),
+    name: 'Original report',
+    createdAt: DateTime.now().toUtc(),
+  );
+  await store.beginAttachment(
+    BeginAttachmentCommand(commandId: newCommandId(), job: job),
+  );
+  await store.appendAttachmentChunk(
+    commandId: newCommandId(),
+    jobId: job.id,
+    generation: job.generation,
+    offset: 0,
+    bytes: bytes,
+  );
+  return store.publishAttachment(
+    commandId: newCommandId(),
+    jobId: job.id,
+    generation: job.generation,
+    inspection: AttachmentInspection(
+      mediaKind: AttachmentMediaKind.other,
+      byteCount: bytes.length,
+      sha256: sha256.convert(bytes).toString(),
+      mimeType: 'application/octet-stream',
+    ),
+  );
+}
+
 void main() {
   appTest(
     'manual empty panel saves for captured adult before files are available',
@@ -144,7 +216,7 @@ void main() {
       );
     },
   );
-  appTest('observation preserves qualified custom value and source range', (
+  appTest('observation preserves qualified custom value and original unit', (
     tester,
   ) async {
     final f = await launch(tester);
@@ -152,10 +224,10 @@ void main() {
     await settle(tester);
     await enter(tester, 'Title', 'Manual observation');
     await tap(tester, 'Add');
-    await enter(tester, 'Marker name', 'Source custom marker');
+    await enter(tester, 'Component', 'Source custom marker');
     await enter(tester, 'Original value', '<1.20e-3');
     await enter(tester, 'Original unit', 'source/unit');
-    await enter(tester, 'Source range', 'not supplied');
+    expect(find.text('Source range'), findsNothing);
     await tap(tester, 'Save');
     expect(find.byType(SupportingDetailPage), findsOneWidget);
     expect(find.text('<1.20e-3 source/unit'), findsOneWidget);
@@ -169,6 +241,115 @@ void main() {
       SupportingQualifier.lessThan,
     );
     expect(saved.snapshot.results.single.value.originalText, '<1.20e-3');
+  });
+  appTest('note-only observation saves without a fabricated value', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    f.container.read(routerProvider).go('/supporting/$meId/add-observation');
+    await settle(tester);
+    await enter(tester, 'Title', 'Source note');
+    await tap(tester, 'Save');
+    expect(
+      find.text('Add a value or a note before saving this observation.'),
+      findsOneWidget,
+    );
+    await tap(tester, 'Details');
+    await enter(tester, 'Notes', 'Noted after reviewing the source.');
+    await tap(tester, 'Save');
+    expect(find.byType(SupportingDetailPage), findsOneWidget);
+    expect(find.text('Noted after reviewing the source.'), findsOneWidget);
+    final saved = (await runIo(
+      tester,
+      () => f.store.supportingRecords(SupportingQuery(personId: meId)),
+    ))!.entries.single;
+    expect(saved.kind, SupportingRecordKind.observation);
+    expect(saved.snapshot.results, isEmpty);
+    expect(saved.snapshot.notes, 'Noted after reviewing the source.');
+  });
+  appTest('saved file is captured as an exact source through the form', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final owner = (await runIo(tester, () => f.store.profileById(meId)))!;
+    final panel = (await runIo(
+      tester,
+      () => f.store.saveLabPanel(
+        SaveLabPanelCommand(
+          commandId: 'source-parent',
+          generation: f.store.generation,
+          expectedPersonRevision: owner.revision,
+          panel: supportingUiPanel('source-parent'),
+        ),
+      ),
+    ))!;
+    final file = (await runIo(
+      tester,
+      () => seedSupportingFile(f.store, panel),
+    ))!;
+    f.container.read(routerProvider).go('/supporting/$meId/source-parent/edit');
+    await settle(tester);
+    await tap(tester, 'Source');
+    expect(find.text('Original report'), findsOneWidget);
+    await tap(tester, 'Attach');
+    expect(find.text('Attached'), findsOneWidget);
+    await tap(tester, 'Save');
+    expect(find.byType(SupportingDetailPage), findsOneWidget);
+    expect(find.text('Saved sources'), findsOneWidget);
+    final saved = (await runIo(
+      tester,
+      () => f.store.supportingRecord(meId, 'source-parent'),
+    ))!;
+    final source = saved.snapshot.provenance.sourceReferences.single;
+    expect(source.id, file.id);
+    expect(source.version, file.revision);
+    expect(source.contentVersionId, file.versionId);
+    expect(source.originalText, 'Original report');
+    expect(find.text('Open'), findsOneWidget);
+  });
+  appTest('supporting form reports a stale record with supporting wording', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final owner = (await runIo(tester, () => f.store.profileById(meId)))!;
+    await runIo(
+      tester,
+      () => f.store.saveLabPanel(
+        SaveLabPanelCommand(
+          commandId: 'stale-parent',
+          generation: f.store.generation,
+          expectedPersonRevision: owner.revision,
+          panel: supportingUiPanel('stale-parent'),
+        ),
+      ),
+    );
+    f.container.read(routerProvider).go('/supporting/$meId/stale-parent/edit');
+    await settle(tester);
+    await enter(tester, 'Title', 'Locally edited title');
+    final changed = supportingUiPanel(
+      'stale-parent',
+      title: 'Changed elsewhere',
+    );
+    await runIo(
+      tester,
+      () => f.store.saveLabPanel(
+        SaveLabPanelCommand(
+          commandId: 'stale-external',
+          generation: f.store.generation,
+          expectedPersonRevision: owner.revision,
+          expectedRevision: 1,
+          panel: changed,
+        ),
+      ),
+    );
+    await tap(tester, 'Save');
+    expect(
+      find.text(
+        'This supporting record changed. Open Supporting records and review the latest revision before editing.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Return to History'), findsNothing);
   });
   appTest(
     'source correction retains revisions and void restore retains source',
@@ -273,7 +454,7 @@ void main() {
       expect(chart.data.lineBarsData.every((bar) => !bar.isCurved), isTrue);
       expect(find.text('Not measured U/L'), findsOneWidget);
       expect(find.textContaining('999'), findsNothing);
-      await tap(tester, 'Source');
+      await tap(tester, 'Open');
       expect(find.byType(SupportingDetailPage), findsOneWidget);
       expect(find.text('Revision 1'), findsOneWidget);
     },
@@ -411,6 +592,312 @@ void main() {
       },
     );
   }
+  appTest('saved void intent survives navigation and resumes once', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    await runIo(
+      tester,
+      () => f.store.saveLabPanel(
+        SaveLabPanelCommand(
+          commandId: 'recovery-seed',
+          generation: f.store.generation,
+          expectedPersonRevision: 2,
+          panel: panel('report', meId),
+        ),
+      ),
+    );
+    final attempts = <OrdinaryDraft>[];
+    final container = ProviderContainer(
+      overrides: [
+        storeLoaderProvider.overrideWithValue(() async => f.store),
+        appLockProvider.overrideWith(SupportingOpenLock.new),
+        observedDeviceZoneProvider.overrideWith(
+          (ref) => Stream.value(DeviceZoneObservation.fromId('Europe/London')),
+        ),
+        supportingVoidWriterProvider.overrideWithValue((draft) async {
+          attempts.add(draft);
+          if (attempts.length == 1) {
+            throw StateError('injected_before_commit');
+          }
+          return f.store.resumeSupportingVoidDraft(draft);
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(container: container, child: const VitalApp()),
+    );
+    await settle(tester);
+    container.read(routerProvider).go('/supporting/$meId/report');
+    await settle(tester);
+    await tap(tester, 'Void');
+    await tap(tester, 'Void');
+    expect(
+      find.text(
+        'Your request is saved on this device. Resume to check and finish it, or discard it.',
+      ),
+      findsOneWidget,
+    );
+    final saved = (await runIo(tester, f.store.drafts))!.single;
+    expect(saved.kind, DraftKind.supportingVoid);
+    expect(saved.operationId, attempts.single.operationId);
+    expect(saved.personId, meId);
+    expect(saved.targetId, 'report');
+    expect(saved.targetRevision, 1);
+    expect(saved.fields, {'isVoided': 'true'});
+
+    // The intent is shown again from storage after leaving the screen.
+    container.read(routerProvider).go('/today');
+    await settle(tester);
+    expect(find.text('Unfinished entries'), findsOneWidget);
+    container.read(routerProvider).go('/supporting/$meId/report');
+    await settle(tester);
+    expect(
+      find.text(
+        'Your request is saved on this device. Resume to check and finish it, or discard it.',
+      ),
+      findsOneWidget,
+    );
+
+    await tap(tester, 'Resume');
+    expect(find.text('Voided'), findsOneWidget);
+    expect(find.text('Record voided.'), findsOneWidget);
+    expect(
+      tester
+          .widget<Semantics>(
+            find
+                .ancestor(
+                  of: find.text('Record voided.'),
+                  matching: find.byType(Semantics),
+                )
+                .first,
+          )
+          .properties
+          .liveRegion,
+      isTrue,
+    );
+    expect(await runIo(tester, f.store.drafts), isEmpty);
+    expect(
+      (await runIo(
+        tester,
+        () => f.store.supportingRevisions(meId, 'report'),
+      ))!.length,
+      2,
+    );
+    expect(attempts.length, 2);
+    expect(attempts.first.operationId, attempts.last.operationId);
+  });
+  appTest(
+    'committed void with a lost reply resolves without another revision',
+    (tester) async {
+      final f = await launch(tester);
+      await runIo(
+        tester,
+        () => f.store.saveLabPanel(
+          SaveLabPanelCommand(
+            commandId: 'lost-seed',
+            generation: f.store.generation,
+            expectedPersonRevision: 2,
+            panel: panel('report', meId),
+          ),
+        ),
+      );
+      final container = ProviderContainer(
+        overrides: [
+          storeLoaderProvider.overrideWithValue(() async => f.store),
+          appLockProvider.overrideWith(SupportingOpenLock.new),
+          observedDeviceZoneProvider.overrideWith(
+            (ref) =>
+                Stream.value(DeviceZoneObservation.fromId('Europe/London')),
+          ),
+          supportingVoidWriterProvider.overrideWithValue((draft) async {
+            await f.store.resumeSupportingVoidDraft(draft);
+            throw StateError('injected_lost_response');
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const VitalApp(),
+        ),
+      );
+      await settle(tester);
+      container.read(routerProvider).go('/supporting/$meId/report');
+      await settle(tester);
+      await tap(tester, 'Void');
+      await tap(tester, 'Void');
+      expect(find.text('Voided'), findsOneWidget);
+      expect(await runIo(tester, f.store.drafts), isEmpty);
+      expect(
+        (await runIo(
+          tester,
+          () => f.store.supportingRevisions(meId, 'report'),
+        ))!.length,
+        2,
+      );
+    },
+  );
+  appTest('failed intent write runs no command and can be retried', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    await runIo(
+      tester,
+      () => f.store.saveLabPanel(
+        SaveLabPanelCommand(
+          commandId: 'blocked-seed',
+          generation: f.store.generation,
+          expectedPersonRevision: 2,
+          panel: panel('report', meId),
+        ),
+      ),
+    );
+    f.container.read(routerProvider).go('/supporting/$meId/report');
+    await settle(tester);
+    f.store.suspendWrites(true);
+    await tap(tester, 'Void');
+    await tap(tester, 'Void');
+    expect(
+      find.text('Request not saved. Nothing changed. Try again.'),
+      findsOneWidget,
+    );
+    f.store.suspendWrites(false);
+    expect(await runIo(tester, f.store.drafts), isEmpty);
+    var history = (await runIo(
+      tester,
+      () => f.store.supportingRevisions(meId, 'report'),
+    ))!;
+    expect(history.length, 1);
+    expect(history.single.isVoided, isFalse);
+
+    await tap(tester, 'Void');
+    await tap(tester, 'Void');
+    expect(find.text('Voided'), findsOneWidget);
+    history = (await runIo(
+      tester,
+      () => f.store.supportingRevisions(meId, 'report'),
+    ))!;
+    expect(history.length, 2);
+  });
+  appTest('discarding a saved void intent invalidates it', (tester) async {
+    final f = await launch(tester);
+    await runIo(
+      tester,
+      () => f.store.saveLabPanel(
+        SaveLabPanelCommand(
+          commandId: 'discard-seed',
+          generation: f.store.generation,
+          expectedPersonRevision: 2,
+          panel: panel('report', meId),
+        ),
+      ),
+    );
+    final container = ProviderContainer(
+      overrides: [
+        storeLoaderProvider.overrideWithValue(() async => f.store),
+        appLockProvider.overrideWith(SupportingOpenLock.new),
+        observedDeviceZoneProvider.overrideWith(
+          (ref) => Stream.value(DeviceZoneObservation.fromId('Europe/London')),
+        ),
+        supportingVoidWriterProvider.overrideWithValue(
+          (draft) async => throw StateError('injected_before_commit'),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(container: container, child: const VitalApp()),
+    );
+    await settle(tester);
+    container.read(routerProvider).go('/supporting/$meId/report');
+    await settle(tester);
+    await tap(tester, 'Void');
+    await tap(tester, 'Void');
+    final draft = (await runIo(tester, f.store.drafts))!.single;
+    await tap(tester, 'Discard');
+    expect(await runIo(tester, f.store.drafts), isEmpty);
+    expect(find.text('Void'), findsOneWidget);
+    CommandConflict? failure;
+    await runIo(tester, () async {
+      try {
+        await f.store.resumeSupportingVoidDraft(draft);
+      } on CommandConflict catch (error) {
+        failure = error;
+      }
+    });
+    expect(failure?.code, 'deleted_context');
+    final history = (await runIo(
+      tester,
+      () => f.store.supportingRevisions(meId, 'report'),
+    ))!;
+    expect(history.length, 1);
+    expect(history.single.isVoided, isFalse);
+  });
+  appTest('archived adult keeps a pending request discardable', (tester) async {
+    final f = await launch(tester);
+    final adult = (await runIo(
+      tester,
+      () => f.store.createProfile(
+        commandId: 'pending-adult',
+        name: 'Morgan',
+        adultConfirmed: true,
+      ),
+    ))!;
+    await runIo(tester, () async {
+      await f.store.saveLabPanel(
+        SaveLabPanelCommand(
+          commandId: 'archive-pending-seed',
+          generation: f.store.generation,
+          expectedPersonRevision: adult.revision,
+          panel: panel('report', adult.id),
+        ),
+      );
+      await f.store.saveDraft(
+        OrdinaryDraft.supportingVoid(
+          id: 'archive-pending',
+          operationId: 'archive-pending',
+          generation: f.store.generation,
+          personId: adult.id,
+          personRevision: adult.revision,
+          recordId: 'report',
+          recordRevision: 1,
+          isVoided: true,
+        ),
+      );
+      await f.store.archiveProfile(
+        commandId: 'archive-pending-owner',
+        personId: adult.id,
+        expectedRevision: adult.revision,
+      );
+    });
+    f.container.read(routerProvider).go('/supporting/${adult.id}/report');
+    await settle(tester);
+    expect(find.text('Void pending'), findsOneWidget);
+    expect(
+      find.text(
+        'This adult is archived. Discard the saved request or restore the adult first.',
+      ),
+      findsOneWidget,
+    );
+    final resume = find.ancestor(
+      of: find.text('Resume'),
+      matching: find.byType(VitalButton),
+    );
+    expect(tester.widget<VitalButton>(resume).onPressed, isNull);
+    await tap(tester, 'Discard');
+    expect(await runIo(tester, f.store.drafts), isEmpty);
+    expect(find.text('Request discarded.'), findsOneWidget);
+    expect(
+      (await runIo(
+        tester,
+        () => f.store.supportingRecord(adult.id, 'report'),
+      ))!.isVoided,
+      isFalse,
+    );
+  });
   appTest('History supporting entry retains named adult and return context', (
     tester,
   ) async {

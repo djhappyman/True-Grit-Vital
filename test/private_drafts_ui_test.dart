@@ -119,6 +119,7 @@ void main() {
         () => f.container.read(appLockProvider.notifier).setEnabled(true),
       );
       await settle(tester);
+      await tap(tester, 'Settings');
       await tap(tester, 'Appearance');
       expect(
         find.text(
@@ -126,6 +127,7 @@ void main() {
         ),
         findsOneWidget,
       );
+      await tap(tester, 'Back');
       await tap(tester, 'Back');
       await tap(tester, 'Substances');
       await tap(tester, 'Create');

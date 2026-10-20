@@ -9,6 +9,8 @@ import 'package:true_grit_vital/data/catalogue/catalogue_manager.dart';
 
 import 'package:true_grit_vital/app/device_zone.dart';
 import 'package:true_grit_vital/app/app_lock.dart';
+import 'package:true_grit_vital/app/privacy.dart';
+import 'package:true_grit_vital/domain/privacy/settings_capabilities.dart';
 import 'package:true_grit_vital/platform/app_auth.dart';
 import 'package:true_grit_vital/platform/device_zone.dart';
 
@@ -86,6 +88,9 @@ launch(
   bool completeSetup = true,
   Future<CatalogueReader?> Function()? catalogueLoader,
   AppAuthGateway? auth,
+  SettingsCapabilities? settingsCapabilities,
+  ProfilePrivacyActions? privacyActions,
+  Future<String> Function(String asset)? licenceLoader,
 }) async {
   final directory = await runIo(
     tester,
@@ -117,6 +122,12 @@ launch(
           (command) => combinedWriter(store, command),
         ),
       if (auth != null) appAuthGatewayProvider.overrideWithValue(auth),
+      if (settingsCapabilities != null)
+        settingsCapabilitiesProvider.overrideWithValue(settingsCapabilities),
+      if (privacyActions != null)
+        profilePrivacyActionsProvider.overrideWithValue(privacyActions),
+      if (licenceLoader != null)
+        licenceTextLoaderProvider.overrideWithValue(licenceLoader),
       if (catalogueLoader != null)
         catalogueLoaderProvider.overrideWithValue(catalogueLoader),
       observedDeviceZoneProvider.overrideWith(
@@ -498,6 +509,7 @@ void main() {
         throw StateError('synthetic_write_failure');
       },
     );
+    await tap(tester, 'Settings');
     await tap(tester, 'Appearance');
     await tap(tester, 'Dark');
     expect(f.container.read(appearanceProvider).mode, ThemeMode.system);

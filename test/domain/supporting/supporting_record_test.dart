@@ -178,6 +178,40 @@ void main() {
       ),
       throwsArgumentError,
     );
+    final note = ObservationSnapshot(
+      id: SupportingRecordId(id: 'note', personId: 'me'),
+      title: 'Note',
+      measuredDate: SupportingDate.unknown(),
+      provenance: SupportingProvenance(
+        mode: SupportingProvenanceMode.manualObservation,
+      ),
+      components: const [],
+      notes: 'Source note only',
+    );
+    expect(note.results, isEmpty);
+    expect(note.notes, 'Source note only');
+    expect(
+      () => SupportingProvenance(
+        mode: SupportingProvenanceMode.manualTranscription,
+        sourceReferences: [
+          SupportingSourceReference(
+            id: 'file',
+            personId: 'me',
+            version: 1,
+            kind: SupportingSourceKind.attachment,
+            contentVersionId: 'v1',
+          ),
+          SupportingSourceReference(
+            id: 'file',
+            personId: 'me',
+            version: 1,
+            kind: SupportingSourceKind.attachment,
+            contentVersionId: 'v1',
+          ),
+        ],
+      ),
+      throwsArgumentError,
+    );
     expect(
       () => SupportingRecordId(id: '../escape', personId: 'me'),
       throwsA(isA<Exception>()),

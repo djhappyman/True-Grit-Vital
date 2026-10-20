@@ -371,7 +371,7 @@ void main() {
     raw = sqlite3.open(migratedPath);
     raw.execute("PRAGMA cipher='chacha20'");
     raw.execute(keySql);
-    expect(raw.select('PRAGMA user_version').single.values.single, 19);
+    expect(raw.select('PRAGMA user_version').single.values.single, 21);
     expect(
       raw
           .select('SELECT * FROM combined_member')

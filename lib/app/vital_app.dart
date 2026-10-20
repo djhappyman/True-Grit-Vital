@@ -1,6 +1,7 @@
 import '../features/supporting/supporting_pages.dart';
 import '../features/supporting/supporting_form.dart';
 import '../features/supporting/supporting_trends.dart';
+import '../features/backup/backup_pages.dart';
 import '../ui/vital_ui.dart';
 
 import 'package:flutter/services.dart';
@@ -13,12 +14,15 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../l10n/app_localizations.dart';
 import '../domain/records.dart' show meId;
 import 'appearance.dart';
+import 'backup.dart';
 import 'display_preferences.dart';
 import '../features/history/history_pages.dart';
 import '../features/charts/chart_pages.dart';
+import '../features/exports/export_pages.dart';
 import '../features/history/history_source.dart';
 import '../domain/history/history.dart';
 import 'attachments.dart';
+import 'artifact_transfer.dart';
 import '../features/attachments/attachment_pages.dart';
 import '../domain/attachments.dart';
 import 'reminders.dart';
@@ -35,6 +39,14 @@ import '../features/lock/lock_gate.dart';
 import '../features/profiles/profile_pages.dart';
 import '../features/recording/record_pages.dart';
 import '../features/recording/combined_pages.dart';
+import '../features/settings/diagnostic_pages.dart';
+import '../features/settings/help_pages.dart';
+import '../features/settings/privacy_pages.dart';
+import '../features/settings/settings_pages.dart';
+import '../features/reports/reports_page.dart';
+import '../features/reports/report_preview_page.dart';
+import '../features/restore/restore_pages.dart';
+import '../features/restore/restore_recovery_banner.dart';
 import 'settings_toggle_row.dart';
 import 'vital_theme.dart';
 
@@ -48,6 +60,22 @@ final routerProvider = Provider<GoRouter>((ref) {
           child: SupportingRecordsPage(
             key: ValueKey(state.uri.toString()),
             location: state.uri.toString(),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/reports/preview',
+        builder: (_, _) => const StorageGate(child: ReportPreviewPage()),
+      ),
+      GoRoute(
+        path: '/reports',
+        builder: (_, state) => StorageGate(
+          child: ReportsPage(
+            key: ValueKey(state.uri.toString()),
+            personId: state.uri.queryParameters['person'],
+            from: state.uri.queryParameters['from'],
+            before: state.uri.queryParameters['before'],
+            returnLocation: state.uri.queryParameters['return'],
           ),
         ),
       ),
@@ -120,6 +148,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: '/exports',
+        builder: (_, state) => StorageGate(
+          child: ExportPage(
+            key: ValueKey(state.uri.toString()),
+            location: state.uri.toString(),
+          ),
+        ),
+      ),
+      GoRoute(
         path: '/history-source/:kind/:id',
         builder: (_, state) {
           final kind = state.pathParameters['kind'];
@@ -176,6 +213,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           child: AttachmentViewerPage(
             attachmentId: state.pathParameters['id']!,
             focusRename: state.uri.queryParameters['focus'] == 'rename',
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/supporting-source/:person/:id',
+        builder: (_, state) => StorageGate(
+          child: SupportingSourceViewerPage(
+            personId: state.pathParameters['person']!,
+            attachmentId: state.pathParameters['id']!,
+            revision:
+                int.tryParse(state.uri.queryParameters['revision'] ?? '') ?? 0,
+            contentVersionId: state.uri.queryParameters['version'] ?? '',
           ),
         ),
       ),
@@ -342,8 +391,45 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: '/backup',
+        builder: (_, _) => const StorageGate(child: BackupPage()),
+      ),
+      GoRoute(
         path: '/appearance',
         builder: (_, _) => const StorageGate(child: AppearancePage()),
+      ),
+      GoRoute(path: '/restore', builder: (_, _) => const RestorePage()),
+      GoRoute(
+        path: '/settings',
+        builder: (_, _) => const StorageGate(child: SettingsPage()),
+      ),
+      GoRoute(
+        path: '/settings/privacy',
+        builder: (_, _) => const StorageGate(child: PrivacyPage()),
+      ),
+      GoRoute(
+        path: '/settings/diagnostics',
+        builder: (_, _) => const StorageGate(child: DiagnosticsPage()),
+      ),
+      GoRoute(
+        path: '/settings/help',
+        builder: (_, _) => const StorageGate(child: HelpPage()),
+      ),
+      GoRoute(
+        path: '/settings/licences',
+        builder: (_, _) => const StorageGate(child: LicencesPage()),
+      ),
+      GoRoute(
+        path: '/settings/licences/app',
+        builder: (_, _) => const StorageGate(child: ApplicationLicencePage()),
+      ),
+      GoRoute(
+        path: '/settings/licences/:index',
+        builder: (_, state) => StorageGate(
+          child: LicenceDetailPage(
+            index: int.tryParse(state.pathParameters['index'] ?? '') ?? -1,
+          ),
+        ),
       ),
       GoRoute(
         path: '/revisions/:id',
@@ -499,9 +585,13 @@ class VitalApp extends ConsumerWidget {
                     systemNavigationBarColor: const Color(0x00000000),
                   ),
             child: ReminderRuntime(
-              child: AttachmentRuntime(
-                child: VitalComponentThemes(
-                  child: LockGate(child: ReminderHost(child: child!)),
+              child: BackupRuntime(
+                child: ArtifactTransferRuntime(
+                  child: AttachmentRuntime(
+                    child: VitalComponentThemes(
+                      child: LockGate(child: ReminderHost(child: child!)),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -540,6 +630,7 @@ class VitalShell extends StatelessWidget {
     final text = AppLocalizations.of(context);
     return Scaffold(
       headers: [
+        const RestoreRecoveryBanner(),
         SafeArea(
           bottom: false,
           child: Padding(
@@ -558,10 +649,10 @@ class VitalShell extends StatelessWidget {
                   ),
                 ),
                 VitalButton.secondary(
-                  onPressed: () => context.push('/appearance'),
+                  onPressed: () => context.push('/settings'),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Text(text.appearance),
+                    child: Text(text.settings),
                   ),
                 ),
               ],
@@ -721,9 +812,19 @@ class AppearancePage extends ConsumerWidget {
           const SizedBox(height: 24),
           const TimeFormatSettings(),
           const SizedBox(height: 16),
-          VitalButton.secondary(
-            onPressed: () => context.push('/reminders'),
-            child: Text(text.reminders),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              VitalButton.secondary(
+                onPressed: () => context.push('/reminders'),
+                child: Text(text.reminders),
+              ),
+              VitalButton.secondary(
+                onPressed: () => context.push('/backup'),
+                child: Text(text.backup),
+              ),
+            ],
           ),
           const SizedBox(height: 32),
           Semantics(

@@ -1194,6 +1194,16 @@ extension ReminderRecordStore on RecordStore {
         ),
       );
     }
+    // One truthful capacity row per scope, with the exact displaced count.
+    final capacityExclusions = <String, int>{};
+    for (final r in allocation.excluded) {
+      final scope = 'plan:${r.target.row.expectation.identity.planId}';
+      capacityExclusions.update(scope, (n) => n + 1, ifAbsent: () => 1);
+    }
+    for (final r in eventAllocation.excluded) {
+      final scope = 'event:${r.eventId}';
+      capacityExclusions.update(scope, (n) => n + 1, ifAbsent: () => 1);
+    }
     return ReminderProjection(
       generation: generation,
       namespace: current['namespace'] as String,
@@ -1243,17 +1253,11 @@ extension ReminderRecordStore on RecordStore {
       exclusions: [
         ...exclusions,
         ...eventProjection.$5,
-        for (final r in eventAllocation.excluded)
+        for (final entry in capacityExclusions.entries)
           ReminderExclusion(
-            scope: 'event:${r.eventId}',
+            scope: entry.key,
             reason: 'capacity',
-            count: 1,
-          ),
-        for (final r in allocation.excluded)
-          ReminderExclusion(
-            scope: 'plan:${r.target.row.expectation.identity.planId}',
-            reason: 'capacity',
-            count: 1,
+            count: entry.value,
           ),
       ],
       attention: healthRequests

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Keep public release metadata truthful against code that is actually present. Update this file in the same change that lands a capability.",
+  "capabilities": [
+    {
+      "id": "reports",
+      "label": "Reports",
+      "owner": "20",
+      "status": "available",
+      "detection": [
+        "lib/domain/reports",
+        "lib/features/reports"
+      ],
+      "readmeMarkers": [
+        "reports, protected backup/restore"
+      ],
+      "statusMarkers": [
+        "Substance-summary, history and cycle/course PDF reports."
+      ],
+      "limitations": "R01/R02/R03 host tested, exact-artifact Save/Share adapter wired. Physical rendering/accessibility and performance gates remain open."
+    },
+    {
+      "id": "exports",
+      "label": "Structured exports",
+      "owner": "22",
+      "status": "available",
+      "detection": [
+        "lib/domain/exports",
+        "lib/features/exports"
+      ],
+      "readmeMarkers": [
+        "structured exports"
+      ],
+      "statusMarkers": [
+        "Structured data exports."
+      ],
+      "limitations": "Host-tested capture and save adapter. Physical Android and portal handoff validation remain open."
+    },
+    {
+      "id": "backup",
+      "label": "Protected backup and restore",
+      "owner": "23",
+      "status": "available",
+      "detection": [
+        "lib/backup",
+        "lib/restore",
+        "lib/features/backup",
+        "lib/features/restore"
+      ],
+      "readmeMarkers": [
+        "protected backup/restore"
+      ],
+      "statusMarkers": [
+        "Protected backups, restore and migration recovery flows."
+      ],
+      "limitations": "Protected backup, staged replacement and process recovery host tested. Android KDF, storage, large-file handoff and G04 review remain open."
+    },
+    {
+      "id": "privacy-help",
+      "label": "Privacy controls and local help",
+      "owner": "25",
+      "status": "available",
+      "detection": [
+        "lib/features/settings"
+      ],
+      "readmeMarkers": [
+        "Privacy controls"
+      ],
+      "statusMarkers": [
+        "Privacy controls and local help."
+      ],
+      "limitations": "Host-tested local privacy/settings/help. Physical accessibility, Android privacy and human-owned G07 clearance remain open."
+    }
+  ]
+}

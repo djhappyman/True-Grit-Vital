@@ -10,6 +10,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../app/app_lock.dart';
 import '../../app/device_zone.dart';
 import '../../app/reminders.dart';
+import 'reminder_health_panel.dart';
 import '../../app/settings_toggle_row.dart';
 import '../../app/storage.dart';
 import '../../app/vital_app.dart' show routerProvider;
@@ -285,33 +286,7 @@ class RemindersPage extends ConsumerWidget {
           const SizedBox(height: 16),
           if (report.failed || state.actionFailed)
             Semantics(liveRegion: true, child: Text(t.reminderAttention)),
-          if (report.projection == null) Text(t.reminderUnprepared(t.everyone)),
-          for (final coverage
-              in report.projection?.coverage.where(
-                    (c) => !c.scope.startsWith('plan:'),
-                  ) ??
-                  const <ReminderCoverage>[]) ...[
-            const SizedBox(height: 12),
-            Text(
-              coverage.preparedThrough == null
-                  ? t.reminderUnprepared(scopeLabel(coverage.scope))
-                  : t.reminderCoverage(
-                      displayStamp(context, ref, coverage.preparedThrough!),
-                      scopeLabel(coverage.scope),
-                    ),
-            ),
-            if (!coverage.complete) Text(t.reminderIncomplete),
-            Text(
-              t.reminderChecked(displayStamp(context, ref, coverage.checkedAt)),
-            ),
-            Text(
-              t.planObserved(
-                coverage.basis == 'observed_zone_unavailable'
-                    ? t.planZoneUnknown
-                    : coverage.basis,
-              ),
-            ),
-          ],
+          ReminderHealthPanel(scopeLabel: scopeLabel, showBlockers: false),
           for (final excluded
               in report.projection?.exclusions ??
                   const <ReminderExclusion>[]) ...[

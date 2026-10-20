@@ -1,37 +1,39 @@
 # Development checkpoint
 
-Vital is an unfinished Android-first app for adults who want to organise substance use, schedules, quantities and stock, including records kept locally for another adult. Optional blood-test panels and observations help organise supporting information without making medical recommendations.
+Vital is an unfinished Android-first substance tracker for adults. It keeps separate local profiles, doses, schedules, stock, use periods, cycles/courses, history and reports. Lab panels and observations provide optional context. Profiles are local records under one operator, with Everyone, Me and individual feeds.
 
-## What is working
+## Implemented
 
-The implemented foundation covers encrypted local profiles and records; dose logging, corrections and Undo; complex schedules and Android reminders; stock and mixed products; cycles and courses; protected attachments; History, a calendar and exact source-backed substance charts.
+The foundation includes encrypted records, corrections and Undo; private drafts; exact quantities and mixed products; schedules and native Android reminders; stock; protected source attachments; History, calendar and substance charts.
 
-The latest development round added initial manual supporting records. It preserves separate collection, report and entry dates, signed or qualified results, original units/ranges, missing results and source attachments. Comparisons are deliberately conservative: uncertain laboratory/method identities remain table-only, and measurements are not summed like doses.
+The 20 October integration adds:
 
-The UI is a working development interface. Simplifying forms, reducing exposed detail and redesigning screens remain separate work, using shared components.
+- Supporting-record source linking, locale-aware numeric input, note-only observations, conservative comparison identity and durable void/restore recovery.
+- R01 substance summaries, R02 detailed history and R03 event reports. Person, dates, items and optional context feed one captured PDF/text artifact. Source files are listed, not silently embedded in the report.
+- Person-scoped JSON/CSV exports, with exact quantities and revisions and private notes excluded by default.
+- Protected artifact saving and Android share offers. The same reviewed bytes and checksum reach bounded private staging; a share offer does not prove receipt.
+- Authenticated full-installation backups and staged, explicitly confirmed full replacement. Validation, migration, fresh generations, stale-action rejection, previous-dataset rollback and startup recovery are implemented. The installation app-lock preference is retained.
+- Settings, scoped archive/reactivation/deletion, help, catalogue attribution, full bundled notices and a bounded redacted local diagnostic log. No diagnostic uploader exists.
+- Reminder health and bounded repair, with explicit incomplete/deferred/failed states.
+- A machine-readable obligation inventory, dependency/licence checks, release preflight and isolated boot tools.
 
-## What remains
+The interface remains a development UI. Host tests establish specific behaviour; they do not establish physical accessibility, clinical validity or production readiness.
 
-Before expanding further, address the current supporting-record reviews: richer source-date handling, stable marker/laboratory identity, missing unit/range presentation, locale-aware input, note-only observations, accessibility and restart recovery for an uncommitted void action. Passing automated checks does not close these review findings.
+## Verification
 
-The storage review also identified date-zone consistency issues, queries that scan a person's or metric's history before filtering, and missing upgrade-path coverage for new attachment/draft targets. These are known development limitations, not completed acceptance criteria.
+A real native Linux smoke uses encrypted SQLite and a unique Secret Service namespace. It verifies persistence, navigation, exports, report rendering with embedded fonts, backup creation/self-validation and bootstrap reopening with staging present. Its synthetic records and unique key are removed after success.
 
-Later planned work includes:
+The combined test results, integration repairs and evidence boundaries are recorded in the [implementation report](IMPLEMENTATION-2026-10-20.md). Schema 21 remains current; the new report/export/backup/restore/settings work requires no further migration. The earlier supporting-record migrations remain part of this source checkpoint.
 
-- Substance-summary, history and cycle/course PDF reports.
-- Structured data exports.
-- Protected backups, restore and migration recovery flows.
-- Privacy controls and local help.
-- Reminder recovery under real operating conditions.
-- Physical-device accessibility, performance and lifecycle testing.
-- Private pilot and public-release preparation.
+Android and Linux builds are checked separately. The current source tree refuses release builds until owner-supplied signing and G07 clearance exist. Debug builds use development signing. The earlier APK/upload request remains cancelled.
 
-The offline medicines catalogue still has an unresolved source/access gate. No NHS dm+d data is bundled merely because an adapter or search interface exists. OCR is a later optional feature, not a requirement for manual entry. Watches, remote accounts and general wellness expansion remain outside the current scope.
+## Still open
 
-## Evidence boundaries
+- Physical Android boot, TalkBack, large text/keyboard acceptance and measured performance budgets.
+- Real SAF/save/share receivers, locked/background behaviour, storage pressure and large-file limits. Android staging is bounded to 512 MiB; Linux saving currently buffers at most 64 MiB. The archive reader supports larger bounded inputs, which does not remove destination limits.
+- Android KDF/encryption/rekey measurements, backup-format expert review and lifecycle/power-loss evidence. Host interruption tests cover process checkpoints.
+- OEM battery, permissions, force-stop, reboot and time-change reminder behaviour. A prepared schedule is not proof of delivery. Native refill reminders remain incomplete.
+- Publisher, territories, professional-use privacy/retention wording, store claims and production signing.
+- The offline medicines catalogue source/access gate. No NHS dm+d corpus is bundled merely because an adapter exists.
 
-The schema19 publication checkpoint passed `./tool/verify checks`: 1,083 Flutter tests passed with one explicit skip, formatting and static analysis were clean, and the PDFium integrity and process-recovery suites passed, including supporting-record migration recovery. A separate checkout containing only published files resolved the locked dependencies and passed 55 scheduling tests and six PDFium integrity checks.
-
-Android and Linux have compiled successfully at earlier checkpoints. This does not establish physical-device performance, TalkBack behaviour, every OEM reminder condition or production readiness. Existing development APKs use development signing. Portable backup/restore is not yet available.
-
-Development is paused at the owner's request after this round. Public source publication does not mark the approved feature plan complete.
+OCR remains optional later work. Watches, remote accounts and a general-wellness dashboard remain outside scope. Some selections are bounded: supporting-source picking currently lists the 50 most recent files, report/export work refuses excessive source windows, and PDFs use an accessible structured text alternative rather than PDF/UA tagging.

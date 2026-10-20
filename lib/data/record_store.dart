@@ -5,7 +5,10 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 
+import '../backup/backup_worker.dart';
 import '../domain/attachments.dart';
+import '../domain/backup/backup.dart';
+import '../domain/restore/restore.dart';
 export '../domain/attachments.dart';
 
 import 'package:drift/drift.dart' as drift;
@@ -37,13 +40,16 @@ export '../domain/combined_use.dart';
 import '../domain/events/events.dart';
 export '../domain/events/events.dart';
 import '../domain/charts/charts.dart';
+import '../domain/exports/exports.dart';
 import '../domain/supporting/supporting.dart';
 export '../domain/supporting/supporting.dart';
 import '../domain/history/display_time.dart';
+import '../domain/reports/reports.dart';
 import '../domain/history/timeline_entry.dart';
 import '../domain/history/timeline_page.dart';
 import '../domain/history/timeline_query.dart';
 export '../domain/history/display_time.dart';
+export '../domain/reports/reports.dart';
 export '../domain/history/timeline_entry.dart';
 export '../domain/history/timeline_page.dart';
 export '../domain/history/timeline_query.dart';
@@ -60,14 +66,20 @@ part 'event_store.dart';
 part 'attachment_store.dart';
 part 'history_store.dart';
 part 'chart_store.dart';
+part 'export_store.dart';
 part 'supporting_store.dart';
+part 'supporting_void_store.dart';
+part 'report_store.dart';
+part 'report_template_store.dart';
+part 'backup_store.dart';
+part 'restore_store.dart';
 
 // No generated table layer is needed for this bounded, explicitly versioned SQL schema.
 final class _Database extends drift.GeneratedDatabase {
   _Database(super.executor, this.initialGeneration);
   final String initialGeneration;
   @override
-  int get schemaVersion => 19;
+  int get schemaVersion => 21;
   @override
   Iterable<drift.TableInfo<drift.Table, Object?>> get allTables => const [];
   @override
@@ -122,9 +134,11 @@ final class _Database extends drift.GeneratedDatabase {
       await _migrateHistoryV17(this);
       await _migrateHistoryV18(this);
       await _migrateSupportingV19(this);
+      await _migrateSupportingV20(this);
+      await _migrateSupportingVoidV21(this);
     }),
     onUpgrade: (_, from, to) => transaction(() async {
-      if (from < 1 || from > 18 || to != 19) {
+      if (from < 1 || from > 20 || to != 21) {
         throw StateError('unsupported_schema');
       }
       if (from == 1) {
@@ -198,7 +212,9 @@ final class _Database extends drift.GeneratedDatabase {
       }
       if (from < 17) await _migrateHistoryV17(this);
       if (from < 18) await _migrateHistoryV18(this);
-      await _migrateSupportingV19(this);
+      if (from < 19) await _migrateSupportingV19(this);
+      if (from < 20) await _migrateSupportingV20(this);
+      if (from < 21) await _migrateSupportingVoidV21(this);
     }),
   );
   Future<void> _addProfiles() async {
@@ -279,9 +295,13 @@ final class DraftCheckpoint {
 }
 
 final class RecordStore {
-  RecordStore._(this._db, this.generation);
+  RecordStore._(this._db, this.generation, this._key, this.databasePath);
   final _Database _db;
   final String generation;
+  final String databasePath;
+  // Retained only for an authenticated whole-dataset backup. Never log or
+  // expose this key; the database connection already requires it in memory.
+  final List<int> _key;
   final _changes = StreamController<void>.broadcast();
   final _draftChanges = StreamController<void>.broadcast();
   bool _closed = false;
@@ -378,7 +398,12 @@ final class RecordStore {
               .isNotEmpty) {
         throw StateError('invalid_dataset');
       }
-      final store = RecordStore._(db, rows.single.read<String>('generation'));
+      final store = RecordStore._(
+        db,
+        rows.single.read<String>('generation'),
+        List<int>.unmodifiable(key),
+        file.path,
+      );
       store._writesSuspended = await store.readSetting('app_lock') == 'true';
       return store;
     } catch (_) {
@@ -665,7 +690,7 @@ final class RecordStore {
         }
         // Remove cached command payloads/results for this ownership graph, otherwise replay could resurrect deleted sensitive content.
         await _db.customStatement(
-          "UPDATE operation SET payload='[]',result='{\"invalidated\":true}' WHERE (json_extract(payload,'\$[1]') IN ('item','record','revise','profile_edit','profile_archive','profile_delete','daily_plan','daily_action','daily_undo','daily_clock','stock_container','stock_adjust','stock_notices','product_label') AND json_extract(payload,'\$[2]')=?) OR json_extract(result,'\$.person')=? OR (json_extract(payload,'\$[1]')='profile_create' AND json_extract(result,'\$.id')=?)",
+          "UPDATE operation SET payload='[]',result='{\"invalidated\":true}' WHERE (json_extract(payload,'\$[1]') IN ('item','record','revise','profile_edit','profile_archive','profile_delete','daily_plan','daily_action','daily_undo','daily_clock','stock_container','stock_adjust','stock_notices','product_label','supporting_save','supporting_void') AND json_extract(payload,'\$[2]')=?) OR json_extract(result,'\$.person')=? OR (json_extract(payload,'\$[1]')='profile_create' AND json_extract(result,'\$.id')=?)",
           [personId, personId, personId],
         );
         await _db.customStatement(

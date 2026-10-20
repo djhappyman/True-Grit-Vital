@@ -45,6 +45,18 @@ final supportingMetricsProvider = FutureProvider.autoDispose
         offset: request.offset,
       );
     });
+
+/// Ready protected files owned by this adult, for authoring a saved source
+/// reference. The form freezes the selected file id, metadata revision and
+/// content version; a later file change cannot rewrite that captured source.
+final supportingSourceCandidatesProvider = FutureProvider.autoDispose
+    .family<List<AttachmentRecord>, String>((ref, personId) async {
+      if (ref.watch(appLockProvider.select((s) => s.locked))) return [];
+      ref.watch(recordStoreProvider.select((s) => s.value?.generation));
+      final store = await ref.watch(recordStoreProvider.future);
+      return store.attachments(personId: personId, limit: 50);
+    });
+
 final supportingTrendReaderProvider =
     Provider<Future<SupportingTrendPage> Function(SupportingTrendQuery)>(
       (ref) =>

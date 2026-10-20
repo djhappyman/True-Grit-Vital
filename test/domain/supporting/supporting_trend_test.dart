@@ -32,13 +32,19 @@ void main() {
       '-1/1',
       '2/1',
     ]);
-    expect(page.groups.single.runs.single, hasLength(3));
+    expect(page.groups.single.runs.map((r) => r.length), [1, 1, 1]);
   });
   test('qualified qualitative and missing rows break a line without boundary points', () {
     final page = trend([
       record(
+        id: 'a',
+        collection: SupportingDate.day(CivilDate(2026, 10, 1)),
+        results: [result(id: 'a', text: '1')],
+      ),
+      record(
+        id: 'b',
+        collection: SupportingDate.day(CivilDate(2026, 10, 2)),
         results: [
-          result(id: 'a', text: '1'),
           result(id: 'b', text: '2'),
           result(id: 'c', value: SupportingValue.numeric('<3')),
           result(id: 'd', text: '4'),
@@ -80,18 +86,67 @@ void main() {
     expect(page.groups, hasLength(5));
     expect(page.groups.every((g) => g.canConnect), isTrue);
   });
-  test('same source names without identities never prove comparability', () {
+  test(
+    'exact saved source words are the local identity without explicit ids',
+    () {
+      SupportingProvenance words({
+        String lab = 'Lab A',
+        String? method = 'Immunoassay',
+        String? specimen = 'Serum',
+      }) => SupportingProvenance(
+        mode: SupportingProvenanceMode.manualTranscription,
+        laboratoryName: lab,
+        methodText: method,
+        specimenText: specimen,
+      );
+      final page = trend([
+        record(id: 'a', source: words()),
+        record(id: 'b', source: words()),
+        record(
+          id: 'case',
+          source: words(lab: 'lab A'),
+        ),
+        record(
+          id: 'space',
+          source: words(lab: 'Lab A '),
+        ),
+        record(id: 'missing', source: words(specimen: null)),
+        record(id: 'unit', source: words(), results: [result(unit: null)]),
+      ]);
+      expect(page.groups, hasLength(5));
+      expect(page.groups.where((g) => g.canConnect), hasLength(3));
+      expect(page.groups.where((g) => !g.canConnect), hasLength(2));
+      // Exact words connect, but case and whitespace variants stay separate.
+      expect(
+        page.groups.singleWhere((g) => g.entries.length == 2).canConnect,
+        isTrue,
+      );
+    },
+  );
+  test('an explicit identity never merges with the same saved words alone', () {
     final page = trend([
-      record(id: 'a', source: provenance(method: null)),
-      record(id: 'b', source: provenance(method: null)),
-      record(id: 'c', results: [result(unit: null)]),
+      record(
+        id: 'id',
+        source: SupportingProvenance(
+          mode: SupportingProvenanceMode.manualTranscription,
+          laboratoryId: 'lab-1',
+          laboratoryName: 'Lab A',
+          methodText: 'Immunoassay',
+          specimenText: 'Serum',
+        ),
+      ),
+      record(
+        id: 'words',
+        source: SupportingProvenance(
+          mode: SupportingProvenanceMode.manualTranscription,
+          laboratoryName: 'Lab A',
+          methodText: 'Immunoassay',
+          specimenText: 'Serum',
+        ),
+      ),
     ]);
-    expect(page.groups, hasLength(3));
-    expect(page.groups.every((g) => !g.canConnect), isTrue);
-    expect(
-      page.groups.expand((g) => g.runs).every((r) => r.length == 1),
-      isTrue,
-    );
+    expect(page.groups, hasLength(2));
+    expect(page.groups.every((g) => g.canConnect), isTrue);
   });
   test('per-result unknown provenance never fills identities from parent', () {
     final page = trend([
@@ -128,11 +183,8 @@ void main() {
       isTrue,
     );
     expect(
-      trend(
-        rows,
-        request: query(basis: SupportingDateBasis.entry),
-      ).groups.single.entries,
-      hasLength(2),
+      () => trend(rows, request: query(basis: SupportingDateBasis.entry)),
+      throwsArgumentError,
     );
     expect(
       trend(
@@ -164,6 +216,23 @@ void main() {
     expect(page.groups.single.entries[0].day, CivilDate(2026, 10, 1));
     expect(page.groups.single.entries[0].exactInstant, isNull);
     expect(page.groups.single.entries[1].day, CivilDate(2026, 10, 2));
+  });
+  test('an exact instant precedes a day-only record on the same shown day', () {
+    final page = trend([
+      record(id: 'day', collection: SupportingDate.day(CivilDate(2026, 10, 2))),
+      record(
+        id: 'exact',
+        collection: SupportingDate.exact(
+          DateTime.utc(2026, 10, 2, 12),
+          zoneId: 'UTC',
+          utcOffsetMinutes: 0,
+        ),
+      ),
+    ], request: query(zone: 'UTC'));
+    expect(page.groups.single.entries.map((e) => e.record.id.id), [
+      'exact',
+      'day',
+    ]);
   });
   test('range is half-open and voided/current revisions are never pooled', () {
     final page = trend([
@@ -328,4 +397,47 @@ void main() {
     expect(filtered.groups.single.key, first.key);
     expect(filtered.sourceCount, 1);
   });
+  test('repeated day-only results stay separate markers while distinct instants connect', () {
+    final dayOnly = trend([
+      record(
+        results: [
+          result(id: 'a', text: '1'),
+          result(id: 'b', text: '2'),
+        ],
+      ),
+    ]);
+    expect(dayOnly.groups.single.runs.map((r) => r.length), [1, 1]);
+
+    final instants = trend([
+      record(
+        id: 'a',
+        collection: SupportingDate.exact(
+          DateTime.utc(2026, 10, 1, 8),
+          zoneId: 'UTC',
+          utcOffsetMinutes: 0,
+        ),
+      ),
+      record(
+        id: 'b',
+        collection: SupportingDate.exact(
+          DateTime.utc(2026, 10, 1, 12),
+          zoneId: 'UTC',
+          utcOffsetMinutes: 0,
+        ),
+      ),
+    ]);
+    expect(instants.groups.single.runs.single, hasLength(2));
+  });
+  test(
+    'an unpositioned matching result marks its positioned group incomplete',
+    () {
+      final page = trend([
+        record(id: 'positioned'),
+        record(id: 'undated', collection: SupportingDate.unknown()),
+      ]);
+      expect(page.groups.single.entries, hasLength(1));
+      expect(page.unpositioned, hasLength(1));
+      expect(page.groups.single.hasUnpositionedGap, isTrue);
+    },
+  );
 }

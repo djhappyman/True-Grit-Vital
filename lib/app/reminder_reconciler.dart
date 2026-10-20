@@ -39,17 +39,40 @@ abstract interface class EventEndReminderRepairRepository {
   });
 }
 
+/// Outcome of one bounded foreground repair flight. It is reported even when
+/// the bound is reached, so a partial repair is never presented as complete.
+enum ReminderConvergence {
+  /// Desired state matched the last native snapshot within the pass bound.
+  converged,
+
+  /// Work remained after the bound. Another foreground pass is required.
+  deferred,
+
+  /// A capability or protected-storage gate stopped preparation.
+  blocked,
+
+  /// A pass threw or the native fence rejected the snapshot.
+  failed,
+}
+
 final class ReminderRepairReport {
   const ReminderRepairReport({
     this.capabilities,
     this.projection,
+    this.convergence = ReminderConvergence.deferred,
     this.failed = false,
     this.revision = 0,
+    this.passes = 0,
+    this.pendingCancellations = 0,
+    this.unconfirmedCancellations = 0,
+    this.epochRecovered = false,
   });
   final ReminderCapabilities? capabilities;
   final ReminderProjection? projection;
+  final ReminderConvergence convergence;
   final bool failed;
-  final int revision;
+  final int revision, passes, pendingCancellations, unconfirmedCancellations;
+  final bool epochRecovered;
 }
 
 /// One foreground-owned bounded worker. Events coalesce; there is no timer or
@@ -61,23 +84,34 @@ final class ReminderReconciler {
     required this.observedZone,
     required this.onReport,
     this.callTimeout = const Duration(seconds: 5),
+    this.passLimit = 2,
   });
   final ReminderGateway gateway;
   final ReminderRepairRepository repository;
   final String? Function() observedZone;
   final void Function(ReminderRepairReport) onReport;
   final Duration callTimeout;
-  bool _disposed = false, _running = false, _again = false;
+
+  /// Hard cap on convergence passes inside one flight. A foreground mutation
+  /// that lands after the final pass re-arms exactly one further bounded
+  /// flight instead of being silently dropped.
+  final int passLimit;
+  bool _disposed = false, _running = false, _again = false, _pending = false;
   Future<void>? _flight;
   int _revision = 0;
 
   Future<void> request({int revision = 0}) {
     if (_disposed) return Future.value();
     _revision = revision;
+    _pending = true;
     if (_running) {
       _again = true;
       return _flight!;
     }
+    return _start();
+  }
+
+  Future<void> _start() {
     _running = true;
     final done = Completer<void>();
     _flight = done.future;
@@ -85,32 +119,42 @@ final class ReminderReconciler {
       _run().whenComplete(() {
         _running = false;
         done.complete();
+        if (!_disposed && _pending) unawaited(_start());
       }),
     );
     return done.future;
   }
 
   Future<void> _run() async {
-    // A concurrent mutation gets one convergence pass, never an unbounded loop.
-    for (var pass = 0; pass < 2 && !_disposed; pass++) {
+    var lastConvergence = ReminderConvergence.deferred;
+    ReminderProjection? lastProjection;
+    ReminderCapabilities? capabilities;
+    var passes = 0;
+    var lastPending = 0, lastUnconfirmed = 0;
+    // Flight-level truth: the epoch was handed over at least once in this run.
+    var recoveredEpoch = false;
+    for (; passes < passLimit && !_disposed;) {
       _again = false;
+      _pending = false;
+      passes++;
       final revision = _revision;
-      ReminderCapabilities? capabilities;
       try {
         capabilities = await gateway.capabilities().timeout(callTimeout);
         if (_disposed) return;
         // Capability controls must not wait for the SQL repair projection.
         onReport(
-          ReminderRepairReport(capabilities: capabilities, revision: revision),
+          ReminderRepairReport(
+            capabilities: capabilities,
+            convergence:
+                capabilities.supported && capabilities.protectedStorageAvailable
+                ? ReminderConvergence.deferred
+                : ReminderConvergence.blocked,
+            revision: revision,
+            passes: passes,
+          ),
         );
         if (!capabilities.supported ||
             !capabilities.protectedStorageAvailable) {
-          onReport(
-            ReminderRepairReport(
-              capabilities: capabilities,
-              revision: revision,
-            ),
-          );
           return;
         }
         ReminderClockSample? sample;
@@ -120,18 +164,39 @@ final class ReminderReconciler {
           /* Wall requests can still be prepared without a boot ID. */
         }
         if (_disposed) return;
-        final projection = await repository.prepare(
-          now: sample == null
-              ? DateTime.now().toUtc()
-              : DateTime.fromMillisecondsSinceEpoch(
-                  sample.utcMilliseconds,
-                  isUtc: true,
-                ),
+        final now = sample == null
+            ? DateTime.now().toUtc()
+            : DateTime.fromMillisecondsSinceEpoch(
+                sample.utcMilliseconds,
+                isUtc: true,
+              );
+        var projection = await repository.prepare(
+          now: now,
           observedZone: observedZone(),
           clockSample: sample,
           adapterFingerprint: capabilities.fingerprint,
         );
         if (_disposed) return;
+        // A restored dataset carries a fresh durable namespace while the
+        // adapter still holds the previous epoch. Hand it over explicitly;
+        // otherwise the adapter rejects every snapshot until a reinstall.
+        final installed = capabilities.installedEpoch;
+        if (installed != null && installed != projection.namespace) {
+          var handedOver = false;
+          try {
+            handedOver = await gateway
+                .invalidateEpoch(
+                  oldEpoch: installed,
+                  newEpoch: projection.namespace,
+                )
+                .timeout(callTimeout);
+          } catch (_) {
+            handedOver = false;
+          }
+          if (_disposed) return;
+          if (handedOver) recoveredEpoch = true;
+          if (!handedOver) _again = true;
+        }
         NativeReminderSnapshot? applied;
         try {
           applied = await gateway
@@ -226,15 +291,36 @@ final class ReminderReconciler {
             if (!accepted) _again = true;
           }
         }
+        var pendingCancellations = 0;
+        var unconfirmedCancellations = 0;
         for (final token in projection.obsoleteTokens) {
           if (_disposed) return;
           final receipt = receipts[token];
-          if (receipt != null &&
-              const [
-                NativeReminderState.cancelled,
-                NativeReminderState.consumed,
-                NativeReminderState.postUncertain,
-              ].contains(receipt.state)) {
+          if (receipt == null) {
+            if (current) {
+              // The adapter accepted the snapshot but omitted this receipt. It
+              // cannot be confirmed, so it is closed once as uncertain rather
+              // than retried forever or silently treated as cancelled.
+              unconfirmedCancellations++;
+              await repository.acknowledgeObsolete(
+                generation: projection.generation,
+                sequence: projection.sequence,
+                requestToken: token,
+                receipt: ReminderReceipt.postUncertain,
+                reason: 'missing_receipt',
+                adapterFingerprint: capabilities.fingerprint,
+              );
+            }
+            continue;
+          }
+          if (receipt.reason == 'cancellation_unknown') {
+            unconfirmedCancellations++;
+          }
+          if (const [
+            NativeReminderState.cancelled,
+            NativeReminderState.consumed,
+            NativeReminderState.postUncertain,
+          ].contains(receipt.state)) {
             await repository.acknowledgeObsolete(
               generation: projection.generation,
               sequence: projection.sequence,
@@ -248,17 +334,38 @@ final class ReminderReconciler {
               reason: receipt.reason,
               adapterFingerprint: capabilities.fingerprint,
             );
+            continue;
           }
+          // A state of unknown from a current snapshot means the adapter holds
+          // no entry for the token, so nothing can still fire. Recording an
+          // explicit uncertain receipt ends the retry loop truthfully instead
+          // of leaving an unacknowledgeable row forever.
+          if (receipt.state == NativeReminderState.unknown) {
+            await repository.acknowledgeObsolete(
+              generation: projection.generation,
+              sequence: projection.sequence,
+              requestToken: token,
+              receipt: ReminderReceipt.postUncertain,
+              reason: receipt.reason ?? 'not_installed',
+              adapterFingerprint: capabilities.fingerprint,
+            );
+            continue;
+          }
+          pendingCancellations++;
+          _again = true;
         }
         if (_disposed) return;
         // Coverage is read after conditional acknowledgements. An old snapshot
-        // can never announce that newly changed work is prepared.
+        // can never announce that newly changed work is prepared. The same
+        // clock basis is reused so an unchanged plan does not look changed and
+        // cause needless native churn.
         final checked = await repository.prepare(
-          now: DateTime.now().toUtc(),
+          now: now,
           observedZone: observedZone(),
           clockSample: sample,
           adapterFingerprint: capabilities.fingerprint,
         );
+        if (_disposed) return;
         if (checked.sequence != projection.sequence ||
             checked.eventEnds.map((d) => d.requestToken).join(',') !=
                 projection.eventEnds.map((d) => d.requestToken).join(',') ||
@@ -268,29 +375,61 @@ final class ReminderReconciler {
                 projection.obsoleteTokens.join(',')) {
           _again = true;
         }
-        if (!_disposed) {
-          onReport(
-            ReminderRepairReport(
-              capabilities: capabilities,
-              projection: checked,
-              failed: !current,
-              revision: revision,
-            ),
-          );
-        }
+        lastConvergence = !current
+            ? ReminderConvergence.failed
+            : _again
+            ? ReminderConvergence.deferred
+            : ReminderConvergence.converged;
+        lastProjection = checked;
+        lastPending = pendingCancellations;
+        lastUnconfirmed = unconfirmedCancellations;
+        onReport(
+          ReminderRepairReport(
+            capabilities: capabilities,
+            projection: checked,
+            convergence: lastConvergence,
+            failed: !current,
+            revision: revision,
+            passes: passes,
+            pendingCancellations: pendingCancellations,
+            unconfirmedCancellations: unconfirmedCancellations,
+            epochRecovered: recoveredEpoch,
+          ),
+        );
       } catch (_) {
         if (!_disposed) {
           onReport(
             ReminderRepairReport(
               capabilities: capabilities,
+              convergence: ReminderConvergence.failed,
               failed: true,
               revision: revision,
+              passes: passes,
             ),
           );
         }
         return;
       }
       if (!_again) return;
+    }
+    // The pass bound was reached with work outstanding. Report that honestly
+    // and stop; the next foreground event owns the follow-up.
+    if (!_disposed && lastConvergence != ReminderConvergence.converged) {
+      onReport(
+        ReminderRepairReport(
+          capabilities: capabilities,
+          projection: lastProjection,
+          convergence: lastConvergence == ReminderConvergence.failed
+              ? ReminderConvergence.failed
+              : ReminderConvergence.deferred,
+          failed: lastConvergence == ReminderConvergence.failed,
+          revision: _revision,
+          passes: passes,
+          pendingCancellations: lastPending,
+          unconfirmedCancellations: lastUnconfirmed,
+          epochRecovered: recoveredEpoch,
+        ),
+      );
     }
   }
 

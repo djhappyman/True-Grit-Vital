@@ -244,6 +244,19 @@ final class ReminderProjection {
   final List<DesiredReminder> attention;
 }
 
+/// Finite native capacity. Snoozes and event notices keep reserved pools, so a
+/// dense ordinary queue cannot evict a deferred alert or an end review.
+abstract final class ReminderCapacity {
+  static const int ordinary = 232;
+  static const int snoozes = 16;
+  static const int eventEnds = 8;
+
+  /// The Android adapter accepts at most 248 ordinary-purpose and 256 total
+  /// requests in one snapshot. These totals must stay in step with it.
+  static const int nativeOrdinaryPurpose = ordinary + snoozes;
+  static const int nativeTotal = nativeOrdinaryPurpose + eventEnds;
+}
+
 final class ReminderAllocation {
   ReminderAllocation(this.selected, this.excluded);
   final List<DesiredReminder> selected, excluded;
@@ -314,8 +327,14 @@ ReminderAllocation allocateReminders(Iterable<DesiredReminder> requests) {
         : (aAccepted ? -1 : 1);
   });
   return ReminderAllocation(
-    List.unmodifiable([...ordinary.take(232), ...snoozes.take(16)]),
-    List.unmodifiable([...ordinary.skip(232), ...snoozes.skip(16)]),
+    List.unmodifiable([
+      ...ordinary.take(ReminderCapacity.ordinary),
+      ...snoozes.take(ReminderCapacity.snoozes),
+    ]),
+    List.unmodifiable([
+      ...ordinary.skip(ReminderCapacity.ordinary),
+      ...snoozes.skip(ReminderCapacity.snoozes),
+    ]),
   );
 }
 
@@ -385,5 +404,8 @@ EventEndAllocation allocateEventEndReminders(
           c = a.eventId.compareTo(b.eventId);
           return c != 0 ? c : a.requestToken.compareTo(b.requestToken);
         });
-  return EventEndAllocation(ordered.take(8), ordered.skip(8));
+  return EventEndAllocation(
+    ordered.take(ReminderCapacity.eventEnds),
+    ordered.skip(ReminderCapacity.eventEnds),
+  );
 }

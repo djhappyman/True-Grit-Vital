@@ -748,7 +748,9 @@ extension AttachmentRecordStore on RecordStore {
     await _reminderTransaction(() async {
       final moment = (now ?? DateTime.now()).toUtc().microsecondsSinceEpoch;
       final pins = await _rows(
-        "SELECT id,attachment FROM attachment_pin WHERE (expires IS NOT NULL AND expires<=?) ${abandonSession != null ? "OR (purpose<>'handoff' AND session<>?)" : ''} ORDER BY id LIMIT 257",
+        // Backup pins have their own expiry and startup release. Preserve them
+        // while a capture may still be validating the pinned versions.
+        "SELECT id,attachment FROM attachment_pin WHERE (expires IS NOT NULL AND expires<=?) ${abandonSession != null ? "OR (purpose<>'handoff' AND purpose<>'backup' AND session<>?)" : ''} ORDER BY id LIMIT 257",
         [moment, ?abandonSession],
       );
       cleanupPending = pins.length > 256;

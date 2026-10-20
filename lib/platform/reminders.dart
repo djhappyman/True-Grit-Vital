@@ -31,6 +31,7 @@ final class ReminderCapabilities {
     required this.bootIdentityAvailable,
     required this.fingerprint,
     this.repairReason,
+    this.installedEpoch,
   });
   final bool supported,
       notificationPermission,
@@ -40,6 +41,11 @@ final class ReminderCapabilities {
   final bool protectedStorageAvailable, bootIdentityAvailable;
   final String fingerprint;
   final String? repairReason;
+
+  /// The epoch the adapter currently holds, when it can report one. A dataset
+  /// replacement (restore) changes the durable namespace, so the reconciler
+  /// must hand the old epoch over explicitly instead of being rejected.
+  final String? installedEpoch;
   factory ReminderCapabilities.fromMap(Map<Object?, Object?> map) =>
       ReminderCapabilities(
         supported: map['supported'] == true,
@@ -51,6 +57,7 @@ final class ReminderCapabilities {
         bootIdentityAvailable: map['bootIdentityAvailable'] == true,
         fingerprint: map['fingerprint'] as String? ?? 'unsupported',
         repairReason: map['repairReason'] as String?,
+        installedEpoch: map['installedEpoch'] as String?,
       );
 }
 

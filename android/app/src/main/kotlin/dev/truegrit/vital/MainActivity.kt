@@ -14,6 +14,7 @@ class MainActivity : FlutterActivity() {
     private var reminders: Reminders? = null
     private var attachmentHandoffs: AttachmentHandoffs? = null
     private var attachmentPicker: AttachmentPicker? = null
+    private var artifactTransfers: ArtifactTransfers? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Fail private before the first Flutter frame or persisted preference read.
@@ -50,6 +51,8 @@ class MainActivity : FlutterActivity() {
         attachmentHandoffs = null
         attachmentPicker?.dispose()
         attachmentPicker = null
+        artifactTransfers?.dispose()
+        artifactTransfers = null
         authentication.dispose()
         super.onDestroy()
     }
@@ -67,7 +70,7 @@ class MainActivity : FlutterActivity() {
     @Deprecated("Required by the API 24–28 OS credential compatibility path")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (!authentication.onActivityResult(requestCode, resultCode) && attachmentPicker?.activityResult(requestCode, resultCode, data) != true) {
-            super.onActivityResult(requestCode, resultCode, data)
+            if (artifactTransfers?.activityResult(requestCode, resultCode, data) != true) super.onActivityResult(requestCode, resultCode, data)
         }
     }
 
@@ -105,6 +108,8 @@ class MainActivity : FlutterActivity() {
         attachmentHandoffs = AttachmentHandoffs(this, flutterEngine.dartExecutor.binaryMessenger)
         attachmentPicker?.dispose()
         attachmentPicker = AttachmentPicker(this, flutterEngine.dartExecutor.binaryMessenger)
+        artifactTransfers?.dispose()
+        artifactTransfers = ArtifactTransfers(this, flutterEngine.dartExecutor.binaryMessenger)
         val storage = SecureStorage(applicationContext)
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,

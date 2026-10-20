@@ -1,0 +1,1525 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-10-20",
+  "source": "docs/specification/implementation-plan.md steps 27-28; .scratch/vital-first-release/spec.md; docs/specification/screens-and-flows.md; docs/specification/schedule-contract.md; docs/specification/review-integration.md",
+  "statusVocabulary": {
+    "implementation": [
+      "done",
+      "partial",
+      "planned"
+    ],
+    "verification": [
+      "host-tested",
+      "open",
+      "external"
+    ],
+    "screenState": [
+      "implemented",
+      "partial",
+      "planned"
+    ]
+  },
+  "stories": [
+    {
+      "id": "US01",
+      "summary": "Record substances offline without a server or account",
+      "owner": "02",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/vital_app_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US02",
+      "summary": "Keep my own profile and separate profiles for other adults",
+      "owner": "03",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/profile_ui_test.dart",
+        "test/data/profile_store_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US03",
+      "summary": "Show the selected person's name while recording",
+      "owner": "03",
+      "implementation": "done",
+      "verification": "open",
+      "tests": [],
+      "gate": "",
+      "note": "Selected-person label needs pilot accessibility review."
+    },
+    {
+      "id": "US04",
+      "summary": "Use relationship labels and accurate source attribution",
+      "owner": "03",
+      "implementation": "partial",
+      "verification": "open",
+      "tests": [],
+      "gate": "",
+      "note": "Relationship/source wording remains under privacy/content review."
+    },
+    {
+      "id": "US05",
+      "summary": "Collect only minimal optional profile details",
+      "owner": "03",
+      "implementation": "done",
+      "verification": "open",
+      "tests": [],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US06",
+      "summary": "Preserve draft and reminder ownership across profile switches",
+      "owner": "04",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/private_drafts_ui_test.dart",
+        "test/profile_navigation_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US07",
+      "summary": "Search a built-in common-medicine catalogue",
+      "owner": "05",
+      "implementation": "partial",
+      "verification": "open",
+      "tests": [
+        "test/catalogue/catalogue_test.dart"
+      ],
+      "gate": "G05",
+      "note": "No production catalogue corpus is admitted; adapter/search only."
+    },
+    {
+      "id": "US08",
+      "summary": "Create a custom entry when an item is absent",
+      "owner": "02",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/vital_app_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US09",
+      "summary": "Show form and labelled strength while choosing a product",
+      "owner": "13",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/product_ui_test.dart",
+        "test/products/products_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US10",
+      "summary": "Edit item types",
+      "owner": "02",
+      "implementation": "done",
+      "verification": "open",
+      "tests": [],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US11",
+      "summary": "Put essential setup fields first",
+      "owner": "01",
+      "implementation": "done",
+      "verification": "open",
+      "tests": [
+        "test/vital_app_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US12",
+      "summary": "Add notes and attachments when needed",
+      "owner": "16",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/attachment_ui_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US13",
+      "summary": "Choose route and relevant units",
+      "owner": "12",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/product_ui_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US14",
+      "summary": "Record mg or ml for known injectable concentrations",
+      "owner": "12",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/products/products_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US15",
+      "summary": "Use a daily frequency without inventing exact times",
+      "owner": "06",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/scheduling/daily_resolver_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US16",
+      "summary": "Record several exact doses in a day",
+      "owner": "06",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/daily_plan_ui_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US17",
+      "summary": "Use selected weekdays and calendar intervals",
+      "owner": "08",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/scheduling/calendar_resolver_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US18",
+      "summary": "Distinguish elapsed-hour rules from clock-time rules",
+      "owner": "09",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/scheduling/interval_resolver_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US19",
+      "summary": "Choose an explicit actual-administration anchor",
+      "owner": "09",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/scheduling/interval_resolver_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US20",
+      "summary": "Change days, times and quantities in the entered plan",
+      "owner": "11",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/scheduling/phase_resolver_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US21",
+      "summary": "Record PRN use without fictional missed doses",
+      "owner": "06",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/data/daily_store_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US22",
+      "summary": "Keep complex patterns and exceptions behind relevant controls",
+      "owner": "11",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/phase_ui_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US23",
+      "summary": "Preview a plan and upcoming dates in plain English",
+      "owner": "06",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/daily_plan_ui_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US24",
+      "summary": "Choose short-month handling at setup",
+      "owner": "08",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/scheduling/calendar_resolver_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US25",
+      "summary": "Choose local or home time when travelling",
+      "owner": "06",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/platform/device_zone_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US26",
+      "summary": "Flag affected clock-change times",
+      "owner": "09",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/interval_clock_failure_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US27",
+      "summary": "Use reminders independently of recording",
+      "owner": "07",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/reminders/reminders_test.dart"
+      ],
+      "gate": "",
+      "note": "Physical delivery remains open."
+    },
+    {
+      "id": "US28",
+      "summary": "Use Taken, Remind me later and Skip where supported",
+      "owner": "07",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/reminders/reminder_controller_test.dart"
+      ],
+      "gate": "",
+      "note": "Physical delivery remains open."
+    },
+    {
+      "id": "US29",
+      "summary": "See reminder problems and limitations",
+      "owner": "26",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/reminders/reminder_health_test.dart",
+        "test/reminders/reminder_health_panel_test.dart",
+        "test/reminders/reminder_reconciler_recovery_test.dart"
+      ],
+      "gate": "G06",
+      "note": "Health and bounded repair are implemented; physical delivery and OEM behaviour remain G06."
+    },
+    {
+      "id": "US30",
+      "summary": "See Today and the next real planned date",
+      "owner": "17",
+      "implementation": "done",
+      "verification": "open",
+      "tests": [],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US31",
+      "summary": "Log a configured dose in one action where unambiguous",
+      "owner": "02",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/vital_app_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US32",
+      "summary": "Record earlier actual times and later corrections",
+      "owner": "02",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/vital_app_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US33",
+      "summary": "Clarify ambiguous planned-dose matches",
+      "owner": "17",
+      "implementation": "done",
+      "verification": "open",
+      "tests": [
+        "test/vital_app_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US34",
+      "summary": "Label absent logs as Not recorded",
+      "owner": "17",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/history_mobile_ui_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US35",
+      "summary": "Record extra, unscheduled use",
+      "owner": "02",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/data/record_store_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US36",
+      "summary": "Record combined substances in one action",
+      "owner": "14",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/combined_ui_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US37",
+      "summary": "Represent ready-mixed products as one physical use",
+      "owner": "13",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/products/products_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US38",
+      "summary": "Track per-container stock",
+      "owner": "12",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/stock_ui_test.dart",
+        "test/stock/exact_stock_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US39",
+      "summary": "Make replacement-strength changes clear",
+      "owner": "12",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/data/product_store_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US40",
+      "summary": "Support refill reminders and separate restock or waste adjustments",
+      "owner": "12",
+      "implementation": "partial",
+      "verification": "open",
+      "tests": [
+        "test/data/stock_store_test.dart"
+      ],
+      "gate": "",
+      "note": "Refill reminder surface depends on the selected native intent path."
+    },
+    {
+      "id": "US41",
+      "summary": "Record optional injection sites",
+      "owner": "14",
+      "implementation": "done",
+      "verification": "open",
+      "tests": [],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US42",
+      "summary": "Preserve old quantities and product details",
+      "owner": "02",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/data/record_store_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US43",
+      "summary": "Correct or Undo a mistake",
+      "owner": "02",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/vital_app_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US44",
+      "summary": "Inspect start and stop periods with retained breaks",
+      "owner": "10",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/scheduling/pause_resolver_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US45",
+      "summary": "Pause, resume and preview old-pattern or restart effects",
+      "owner": "10",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/pause_ui_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US46",
+      "summary": "Keep cycle and prescription events separate from item types",
+      "owner": "15",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/domain/events/events_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US47",
+      "summary": "Show an event-end notice and stop or continue review",
+      "owner": "15",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/event_ui_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US48",
+      "summary": "Filter timeline and calendar history",
+      "owner": "17",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/history_mobile_ui_test.dart",
+        "test/calendar_ui_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US49",
+      "summary": "Show descriptive charts with original units and gaps",
+      "owner": "18",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/chart_ui_test.dart",
+        "test/chart_plot_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US50",
+      "summary": "Use plain-English relative dates with exact-date access",
+      "owner": "17",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/domain/history/display_time_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US51",
+      "summary": "Keep optional observations as substance-history context",
+      "owner": "19",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/data/supporting_store_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US52",
+      "summary": "Group manual laboratory panels by date and lab",
+      "owner": "19",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/data/supporting_store_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US53",
+      "summary": "Preserve original units, ranges and provenance",
+      "owner": "19",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/supporting_result_presentation_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US54",
+      "summary": "Add a missing supporting marker",
+      "owner": "19",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/supporting_ui_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US55",
+      "summary": "Add optional OCR later with human review",
+      "owner": "F1",
+      "implementation": "planned",
+      "verification": "open",
+      "tests": [],
+      "gate": "G08",
+      "note": "Named later feature; no OCR engine or model is adopted."
+    },
+    {
+      "id": "US56",
+      "summary": "Use summary, history and event report templates",
+      "owner": "20",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/reports/report_pdf_test.dart",
+        "test/reports/r02_r03_template_test.dart"
+      ],
+      "gate": "G04",
+      "note": "R01/R02/R03 render through the shared pipeline; native/accessibility/performance gates remain."
+    },
+    {
+      "id": "US57",
+      "summary": "Select person, date, substance and context, then preview",
+      "owner": "20",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/reports/reports_page_test.dart",
+        "test/reports/report_controller_test.dart"
+      ],
+      "gate": "G04",
+      "note": "Person, period, items, context and event selection preserve ownership and reviewed-artifact identity."
+    },
+    {
+      "id": "US58",
+      "summary": "Show exact dates, units and source or uncertainty labels in reports",
+      "owner": "20",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/reports/report_model_test.dart",
+        "test/domain/reports/report_event_test.dart"
+      ],
+      "gate": "G04",
+      "note": "Exact totals, date precision, source and uncertainty labels are retained."
+    },
+    {
+      "id": "US59",
+      "summary": "Export structured data that stays portable",
+      "owner": "22",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/data/export_store_test.dart",
+        "test/app/export_artifact_handoff_test.dart"
+      ],
+      "gate": "G04",
+      "note": "Person-scoped JSON/CSV and exact reviewed-byte saving are implemented."
+    },
+    {
+      "id": "US60",
+      "summary": "Create protected backups with a recovery secret I keep",
+      "owner": "23",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/backup/backup_service_test.dart",
+        "test/app/generated_artifact_handoff_test.dart"
+      ],
+      "gate": "G04",
+      "note": "Authenticated backup creation/self-validation and streaming save are implemented; physical KDF/storage limits remain."
+    },
+    {
+      "id": "US61",
+      "summary": "Explain key-loss consequences and require verified restore",
+      "owner": "23",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/backup_ui_test.dart",
+        "test/restore/restore_gateway_test.dart",
+        "test/restore/restore_rollback_test.dart"
+      ],
+      "gate": "G04",
+      "note": "Password-loss wording, staged validation, full replacement, fresh generation and rollback are implemented."
+    },
+    {
+      "id": "US62",
+      "summary": "Scope single-person export or delete and full-backup inclusion explicitly",
+      "owner": "22",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/settings/privacy_ui_test.dart",
+        "test/data/export_store_test.dart"
+      ],
+      "gate": "G04",
+      "note": "Single-person export/deletion and full-installation backup are distinct; old internal generated copies are cleared before data changes."
+    },
+    {
+      "id": "US63",
+      "summary": "Use an optional app lock and private notification text",
+      "owner": "04",
+      "implementation": "partial",
+      "verification": "open",
+      "tests": [
+        "test/app_lock_controller_test.dart",
+        "test/platform/app_auth_test.dart"
+      ],
+      "gate": "G06",
+      "note": "Private reminder text needs physical notification evidence."
+    },
+    {
+      "id": "US64",
+      "summary": "Avoid ads and data sales; make diagnostics opt-in and redacted",
+      "owner": "25",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/domain/privacy/diagnostics_test.dart",
+        "test/data/diagnostic_log_test.dart",
+        "test/settings/settings_ui_test.dart"
+      ],
+      "gate": "G07",
+      "note": "Only bounded redacted local events are recorded; no diagnostic sender exists. Any future sending remains opt-in; G07 remains human-owned."
+    },
+    {
+      "id": "US65",
+      "summary": "Use light, dark and system themes with expressive effects off",
+      "owner": "01",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/appearance_controls_test.dart",
+        "test/design_system_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US66",
+      "summary": "Keep recording and correction accessible",
+      "owner": "01",
+      "implementation": "partial",
+      "verification": "open",
+      "tests": [],
+      "gate": "G06",
+      "note": "Requires real TalkBack, keyboard and large-text evidence."
+    },
+    {
+      "id": "US67",
+      "summary": "Show clear empty, loading and error states and preserve drafts",
+      "owner": "04",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/private_drafts_ui_test.dart",
+        "test/vital_app_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US68",
+      "summary": "Keep history, charts and recording responsive after years of use",
+      "owner": "17",
+      "implementation": "partial",
+      "verification": "open",
+      "tests": [
+        "test/data/record_store_measurements_test.dart",
+        "test/data/history_scale_test.dart"
+      ],
+      "gate": "G06",
+      "note": "Host scale tests exist; physical budgets are not adopted."
+    },
+    {
+      "id": "US69",
+      "summary": "Show honest supported-platform behaviour",
+      "owner": "01",
+      "implementation": "partial",
+      "verification": "open",
+      "tests": [],
+      "gate": "G08",
+      "note": "Android is primary; Linux is a development host; others are unsupported."
+    },
+    {
+      "id": "US70",
+      "summary": "Document boundaries, skill use and reproducible checks",
+      "owner": "01",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "tool/verify",
+        "tool/release/readiness.py"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US71",
+      "summary": "Manage several adults in one combined feed",
+      "owner": "03",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/profile_ui_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US72",
+      "summary": "Keep a personal Me feed beside the management view",
+      "owner": "03",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/profile_navigation_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US73",
+      "summary": "Inspect one adult's individual feed and information",
+      "owner": "03",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/profile_ui_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US74",
+      "summary": "Name and retain the person for every combined-feed action",
+      "owner": "03",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/profile_navigation_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US75",
+      "summary": "Use brief plain-English labels and recovery messages",
+      "owner": "19",
+      "implementation": "done",
+      "verification": "open",
+      "tests": [
+        "test/design_system_test.dart"
+      ],
+      "gate": "",
+      "note": "Copy review accompanies each surface; not a blanket usability pass."
+    },
+    {
+      "id": "US76",
+      "summary": "Use short headings and consistent settings rows",
+      "owner": "01",
+      "implementation": "done",
+      "verification": "host-tested",
+      "tests": [
+        "test/design_system_test.dart"
+      ],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US77",
+      "summary": "Know whether a dose saved when another task fails or the app is interrupted",
+      "owner": "02",
+      "implementation": "done",
+      "verification": "open",
+      "tests": [],
+      "gate": "",
+      "note": ""
+    },
+    {
+      "id": "US78",
+      "summary": "Keep recording responsive while reports, files and searches run",
+      "owner": "20",
+      "implementation": "partial",
+      "verification": "open",
+      "tests": [
+        "test/reports/report_controller_test.dart",
+        "test/backup/backup_service_test.dart"
+      ],
+      "gate": "G06",
+      "note": "Bounded captures, worker encryption, cancellation and progress are implemented. Save-under-load and physical performance budgets remain G06."
+    }
+  ],
+  "screens": [
+    {
+      "id": "S01",
+      "heading": "Welcome",
+      "route": "/people/add",
+      "state": "partial",
+      "owner": "03",
+      "note": "Initial setup shares the profile form; dedicated first-launch review is open."
+    },
+    {
+      "id": "S02",
+      "heading": "Unlock",
+      "route": "",
+      "state": "partial",
+      "owner": "04",
+      "note": "LockGate and platform authentication exist; full screen recovery review is open."
+    },
+    {
+      "id": "S03",
+      "heading": "Today",
+      "route": "/today",
+      "state": "implemented",
+      "owner": "02",
+      "note": "Management and personal feeds share the shell."
+    },
+    {
+      "id": "S04",
+      "heading": "Substances",
+      "route": "/substances",
+      "state": "implemented",
+      "owner": "02",
+      "note": ""
+    },
+    {
+      "id": "S05",
+      "heading": "Substance",
+      "route": "/item/:id",
+      "state": "implemented",
+      "owner": "02",
+      "note": ""
+    },
+    {
+      "id": "S06",
+      "heading": "Add substance",
+      "route": "/create",
+      "state": "implemented",
+      "owner": "02",
+      "note": "Edit shares /item/:id flows."
+    },
+    {
+      "id": "S07",
+      "heading": "Schedule",
+      "route": "/schedule/:id",
+      "state": "implemented",
+      "owner": "06",
+      "note": ""
+    },
+    {
+      "id": "S08",
+      "heading": "Events",
+      "route": "/events",
+      "state": "implemented",
+      "owner": "15",
+      "note": ""
+    },
+    {
+      "id": "S09",
+      "heading": "Event",
+      "route": "/event/:id",
+      "state": "implemented",
+      "owner": "15",
+      "note": ""
+    },
+    {
+      "id": "S10",
+      "heading": "Add event",
+      "route": "/event-create",
+      "state": "implemented",
+      "owner": "15",
+      "note": "Edit uses /event/:id/edit."
+    },
+    {
+      "id": "S11",
+      "heading": "History",
+      "route": "/history",
+      "state": "implemented",
+      "owner": "17",
+      "note": ""
+    },
+    {
+      "id": "S12",
+      "heading": "Charts",
+      "route": "/charts",
+      "state": "implemented",
+      "owner": "18",
+      "note": ""
+    },
+    {
+      "id": "S13",
+      "heading": "Supporting records",
+      "route": "/supporting",
+      "state": "implemented",
+      "owner": "19",
+      "note": ""
+    },
+    {
+      "id": "S14",
+      "heading": "Record detail",
+      "route": "/supporting/:person/:id",
+      "state": "implemented",
+      "owner": "19",
+      "note": ""
+    },
+    {
+      "id": "S15",
+      "heading": "Add blood test",
+      "route": "/supporting/:person/add-panel",
+      "state": "implemented",
+      "owner": "19",
+      "note": "Observation form uses add-observation."
+    },
+    {
+      "id": "S16",
+      "heading": "People",
+      "route": "/people",
+      "state": "implemented",
+      "owner": "03",
+      "note": ""
+    },
+    {
+      "id": "S17",
+      "heading": "Profile",
+      "route": "/people/:id",
+      "state": "implemented",
+      "owner": "03",
+      "note": ""
+    },
+    {
+      "id": "S18",
+      "heading": "Reports",
+      "route": "/reports",
+      "state": "implemented",
+      "owner": "20",
+      "note": "R01 summary, R02 history and R03 event selection, PDF/text preview and real handoff."
+    },
+    {
+      "id": "S19",
+      "heading": "Settings",
+      "route": "/settings",
+      "state": "implemented",
+      "owner": "01",
+      "note": "People, appearance, reminders, data tools, privacy, help, licences and local diagnostics."
+    },
+    {
+      "id": "S20",
+      "heading": "Backup",
+      "route": "/backup",
+      "state": "implemented",
+      "owner": "23",
+      "note": "Protected full-installation backup and staged replacement at /restore, including startup recovery."
+    }
+  ],
+  "sheets": [
+    {
+      "id": "M01",
+      "family": "Feed scope/person selector",
+      "state": "implemented",
+      "owner": "03",
+      "evidence": [
+        "lib/features/recording/record_pages.dart"
+      ]
+    },
+    {
+      "id": "M02",
+      "family": "Catalogue search/selection",
+      "state": "partial",
+      "owner": "05",
+      "evidence": [
+        "lib/features/catalogue/catalogue_picker.dart"
+      ]
+    },
+    {
+      "id": "M03",
+      "family": "Record/correct dose",
+      "state": "implemented",
+      "owner": "02",
+      "evidence": [
+        "lib/features/recording/record_pages.dart"
+      ]
+    },
+    {
+      "id": "M04",
+      "family": "Combined recording",
+      "state": "implemented",
+      "owner": "14",
+      "evidence": [
+        "lib/features/recording/combined_pages.dart"
+      ]
+    },
+    {
+      "id": "M05",
+      "family": "Stock add/adjust",
+      "state": "implemented",
+      "owner": "12",
+      "evidence": [
+        "lib/features/stock/stock_pages.dart"
+      ]
+    },
+    {
+      "id": "M06",
+      "family": "Quick supporting observation",
+      "state": "implemented",
+      "owner": "19",
+      "evidence": [
+        "lib/features/supporting/supporting_form.dart"
+      ]
+    },
+    {
+      "id": "M07",
+      "family": "Filters/date range",
+      "state": "implemented",
+      "owner": "17",
+      "evidence": [
+        "lib/features/history/history_pages.dart"
+      ]
+    },
+    {
+      "id": "M08",
+      "family": "Attachment view/actions",
+      "state": "implemented",
+      "owner": "16",
+      "evidence": [
+        "lib/features/attachments/attachment_pages.dart"
+      ]
+    }
+  ],
+  "scheduleFamilies": [
+    {
+      "id": "SF01",
+      "family": "Untimed daily count",
+      "owner": "06",
+      "evidence": [
+        "test/scheduling/daily_resolver_test.dart"
+      ]
+    },
+    {
+      "id": "SF02",
+      "family": "Several daily slots",
+      "owner": "06",
+      "evidence": [
+        "test/daily_plan_ui_test.dart"
+      ]
+    },
+    {
+      "id": "SF03",
+      "family": "Selected or alternate days",
+      "owner": "08",
+      "evidence": [
+        "test/scheduling/calendar_resolver_test.dart"
+      ]
+    },
+    {
+      "id": "SF04",
+      "family": "Calendar recurrence and short months",
+      "owner": "08",
+      "evidence": [
+        "test/scheduling/calendar_resolver_test.dart"
+      ]
+    },
+    {
+      "id": "SF05",
+      "family": "Fixed elapsed interval across a clock change",
+      "owner": "09",
+      "evidence": [
+        "test/scheduling/interval_resolver_test.dart"
+      ]
+    },
+    {
+      "id": "SF06",
+      "family": "Actual-anchored interval",
+      "owner": "09",
+      "evidence": [
+        "test/scheduling/interval_resolver_test.dart"
+      ]
+    },
+    {
+      "id": "SF07",
+      "family": "Alternating or on-off periods across pause and resume",
+      "owner": "10",
+      "evidence": [
+        "test/scheduling/pause_resolver_test.dart"
+      ]
+    },
+    {
+      "id": "SF08",
+      "family": "Manually entered phases",
+      "owner": "11",
+      "evidence": [
+        "test/scheduling/phase_resolver_test.dart"
+      ]
+    },
+    {
+      "id": "SF09",
+      "family": "Finite course",
+      "owner": "11",
+      "evidence": [
+        "test/scheduling/phase_resolver_test.dart"
+      ]
+    },
+    {
+      "id": "SF10",
+      "family": "One-off change across midnight or phase boundary",
+      "owner": "11",
+      "evidence": [
+        "test/scheduling/exact_restart_test.dart"
+      ]
+    },
+    {
+      "id": "SF11",
+      "family": "PRN or as needed",
+      "owner": "06",
+      "evidence": [
+        "test/data/daily_store_test.dart"
+      ]
+    },
+    {
+      "id": "SF12",
+      "family": "Travel and clock changes",
+      "owner": "06",
+      "evidence": [
+        "test/platform/device_zone_test.dart",
+        "test/interval_clock_failure_test.dart"
+      ]
+    },
+    {
+      "id": "SF13",
+      "family": "Event-relative labels",
+      "owner": "15",
+      "evidence": [
+        "test/domain/events/events_test.dart"
+      ]
+    }
+  ],
+  "acceptanceObligations": [
+    {
+      "id": "C01",
+      "obligation": "Stable commands, revisions and truthful saved feedback",
+      "owner": "02",
+      "status": "open",
+      "requiredEvidence": "Pilot evidence for this obligation",
+      "reference": "tool/release/obligations.json",
+      "evidenceTests": [
+        "test/data/record_store_test.dart"
+      ]
+    },
+    {
+      "id": "C02",
+      "obligation": "Fresh dataset generation and replacement boundary",
+      "owner": "24",
+      "status": "open",
+      "requiredEvidence": "Pilot evidence for this obligation",
+      "reference": "tool/release/obligations.json",
+      "evidenceTests": []
+    },
+    {
+      "id": "C03",
+      "obligation": "Schedule convergence, bounded work and current-generation reminders",
+      "owner": "26",
+      "status": "open",
+      "requiredEvidence": "Pilot evidence for this obligation",
+      "reference": "tool/release/obligations.json",
+      "evidenceTests": [
+        "test/scheduling/daily_resolver_test.dart"
+      ]
+    },
+    {
+      "id": "C04",
+      "obligation": "Exact numeric limits, units and independent oracle",
+      "owner": "12",
+      "status": "open",
+      "requiredEvidence": "Pilot evidence for this obligation",
+      "reference": "tool/release/obligations.json",
+      "evidenceTests": [
+        "test/stock/exact_stock_test.dart"
+      ]
+    },
+    {
+      "id": "C05",
+      "obligation": "Person ownership, Everyone/Me scoping and bounded reads",
+      "owner": "03",
+      "status": "open",
+      "requiredEvidence": "Pilot evidence for this obligation",
+      "reference": "tool/release/obligations.json",
+      "evidenceTests": [
+        "test/profile_navigation_test.dart"
+      ]
+    },
+    {
+      "id": "C06",
+      "obligation": "Coherent snapshot, file pinning and renderer limits",
+      "owner": "23",
+      "status": "open",
+      "requiredEvidence": "Pilot evidence for this obligation",
+      "reference": "tool/release/obligations.json",
+      "evidenceTests": []
+    },
+    {
+      "id": "C07",
+      "obligation": "Measured performance evidence and adopted budgets",
+      "owner": "27",
+      "status": "open",
+      "requiredEvidence": "Pilot evidence for this obligation",
+      "reference": "tool/release/obligations.json",
+      "evidenceTests": []
+    },
+    {
+      "id": "C08",
+      "obligation": "Managed database work and save under load",
+      "owner": "17",
+      "status": "open",
+      "requiredEvidence": "Pilot evidence for this obligation",
+      "reference": "tool/release/obligations.json",
+      "evidenceTests": [
+        "test/data/record_store_measurements_test.dart"
+      ]
+    },
+    {
+      "id": "C09",
+      "obligation": "History, charts and Back context",
+      "owner": "18",
+      "status": "open",
+      "requiredEvidence": "Pilot evidence for this obligation",
+      "reference": "tool/release/obligations.json",
+      "evidenceTests": [
+        "test/chart_ui_test.dart"
+      ]
+    },
+    {
+      "id": "C10",
+      "obligation": "Minimal setup, custom-entry escape and catalogue contention",
+      "owner": "05",
+      "status": "open",
+      "requiredEvidence": "Pilot evidence for this obligation",
+      "reference": "tool/release/obligations.json",
+      "evidenceTests": [
+        "test/catalogue_ui_test.dart"
+      ]
+    },
+    {
+      "id": "C11",
+      "obligation": "Event end, status and nonduplicating overlap",
+      "owner": "15",
+      "status": "open",
+      "requiredEvidence": "Pilot evidence for this obligation",
+      "reference": "tool/release/obligations.json",
+      "evidenceTests": [
+        "test/event_ui_test.dart"
+      ]
+    },
+    {
+      "id": "C12",
+      "obligation": "Composed preferences and accessible states",
+      "owner": "01",
+      "status": "open",
+      "requiredEvidence": "Pilot evidence for this obligation",
+      "reference": "tool/release/obligations.json",
+      "evidenceTests": [
+        "test/appearance_controls_test.dart"
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "id": "G01",
+      "title": "Setup, toolchain, app identity, CI destination and signing hosts",
+      "status": "open",
+      "owner": "Lead",
+      "requiredEvidence": "Pinned SDK provenance, reproducible entry point and an explicit CI destination; remote CI access is unavailable in this round.",
+      "blockingTicket": "27",
+      "evidence": []
+    },
+    {
+      "id": "G02",
+      "title": "Record storage, keys, numeric limits, ownership, generation and migration fixtures",
+      "status": "partially-verified",
+      "owner": "Lead",
+      "requiredEvidence": "Android key/backup and populated-migration evidence for the completed schema; Linux evidence cannot close Android.",
+      "blockingTicket": "27",
+      "evidence": [
+        "test/data/history_v18_migration_test.dart",
+        "test/data/supporting_migration_test.dart",
+        "test/restore/restore_preparation_test.dart",
+        "test/restore/restore_startup_test.dart"
+      ]
+    },
+    {
+      "id": "G03",
+      "title": "Scheduling expected outcomes, DST/travel and native reconciliation cases",
+      "status": "partially-verified",
+      "owner": "Lead",
+      "requiredEvidence": "Named scenario evidence for each calculator family and physical reminder behaviour.",
+      "blockingTicket": "27",
+      "evidence": [
+        "test/scheduling/daily_resolver_test.dart",
+        "test/scheduling/calendar_resolver_test.dart"
+      ]
+    },
+    {
+      "id": "G04",
+      "title": "Protected files, report/backup capture, renderer and destination limits",
+      "status": "partially-verified",
+      "owner": "Report/backup/export owners",
+      "requiredEvidence": "Host report/backup/handoff and process recovery evidence exists; exact-format expert review, Android KDF/storage, real SAF/receiver behaviour, accessibility and device limits remain open.",
+      "blockingTicket": "27",
+      "evidence": [
+        "test/reports/report_pdf_test.dart",
+        "test/reports/r02_r03_template_test.dart",
+        "test/backup/backup_service_test.dart",
+        "test/restore/restore_gateway_test.dart",
+        "test/app/generated_artifact_handoff_test.dart"
+      ]
+    },
+    {
+      "id": "G05",
+      "title": "Catalogue source, redistribution and attribution",
+      "status": "open",
+      "owner": "Lead/owner",
+      "requiredEvidence": "Admitted catalogue corpus with exact source fields and redistribution terms.",
+      "blockingTicket": "27",
+      "evidence": []
+    },
+    {
+      "id": "G06",
+      "title": "Physical reference devices, measured workloads and budgets",
+      "status": "open",
+      "owner": "Owner/lead",
+      "requiredEvidence": "Adopted devices and numerical budgets plus TalkBack, performance, memory and colour evidence.",
+      "blockingTicket": "27",
+      "evidence": []
+    },
+    {
+      "id": "G07",
+      "title": "Distribution: publisher, territories, privacy wording, store claims and signing",
+      "status": "open",
+      "owner": "Owner",
+      "requiredEvidence": "Human-owned publisher, territory, privacy and store declarations; owner-supplied signing; release authorisation.",
+      "blockingTicket": "28",
+      "evidence": []
+    },
+    {
+      "id": "G08",
+      "title": "Later platform hosts and optional features",
+      "status": "open",
+      "owner": "Owner",
+      "requiredEvidence": "Per-platform build hosts, OS support, signing and validation, or an explicit not-supported decision.",
+      "blockingTicket": "28",
+      "evidence": []
+    }
+  ],
+  "verificationNote": "Host-tested means a named host test path exists as inventory evidence. It is not a fresh per-story pass or a pilot acceptance claim. T10 validates path existence and ownership only.",
+  "ownerNote": "Owners are delivery steps from docs/specification/implementation-plan.md. A story's owner does not transfer T10 ownership of another feature module."
+}

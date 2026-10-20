@@ -15,7 +15,6 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "dev.truegrit.vital"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
@@ -31,12 +30,29 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // No signingConfig is declared in this development tree. Owner-supplied
+            // release signing is a G07 release decision, never a debug-key fallback.
         }
     }
 }
+
+// Fail closed rather than producing a distributable artifact signed for development.
+// Replace this guard together with real owner-supplied signing configuration.
+gradle.taskGraph.whenReady(object : org.gradle.api.Action<org.gradle.api.execution.TaskExecutionGraph> {
+    override fun execute(graph: org.gradle.api.execution.TaskExecutionGraph) {
+        val releaseRequested = graph.allTasks.any { task ->
+            task.name.startsWith("assembleRelease") ||
+                task.name.startsWith("bundleRelease") ||
+                task.name.startsWith("packageRelease")
+        }
+        if (releaseRequested) {
+            throw org.gradle.api.GradleException(
+                "Release signing is not configured. This development tree must not " +
+                    "produce a distributable artifact. Configure owner-supplied signing first."
+            )
+        }
+    }
+})
 
 kotlin {
     compilerOptions {

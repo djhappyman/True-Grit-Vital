@@ -10,13 +10,16 @@ class SupportingFormModel {
     required this.id,
     required this.personId,
     required this.observation,
+    this.numberFormat = const SupportingNumberFormat(),
   });
   String id;
   final String personId;
   final bool observation;
+  final SupportingNumberFormat numberFormat;
   final Map<String, String> fields = {};
   final List<Map<String, String>> rows = [];
   List<SupportingContextLink> contextLinks = [];
+  List<SupportingSourceReference> sourceReferences = [];
   SupportingProvenance? retainedProvenance;
   final Map<String, LabResultSnapshot> retainedResults = {};
   final Map<String, SupportingDate> retainedDates = {};
@@ -28,6 +31,7 @@ class SupportingFormModel {
     'fields': fields,
     'rows': rows,
     'contextLinks': [for (final c in contextLinks) c.toJson()],
+    'sourceReferences': [for (final s in sourceReferences) s.toJson()],
     'retainedProvenance': retainedProvenance?.toJson(),
     'retainedDates': {
       for (final e in retainedDates.entries) e.key: e.value.toJson(),
@@ -58,6 +62,15 @@ class SupportingFormModel {
         : SupportingProvenance.fromJson(
             Map<String, dynamic>.from(j['retainedProvenance'] as Map),
           );
+    final savedSources = j['sourceReferences'] as List?;
+    sourceReferences = savedSources == null
+        ? [...?retainedProvenance?.sourceReferences]
+        : [
+            for (final s in savedSources)
+              SupportingSourceReference.fromJson(
+                Map<String, dynamic>.from(s as Map),
+              ),
+          ];
     retainedDates
       ..clear()
       ..addAll({
@@ -81,6 +94,7 @@ class SupportingFormModel {
     fields['title'] = s.title;
     fields['notes'] = s.notes ?? '';
     contextLinks = s.contextLinks;
+    sourceReferences = [...s.provenance.sourceReferences];
     retainedProvenance = s.provenance;
     for (final e in {
       'collection': s.collectionDate,
@@ -209,7 +223,7 @@ class SupportingFormModel {
       specimenText: supportingOptional(get('specimen')),
       sourceText: supportingOptional(get('source')),
       recordedBy: supportingOptional(get('by')),
-      sourceReferences: retainedProvenance?.sourceReferences ?? const [],
+      sourceReferences: sourceReferences,
     );
     final results = <LabResultSnapshot>[];
     for (final r in rows) {
@@ -224,6 +238,7 @@ class SupportingFormModel {
           qualifier: SupportingQualifier.values.byName(
             r['qualifier'] ?? 'exact',
           ),
+          numberFormat: numberFormat,
         ),
       };
       final range = supportingOptional(r['range'] ?? '');

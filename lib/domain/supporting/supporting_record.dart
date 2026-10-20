@@ -150,6 +150,17 @@ final class SupportingProvenance {
     if (this.sourceReferences.length > 100) {
       throw const SupportingLimitException('source_references');
     }
+    final seen = <String>{};
+    for (final source in this.sourceReferences) {
+      final key = [
+        source.id,
+        source.personId,
+        source.kind.name,
+        source.version,
+        source.contentVersionId,
+      ].join('\u0000');
+      if (!seen.add(key)) throw ArgumentError('supporting_source_duplicate');
+    }
   }
   final SupportingProvenanceMode mode;
   final String? laboratoryId,
@@ -382,7 +393,11 @@ final class ObservationSnapshot extends SupportingSnapshot {
          reportDate: SupportingDate.unknown(),
          results: components,
        ) {
-    if (results.isEmpty) throw ArgumentError('observation_empty_components');
+    // A quick observation may be a note alone. It does not invent a value and
+    // remains ineligible for a measurement trend.
+    if (results.isEmpty && notes == null) {
+      throw ArgumentError('observation_empty_components');
+    }
   }
   SupportingDate get measuredDate => collectionDate;
   List<LabResultSnapshot> get components => results;

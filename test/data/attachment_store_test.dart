@@ -617,7 +617,7 @@ void main() {
     raw = sqlite3.open(p);
     raw.execute("PRAGMA cipher='chacha20'");
     raw.execute(keySql);
-    expect(raw.select('PRAGMA user_version').single.values.single, 19);
+    expect(raw.select('PRAGMA user_version').single.values.single, 21);
     for (final t in tables) {
       expect(
         raw

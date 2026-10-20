@@ -38,6 +38,9 @@
         <provider android:name=".AttachmentHandoffProvider"
             android:authorities="${applicationId}.attachment_handoff"
             android:exported="false" android:grantUriPermissions="true" />
+        <provider android:name=".ArtifactTransferProvider"
+            android:authorities="${applicationId}.artifact_transfer"
+            android:exported="false" android:grantUriPermissions="true" />
         <receiver android:name=".ReminderAlarmReceiver" android:exported="false" />
         <receiver android:name=".ReminderRecoveryReceiver" android:exported="false">
             <intent-filter>

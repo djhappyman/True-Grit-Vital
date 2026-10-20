@@ -16,6 +16,19 @@ import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
 import 'supporting_widgets.dart';
 
+/// Runs one durably saved supporting void or restore intent. Overridable in
+/// widget tests so a commit failure or a lost reply can be exercised without a
+/// second command engine.
+typedef SupportingVoidRun = Future<SupportingRevision> Function(
+  OrdinaryDraft draft,
+);
+final supportingVoidWriterProvider = Provider<SupportingVoidRun>(
+  (ref) =>
+      (draft) async =>
+          (await ref.read(recordStoreProvider.future))
+              .resumeSupportingVoidDraft(draft),
+);
+
 String supportingLocation(
   String person, {
   String? item,
@@ -120,7 +133,7 @@ class _SupportingPageState extends ConsumerState<SupportingRecordsPage> {
         }
       },
       children: [
-        Heading(t.supportingTitle),
+        Heading(t.supportingRecordsHeading),
         Text(t.profileOwner(ownerLabel(ref, t, person))),
         VitalSegments<SupportingRecordKind>(
           values: SupportingRecordKind.values,
@@ -176,10 +189,17 @@ class _SupportingPageState extends ConsumerState<SupportingRecordsPage> {
                 ),
                 LabelledInput(label: t.supportingFrom, controller: from),
                 LabelledInput(label: t.supportingBefore, controller: before),
-                Text(t.chartRangeSummary(from.text, before.text)),
+                Text(
+                  appliedFrom == null && appliedBefore == null
+                      ? t.supportingAllDates
+                      : t.chartRangeSummary(
+                          appliedFrom?.toString() ?? '',
+                          appliedBefore?.toString() ?? '',
+                        ),
+                ),
                 SettingsToggleRow(
                   label: t.supportingIncludeUnknown,
-                  description: t.supportingDateHint,
+                  description: t.supportingIncludeUnknownHint,
                   value: unknown,
                   reduceMotion: MediaQuery.disableAnimationsOf(context),
                   onChanged: (v) => setState(() {
@@ -218,7 +238,7 @@ class _SupportingPageState extends ConsumerState<SupportingRecordsPage> {
                         reset();
                       });
                     } catch (_) {
-                      setState(() => error = t.supportingInvalid);
+                      setState(() => error = t.supportingFilterInvalid);
                     }
                   },
                   child: Text(t.supportingApply),
@@ -229,6 +249,7 @@ class _SupportingPageState extends ConsumerState<SupportingRecordsPage> {
         if (error != null) Semantics(liveRegion: true, child: Text(error!)),
         if (records.hasError)
           LoadFailure(
+            message: t.supportingLoadFailure,
             onRetry: () {
               reset();
               ref.invalidate(supportingPageProvider);
@@ -278,7 +299,7 @@ class _SupportingPageState extends ConsumerState<SupportingRecordsPage> {
                         queryParameters: {'return': viewLocation()},
                       ).toString(),
                     ),
-                    child: Text(t.supportingSource),
+                    child: Text(t.supportingOpen),
                   ),
                 ],
               ),
@@ -326,8 +347,7 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
   int resultPage = 0;
   bool revisions = false, busy = false;
   int? beforeRevision;
-  String? error;
-  VoidSupportingRecordCommand? pending;
+  String? error, feedback;
   final backFocus = FocusNode();
   @override
   void dispose() {
@@ -335,57 +355,189 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
     super.dispose();
   }
 
+  OrdinaryDraft? _pendingDraft(List<OrdinaryDraft> drafts) => drafts
+      .where(
+        (draft) =>
+            draft.kind == DraftKind.supportingVoid &&
+            draft.personId == widget.personId &&
+            draft.targetId == widget.id,
+      )
+      .firstOrNull;
+
+  void _reload() {
+    ref.invalidate(supportingLookupProvider);
+    ref.invalidate(supportingRevisionsProvider);
+    ref.invalidate(ordinaryDraftsProvider);
+  }
+
+  Future<bool> _committed(RecordStore store, String operation) async {
+    try {
+      return await store.operationCommitted(operation);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Writes the exact confirmed request before running it. The draft row is the
+  /// only pending record, so a restart shows the same action; the `_command`
+  /// transaction removes the row on commit or idempotent replay.
   Future<void> changeVoid(SupportingRevision record, int ownerRevision) async {
     final t = AppLocalizations.of(context);
-    if (pending == null) {
-      final accepted = await showDialog<bool>(
-        context: context,
-        builder: (context) => VitalDialog(
-          title: Text(record.isVoided ? t.supportingRestore : t.supportingVoid),
-          content: Text(
-            record.isVoided ? t.supportingRestoreBody : t.supportingVoidBody,
-          ),
-          actions: [
-            VitalButton.secondary(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(t.cancel),
-            ),
-            VitalButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(
-                record.isVoided ? t.supportingRestore : t.supportingVoid,
-              ),
-            ),
-          ],
+    final accepted = await showDialog<bool>(
+      context: context,
+      builder: (context) => VitalDialog(
+        title: Text(record.isVoided ? t.supportingRestore : t.supportingVoid),
+        content: Text(
+          record.isVoided ? t.supportingRestoreBody : t.supportingVoidBody,
         ),
-      );
-      if (accepted != true || !mounted) return;
-      pending = VoidSupportingRecordCommand(
-        commandId: newCommandId(),
-        generation: ref.read(recordStoreProvider).requireValue.generation,
-        personId: widget.personId,
-        id: widget.id,
-        expectedPersonRevision: ownerRevision,
-        expectedRevision: record.revision,
-        isVoided: !record.isVoided,
-      );
+        actions: [
+          VitalButton.secondary(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(t.cancel),
+          ),
+          VitalButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              record.isVoided ? t.supportingRestore : t.supportingVoid,
+            ),
+          ),
+        ],
+      ),
+    );
+    if (accepted != true || !mounted) return;
+    final store = await ref.read(recordStoreProvider.future);
+    final operation = newCommandId();
+    final draft = OrdinaryDraft.supportingVoid(
+      id: operation,
+      operationId: operation,
+      generation: store.generation,
+      personId: widget.personId,
+      personRevision: ownerRevision,
+      recordId: widget.id,
+      recordRevision: record.revision,
+      isVoided: !record.isVoided,
+    );
+    setState(() {
+      busy = true;
+      error = null;
+      feedback = null;
+    });
+    try {
+      await store.saveDraft(draft);
+    } catch (_) {
+      // Nothing was executed and no record changed.
+      if (mounted) {
+        setState(() {
+          busy = false;
+          error = t.supportingVoidNotSaved;
+        });
+      }
+      return;
     }
+    if (mounted) await _runVoid(draft);
+  }
+
+  Future<void> _runVoid(OrdinaryDraft draft) async {
+    final t = AppLocalizations.of(context);
+    final store = await ref.read(recordStoreProvider.future);
+    if (mounted) {
+      setState(() {
+        busy = true;
+        error = null;
+        feedback = null;
+      });
+    }
+    try {
+      await ref.read(supportingVoidWriterProvider)(draft);
+      if (!mounted) return;
+      _voidSaved(t, draft);
+    } catch (failure) {
+      // Resolve a possibly lost reply before reporting failure: the captured
+      // revision may now be stale only because this exact operation committed.
+      final committed = await _committed(store, draft.operationId);
+      if (!mounted) return;
+      if (committed) {
+        _voidSaved(t, draft);
+      } else {
+        setState(() {
+          error =
+              failure is CommandConflict &&
+                  {
+                    'person_context',
+                    'supporting_revision',
+                  }.contains(failure.code)
+              ? t.supportingVoidChanged
+              : t.supportingVoidUncertain;
+        });
+      }
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
+  void _voidSaved(AppLocalizations t, OrdinaryDraft draft) {
+    _reload();
+    setState(
+      () => feedback = draft.fields['isVoided'] == 'true'
+          ? t.supportingVoidSaved
+          : t.supportingRestoreSaved,
+    );
+  }
+
+  Future<void> discardPending(OrdinaryDraft draft) async {
+    final t = AppLocalizations.of(context);
     setState(() {
       busy = true;
       error = null;
     });
     try {
-      await (await ref.read(recordStoreProvider.future))
-          .voidSupportingRecord(pending!);
-      pending = null;
-      ref.invalidate(supportingLookupProvider);
-      ref.invalidate(supportingRevisionsProvider);
+      await (await ref.read(recordStoreProvider.future)).discardDraft(draft.id);
+      if (!mounted) return;
+      _reload();
+      setState(() => feedback = t.supportingVoidDiscarded);
     } catch (_) {
-      if (mounted) setState(() => error = t.saveFailure);
+      if (mounted) setState(() => error = t.draftDiscardFailure);
     } finally {
       if (mounted) setState(() => busy = false);
     }
   }
+
+  /// The saved action stays visible and explicitly discardable even when its
+  /// owner is archived or its record is no longer available.
+  Widget _pendingCard(
+    AppLocalizations t,
+    OrdinaryDraft draft, {
+    required bool canResume,
+    String? explanation,
+  }) => VitalSurface(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          draft.fields['isVoided'] == 'true'
+              ? t.supportingVoidPending
+              : t.supportingRestorePending,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        Text(explanation ?? t.supportingVoidPendingBody),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            VitalButton(
+              isLoading: busy,
+              onPressed: busy || !canResume ? null : () => _runVoid(draft),
+              child: Text(t.resume),
+            ),
+            VitalButton.secondary(
+              onPressed: busy ? null : () => discardPending(draft),
+              child: Text(t.discard),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -400,11 +552,17 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
           id: widget.id,
           revision: widget.revision,
         );
+    final pending = widget.revision == null
+        ? _pendingDraft(
+            ref.watch(ordinaryDraftsProvider).value ?? const <OrdinaryDraft>[],
+          )
+        : null;
     final record = ref.watch(supportingLookupProvider(request));
     if (record.hasError) {
       return EntryPage(
         children: [
           LoadFailure(
+            message: t.supportingLoadFailure,
             onRetry: () => ref.invalidate(supportingLookupProvider(request)),
           ),
         ],
@@ -413,7 +571,21 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
     if (!record.hasValue) return EntryPage(children: [Text(t.loadingRecords)]);
     final saved = record.value;
     if (saved == null) {
-      return EntryPage(children: [Text(t.supportingUnavailable)]);
+      return EntryPage(
+        children: [
+          Text(t.supportingUnavailable),
+          if (pending != null)
+            _pendingCard(
+              t,
+              pending,
+              canResume: false,
+              explanation: t.supportingVoidMissing,
+            ),
+          if (error != null) Semantics(liveRegion: true, child: Text(error!)),
+          if (feedback != null)
+            Semantics(liveRegion: true, child: Text(feedback!)),
+        ],
+      );
     }
     final s = saved.snapshot,
         owner = ref
@@ -463,6 +635,9 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
             supportingDateLabel(context, ref, s.collectionDate),
           ),
         ),
+        if (supportingDateSourceLabel(context, ref, s.collectionDate)
+            case final source?)
+          Text(source),
         if (s.kind == SupportingRecordKind.labPanel)
           Text(
             t.supportingDateLabel(
@@ -470,6 +645,9 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
               supportingDateLabel(context, ref, s.reportDate),
             ),
           ),
+        if (s.kind == SupportingRecordKind.labPanel &&
+            supportingDateSourceLabel(context, ref, s.reportDate) != null)
+          Text(supportingDateSourceLabel(context, ref, s.reportDate)!),
         Text(
           t.supportingDateLabel(
             t.supportingEntry,
@@ -494,6 +672,13 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
                 includeSeconds: true,
               ),
             ),
+          ),
+        if (pending != null && owner != null)
+          _pendingCard(
+            t,
+            pending,
+            canResume: !owner.isArchived,
+            explanation: owner.isArchived ? t.supportingVoidArchived : null,
           ),
         Wrap(
           spacing: 12,
@@ -528,22 +713,21 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
                   : null,
               child: Text(t.attachments),
             ),
-            VitalButton.secondary(
-              isLoading: busy,
-              onPressed: mutable
-                  ? () => changeVoid(saved, owner.revision)
-                  : null,
-              child: Text(
-                pending != null
-                    ? t.retry
-                    : saved.isVoided
-                    ? t.supportingRestore
-                    : t.supportingVoid,
+            if (pending == null)
+              VitalButton.secondary(
+                isLoading: busy,
+                onPressed: mutable
+                    ? () => changeVoid(saved, owner.revision)
+                    : null,
+                child: Text(
+                  saved.isVoided ? t.supportingRestore : t.supportingVoid,
+                ),
               ),
-            ),
           ],
         ),
         if (error != null) Semantics(liveRegion: true, child: Text(error!)),
+        if (feedback != null)
+          Semantics(liveRegion: true, child: Text(feedback!)),
         VitalSection(
           title: Text(t.supportingResults),
           children: [
@@ -618,6 +802,7 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
         if (revisions) ...[
           if (audit!.hasError)
             LoadFailure(
+              message: t.supportingLoadFailure,
               onRetry: () => ref.invalidate(supportingRevisionsProvider),
             ),
           for (final old in audit.value ?? <SupportingRevision>[])

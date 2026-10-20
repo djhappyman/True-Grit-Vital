@@ -5,6 +5,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'supporting_test_data.dart';
 
 void main() {
+  test('localised entry preserves a leading fractional amount', () {
+    final dot = SupportingValue.numeric(
+      '.5',
+      numberFormat: const SupportingNumberFormat(),
+    );
+    final comma = SupportingValue.numeric(
+      '-,5',
+      numberFormat: const SupportingNumberFormat(
+        decimalSeparator: ',',
+        groupSeparator: '.',
+      ),
+    );
+    expect(dot.exactAmount, ExactAmount(BigInt.one, BigInt.two));
+    expect(comma.exactAmount, ExactAmount(-BigInt.one, BigInt.two));
+    expect(SupportingValue.fromJson(dot.toJson()).originalText, '.5');
+  });
   for (final pair in {
     '0': '0/1',
     '-0.000': '0/1',
@@ -122,5 +138,71 @@ void main() {
       parseSupportingNumber('1e-308').denominator.toString(),
       hasLength(309),
     );
+  });
+  group('locale exact entry', () {
+    const comma = SupportingNumberFormat(
+      decimalSeparator: ',',
+      groupSeparator: '.',
+    );
+    test(
+      'decimal comma is parsed exactly and reopens from its saved parse text',
+      () {
+        final value = SupportingValue.numeric('1,5', numberFormat: comma);
+        expect(value.exactAmount.toString(), '3/2');
+        expect(value.originalText, '1,5');
+        expect(value.parseText, '1.5');
+        final reopened = SupportingValue.fromJson(
+          jsonDecode(jsonEncode(value.toJson())) as Map<String, dynamic>,
+        );
+        expect(reopened.toJson(), value.toJson());
+      },
+    );
+    test('locale group marks are accepted only in three-digit groups', () {
+      expect(
+        SupportingValue.numeric('1.000,5', numberFormat: comma).exactAmount,
+        parseSupportingNumber('1000.5'),
+      );
+      expect(
+        SupportingValue.numeric(
+          '1 000',
+          numberFormat: const SupportingNumberFormat(),
+        ).exactAmount,
+        parseSupportingNumber('1000'),
+      );
+      expect(
+        () => SupportingValue.numeric('1.00.000', numberFormat: comma),
+        throwsFormatException,
+      );
+    });
+    test(
+      'an ambiguous comma in a dot locale is rejected, not read as fifteen',
+      () {
+        expect(
+          () => SupportingValue.numeric(
+            '1,5',
+            numberFormat: const SupportingNumberFormat(),
+          ),
+          throwsFormatException,
+        );
+        expect(
+          () => SupportingValue.numeric(
+            '1,50',
+            numberFormat: const SupportingNumberFormat(),
+          ),
+          throwsFormatException,
+        );
+      },
+    );
+    test('default exact parsing stays strict ASCII', () {
+      expect(() => SupportingValue.numeric('1 000'), throwsFormatException);
+      expect(() => SupportingValue.numeric('1,000'), throwsFormatException);
+    });
+    test('qualified localised values keep the typed source text', () {
+      final value = SupportingValue.numeric('≤1,5', numberFormat: comma);
+      expect(value.qualifier, SupportingQualifier.lessOrEqual);
+      expect(value.originalText, '≤1,5');
+      expect(value.parseText, '1.5');
+      expect(value.isExactNumeric, isFalse);
+    });
   });
 }

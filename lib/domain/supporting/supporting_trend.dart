@@ -14,6 +14,16 @@ enum SupportingDateBasis { collection, report, entry }
 String _identity(Object value) =>
     sha256.convert(utf8.encode(jsonEncode(value))).toString();
 
+String? _sourceIdentity(String? explicitId, String? savedText) {
+  if (explicitId != null && explicitId.trim().isNotEmpty) {
+    return 'id:$explicitId';
+  }
+  if (savedText != null && savedText.trim().isNotEmpty) {
+    return 'text:$savedText';
+  }
+  return null;
+}
+
 final class SupportingTrendQuery {
   SupportingTrendQuery({
     required this.personId,
@@ -29,6 +39,10 @@ final class SupportingTrendQuery {
     supportingText(displayZone, 'trend_zone', max: 256);
     supportingOptionalText(comparisonGroup, 'trend_group');
     if (beforeDate.compareTo(fromDate) <= 0) throw ArgumentError('trend_range');
+    if (dateBasis == SupportingDateBasis.entry) {
+      // Entry time is audit provenance. It cannot position a measurement.
+      throw ArgumentError('trend_basis');
+    }
   }
   final String personId, metricId, displayZone;
   final CivilDate fromDate, beforeDate;
@@ -73,21 +87,36 @@ final class SupportingComparisonKey {
     LabResultSnapshot result,
   ) {
     final provenance = result.provenance ?? record.snapshot.provenance;
+    // A stable explicit identity wins. When a manual record supplies only the
+    // saved source words, those exact words are the local identity. Nothing is
+    // trimmed, case-folded or fuzzy-matched: near names stay separate.
+    final laboratory = _sourceIdentity(
+      provenance.laboratoryId,
+      provenance.laboratoryName,
+    );
+    final method = _sourceIdentity(provenance.methodId, provenance.methodText);
+    final specimen = _sourceIdentity(
+      provenance.specimenId,
+      provenance.specimenText,
+    );
     final certain =
         result.unit != null &&
-        provenance.laboratoryId != null &&
-        provenance.methodId != null &&
-        provenance.specimenId != null;
+        laboratory != null &&
+        method != null &&
+        specimen != null;
     return SupportingComparisonKey._(
       personId: record.id.personId,
       metricId: result.metricId,
+      // Persisted metric identity owns its person and kind. The store rejects a
+      // metric whose owner or kind differs from the parent record, so the
+      // parent's persisted kind is the comparison kind.
       kind: record.kind == SupportingRecordKind.labPanel
           ? SupportingMetricKind.lab
           : SupportingMetricKind.observation,
       unit: result.unit,
-      laboratoryId: provenance.laboratoryId,
-      methodId: provenance.methodId,
-      specimenId: provenance.specimenId,
+      laboratoryId: laboratory,
+      methodId: method,
+      specimenId: specimen,
       uncertainSource: certain ? null : jsonEncode([record.id.id, result.id]),
     );
   }
@@ -143,14 +172,23 @@ final class SupportingTrendEntry {
 }
 
 final class SupportingTrendGroup {
-  SupportingTrendGroup._(this.key, Iterable<SupportingTrendEntry> entries)
-    : entries = List.unmodifiable(entries);
+  SupportingTrendGroup._(
+    this.key,
+    Iterable<SupportingTrendEntry> entries, {
+    this.hasUnpositionedGap = false,
+  }) : entries = List.unmodifiable(entries);
   final SupportingComparisonKey key;
   final List<SupportingTrendEntry> entries;
+
+  /// True when a matching result for this identity has no full date, so the
+  /// plotted line cannot claim to be the complete series.
+  final bool hasUnpositionedGap;
   bool get canConnect => key.certain;
 
   /// No line crosses a censored, missing or qualitative result. An uncertain
   /// identity supports isolated points only, even if values happen to match.
+  /// Repeated same-day day-only points and one repeated instant stay separate
+  /// markers rather than becoming a vertical line.
   List<List<SupportingTrendEntry>> get runs {
     final runs = <List<SupportingTrendEntry>>[];
     var current = <SupportingTrendEntry>[];
@@ -164,11 +202,25 @@ final class SupportingTrendGroup {
         runs.add(List.unmodifiable([entry]));
         continue;
       }
+      if (current.isNotEmpty && _repeatsPosition(current.last, entry)) {
+        runs.add(List.unmodifiable(current));
+        current = [];
+      }
       current.add(entry);
     }
     if (current.isNotEmpty) runs.add(List.unmodifiable(current));
     return List.unmodifiable(runs);
   }
+}
+
+bool _repeatsPosition(
+  SupportingTrendEntry previous,
+  SupportingTrendEntry next,
+) {
+  if (previous.day != next.day) return false;
+  if (previous.exactInstant == null && next.exactInstant == null) return true;
+  return previous.exactInstant != null &&
+      previous.exactInstant == next.exactInstant;
 }
 
 final class SupportingTrendToken {
@@ -249,11 +301,7 @@ final class SupportingTrendPage {
       final date = switch (query.dateBasis) {
         SupportingDateBasis.collection => record.snapshot.collectionDate,
         SupportingDateBasis.report => record.snapshot.reportDate,
-        SupportingDateBasis.entry => SupportingDate.exact(
-          record.enteredAt,
-          zoneId: 'UTC',
-          utcOffsetMinutes: 0,
-        ),
+        SupportingDateBasis.entry => throw ArgumentError('trend_basis'),
       };
       final projected = date.precision == SupportingDatePrecision.exact
           ? DisplayTime().instant(date.instant!, query.displayZone)
@@ -263,13 +311,20 @@ final class SupportingTrendPage {
           : projected?.civilDate;
       for (final result in record.snapshot.results) {
         if (result.metricId != query.metricId) continue;
-        if (++seen > SupportingLimits.maxTrendRows) {
-          throw const SupportingLimitException('trend_rows');
-        }
         final group = SupportingComparisonKey.forResult(record, result);
         if (query.comparisonGroup != null &&
             query.comparisonGroup != group.identity) {
           continue;
+        }
+        // Cap only rows that can actually contribute. Rows outside the
+        // requested window or comparison group must not consume the bound.
+        final positioned =
+            day != null &&
+            day.compareTo(query.fromDate) >= 0 &&
+            day.compareTo(query.beforeDate) < 0;
+        if (day != null && !positioned) continue;
+        if (++seen > SupportingLimits.maxTrendRows) {
+          throw const SupportingLimitException('trend_rows');
         }
         final entry = SupportingTrendEntry._(
           record: record,
@@ -283,10 +338,7 @@ final class SupportingTrendPage {
         );
         if (day == null) {
           unpositioned.add(entry);
-          continue;
-        }
-        if (day.compareTo(query.fromDate) >= 0 &&
-            day.compareTo(query.beforeDate) < 0) {
+        } else {
           entries.add(entry);
         }
       }
@@ -299,13 +351,19 @@ final class SupportingTrendPage {
     }
     final keys = grouped.keys.toList()
       ..sort((a, b) => a.identity.compareTo(b.identity));
+    final unpositionedKeys = {for (final entry in unpositioned) entry.groupKey};
     return SupportingTrendPage._(
       query: query,
       schemaVersion: schemaVersion,
       datasetGeneration: datasetGeneration,
       requestGeneration: requestGeneration,
       groups: [
-        for (final key in keys) SupportingTrendGroup._(key, grouped[key]!),
+        for (final key in keys)
+          SupportingTrendGroup._(
+            key,
+            grouped[key]!,
+            hasUnpositionedGap: unpositionedKeys.contains(key),
+          ),
       ],
       unpositioned: unpositioned,
       sourceCount: entries.length + unpositioned.length,
@@ -332,9 +390,11 @@ int _compare(SupportingTrendEntry a, SupportingTrendEntry b) {
     final at = ai.compareTo(bi);
     if (at != 0) return at;
   } else if (ai != null) {
-    return 1;
-  } else if (bi != null) {
+    // Within one shown day an exact instant precedes a supplied day-only
+    // record, which has no asserted clock time. This matches feed chronology.
     return -1;
+  } else if (bi != null) {
+    return 1;
   }
   return a.identity.compareTo(b.identity);
 }

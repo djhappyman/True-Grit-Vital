@@ -77,7 +77,7 @@ void main() {
     for (final entry in expected.entries) {
       expect(actual[entry.key], entry.value, reason: entry.key);
     }
-    expect(after.select('PRAGMA user_version').single.values.single, 19);
+    expect(after.select('PRAGMA user_version').single.values.single, 21);
     expect(after.select('PRAGMA integrity_check').single.values.single, 'ok');
     expect(after.select('PRAGMA foreign_key_check'), isEmpty);
     expect(
@@ -148,6 +148,107 @@ void main() {
       expect(rows(failed), expected);
       expect(failed.select('PRAGMA user_version').single.values.single, 18);
       failed.close();
+    },
+  );
+  test(
+    'populated19 upgrades to bounded v20 indexes without rewriting rows',
+    () async {
+      await File(path).delete();
+      final seeded = raw();
+      seeded.execute(
+        File('test/data/fixtures/record_store_v19.sql').readAsStringSync(),
+      );
+      final expected = rows(seeded);
+      expect(seeded.select('PRAGMA user_version').single.values.single, 19);
+      expect(
+        seeded
+            .select(
+              "SELECT COUNT(*) AS n FROM supporting_record WHERE collection_at IS NOT NULL",
+            )
+            .single['n'],
+        greaterThan(0),
+      );
+      expect(
+        seeded
+            .select(
+              "SELECT COUNT(*) AS n FROM supporting_record WHERE collection_at IS NULL AND collection_day IS NULL",
+            )
+            .single['n'],
+        greaterThan(0),
+      );
+      seeded.close();
+      await upgrade();
+      final after = raw();
+      expect(rows(after), expected);
+      expect(after.select('PRAGMA user_version').single.values.single, 21);
+      expect(after.select('PRAGMA integrity_check').single.values.single, 'ok');
+      expect(after.select('PRAGMA foreign_key_check'), isEmpty);
+      final indexes = after
+          .select(
+            "SELECT name FROM sqlite_master WHERE type='index' AND name LIKE 'supporting_%' ORDER BY name",
+          )
+          .map((r) => r['name'])
+          .toSet();
+      expect(
+        indexes,
+        containsAll([
+          'supporting_collection_instant',
+          'supporting_report_instant',
+          'supporting_collection_civil',
+          'supporting_report_civil',
+          'supporting_collection_unpositioned',
+          'supporting_report_unpositioned',
+          // Prior v19 indexes remain.
+          'supporting_collection_feed',
+          'supporting_report_feed',
+          'supporting_entry_feed',
+        ]),
+      );
+      after.close();
+    },
+  );
+  test(
+    'v20 index collision rolls back to populated v19 and permits retry',
+    () async {
+      await File(path).delete();
+      final seeded = raw();
+      seeded.execute(
+        File('test/data/fixtures/record_store_v19.sql').readAsStringSync(),
+      );
+      seeded.execute(
+        'CREATE TABLE "supporting_collection_instant"(recovery TEXT)',
+      );
+      seeded.execute('INSERT INTO "supporting_collection_instant" VALUES (?)', [
+        'preserve',
+      ]);
+      final expected = rows(seeded);
+      seeded.close();
+      await expectLater(upgrade(), throwsA(anything));
+      final failed = raw();
+      expect(failed.select('PRAGMA user_version').single.values.single, 19);
+      expect(rows(failed), expected);
+      expect(failed.select('PRAGMA foreign_key_check'), isEmpty);
+      failed.execute('DROP TABLE "supporting_collection_instant"');
+      failed.close();
+      await upgrade();
+      final after = raw();
+      expect(after.select('PRAGMA user_version').single.values.single, 21);
+      // The deliberately colliding table is the only seeded object that the
+      // successful retry must remove: the v20 migration creates the index that
+      // has that name. Every other preserved table must still match.
+      final restored = rows(after);
+      for (final entry in expected.entries) {
+        if (entry.key == 'supporting_collection_instant') continue;
+        expect(restored[entry.key], entry.value, reason: entry.key);
+      }
+      expect(
+        restored.keys,
+        unorderedEquals(
+          expected.keys.where((k) => k != 'supporting_collection_instant'),
+        ),
+      );
+      expect(after.select('PRAGMA foreign_key_check'), isEmpty);
+      after.close();
     },
   );
 }

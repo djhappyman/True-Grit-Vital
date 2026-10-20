@@ -12,6 +12,7 @@ import '../../ui/vital_ui.dart';
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
 import 'supporting_form_model.dart';
+import 'supporting_input.dart';
 import 'supporting_widgets.dart';
 
 class SupportingForm extends ConsumerStatefulWidget {
@@ -36,7 +37,8 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
   SupportingRevision? original;
   final controllers = <String, TextEditingController>{};
   String? frozen;
-  bool details = false, metrics = false;
+  bool details = false;
+  final openMetrics = <String>{};
   int page = 0, metricOffset = 0;
   final metricSearch = TextEditingController();
   static const pageSize = 10;
@@ -63,6 +65,20 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
       : '/supporting?person=${widget.personId}';
   @override
   int? get entryTargetRevision => original?.revision;
+  @override
+  String get conflictMessage => AppLocalizations.of(context).supportingConflict;
+  @override
+  String get draftUnavailableMessage =>
+      AppLocalizations.of(context).supportingDraftUnavailable;
+  @override
+  String get draftFailureMessage =>
+      AppLocalizations.of(context).supportingDraftFailure;
+  @override
+  String get draftSavedMessage =>
+      AppLocalizations.of(context).supportingDraftSaved;
+  @override
+  String get saveFailureMessage =>
+      AppLocalizations.of(context).supportingSaveFailure;
   @override
   Map<String, String> captureEntry() => {
     'payload': form.encode(),
@@ -94,6 +110,7 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
     String label, {
     Map<String, String>? row,
     String? helper,
+    int maxLines = 1,
   }) {
     final values = row ?? form.fields;
     final path = row == null ? key : '${row['id']}:$key';
@@ -101,6 +118,17 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
       final c = TextEditingController(text: values[key] ?? '');
       c.addListener(() {
         values[key] = c.text;
+        if (row != null && key == 'value') {
+          // A typed limit is the source value. It wins over the qualifier
+          // control instead of failing a contradictory second entry.
+          final prefix = _valuePrefix(c.text);
+          if (prefix != null && row['qualifier'] != 'exact') {
+            row['qualifier'] = 'exact';
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() {});
+            });
+          }
+        }
         entryChanged();
       });
       return c;
@@ -111,22 +139,148 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
         label: label,
         controller: controller,
         helper: helper,
+        maxLines: maxLines,
         enabled: !busy && !uncertain && !conflict,
       ),
+    );
+  }
+
+  String? _valuePrefix(String text) {
+    final value = text.trimLeft();
+    for (final prefix in ['<=', '>=', '≤', '≥', '<', '>']) {
+      if (value.startsWith(prefix)) return prefix;
+    }
+    return null;
+  }
+
+  bool _sourceAttached(AttachmentRecord record) => form.sourceReferences.any(
+    (source) =>
+        source.id == record.id &&
+        source.version == record.revision &&
+        source.contentVersionId == record.versionId,
+  );
+
+  void attachSource(AttachmentRecord record) {
+    if (_sourceAttached(record) || form.sourceReferences.length >= 100) {
+      return;
+    }
+    setState(() {
+      form.sourceReferences.add(
+        SupportingSourceReference(
+          id: record.id,
+          personId: record.personId,
+          version: record.revision,
+          kind: SupportingSourceKind.attachment,
+          originalText: record.name,
+          contentVersionId: record.versionId,
+        ),
+      );
+      entryChanged();
+    });
+  }
+
+  void removeSource(int index) {
+    setState(() {
+      form.sourceReferences.removeAt(index);
+      entryChanged();
+    });
+  }
+
+  String _sourceLabel(AppLocalizations t, SupportingSourceReference source) =>
+      source.originalText ?? t.supportingSavedSourceReference(source.version);
+
+  Widget sourceReferences(bool enabled, AppLocalizations t) {
+    final candidates = ref.watch(
+      supportingSourceCandidatesProvider(widget.personId),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (form.sourceReferences.isNotEmpty) ...[
+          Text(t.supportingSourceReferences),
+          for (var i = 0; i < form.sourceReferences.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(_sourceLabel(t, form.sourceReferences[i])),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Semantics(
+                      label: t.supportingRemoveSource(
+                        _sourceLabel(t, form.sourceReferences[i]),
+                      ),
+                      child: VitalButton.secondary(
+                        onPressed: enabled ? () => removeSource(i) : null,
+                        child: Text(t.remove),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+        const SizedBox(height: 12),
+        Text(t.supportingSourceFiles),
+        Text(t.supportingSourceFilesHelp),
+        if (candidates.hasError)
+          LoadFailure(
+            message: t.supportingLoadFailure,
+            onRetry: () => ref.invalidate(
+              supportingSourceCandidatesProvider(widget.personId),
+            ),
+          )
+        else if (!candidates.hasValue)
+          Text(t.loadingRecords)
+        else if (candidates.value!.isEmpty)
+          Text(t.supportingNoSourceFiles)
+        else
+          for (final record in candidates.value!)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(record.name),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Semantics(
+                      label: t.supportingAttachSource(record.name),
+                      child: VitalButton.secondary(
+                        onPressed:
+                            enabled &&
+                                form.sourceReferences.length < 100 &&
+                                !_sourceAttached(record)
+                            ? () => attachSource(record)
+                            : null,
+                        child: Text(
+                          _sourceAttached(record)
+                              ? t.supportingAttached
+                              : t.supportingAttach,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+      ],
     );
   }
 
   Widget date(String prefix, String label) {
     final t = AppLocalizations.of(context);
     final enabled = !busy && !uncertain && !conflict;
+    final precision = form.get('${prefix}Precision').isEmpty
+        ? 'unknown'
+        : form.get('${prefix}Precision');
     return VitalSection(
       title: Text(label),
       children: [
         VitalSegments<String>(
           values: const ['unknown', 'day', 'exact', 'partial'],
-          selected: form.get('${prefix}Precision').isEmpty
-              ? 'unknown'
-              : form.get('${prefix}Precision'),
+          selected: precision,
           onChanged: (v) {
             if (enabled) {
               setState(() {
@@ -145,11 +299,16 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
         input(
           '${prefix}Text',
           t.supportingDateText,
-          helper: t.supportingDateHint,
+          helper: precision == 'exact'
+              ? t.supportingExactDateHelp
+              : t.supportingDateHelp,
         ),
-        if (form.get('${prefix}Precision') == 'exact' ||
-            form.get('${prefix}Precision') == 'day')
-          input('${prefix}Zone', t.supportingZone),
+        if (precision == 'exact')
+          input(
+            '${prefix}Zone',
+            t.supportingZone,
+            helper: t.supportingZoneHelp,
+          ),
       ],
     );
   }
@@ -169,6 +328,15 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
   }
 
   Future<void> save() async {
+    if (observation &&
+        form.rows.isEmpty &&
+        supportingOptional(form.get('notes')) == null) {
+      setState(
+        () =>
+            error = AppLocalizations.of(context).supportingObservationRequired,
+      );
+      return;
+    }
     if (frozen == null) {
       try {
         frozen = jsonEncode(form.snapshot().toJson());
@@ -225,7 +393,10 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
     if (people.hasError) {
       return EntryPage(
         children: [
-          LoadFailure(onRetry: () => ref.invalidate(profilesProvider)),
+          LoadFailure(
+            message: t.supportingLoadFailure,
+            onRetry: () => ref.invalidate(profilesProvider),
+          ),
         ],
       );
     }
@@ -246,6 +417,7 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
           return EntryPage(
             children: [
               LoadFailure(
+                message: t.supportingLoadFailure,
                 onRetry: () => ref.invalidate(supportingLookupProvider),
               ),
             ],
@@ -263,6 +435,7 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
         id: widget.id ?? newCommandId(),
         personId: widget.personId,
         observation: observation,
+        numberFormat: supportingNumberFormat(context),
       );
       form.fields['_return'] =
           widget.returnLocation ?? '/supporting?person=${widget.personId}';
@@ -311,7 +484,7 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
       ),
       if (!observation) date('report', t.supportingReport),
       VitalSection(
-        title: Text(t.supportingResults),
+        title: Text(observation ? t.supportingValues : t.supportingResults),
         action: VitalButton.secondary(
           onPressed: enabled && form.rows.length < SupportingLimits.maxResults
               ? addResult
@@ -319,7 +492,12 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
           child: Text(t.supportingAdd),
         ),
         children: [
-          if (form.rows.isEmpty) Text(t.supportingNoResults),
+          if (form.rows.isEmpty)
+            Text(
+              observation
+                  ? t.supportingNoValuesObservation
+                  : t.supportingNoValues,
+            ),
           for (
             var index = page * pageSize;
             index < form.rows.length && index < (page + 1) * pageSize;
@@ -346,7 +524,7 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
         ],
       ),
       SupportingDisclosure(
-        label: t.supportingSource,
+        label: observation ? t.supportingDetails : t.supportingSource,
         open: details,
         onPressed: () => setState(() => details = !details),
       ),
@@ -355,15 +533,18 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              input('lab', t.supportingLab),
-              input('labId', t.supportingLabIdentity),
-              input('method', t.supportingMethod),
-              input('methodId', t.supportingMethodIdentity),
-              input('specimen', t.supportingSpecimen),
-              input('specimenId', t.supportingSpecimenIdentity),
-              input('source', t.supportingSourceText),
+              if (!observation) ...[
+                input('lab', t.supportingLab),
+                input('labId', t.supportingLabIdentity),
+                input('method', t.supportingMethod),
+                input('methodId', t.supportingMethodIdentity),
+                input('specimen', t.supportingSpecimen),
+                input('specimenId', t.supportingSpecimenIdentity),
+              ],
+              input('source', t.supportingSourceText, maxLines: 3),
+              sourceReferences(enabled, t),
               input('by', t.supportingRecordedBy),
-              input('notes', t.supportingNotes),
+              input('notes', t.supportingNotes, maxLines: 5),
             ],
           ),
         ),
@@ -383,22 +564,43 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
 
   Widget result(int index, bool enabled) {
     final t = AppLocalizations.of(context), row = form.rows[index];
+    final id = row['id']!;
+    final open = openMetrics.contains(id);
+    final numeric = (row['kind'] ?? 'numeric') == 'numeric';
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: VitalSurface(
-        key: ValueKey(row['id']),
+        key: ValueKey(id),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(t.supportingResultPosition(index + 1, form.rows.length)),
-            input('marker', t.supportingMarker, row: row),
+            input(
+              'marker',
+              observation ? t.supportingComponent : t.supportingMarker,
+              row: row,
+              maxLines: 2,
+            ),
             SupportingDisclosure(
               label: t.supportingMetrics,
-              open: metrics,
-              onPressed: () => setState(() => metrics = !metrics),
+              semanticLabel: t.supportingMarkerDisclosure(index + 1),
+              open: open,
+              onPressed: () => setState(() {
+                if (open) {
+                  openMetrics.remove(id);
+                } else {
+                  openMetrics.add(id);
+                }
+              }),
             ),
-            if (metrics) metricPicker(row, enabled),
-            input('originalMarker', t.supportingOriginalMarker, row: row),
+            if (open) metricPicker(row, enabled),
+            if (!observation)
+              input(
+                'originalMarker',
+                t.supportingOriginalMarker,
+                row: row,
+                maxLines: 2,
+              ),
             VitalSegments<String>(
               values: const ['numeric', 'qualitative', 'missing'],
               selected: row['kind'] ?? 'numeric',
@@ -416,8 +618,14 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
                 _ => t.supportingNumeric,
               },
             ),
-            input('value', t.supportingValue, row: row),
-            if (row['kind'] == 'numeric')
+            input(
+              'value',
+              t.supportingValue,
+              row: row,
+              helper: numeric ? t.supportingValueHint : null,
+              maxLines: 2,
+            ),
+            if (numeric)
               VitalSegments<String>(
                 values: const [
                   'exact',
@@ -428,12 +636,22 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
                 ],
                 selected: row['qualifier'] ?? 'exact',
                 onChanged: (v) {
-                  if (enabled) {
-                    setState(() {
-                      row['qualifier'] = v;
-                      entryChanged();
-                    });
+                  if (!enabled) return;
+                  final controller = controllers['${row['id']}:value'];
+                  final text = controller?.text ?? '';
+                  final prefix = _valuePrefix(text);
+                  if (prefix != null) {
+                    // Choosing a qualifier here keeps one source of truth:
+                    // the selected control replaces a typed prefix.
+                    controller?.text = text
+                        .trimLeft()
+                        .substring(prefix.length)
+                        .trimLeft();
                   }
+                  setState(() {
+                    row['qualifier'] = v;
+                    entryChanged();
+                  });
                 },
                 label: (v) => switch (v) {
                   'lessThan' => '<',
@@ -444,17 +662,20 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
                 },
               ),
             input('unit', t.supportingUnit, row: row),
-            input(
-              'range',
-              t.supportingRange,
-              row: row,
-              helper: t.supportingRangeHint,
-            ),
-            input('flag', t.supportingFlag, row: row),
+            if (!observation)
+              input(
+                'range',
+                t.supportingRange,
+                row: row,
+                helper: t.supportingRangeHint,
+                maxLines: 2,
+              ),
+            if (!observation) input('flag', t.supportingFlag, row: row),
             VitalButton.secondary(
               onPressed: enabled
                   ? () => setState(() {
                       form.rows.removeAt(index);
+                      openMetrics.remove(id);
                       if (page * pageSize >= form.rows.length && page > 0) {
                         page--;
                       }
@@ -484,13 +705,17 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(t.supportingChooseMetric),
-        LabelledInput(label: t.supportingMarker, controller: metricSearch),
+        LabelledInput(
+          label: t.supportingSearchMarkers,
+          controller: metricSearch,
+        ),
         VitalButton.secondary(
           onPressed: () => setState(() => metricOffset = 0),
           child: Text(t.supportingApply),
         ),
         if (found.hasError)
           LoadFailure(
+            message: t.supportingLoadFailure,
             onRetry: () => ref.invalidate(supportingMetricsProvider(request)),
           ),
         for (final metric in found.value ?? <SupportingMetric>[])

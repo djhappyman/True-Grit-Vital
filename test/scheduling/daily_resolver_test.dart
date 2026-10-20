@@ -62,8 +62,7 @@ void main() {
   final resolver = DailyResolver();
   group('Independent IANA oracle', () {
     final oracle = jsonDecode(
-      File('test/scheduling/fixtures/time-oracle.json')
-          .readAsStringSync(),
+      File('test/scheduling/fixtures/time-oracle.json').readAsStringSync(),
     ) as Map<String, dynamic>;
     for (final testCase in oracle['cases'] as List<dynamic>) {
       final value = testCase as Map<String, dynamic>;

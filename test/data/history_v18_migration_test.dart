@@ -103,7 +103,7 @@ void main() {
         );
         expect(
           checked.select('PRAGMA user_version').single.values.single,
-          19,
+          21,
           reason: 'schema $version',
         );
         expect(
@@ -141,7 +141,7 @@ void main() {
       page.entries.map((e) => (e as SkippedTimelineEntry).action.id),
       orderedEquals(expected),
     );
-    expect(page.schemaVersion, 19);
+    expect(page.schemaVersion, 21);
     final skips = page.entries.cast<SkippedTimelineEntry>().toList();
     expect(
       skips.singleWhere((e) => e.action.id == 'v17-reskip').savedDate,
@@ -151,7 +151,7 @@ void main() {
     await upgraded.close();
     store = null;
     final db = raw();
-    expect(db.select('PRAGMA user_version').single.values.single, 19);
+    expect(db.select('PRAGMA user_version').single.values.single, 21);
     final after = savedRows(db);
     for (final entry in before.entries) {
       expect(after[entry.key], entry.value, reason: entry.key);
