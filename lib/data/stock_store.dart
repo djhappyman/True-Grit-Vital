@@ -380,6 +380,76 @@ extension StockRecordStore on RecordStore {
     );
   }
 
+  /// Relocates one pre-variant stock-adjustment notices draft, still stored at
+  /// the shared quantity key, to the stable notices variant key. The move is
+  /// one guarded transaction: exact stockAdjustment/person/raw-container
+  /// identity, notices fields, a free destination, and an operation that is
+  /// neither committed nor invalidated are all verified before the row id
+  /// alone changes. Content, captured revisions, dataset generation and the
+  /// pending operation identity are preserved exactly. Returning null means
+  /// no legacy row exists to adopt; a refusal surfaces as a conflict rather
+  /// than dropping either draft.
+  Future<OrdinaryDraft?> relocateLegacyStockNoticesDraft({
+    required String legacyId,
+    required String destinationId,
+    required String personId,
+    required String targetId,
+  }) async {
+    _requireWritable();
+    OrdinaryDraft? adopted;
+    await _db.transaction(() async {
+      await _db.customStatement('UPDATE dataset SET generation=generation');
+      if ((await _rows('SELECT generation FROM dataset'))
+              .single['generation'] !=
+          generation) {
+        throw const CommandConflict('generation');
+      }
+      // A late captured callback for the legacy key cannot recreate its row:
+      // the preserved operation keeps ordinary_draft.operation UNIQUE, so any
+      // such upsert fails without touching either draft.
+      final rows = await _rows(
+        'SELECT * FROM ordinary_draft WHERE id=? AND generation=?',
+        [legacyId, generation],
+      );
+      if (rows.isEmpty) return;
+      final legacy = OrdinaryDraft.decode(rows.single);
+      if (legacy.kind != DraftKind.stockAdjustment ||
+          legacy.personId != personId ||
+          legacy.targetId != targetId ||
+          legacy.fields['kind'] != 'notices' ||
+          legacyId == destinationId) {
+        throw const CommandConflict('draft_identity');
+      }
+      if ((await _rows('SELECT id FROM ordinary_draft WHERE id=?', [
+        destinationId,
+      ])).isNotEmpty) {
+        // Never drop or overwrite either draft when both already exist.
+        throw const CommandConflict('draft_identity');
+      }
+      // Never replay a committed intent and never resurrect an invalidated one.
+      if ((await _rows('SELECT id FROM operation WHERE id=?', [
+        legacy.operationId,
+      ])).isNotEmpty) {
+        throw const CommandConflict('draft_identity');
+      }
+      await _db.customStatement(
+        'UPDATE ordinary_draft SET id=? WHERE id=? AND generation=?',
+        [destinationId, legacyId, generation],
+      );
+      _capturedDraftOperations.remove(legacyId);
+      adopted = OrdinaryDraft.decode(
+        (await _rows('SELECT * FROM ordinary_draft WHERE id=?', [
+          destinationId,
+        ])).single,
+      );
+    });
+    if (adopted != null) {
+      _draftChanges.add(null);
+      _changes.add(null);
+    }
+    return adopted;
+  }
+
   Future<StoredStockContainer> addStockMovement({
     required String commandId,
     required String personId,

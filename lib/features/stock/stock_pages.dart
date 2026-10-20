@@ -522,8 +522,45 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
   String? get entryPerson => widget.personId;
   @override
   int? get entryPersonRevision => owner?.revision;
+
+  /// Notices configure a different stock command than quantity adjustments, so
+  /// each surface keeps its own durable draft for the same container. The
+  /// notices surface carries a stable variant; the quantity surface keeps the
+  /// legacy key so existing movement drafts still restore untouched.
   @override
   String? get entryTarget => widget.containerId;
+  @override
+  String? get entryDraftVariant => noticesMode ? 'notices' : null;
+  @override
+  Future<OrdinaryDraft?> adoptEntryDraft(
+    RecordStore store,
+    OrdinaryDraft? draft,
+  ) async {
+    if (noticesMode) {
+      if (draft != null) return draft;
+      // Adopt a pre-variant notices entry still stored at the shared quantity
+      // key; movement drafts there belong to the quantity surface untouched.
+      final legacy = await store.draftById(entryBaseDraftId);
+      if (legacy == null || legacy.fields['kind'] != 'notices') return null;
+      return store.relocateLegacyStockNoticesDraft(
+        legacyId: legacy.id,
+        destinationId: '$entryBaseDraftId:notices',
+        personId: widget.personId,
+        targetId: widget.containerId,
+      );
+    }
+    if (draft == null || draft.fields['kind'] != 'notices') return draft;
+    // The quantity key still holds a pre-variant notices intent. Free it for
+    // this surface without restoring or discarding its content.
+    await store.relocateLegacyStockNoticesDraft(
+      legacyId: draft.id,
+      destinationId: '$entryBaseDraftId:notices',
+      personId: widget.personId,
+      targetId: widget.containerId,
+    );
+    return null;
+  }
+
   @override
   int? get entryTargetRevision => container?.revision;
   @override
@@ -536,14 +573,24 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
   };
   @override
   void restoreEntry(Map<String, String> f) {
-    noticesMode = f['kind'] == 'notices';
-    clearThreshold = f['clearThreshold'] == 'true';
+    // The route decides the surface. A draft written for the other command of
+    // the same container must never leak its fields into this editor.
+    if ((f['kind'] ?? '') == 'notices') {
+      if (!noticesMode) return;
+      amount.text = f['amount'] ?? '';
+      clearThreshold = f['clearThreshold'] == 'true';
+      reason.text = f['reason'] ?? '';
+      unknown = f['unknown'] == 'true';
+      return;
+    }
+    noticesMode = false;
     kind = StockMovementKind.values
         .where((v) => v.name == f['kind'])
         .firstOrNull;
     amount.text = f['amount'] ?? '';
     reason.text = f['reason'] ?? '';
     unknown = f['unknown'] == 'true';
+    clearThreshold = f['clearThreshold'] == 'true';
   }
 
   @override

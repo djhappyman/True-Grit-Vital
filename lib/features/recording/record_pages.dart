@@ -1041,6 +1041,25 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
   String get entryFallback => '/substances';
   int? get entryTargetRevision => null;
 
+  /// Optional mode suffix of a form that hosts more than one command over the
+  /// same [entryTarget]. It only namespaces this form's durable draft identity;
+  /// the stored target identity stays [entryTarget]. Null keeps the legacy key.
+  String? get entryDraftVariant => null;
+
+  /// Legacy draft key without any [entryDraftVariant]. Forms that adopt a
+  /// pre-variant draft use it to find and relocate the older row.
+  String get entryBaseDraftId =>
+      '${entryKind.name}:${entryPerson ?? "new"}:${entryTarget ?? "new"}';
+
+  /// Optional hook between the durable lookup and the form restore. A form
+  /// adopts or relocates a draft belonging to another of its surfaces here and
+  /// returns it; returning null means nothing is applied. The default keeps
+  /// the returned draft unchanged.
+  Future<OrdinaryDraft?> adoptEntryDraft(
+    RecordStore store,
+    OrdinaryDraft? draft,
+  ) => Future.value(draft);
+
   /// Feature-specific recovery wording. Existing forms keep the shared copy.
   String get conflictMessage => AppLocalizations.of(context).conflictFailure;
   String get draftUnavailableMessage =>
@@ -1056,13 +1075,15 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
     _draftStarted = true;
     capturedPersonRevision = entryPersonRevision;
     capturedTargetRevision = entryTargetRevision;
-    _draftId =
-        '${entryKind.name}:${entryPerson ?? "new"}:${entryTarget ?? "new"}';
+    _draftId = entryBaseDraftId;
+    final variant = entryDraftVariant;
+    if (variant != null) _draftId = '$_draftId:$variant';
     Future<void>(() async {
       try {
         final store = await ref.read(recordStoreProvider.future);
         _generation = store.generation;
-        final draft = await store.draftById(_draftId!);
+        var draft = await store.draftById(_draftId!);
+        draft = await adoptEntryDraft(store, draft);
         if (!mounted) return;
         if (draft != null) {
           commandId = draft.operationId;
