@@ -1011,7 +1011,14 @@ extension EventRecordStore on RecordStore {
       return false;
     }
     final old = row['state'] as String;
-    if (['consumed', 'cancelled'].contains(old) && old != receipt.name) {
+    // Terminal monotonicity mirrors the ordinary lane: consumed, postUncertain
+    // and cancelled rows never move backwards, and the only advancement is
+    // postUncertain to consumed. If the terminal row were released to a mere
+    // repair state here, a later accepted receipt would resurrect an ended
+    // intent under the same event revision.
+    if (['consumed', 'postUncertain', 'cancelled'].contains(old) &&
+        !(old == 'postUncertain' && receipt == ReminderReceipt.consumed) &&
+        old != receipt.name) {
       return false;
     }
     final state = switch (receipt) {
@@ -1022,9 +1029,21 @@ extension EventRecordStore on RecordStore {
       ReminderReceipt.failed => 'failed',
       ReminderReceipt.unknown => 'unknown',
     };
+    // The adapter evidenced this token's end, so the cancellation is
+    // acknowledged monotonically without ever regressing. The row itself
+    // remains the terminal fence: preparation only recognises active rows,
+    // so releasing this row would immediately mint a replacement token for
+    // the same event revision, re-arming a notice the device already ended.
+    final settled = receipt == ReminderReceipt.cancelled;
     await _db.customStatement(
-      'UPDATE event_end_request SET state=?,fingerprint=?,reason=? WHERE token=?',
-      [state, fingerprint, reason, token],
+      'UPDATE event_end_request SET state=?,fingerprint=?,reason=?,cancel_ack=? WHERE token=?',
+      [
+        state,
+        fingerprint,
+        reason,
+        settled || (row['cancel_ack'] as int) == 1 ? 1 : 0,
+        token,
+      ],
     );
     return true;
   }
