@@ -121,6 +121,36 @@ extension RestoreRecordStore on RecordStore {
         await staged._db.customStatement(
           'DELETE FROM attachment_chunk WHERE version NOT IN (SELECT version FROM attachment_record)',
         );
+        // A ready manifest's snapshot carries the archive dataset generation as
+        // operational metadata. Rebind those retained rows to the replacement
+        // generation so pin, rename and delete accept the restored snapshot.
+        // The content version, byte chunks, checksum, ownership, target
+        // revision, metadata revision and provenance are left untouched.
+        for (final row in await staged._rows(
+          "SELECT id,snapshot FROM attachment_record WHERE state='ready'",
+        )) {
+          final id = row['id']! as String;
+          final Map<String, Object?> snapshot;
+          final AttachmentRecord retained;
+          try {
+            snapshot = Map<String, Object?>.from(
+              jsonDecode(row['snapshot']! as String) as Map,
+            );
+            retained = AttachmentRecord.fromJson(snapshot);
+          } catch (_) {
+            throw const RestoreFailure(RestoreCodes.corrupt);
+          }
+          if (retained.id != id || retained.state != AttachmentState.ready) {
+            throw const RestoreFailure(RestoreCodes.corrupt);
+          }
+          await staged._db.customStatement(
+            'UPDATE attachment_record SET snapshot=? WHERE id=?',
+            [
+              jsonEncode({...snapshot, 'generation': generation}),
+              id,
+            ],
+          );
+        }
         await staged._db.customStatement('UPDATE dataset SET generation=?', [
           generation,
         ]);
