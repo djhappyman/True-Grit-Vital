@@ -357,9 +357,7 @@ void main() {
     await tapFinder(tester, choose);
     await settle(tester);
     expect(
-      find.text(
-        'History could not be loaded. Retry to keep your current view.',
-      ),
+      find.text('The source could not be loaded. Choose it again.'),
       findsOneWidget,
     );
     expect(find.byKey(const ValueKey('combined-source-0')), findsNothing);
@@ -368,13 +366,43 @@ void main() {
     await settle(tester);
     expect(find.byKey(const ValueKey('combined-source-0')), findsOneWidget);
     expect(
-      find.text(
-        'History could not be loaded. Retry to keep your current view.',
-      ),
+      find.text('The source could not be loaded. Choose it again.'),
       findsNothing,
     );
     expect(tester.takeException(), isNull);
   });
+
+  for (final fails in [false, true]) {
+    appTest('a source read after disposal stays silent (failure: $fails)', (
+      tester,
+    ) async {
+      final f = await launch(tester);
+      final item = (await runIo(tester, () => product(f.store)))!;
+      final gate = Completer<ProductLabelSnapshot?>();
+      await openCombined(
+        tester,
+        f,
+        overrides: [
+          combinedSourceLabelProvider.overrideWithValue(
+            (_, _, _) => gate.future,
+          ),
+        ],
+      );
+      f.container.read(routerProvider).go('/combined/$meId');
+      await settle(tester);
+      await tap(tester, 'Add');
+      await tapFinder(tester, find.byKey(ValueKey('combine-add-${item.id}')));
+      await tester.pumpWidget(const SizedBox.shrink());
+      if (fails) {
+        gate.completeError(StateError('retired source read failed'));
+      } else {
+        gate.complete(null);
+      }
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+      expect(await runIo(tester, f.store.records), isEmpty);
+    });
+  }
 
   appTest('a source read failure after lock stays silent', (tester) async {
     final auth = _Auth();
@@ -415,9 +443,7 @@ void main() {
     gate.complete();
     await settle(tester);
     expect(
-      find.text(
-        'History could not be loaded. Retry to keep your current view.',
-      ),
+      find.text('The source could not be loaded. Choose it again.'),
       findsNothing,
     );
     expect(find.byKey(const ValueKey('combined-source-0')), findsNothing);
@@ -548,9 +574,7 @@ void main() {
     await settle(tester);
     expect(find.byKey(const ValueKey('combined-source-1')), findsNothing);
     expect(
-      find.text(
-        'History could not be loaded. Retry to keep your current view.',
-      ),
+      find.text('The source could not be loaded. Choose it again.'),
       findsNothing,
     );
     final draft = (await runIo(tester, f.store.drafts))!.single;
@@ -604,9 +628,7 @@ void main() {
     gate.complete();
     await settle(tester);
     expect(
-      find.text(
-        'History could not be loaded. Retry to keep your current view.',
-      ),
+      find.text('The source could not be loaded. Choose it again.'),
       findsNothing,
     );
     expect(find.byKey(const ValueKey('combined-source-1')), findsNothing);

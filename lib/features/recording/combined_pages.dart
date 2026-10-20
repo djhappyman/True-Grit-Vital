@@ -264,6 +264,7 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
   /// store surface, generation and unlocked session it began in. A retained
   /// value during a replacement or failed reload is not a current source.
   bool _preparationCurrent(RecordStore store) {
+    if (!mounted) return false;
     final surface = ref.read(combinedRecordSurfaceProvider);
     return mounted &&
         !surface.isLoading &&
@@ -294,7 +295,7 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
     final t = AppLocalizations.of(context);
     setState(() {
       _pendingAdds.add(item.id);
-      if (error == t.historyUnavailable) error = null;
+      if (error == t.combinedSourceLoadFailure) error = null;
     });
     try {
       final store = await ref.read(recordStoreProvider.future);
@@ -317,20 +318,21 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
       setState(() {
         entries.add(e);
         choosing = false;
-        if (error == t.historyUnavailable) error = null;
+        if (error == t.combinedSourceLoadFailure) error = null;
       });
       changed();
     } catch (_) {
       // A genuine read failure stays visible so the person can choose the
       // source again. A lock, replaced store or pending replacement owns the
       // outcome now, so its obsolete failure stays silent.
+      if (!mounted) return;
       final current = ref.read(combinedRecordSurfaceProvider);
       if (mounted &&
           locks == _lockEpoch &&
           !current.isLoading &&
           !current.hasError &&
           identical(current.value, startStore)) {
-        setState(() => error = t.historyUnavailable);
+        setState(() => error = t.combinedSourceLoadFailure);
       }
     } finally {
       if (mounted && _pendingAdds.remove(item.id)) setState(() {});

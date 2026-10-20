@@ -2354,6 +2354,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose 2 to 16 sources. Each source keeps its own amount and stock effect.';
 
   @override
+  String get combinedSourceLoadFailure =>
+      'The source could not be loaded. Choose it again.';
+
+  @override
   String get combinedReview => 'Review entry';
 
   @override

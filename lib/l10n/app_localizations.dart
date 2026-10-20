@@ -3882,6 +3882,12 @@ abstract class AppLocalizations {
   /// **'Choose 2 to 16 sources. Each source keeps its own amount and stock effect.'**
   String get combinedCount;
 
+  /// A combined-entry source label could not be read. The open chooser lets the person select the same source again.
+  ///
+  /// In en, this message translates to:
+  /// **'The source could not be loaded. Choose it again.'**
+  String get combinedSourceLoadFailure;
+
   /// Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences.
   ///
   /// In en, this message translates to:

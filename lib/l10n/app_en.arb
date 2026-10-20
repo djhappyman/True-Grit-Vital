@@ -2835,6 +2835,10 @@
   "combinedAction": "Combine",
   "combinedAdd": "Add source",
   "combinedCount": "Choose 2 to 16 sources. Each source keeps its own amount and stock effect.",
+  "combinedSourceLoadFailure": "The source could not be loaded. Choose it again.",
+  "@combinedSourceLoadFailure": {
+    "description": "A combined-entry source label could not be read. The open chooser lets the person select the same source again."
+  },
   "combinedReview": "Review entry",
   "combinedReviewHelp": "Save all sources together. Cancelling this review changes no records or stock.",
   "combinedHistory": "Combined record",
