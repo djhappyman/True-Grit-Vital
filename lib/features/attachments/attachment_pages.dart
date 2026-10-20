@@ -540,9 +540,7 @@ class _AttachmentViewerPageState extends ConsumerState<AttachmentViewerPage> {
   FocusNode? pendingFocus;
   bool deleting = false, focusRestored = false;
   String? completedDeletionRoute;
-  String? error, deleteCommand;
-  AttachmentRecord? deleteTarget;
-  int? deleteOwnerRevision;
+  String? error;
   @override
   void dispose() {
     renameFocus.dispose();
@@ -589,18 +587,18 @@ class _AttachmentViewerPageState extends ConsumerState<AttachmentViewerPage> {
       restoreFocus(deleteFocus);
       return;
     }
-    deleteTarget ??= record;
-    deleteOwnerRevision ??= ownerRevision;
-    deleteCommand ??= newCommandId();
     setState(() {
       deleting = true;
       error = null;
     });
     try {
+      // Each confirmation is a fresh attempt. A retry after a conflict must
+      // review the record and owner revision currently shown, never repeat the
+      // stale values that failed; the store validates both again.
       await (await ref.read(recordStoreProvider.future)).deleteAttachment(
-        commandId: deleteCommand!,
-        attachment: deleteTarget!,
-        expectedPersonRevision: deleteOwnerRevision!,
+        commandId: newCommandId(),
+        attachment: record,
+        expectedPersonRevision: ownerRevision,
       );
       completedDeletionRoute = '${attachmentRoute(record)}?focus=choose';
       if (mounted && !ref.read(appLockProvider).locked) {

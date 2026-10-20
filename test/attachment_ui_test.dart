@@ -650,6 +650,52 @@ void main() {
     },
   );
   attachmentAppTest(
+    'stale delete confirmation refuses the changed file and a retry deletes the current one',
+    (tester) async {
+      final f = await fixture(tester),
+          source = (await runIo(tester, () => png(8, 8)))!;
+      final file = (await runIo(
+        tester,
+        () => seedFile(f.store, f.item, source),
+      ))!;
+      f.container.read(routerProvider).go('/attachment/${file.id}');
+      await settle(tester);
+      await tap(tester, 'Delete');
+      expect(find.text('Delete from record'), findsOneWidget);
+      // The file is renamed while the confirmation is open, so the confirmed
+      // attempt is now stale and must refuse to delete the changed record.
+      await runIo(
+        tester,
+        () => f.store.renameAttachment(
+          commandId: newCommandId(),
+          attachment: file,
+          expectedPersonRevision: 2,
+          name: 'Renamed.png',
+        ),
+      );
+      await tap(tester, 'Delete');
+      await waitForText(
+        tester,
+        'This file’s record changed or is unavailable. Return to its original record and review it.',
+      );
+      expect(
+        (await runIo(tester, () => f.store.attachmentById(file.id)))!.name,
+        'Renamed.png',
+      );
+      // Retrying reviews the current revision, so the delete can finish.
+      await tap(tester, 'Delete');
+      await tap(tester, 'Delete');
+      await waitForText(
+        tester,
+        'No files attached. Choose a file or an existing photo to add one.',
+      );
+      expect(
+        await runIo(tester, () => f.store.attachmentById(file.id)),
+        isNull,
+      );
+    },
+  );
+  attachmentAppTest(
     'share retains a named original handoff after lock and never changes its bytes',
     (tester) async {
       final f = await fixture(tester);
