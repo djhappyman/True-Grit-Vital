@@ -179,6 +179,7 @@ extension ReportTemplateStore on RecordStore {
             supporting: base.snapshot.supporting,
             attachments: scopedAttachments,
             supportingTruncated: base.snapshot.supportingTruncated,
+            supportingOmission: base.snapshot.supportingOmission,
           );
           final skipped = await _skippedEntries(
             personId: selection.personId,

@@ -148,6 +148,27 @@ final class ReportSupportingValue {
   final String? unit, referenceRange;
 }
 
+/// Truthful disclosure of the supporting records left out of the selected
+/// collection-date window because their collection date is unknown or partial.
+///
+/// Nothing about an omitted record's content enters the snapshot. A reached
+/// counting bound reports [count] null instead of a fabricated number.
+final class ReportSupportingOmission {
+  const ReportSupportingOmission.counted(int this.count) : assert(count >= 0);
+  const ReportSupportingOmission.uncounted() : count = null;
+
+  /// Number of omitted current records, or null when they were not counted.
+  final int? count;
+
+  /// Stable identity input. Only a positive or uncounted result changes the
+  /// reviewed wording, so an exact zero leaves the artifact identity unchanged.
+  List<Object?>? get identityToken => count == null
+      ? const ['supporting-collection-date', 'uncounted']
+      : count! > 0
+      ? ['supporting-collection-date', 'counted', count]
+      : null;
+}
+
 final class ReportAttachmentRef {
   const ReportAttachmentRef({
     required this.id,
@@ -189,6 +210,7 @@ final class ReportSnapshot {
     required Iterable<ReportSupportingEntry> supporting,
     required Iterable<ReportAttachmentRef> attachments,
     required this.supportingTruncated,
+    this.supportingOmission,
     this.templateData,
   }) : records = List.unmodifiable(records),
        supporting = List.unmodifiable(supporting),
@@ -203,6 +225,7 @@ final class ReportSnapshot {
     Iterable<ReportSupportingEntry> supporting = const [],
     Iterable<ReportAttachmentRef> attachments = const [],
     bool supportingTruncated = false,
+    ReportSupportingOmission? supportingOmission,
     ReportTemplateData? templateData,
   }) {
     if (person.id != selection.personId) {
@@ -210,6 +233,9 @@ final class ReportSnapshot {
     }
     if (templateData != null && templateData.template != selection.template) {
       throw const ReportSelectionFailure('report_template_data');
+    }
+    if (supportingOmission != null && !selection.includeSupporting) {
+      throw const ReportSelectionFailure('report_supporting_omission');
     }
     final all = records.toList();
     return ReportSnapshot._(
@@ -220,6 +246,7 @@ final class ReportSnapshot {
       supporting: supporting,
       attachments: attachments,
       supportingTruncated: supportingTruncated,
+      supportingOmission: supportingOmission,
       templateData: templateData,
     );
   }
@@ -231,6 +258,10 @@ final class ReportSnapshot {
   final List<ReportSupportingEntry> supporting;
   final List<ReportAttachmentRef> attachments;
   final bool supportingTruncated;
+
+  /// Truthful count of omitted unknown/partial collection dates. Set exactly
+  /// when supporting context is selected; null when it is not.
+  final ReportSupportingOmission? supportingOmission;
 
   /// R02/R03 body captured with this cutoff. Null for R01.
   final ReportTemplateData? templateData;
@@ -250,6 +281,7 @@ final class ReportSnapshot {
       supporting: supporting,
       attachments: attachments,
       supportingTruncated: supportingTruncated,
+      supportingOmission: supportingOmission,
       templateData: data,
     );
   }
@@ -265,7 +297,14 @@ final class ReportSnapshot {
   /// Stable, non-identifying artifact identity for repeated page identity.
   String get artifactId {
     final digest = sha256.convert(
-      utf8.encode(jsonEncode([selection.identity, cutoff.toJson()])),
+      utf8.encode(
+        jsonEncode([
+          selection.identity,
+          cutoff.toJson(),
+          if (supportingOmission?.identityToken != null)
+            supportingOmission!.identityToken,
+        ]),
+      ),
     );
     return digest.toString().substring(0, 12);
   }
@@ -644,6 +683,29 @@ int _productCompare(ReportProductTotal a, ReportProductTotal b) {
 final class ReportText {
   const ReportText._();
 
+  /// Plain notice for supporting records omitted because their collection date
+  /// is unknown or partial. Null when supporting context was not selected or
+  /// when no record has such a date, because neither changes the reviewed text.
+  static String? supportingOmissionNotice(ReportSnapshot snapshot) {
+    if (!snapshot.selection.includeSupporting) return null;
+    final omission = snapshot.supportingOmission;
+    if (omission == null) return null;
+    final count = omission.count;
+    if (count == null) {
+      return 'Supporting records with unknown or partial collection dates are '
+          'not shown. Their number was above the report\'s counting limit.';
+    }
+    if (count == 1) {
+      return '1 supporting record has an unknown or partial collection date. '
+          'It is not shown.';
+    }
+    if (count > 1) {
+      return '$count supporting records have unknown or partial collection '
+          'dates. They are not shown.';
+    }
+    return null;
+  }
+
   /// Selected supporting records, private notes and source files for the
   /// text alternative used by R02 and R03.
   ///
@@ -689,6 +751,8 @@ final class ReportText {
       if (snapshot.supportingTruncated) {
         lines.add('Supporting context is limited to the first 50 records.');
       }
+      final omission = supportingOmissionNotice(snapshot);
+      if (omission != null) lines.add(omission);
     }
     if (selection.includeAttachments) {
       lines.add('');
@@ -798,6 +862,11 @@ final class ReportText {
         if (selection.includeNotes && entry.notes != null) {
           lines.add('Note: ${entry.notes}');
         }
+      }
+      final omission = supportingOmissionNotice(snapshot);
+      if (omission != null) {
+        lines.add('');
+        lines.add(omission);
       }
     }
     if (selection.includeAttachments) {

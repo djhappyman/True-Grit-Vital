@@ -489,6 +489,12 @@ final class R01SummaryRenderer implements ReportTemplateRenderer {
           ),
         );
       }
+      final omission = ReportText.supportingOmissionNotice(snapshot);
+      if (omission != null) {
+        content.add(
+          pw.Text(omission, style: pw.TextStyle(fontSize: 8, color: _muted)),
+        );
+      }
       for (final entry in snapshot.supporting) {
         if (entry.notes == null) continue;
         content

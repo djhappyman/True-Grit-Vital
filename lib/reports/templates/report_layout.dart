@@ -368,6 +368,8 @@ pw.Widget reportContextBlock(ReportSnapshot snapshot) {
             'Supporting context is limited to the first 50 records.',
             size: 8,
           ),
+        if (ReportText.supportingOmissionNotice(snapshot) case final notice?)
+          reportNote(notice, size: 8),
         for (final entry in snapshot.supporting)
           if (entry.notes != null) ...[
             pw.SizedBox(height: 6),

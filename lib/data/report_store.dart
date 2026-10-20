@@ -16,12 +16,17 @@ extension ReportStore on RecordStore {
   ///
   /// [maxRecords] bounds R01 summary work. Exceeding it returns a truthful
   /// limit failure instead of silently truncating totals.
+  ///
+  /// [maxSupportingOmissions] is a small internal counting budget for records
+  /// excluded by their unknown or partial collection date. Exceeding it
+  /// reports the omission as uncounted, never a fabricated zero.
   Future<ReportCapture> captureReport({
     required ReportSelection selection,
     required DateTime Function() now,
     ReportCancellation cancellation = const NeverCancelled(),
     int maxRecords = 10000,
     int maxAttachments = 50,
+    int maxSupportingOmissions = 500,
   }) async {
     _requireWritable();
     return _db.transaction(
@@ -31,6 +36,7 @@ extension ReportStore on RecordStore {
         cancellation: cancellation,
         maxRecords: maxRecords,
         maxAttachments: maxAttachments,
+        maxSupportingOmissions: maxSupportingOmissions,
       ),
     );
   }
@@ -41,8 +47,13 @@ extension ReportStore on RecordStore {
     required ReportCancellation cancellation,
     required int maxRecords,
     required int maxAttachments,
+    required int maxSupportingOmissions,
   }) async {
-    if (maxRecords < 1 || maxRecords > 100000 || maxAttachments < 0) {
+    if (maxRecords < 1 ||
+        maxRecords > 100000 ||
+        maxAttachments < 0 ||
+        maxSupportingOmissions < 0 ||
+        maxSupportingOmissions > 10000) {
       throw const ReportSelectionFailure('report_limit');
     }
     if (cancellation.isCancelled) throw const ReportCancelled();
@@ -95,6 +106,7 @@ extension ReportStore on RecordStore {
 
     final supporting = <ReportSupportingEntry>[];
     var supportingTruncated = false;
+    ReportSupportingOmission? supportingOmission;
     if (selection.includeSupporting) {
       final page = await supportingRecords(
         SupportingQuery(
@@ -131,6 +143,18 @@ extension ReportStore on RecordStore {
           ),
         );
       }
+      if (cancellation.isCancelled) throw const ReportCancelled();
+      // The same snapshot reads one bounded count of current records that the
+      // selected collection-date window cannot position. The partial index
+      // stops at the bound; only identities are read, never content.
+      final unpositioned = await _rows(
+        'SELECT id FROM supporting_record WHERE person=? AND voided=0 AND collection_at IS NULL AND collection_day IS NULL LIMIT ?',
+        [selection.personId, maxSupportingOmissions + 1],
+      );
+      supportingOmission = unpositioned.length > maxSupportingOmissions
+          ? const ReportSupportingOmission.uncounted()
+          : ReportSupportingOmission.counted(unpositioned.length);
+      if (cancellation.isCancelled) throw const ReportCancelled();
     }
 
     final pins = <AttachmentPin>[];
@@ -223,6 +247,7 @@ extension ReportStore on RecordStore {
         supporting: supporting,
         attachments: attachmentRefs,
         supportingTruncated: supportingTruncated,
+        supportingOmission: supportingOmission,
       );
       return ReportCapture(
         snapshot: snapshot,
