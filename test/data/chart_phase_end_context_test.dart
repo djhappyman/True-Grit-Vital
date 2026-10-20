@@ -33,10 +33,11 @@ void main() {
     return db;
   }
 
-  /// Writes the saved date-only end shape, which carries the saved civil date
-  /// and zone without inventing a midnight instant for a display device.
+  /// Writes saved end metadata for chart context. The optional instant also
+  /// exercises the current writer's combined date and exact-boundary shape.
   Future<void> insertPhaseEnds({
     int distantEnds = 0,
+    DateTime? savedDateOnlyInstant,
     List<({String id, String zone, String lastDate})> dateOnlyEnds = const [],
     List<({String id, DateTime instant})> exactEnds = const [],
   }) async {
@@ -77,7 +78,12 @@ void main() {
         add('distant-plan-$index', 'UTC', lastDate: '1900-01-01');
       }
       for (final end in dateOnlyEnds) {
-        add(end.id, end.zone, lastDate: end.lastDate);
+        add(
+          end.id,
+          end.zone,
+          lastDate: end.lastDate,
+          instant: savedDateOnlyInstant?.microsecondsSinceEpoch,
+        );
       }
       for (final end in exactEnds) {
         add(end.id, 'UTC', instant: end.instant.microsecondsSinceEpoch);
@@ -106,6 +112,31 @@ void main() {
         bucketSize: ChartBucketSize.day,
       ),
     ),
+  );
+
+  test(
+    'a saved last day remains visible before its exact end boundary',
+    () async {
+      await insertPhaseEnds(
+        savedDateOnlyInstant: DateTime.utc(2026, 10, 25),
+        dateOnlyEnds: [
+          (id: 'current-writer-end', zone: 'UTC', lastDate: '2026-10-24'),
+        ],
+      );
+      final context = await contextFor(
+        from: DateTime.utc(2026, 10, 24, 12),
+        before: DateTime.utc(2026, 10, 24, 13),
+        displayZone: 'UTC',
+      );
+      expect(context.complete, isTrue);
+      final end = context.annotations.singleWhere(
+        (annotation) => annotation.kind == ChartAnnotationKind.planEnd,
+      );
+      expect(end.sourceId, 'current-writer-end');
+      expect(end.at.civilDate, CivilDate(2026, 10, 24));
+      expect(end.at.zoneId, 'UTC');
+      expect(end.at.instant, isNull);
+    },
   );
 
   test(
