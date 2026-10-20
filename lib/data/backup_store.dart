@@ -173,7 +173,13 @@ extension BackupRecordStore on RecordStore {
   Future<BackupInventory> inspectOwnSnapshot(
     BackupSnapshotFile snapshot, {
     BackupCancellationToken? token,
-  }) => inspectBackupSnapshot(path: snapshot.path, key: _key, token: token);
+    void Function(int validatedRows)? onValidatedBatch,
+  }) => inspectBackupSnapshot(
+    path: snapshot.path,
+    key: _key,
+    token: token,
+    onValidatedBatch: onValidatedBatch,
+  );
 
   /// Encrypts the captured snapshot in a background isolate. The live dataset
   /// key never leaves the store by public API.
@@ -227,6 +233,7 @@ extension BackupRecordStore on RecordStore {
 
   Future<BackupInventory> _backupInventory([
     BackupCancellationToken? token,
+    void Function(int validatedRows)? onValidatedBatch,
   ]) async {
     token?.throwIfCancelled();
     if ((await _rows('PRAGMA integrity_check')).single.values.single != 'ok') {
@@ -235,7 +242,7 @@ extension BackupRecordStore on RecordStore {
     if ((await _rows('PRAGMA foreign_key_check')).isNotEmpty) {
       throw const BackupFailure('backup_invalid_dataset');
     }
-    await _validateBackupQuantities(token);
+    await _validateBackupQuantities(token, onValidatedBatch);
     final dataset = await _rows('SELECT generation FROM dataset');
     if (dataset.length != 1) {
       throw const BackupFailure('backup_invalid_dataset');
@@ -311,8 +318,9 @@ extension BackupRecordStore on RecordStore {
     final itemCount =
         (await _rows('SELECT count(*) c FROM item')).single['c']! as int;
     final supportingCount =
-        (await _rows('SELECT count(*) c FROM supporting_record WHERE voided=0'))
-                .single['c']!
+        (await _rows(
+              'SELECT count(*) c FROM supporting_record WHERE voided=0',
+            )).single['c']!
             as int;
     final recordCount = recordRange['c']! as int;
     final lo = recordRange['lo'] as int?;
@@ -374,9 +382,19 @@ extension BackupRecordStore on RecordStore {
 
   /// SQL integrity does not establish the meaning of quantity text. Validate
   /// every historical revision and exact pair before accepting an archive.
+  ///
+  /// [onValidatedBatch] is an optional synchronous inspection progress
+  /// observer. It is called after each completed nonempty bounded validation
+  /// batch with the cumulative count of validated rows. The count describes
+  /// row work done for inspection only; it is NOT a clinical dose count or a
+  /// byte volume. Production callers omit it. Cancellation is re-checked at
+  /// the next boundary after the observer returns and before further work, so
+  /// an observer that cancels the token stops the scan before the next batch.
   Future<void> _validateBackupQuantities([
     BackupCancellationToken? token,
+    void Function(int validatedRows)? onValidatedBatch,
   ]) async {
+    var validatedRows = 0;
     for (final table in ['revision', 'revision_quantity']) {
       token?.throwIfCancelled();
       String? record;
@@ -416,8 +434,16 @@ extension BackupRecordStore on RecordStore {
             throw const BackupFailure('backup_invalid_dataset');
           }
         }
-        if (rows.length < 500) break;
+        // The bounded batch completed with rows, so report the cumulative
+        // validated row count whether or not a cancellation token exists.
+        if (rows.isNotEmpty) {
+          validatedRows += rows.length;
+          onValidatedBatch?.call(validatedRows);
+        }
+        // Next-boundary position: honour a cancellation the observer issued
+        // (or one that arrived mid-batch) before any further validation work.
         token?.throwIfCancelled();
+        if (rows.length < 500) break;
         record = rows.last['record'] as String;
         revision = rows.last['revision'] as int;
       }
@@ -429,15 +455,20 @@ extension BackupRecordStore on RecordStore {
 /// row/file invariant required by recovery preview. It never activates data.
 /// [token] bounds an abandoned validation attempt: a cancelled scan stops
 /// before further re-hashing or row work and the caller deletes the staging.
+/// [onValidatedBatch] is an optional synchronous inspection progress observer
+/// (validated rows, not clinical dose counts or bytes) called after each
+/// completed nonempty bounded quantity-validation batch; production callers
+/// omit it.
 Future<BackupInventory> inspectBackupSnapshot({
   required String path,
   required List<int> key,
   BackupCancellationToken? token,
+  void Function(int validatedRows)? onValidatedBatch,
 }) async {
   token?.throwIfCancelled();
   final store = await RecordStore.open(path: path, key: key, isNew: false);
   try {
-    return await store._backupInventory(token);
+    return await store._backupInventory(token, onValidatedBatch);
   } finally {
     await store.close();
   }

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
@@ -14,13 +13,21 @@ import 'package:true_grit_vital/domain/backup/backup.dart';
 /// report a complete inventory. Every awaited scan boundary now fails closed
 /// on a cancelled token; the cancelled scans below therefore return no result,
 /// keep the live dataset intact and leave no stray staging or archive behind.
-const _quantityScanRevisions = 640;
+///
+/// Cancellation inside the quantity scan is exercised through the optional
+/// synchronous `onValidatedBatch` inspection observer, which makes the
+/// boundary deterministic: the observer cancels the token after the first
+/// completed nonempty validation batch, with no timing, pacing or sleep to
+/// select the scan stage. It is a row-work progress observer, not a clinical
+/// dose count or byte volume, and no production caller supplies it.
+/// Enough revisions for two completed validation batches: two full bounded
+/// pages plus the setUp record. This is a batch-structural property of the
+/// dataset, not a timing calibration, so the boundary stays deterministic on
+/// any executor.
+const _quantityScanRevisions = _validationPageSize * 2;
 
-/// Event-loop turns of awaited live-store reads ordered between starting the
-/// standalone scan and issuing the cancellation command, calibrated so the
-/// command lands inside the scan's awaited quantity/metadata region while it
-/// is still running.
-const _scanCancellationPacingTurns = 108;
+/// The bounded quantity-validation page size used by the store's scan.
+const _validationPageSize = 500;
 
 void main() {
   late Directory directory;
@@ -82,18 +89,29 @@ void main() {
     () async {
       await seedAttachments();
       final token = BackupCancellationToken();
+      final batches = <int>[];
       final source = await Directory('${directory.path}/source').create();
       final snapshot = await store.createBackupSnapshot(
         directory: source,
         sessionId: 'cancelscan',
       );
-      final scan = store.inspectOwnSnapshot(snapshot, token: token);
-      // Cancel while the scan is still in flight; whichever scan boundary
-      // processes the cancelled command first must fail closed so that no
-      // digest can be reported after the cancellation command.
-      Timer(const Duration(), token.cancel);
       final datasetBefore = (await store.records()).length;
-      await expectLater(scan, throwsA(_Cancelled()));
+      await expectLater(
+        store.inspectOwnSnapshot(
+          snapshot,
+          token: token,
+          // Cancel exactly when the first nonempty batch completes; the
+          // synchronous observer makes this boundary deterministic, and the
+          // next scan boundary must fail closed so that no digest can be
+          // reported after the cancellation command.
+          onValidatedBatch: (validatedRows) {
+            batches.add(validatedRows);
+            token.cancel();
+          },
+        ),
+        throwsA(_Cancelled()),
+      );
+      expect(batches, hasLength(1));
 
       // The caller of a failed scan releases the capture pins for its session;
       // records and attachments above stay intact and untouched.
@@ -135,11 +153,13 @@ void main() {
   });
 
   test(
-    'a quantity-only snapshot scan cancelled mid-flight returns no inventory',
+    'a scan cancelled after the first validated batch stops before more batch work',
     () async {
-      // Revisions beyond one full validation page make the quantity scan cross
-      // awaited read boundaries while the cancellation command is still in
-      // flight instead of finishing between two turns.
+      // Revisions beyond one full validation page give the quantity scan more
+      // than one batch, so cancelling after the FIRST completed batch proves
+      // the scan honours cancellation before further batch work rather than
+      // only rejecting the finished result. No attachment, timer, sleep or
+      // pacing is involved: the synchronous observer decides the boundary.
       for (var v = 0; v < _quantityScanRevisions; v++) {
         await store.record(
           commandId: 'quantity-scan-$v',
@@ -148,8 +168,9 @@ void main() {
           actualAt: DateTime.utc(2026, 10, 20, 7, v % 60),
         );
       }
-      final source = await Directory('${directory.path}/quantity-source')
-          .create();
+      final source = await Directory(
+        '${directory.path}/quantity-source',
+      ).create();
       final snapshot = await store.createBackupSnapshot(
         directory: source,
         sessionId: 'quant-scans',
@@ -160,18 +181,24 @@ void main() {
       expect(baseline.attachmentCount, 0);
 
       final livePage = (await store.records()).length;
+      final batches = <int>[];
       final token = BackupCancellationToken();
-      final scan = store.inspectOwnSnapshot(snapshot, token: token);
-      // Order the command past the snapshot's open and entry phases using the
-      // same awaited round-trip cadence the scan's own queries use, so the
-      // cancelled command arrives while the quantity or metadata scans are
-      // still in flight. Wherever the scan processes it, the next scan
-      // boundary must fail closed instead of returning the completed result.
-      for (var turn = 0; turn < _scanCancellationPacingTurns; turn++) {
-        await store.records(limit: 1);
-      }
-      token.cancel();
-      await expectLater(scan, throwsA(_Cancelled()));
+      await expectLater(
+        store.inspectOwnSnapshot(
+          snapshot,
+          token: token,
+          onValidatedBatch: (validatedRows) {
+            batches.add(validatedRows);
+            if (validatedRows == _validationPageSize) token.cancel();
+          },
+        ),
+        throwsA(_Cancelled()),
+      );
+      // Only the first batch was observed: once the cancelled command is
+      // honoured, no second batch is validated or reported, even though the
+      // dataset spans three batches and the final inventory still re-checks
+      // the token.
+      expect(batches, [_validationPageSize]);
 
       // The abandoned scan disturbed nothing: the live dataset keeps its
       // records and the same snapshot still validates identically. No pin or
