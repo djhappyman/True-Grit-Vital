@@ -244,7 +244,7 @@ void main() {
     pending.single.complete(
       SupportingSourcePage(
         records: [sourceCandidate('stale', 'Stale file', f.store.generation)],
-        nextOffset: null,
+        nextCursor: null,
         generation: f.store.generation,
       ),
     );
@@ -256,7 +256,7 @@ void main() {
     pending.last.complete(
       SupportingSourcePage(
         records: [sourceCandidate('fresh', 'Fresh file', f.store.generation)],
-        nextOffset: null,
+        nextCursor: null,
         generation: f.store.generation,
       ),
     );
@@ -281,7 +281,7 @@ void main() {
               records: [
                 sourceCandidate('replaced', 'Replaced file', 'replaced'),
               ],
-              nextOffset: null,
+              nextCursor: null,
               generation: 'replaced',
             ),
           );

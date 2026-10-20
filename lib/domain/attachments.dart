@@ -253,6 +253,66 @@ final class AttachmentRecord {
   );
 }
 
+/// One in-memory continuation position in the newest-first attachment order.
+///
+/// The cursor keeps the raw SQL sort keys (`created_at` then `id`) together
+/// with the dataset generation and exact owner/target scope it was read from,
+/// so a page can continue after deletes or inserts without an offset window.
+/// No serialized wire format is introduced.
+final class AttachmentPageCursor {
+  const AttachmentPageCursor({
+    required this.generation,
+    required this.personId,
+    required this.createdAtMicros,
+    required this.id,
+    this.targetKind,
+    this.targetId,
+  });
+  final String generation, personId, id;
+  final int createdAtMicros;
+  final AttachmentTargetKind? targetKind;
+  final String? targetId;
+  @override
+  bool operator ==(Object other) =>
+      other is AttachmentPageCursor &&
+      other.generation == generation &&
+      other.personId == personId &&
+      other.createdAtMicros == createdAtMicros &&
+      other.id == id &&
+      other.targetKind == targetKind &&
+      other.targetId == targetId;
+  @override
+  int get hashCode => Object.hash(
+    generation,
+    personId,
+    createdAtMicros,
+    id,
+    targetKind,
+    targetId,
+  );
+  @override
+  String toString() =>
+      'AttachmentPageCursor($generation,$personId,$createdAtMicros,$id,'
+      '${targetKind?.name},$targetId)';
+}
+
+/// One bounded newest-first attachment page and its continuation position.
+final class AttachmentPage {
+  const AttachmentPage({
+    required this.records,
+    required this.nextCursor,
+    required this.generation,
+  });
+  final List<AttachmentRecord> records;
+
+  /// Null when the query returned no further row in this scope.
+  final AttachmentPageCursor? nextCursor;
+
+  /// The dataset generation every record and cursor in this page belongs to.
+  final String generation;
+  bool get hasMore => nextCursor != null;
+}
+
 final class AttachmentPin {
   const AttachmentPin({
     required this.id,

@@ -404,6 +404,68 @@ extension AttachmentRecordStore on RecordStore {
     )).map(_attachmentRead).toList();
   }
 
+  /// Reads one bounded newest-first page and returns a keyset cursor instead
+  /// of an offset window.
+  ///
+  /// `created_at DESC, id ASC` are the actual SQL sort keys; continuation
+  /// compares them directly, so deleting, inserting or renaming a row that
+  /// precedes the cursor cannot skip or repeat a surviving older row. The
+  /// cursor is rejected when its dataset generation or exact owner/target
+  /// scope no longer matches. Only `limit + 1` rows are read to detect a
+  /// further page; no unbounded fetch is performed.
+  Future<AttachmentPage> attachmentPage({
+    required String personId,
+    AttachmentTargetKind? targetKind,
+    String? targetId,
+    int limit = 100,
+    AttachmentPageCursor? cursor,
+  }) async {
+    _requireWritable();
+    _pageBounds(limit, 0);
+    if (cursor != null) {
+      if (cursor.generation != generation) {
+        throw const CommandConflict('generation');
+      }
+      if (cursor.personId != personId ||
+          cursor.targetKind != targetKind ||
+          cursor.targetId != targetId) {
+        throw const CommandConflict('attachment_cursor');
+      }
+    }
+    final rows = await _rows(
+      "SELECT id,created_at,snapshot FROM attachment_record WHERE person=? AND state='ready' AND EXISTS(SELECT 1 FROM attachment_link l WHERE l.attachment=attachment_record.id AND l.person=attachment_record.person) ${targetKind == null ? '' : 'AND target_kind=?'} ${targetId == null ? '' : 'AND target=?'} ${cursor == null ? '' : 'AND (created_at<? OR (created_at=? AND id>?))'} ORDER BY created_at DESC,id LIMIT ?",
+      [
+        personId,
+        if (targetKind != null) targetKind.name,
+        ?targetId,
+        if (cursor != null) ...[
+          cursor.createdAtMicros,
+          cursor.createdAtMicros,
+          cursor.id,
+        ],
+        limit + 1,
+      ],
+    );
+    final page = rows.take(limit).toList();
+    final last = page.isEmpty ? null : page.last;
+    return AttachmentPage(
+      records: page.map(_attachmentRead).toList(),
+      // Advance by the raw queried sort keys even when a caller later filters
+      // this row out as ineligible, so continuation cannot loop or skip.
+      nextCursor: rows.length > limit && last != null
+          ? AttachmentPageCursor(
+              generation: generation,
+              personId: personId,
+              targetKind: targetKind,
+              targetId: targetId,
+              createdAtMicros: last['created_at'] as int,
+              id: last['id'] as String,
+            )
+          : null,
+      generation: generation,
+    );
+  }
+
   Stream<List<AttachmentRecord>> watchAttachments({
     required String personId,
     AttachmentTargetKind? targetKind,

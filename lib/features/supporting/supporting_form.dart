@@ -44,7 +44,7 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
   int page = 0, metricOffset = 0;
   final metricSearch = TextEditingController();
   final sourceCandidates = <AttachmentRecord>[];
-  int sourceOffset = 0;
+  AttachmentPageCursor? sourceCursor;
   bool sourceHasMore = false, sourceLoading = false, sourceLoaded = false;
   bool sourceFailed = false;
   String? sourceGeneration;
@@ -212,7 +212,7 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
         supportingSourceCandidatesProvider(
           SupportingSourceRequest(
             personId: widget.personId,
-            offset: sourceOffset,
+            cursor: sourceCursor,
           ),
         ).future,
       );
@@ -236,7 +236,7 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
         sourceCandidates
           ..clear()
           ..addAll(merged);
-        sourceOffset = page.nextOffset ?? sourceOffset;
+        sourceCursor = page.nextCursor;
         sourceHasMore = page.hasMore;
         sourceGeneration = page.generation;
         sourceLoaded = true;
@@ -255,7 +255,7 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
     _sourceRequest++;
     setState(() {
       sourceCandidates.clear();
-      sourceOffset = 0;
+      sourceCursor = null;
       sourceHasMore = false;
       sourceLoaded = false;
       sourceLoading = false;
@@ -269,7 +269,7 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
       setState(() {
         details = false;
         if (sourceLoading) {
-          // Discard the page in flight; reopening loads from the same offset.
+          // Discard the page in flight; reopening loads from the same cursor.
           _sourceRequest++;
           sourceLoading = false;
         }

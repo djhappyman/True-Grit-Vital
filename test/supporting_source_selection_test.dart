@@ -234,16 +234,24 @@ void main() {
     });
 
     test('the oldest eligible file is reachable after fifty', () async {
-      const first = SupportingSourceRequest(personId: meId, offset: 0);
-      const second = SupportingSourceRequest(personId: meId, offset: 50);
+      const first = SupportingSourceRequest(personId: meId);
       final pageOne = await container.read(
         supportingSourceCandidatesProvider(first).future,
       );
       expect(pageOne.records, hasLength(supportingSourcePageSize));
       expect(pageOne.hasMore, isTrue);
-      expect(pageOne.nextOffset, 50);
+      final cursor = pageOne.nextCursor;
+      expect(cursor, isNotNull);
+      expect(cursor!.generation, store.generation);
+      expect(cursor.personId, meId);
+      expect(cursor.id, pageOne.records.last.id);
+      expect(
+        cursor.createdAtMicros,
+        pageOne.records.last.createdAt.microsecondsSinceEpoch,
+      );
       expect(pageOne.records.first.name, 'Source 50');
       expect(pageOne.records.last.name, 'Source 01');
+      final second = SupportingSourceRequest(personId: meId, cursor: cursor);
       expect(
         pageOne.records.every(
           (record) =>
@@ -259,7 +267,7 @@ void main() {
       );
       expect(pageTwo.records.single.name, 'Source 00');
       expect(pageTwo.hasMore, isFalse);
-      expect(pageTwo.nextOffset, isNull);
+      expect(pageTwo.nextCursor, isNull);
 
       final merged = mergeSupportingSourcePage(
         pageOne.records,
@@ -270,7 +278,7 @@ void main() {
     });
 
     test('a lock discards the page and unlock reloads it', () async {
-      const request = SupportingSourceRequest(personId: meId, offset: 0);
+      const request = SupportingSourceRequest(personId: meId);
       final provider = supportingSourceCandidatesProvider(request);
       final subscription = container.listen(provider, (_, _) {});
       await turns();
@@ -314,7 +322,7 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
-      const request = SupportingSourceRequest(personId: meId, offset: 0);
+      const request = SupportingSourceRequest(personId: meId);
       final provider = supportingSourceCandidatesProvider(request);
       final subscription = container.listen(provider, (_, _) {});
       await Future<void>.delayed(const Duration(milliseconds: 10));
@@ -328,7 +336,7 @@ void main() {
       pending.first.result.complete(
         SupportingSourcePage(
           records: [sourceRecord(id: 'stale')],
-          nextOffset: null,
+          nextCursor: null,
           generation: 'generation',
         ),
       );
@@ -338,7 +346,7 @@ void main() {
       pending.last.result.complete(
         SupportingSourcePage(
           records: [sourceRecord(id: 'fresh')],
-          nextOffset: null,
+          nextCursor: null,
           generation: 'generation',
         ),
       );
