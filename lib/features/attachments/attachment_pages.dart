@@ -843,15 +843,15 @@ enum SupportingSourceAvailability { available, changed, unavailable }
 
 /// The saved source must match the captured owner, attachment revision and
 /// content version. A renamed or current attachment never substitutes for it.
+/// The file may have originally belonged to an item, dose record or supporting
+/// record: citing it as a source does not change that target.
 SupportingSourceAvailability supportingSourceAvailability({
   required AttachmentRecord? attachment,
   required String personId,
   required int revision,
   required String contentVersionId,
 }) {
-  if (attachment == null ||
-      attachment.personId != personId ||
-      attachment.targetKind != AttachmentTargetKind.supporting) {
+  if (attachment == null || attachment.personId != personId) {
     return SupportingSourceAvailability.unavailable;
   }
   if (attachment.revision != revision ||

@@ -240,6 +240,14 @@ void main() {
     expect(preview.attachment.revision, file.revision);
     expect(preview.attachment.versionId, file.versionId);
     expect(preview.attachment.personId, meId);
+    final stored = (await runIo(
+      tester,
+      () => f.store.attachmentById(file.id),
+    ))!;
+    expect(stored.targetKind, AttachmentTargetKind.supporting);
+    expect(stored.targetId, 'panel');
+    expect(stored.targetRevision, first.revision);
+    expect(stored.versionId, file.versionId);
   });
 
   appTest('a renamed current source never stands in for the saved version', (
