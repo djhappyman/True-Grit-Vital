@@ -190,6 +190,49 @@ void main() {
     expect(corrected.eventId, event.id);
   });
 
+  appTest('generation retains the zone shown in the selected draft', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final year = DateTime.now().year - 1;
+    final event = await _saveEvent(
+      tester,
+      f.store,
+      id: 'visible-zone-event',
+      name: 'Visible zone course',
+      start: CivilDate(year, 3, 3),
+      end: CivilDate(year, 3, 5),
+    );
+    await _openReports(tester, f);
+    await _chooseEventReview(tester);
+    await tap(tester, event.name);
+    final controller = f.container.read(reportControllerProvider.notifier);
+    controller.select(
+      f.container
+          .read(reportControllerProvider)
+          .selection!
+          .copyWith(
+            fromDate: CivilDate(year, 3, 1),
+            beforeDate: CivilDate(year, 3, 8),
+            displayZone: 'Pacific/Kiritimati',
+          ),
+    );
+    await settle(tester);
+    expect(find.textContaining('Pacific/Kiritimati'), findsWidgets);
+    final preview = find.text('Preview');
+    await tester.ensureVisible(preview);
+    await tester.tap(preview);
+    // Capture starts asynchronously. Check its immutable selection and cancel
+    // before the native PDF preview is opened.
+    final selectedZone = f.container
+        .read(reportControllerProvider)
+        .selection!
+        .displayZone;
+    controller.cancel();
+    await settle(tester);
+    expect(selectedZone, 'Pacific/Kiritimati');
+  });
+
   appTest('a stale event is named without starting a report', (tester) async {
     final f = await launch(tester);
     await _openReports(tester, f);

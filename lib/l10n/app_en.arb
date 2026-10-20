@@ -5669,7 +5669,7 @@
       }
     }
   },
-  "reportEventApplyRangeLabel": "Set report dates from {from} to {through}",
+  "reportEventApplyRangeLabel": "Apply report dates from {from} to {through}",
   "@reportEventApplyRangeLabel": {
     "description": "Accessible name for the one-word Apply date action.",
     "placeholders": {

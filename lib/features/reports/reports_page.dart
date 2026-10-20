@@ -476,7 +476,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       personId: selection.personId,
       fromDate: start,
       beforeDate: exclusive,
-      displayZone: ref.read(displayZoneProvider),
+      displayZone: selection.displayZone,
       reportName: reportName.text.trim().isEmpty
           ? null
           : reportName.text.trim(),

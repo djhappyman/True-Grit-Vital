@@ -5039,7 +5039,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String reportEventApplyRangeLabel(String from, String through) {
-    return 'Set report dates from $from to $through';
+    return 'Apply report dates from $from to $through';
   }
 
   @override

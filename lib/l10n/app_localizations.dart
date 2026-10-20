@@ -8137,7 +8137,7 @@ abstract class AppLocalizations {
   /// Accessible name for the one-word Apply date action.
   ///
   /// In en, this message translates to:
-  /// **'Set report dates from {from} to {through}'**
+  /// **'Apply report dates from {from} to {through}'**
   String reportEventApplyRangeLabel(String from, String through);
 
   /// Report selection or validation message.
