@@ -31,7 +31,15 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
   static const personId = meId;
   ChartBucketSize granularity = ChartBucketSize.day;
   DateTime? lower, upper;
-  String? zone, configured, seriesIdentity, error, repairedZone;
+  String? zone, configured, error, repairedZone;
+
+  /// One exact selected series. Kept across range, granularity and data
+  /// changes so a narrower view never silently charts a different substance.
+  ChartSeriesKey? seriesKey;
+
+  /// Last saved name shown for [seriesKey]. Used when a range has no points
+  /// for it, because the current batch then has no name to offer.
+  String? seriesLabel;
   bool table = false, filters = false, seriesOpen = false, sourcesOpen = false;
   int tablePage = 0;
   int? selectedBucket;
@@ -64,6 +72,28 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
     restoredSourceCursor = null;
     restoredSourceCursors = [null];
     sourcesOpen = false;
+  }
+
+  /// Restores the one exact series a route names, if any.
+  ///
+  /// Route parameters are user-editable input. An empty or over-long subject
+  /// or unit is ignored instead of failing the page; the normal first
+  /// compatible series is then used.
+  void restoreSeedSeries() {
+    final subject = seed['subject'], unit = seed['unit'];
+    if (subject == null || unit == null) return;
+    try {
+      seriesKey = ChartSeriesKey(
+        personId: personId,
+        subject: seed['kind'] == 'ingredient'
+            ? ChartSubject.ingredient(subject)
+            : ChartSubject.item(subject),
+        unit: unit,
+      );
+    } on ChartModelException {
+      seriesKey = null;
+      seriesLabel = null;
+    }
   }
 
   String returnLocation(ChartSeriesKey key, {ChartDrilldownCursor? cursor}) =>
@@ -117,6 +147,7 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
               .where((value) => value.name == seed['bucket'])
               .firstOrNull ??
           ChartBucketSize.day;
+      restoreSeedSeries();
       table = seed['mode'] == 'table';
       tablePage = math.max(0, int.tryParse(seed['page'] ?? '') ?? 0);
       final restoredBucket = int.tryParse(seed['selected'] ?? '');
@@ -183,27 +214,32 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
         ? state.model
         : null;
     final choices = _seriesChoices(model, state.batch);
-    String? requestedIdentity;
-    if (seed['subject'] != null && seed['unit'] != null) {
-      requestedIdentity = ChartSeriesKey(
-        personId: personId,
-        subject: seed['kind'] == 'ingredient'
-            ? ChartSubject.ingredient(seed['subject']!)
-            : ChartSubject.item(seed['subject']!),
-        unit: seed['unit']!,
-      ).identity;
+    final _SeriesChoice? choice;
+    if (seriesKey case final selected?) {
+      // The exact selection wins. A missing series stays selected with no
+      // points; its sources remain inspectable. Never substitute another
+      // substance just because the current range has no rows for this one.
+      final matched = choices
+          .where((entry) => entry.key.identity == selected.identity)
+          .firstOrNull;
+      if (matched != null) seriesLabel = matched.label;
+      choice =
+          matched ??
+          _SeriesChoice(selected, seriesLabel ?? selected.subject.id);
+    } else {
+      final linked = seed['item'] == null
+          ? null
+          : choices
+                .where((entry) => entry.key.subject.id == seed['item'])
+                .firstOrNull;
+      if (linked != null) {
+        // A History item link is an explicit choice. Remember the resolved
+        // unit so a later range keeps the same series.
+        seriesKey = linked.key;
+        seriesLabel = linked.label;
+      }
+      choice = linked ?? choices.firstOrNull;
     }
-    final choice =
-        choices
-            .where(
-              (entry) =>
-                  entry.key.identity == (seriesIdentity ?? requestedIdentity),
-            )
-            .firstOrNull ??
-        choices
-            .where((entry) => entry.key.subject.id == seed['item'])
-            .firstOrNull ??
-        choices.firstOrNull;
     final series = choice == null ? null : model?.seriesFor(choice.key);
     final contextRequest = model == null || choice == null
         ? null
@@ -402,7 +438,8 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
                     child: VitalButton.secondary(
                       multiline: true,
                       onPressed: () => setState(() {
-                        seriesIdentity = option.key.identity;
+                        seriesKey = option.key;
+                        seriesLabel = option.label;
                         seriesOpen = false;
                         selectedBucket = null;
                         sourcesOpen = false;
@@ -594,7 +631,7 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
                     },
                     revision: model.token.generation,
                     location: (cursor) =>
-                        returnLocation(choice.key, cursor: cursor),
+                        returnLocation(choice!.key, cursor: cursor),
                   ),
               ],
             ),
