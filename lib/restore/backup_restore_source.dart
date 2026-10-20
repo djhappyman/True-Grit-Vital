@@ -90,10 +90,14 @@ final class BackupRestoreGateway implements RestoreGateway {
   Future<void> discardArchive(RestoreArchive archive) => archive.discard();
 
   @override
-  Future<RestorePreparedDatabase> prepare(RestoreArchive archive) async {
+  Future<RestorePreparedDatabase> prepare(
+    RestoreArchive archive, {
+    BackupCancellationToken? token,
+  }) async {
     return await store.prepareRestoredDatabase(
       stagedPath: archive.databasePath,
       rekeyTo: archive.rekey,
+      token: token,
     );
   }
 

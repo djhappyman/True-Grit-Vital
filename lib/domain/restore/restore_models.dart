@@ -242,7 +242,15 @@ abstract interface class RestoreGateway {
   });
 
   Future<void> discardArchive(RestoreArchive archive);
-  Future<RestorePreparedDatabase> prepare(RestoreArchive archive);
+
+  /// Prepares the staged snapshot while [token] is still live. Cancellation is
+  /// cooperative and bounded to preparation: it must never interrupt a
+  /// confirmed activation or journal swap. A cancelled call leaves the live
+  /// store untouched and discards its staged connection.
+  Future<RestorePreparedDatabase> prepare(
+    RestoreArchive archive, {
+    BackupCancellationToken? token,
+  });
 
   Future<RestoreActivationOutcome> activate({
     required RestoreArchive archive,

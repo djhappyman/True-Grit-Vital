@@ -18,16 +18,32 @@ extension RestoreRecordStore on RecordStore {
   /// only when activation is ready. Device-local drafts, operation receipts,
   /// native reminder payloads and attachment jobs never survive replacement,
   /// even when restored record or person IDs match.
+  ///
+  /// [token] is checked cooperatively before and after each await and after
+  /// every bounded attachment-manifest batch. Cancellation only abandons this
+  /// preparation; it never interrupts activation or a journal swap. The staged
+  /// connection and empty sidecars are closed on every exit path, and the
+  /// caller still discards the abandoned staged archive.
+  ///
+  /// [onManifestBatch] is a synchronous test observer invoked after each
+  /// attachment-manifest page is written inside the preparation transaction. It
+  /// carries no production state and is not called after cancellation.
   Future<RestorePreparedDatabase> prepareRestoredDatabase({
     required String stagedPath,
     required Future<void> Function(List<int> installationKey) rekeyTo,
+    BackupCancellationToken? token,
+    void Function()? onManifestBatch,
   }) async {
+    _restoreThrowIfCancelled(token);
     _requireWritable();
     final installationAppLock = await readSetting('app_lock');
+    _restoreThrowIfCancelled(token);
     final previousGeneration = generation;
     final previousNamespace = await restoreObjectNamespace();
+    _restoreThrowIfCancelled(token);
     // The archive key never leaves the archive reader and this store.
     await rekeyTo(_key);
+    _restoreThrowIfCancelled(token);
     final RecordStore staged;
     try {
       staged = await RecordStore.open(
@@ -45,26 +61,35 @@ extension RestoreRecordStore on RecordStore {
       if (staged._closed) {
         throw const RestoreFailure(RestoreCodes.storage);
       }
+      _restoreThrowIfCancelled(token);
       final integrity = await staged._rows('PRAGMA integrity_check');
+      _restoreThrowIfCancelled(token);
       if (integrity.length != 1 || integrity.single.values.single != 'ok') {
         throw const RestoreFailure(RestoreCodes.corrupt);
       }
-      if ((await staged._rows('PRAGMA foreign_key_check')).isNotEmpty) {
+      final foreignKeys = await staged._rows('PRAGMA foreign_key_check');
+      _restoreThrowIfCancelled(token);
+      if (foreignKeys.isNotEmpty) {
         throw const RestoreFailure(RestoreCodes.corrupt);
       }
       try {
-        await staged._validateBackupQuantities();
-      } on BackupFailure {
+        await staged._validateBackupQuantities(token);
+      } on BackupFailure catch (error) {
+        if (error.code == 'backup_cancelled') {
+          throw const RestoreFailure(RestoreCodes.cancelled);
+        }
         throw const RestoreFailure(RestoreCodes.corrupt);
       }
+      _restoreThrowIfCancelled(token);
       final dataset = await staged._rows('SELECT generation FROM dataset');
+      _restoreThrowIfCancelled(token);
       if (dataset.length != 1 ||
           dataset.single['generation'] != staged.generation) {
         throw const RestoreFailure(RestoreCodes.corrupt);
       }
-      final people =
-          (await staged._rows('SELECT count(*) c FROM person')).single['c']!
-              as int;
+      final peopleRow = await staged._rows('SELECT count(*) c FROM person');
+      _restoreThrowIfCancelled(token);
+      final people = peopleRow.single['c']! as int;
       if (people != 1 ||
           (await staged._rows(
                 "SELECT id FROM person WHERE id='me' AND archived=0",
@@ -73,30 +98,35 @@ extension RestoreRecordStore on RecordStore {
         throw const RestoreFailure(RestoreCodes.multiplePeople);
       }
       await staged.enableSingleUser();
-      if ((await staged._rows(
-                "SELECT count(*) c FROM attachment_record r WHERE r.state='ready' AND NOT EXISTS(SELECT 1 FROM attachment_link l WHERE l.attachment=r.id AND l.person=r.person)",
-              )).single['c'] !=
-              0 ||
-          (await staged._rows(
-                'SELECT count(*) c FROM attachment_link l JOIN attachment_record r ON r.id=l.attachment WHERE l.person<>r.person',
-              )).single['c'] !=
-              0) {
+      _restoreThrowIfCancelled(token);
+      final unlinked = await staged._rows(
+        "SELECT count(*) c FROM attachment_record r WHERE r.state='ready' AND NOT EXISTS(SELECT 1 FROM attachment_link l WHERE l.attachment=r.id AND l.person=r.person)",
+      );
+      _restoreThrowIfCancelled(token);
+      final mismatchedLinks = await staged._rows(
+        'SELECT count(*) c FROM attachment_link l JOIN attachment_record r ON r.id=l.attachment WHERE l.person<>r.person',
+      );
+      _restoreThrowIfCancelled(token);
+      if (unlinked.single['c'] != 0 || mismatchedLinks.single['c'] != 0) {
         throw const RestoreFailure(RestoreCodes.corrupt);
       }
       // Direct preparation of an arbitrary staged file must apply the same
       // archive-wide attachment bound as the authenticated archive reader.
       // Probe only one row beyond the bound so an oversized staged file cannot
       // turn this check itself into an unbounded scan.
-      if ((await staged._rows(
-            "SELECT 1 FROM attachment_record WHERE state='ready' LIMIT ?",
-            [BackupLimits.maxAttachmentCount + 1],
-          )).length >
-          BackupLimits.maxAttachmentCount) {
+      final attachmentProbe = await staged._rows(
+        "SELECT 1 FROM attachment_record WHERE state='ready' LIMIT ?",
+        [BackupLimits.maxAttachmentCount + 1],
+      );
+      _restoreThrowIfCancelled(token);
+      if (attachmentProbe.length > BackupLimits.maxAttachmentCount) {
         throw const RestoreFailure(RestoreCodes.tooLarge);
       }
+      _restoreThrowIfCancelled(token);
       final generation = newCommandId();
       final namespace = newCommandId();
       await staged._db.transaction(() async {
+        _restoreThrowIfCancelled(token);
         // Device authentication is an installation choice. Restoring an old
         // archive must not silently disable the operator's current app lock.
         await staged._db.customStatement(
@@ -141,12 +171,14 @@ extension RestoreRecordStore on RecordStore {
         // dataset never materialises every retained manifest at once.
         String? attachmentCursor;
         while (true) {
+          _restoreThrowIfCancelled(token);
           final rows = await staged._rows(
             "SELECT id,snapshot FROM attachment_record WHERE state='ready'"
             "${attachmentCursor == null ? '' : ' AND id>?'} "
             'ORDER BY id LIMIT $_restoreAttachmentBatch',
             [?attachmentCursor],
           );
+          _restoreThrowIfCancelled(token);
           if (rows.isEmpty) break;
           for (final row in rows) {
             final id = row['id']! as String;
@@ -170,8 +202,11 @@ extension RestoreRecordStore on RecordStore {
                 id,
               ],
             );
+            _restoreThrowIfCancelled(token);
           }
           attachmentCursor = rows.last['id']! as String;
+          onManifestBatch?.call();
+          _restoreThrowIfCancelled(token);
         }
         await staged._db.customStatement('UPDATE dataset SET generation=?', [
           generation,
@@ -186,7 +221,9 @@ extension RestoreRecordStore on RecordStore {
           throw const RestoreFailure(RestoreCodes.failed);
         }
       });
+      _restoreThrowIfCancelled(token);
       await staged._db.customStatement('PRAGMA wal_checkpoint(TRUNCATE)');
+      _restoreThrowIfCancelled(token);
       final counts = await staged._rows('''
         SELECT
           (SELECT count(*) FROM person) people,
@@ -195,14 +232,17 @@ extension RestoreRecordStore on RecordStore {
           (SELECT count(*) FROM administration a JOIN revision r ON r.record=a.id AND r.person=a.person AND r.revision=a.revision WHERE r.voided=0) records,
           (SELECT count(*) FROM attachment_record WHERE state='ready') attachments
       ''');
+      _restoreThrowIfCancelled(token);
       final row = counts.single;
+      final schemaVersion = await staged._restoreSchemaVersion();
+      _restoreThrowIfCancelled(token);
       return RestorePreparedDatabase(
         path: stagedPath,
         previousGeneration: previousGeneration,
         generation: generation,
         previousNamespace: previousNamespace,
         reminderNamespace: namespace,
-        schemaVersion: await staged._restoreSchemaVersion(),
+        schemaVersion: schemaVersion,
         peopleCount: row['people']! as int,
         recordCount: row['records']! as int,
         itemCount: row['items']! as int,
@@ -228,6 +268,14 @@ extension RestoreRecordStore on RecordStore {
 /// Keyset page for rebinding retained attachment manifests during restore.
 /// Keeps transient manifest memory bounded independently of archive size.
 const _restoreAttachmentBatch = 128;
+
+/// Cooperative preparation cancellation. The restore flow never passes a token
+/// into activation, so this can only abandon work before the journal boundary.
+void _restoreThrowIfCancelled(BackupCancellationToken? token) {
+  if (token?.isCancelled ?? false) {
+    throw const RestoreFailure(RestoreCodes.cancelled);
+  }
+}
 
 Future<void> _restoreRemoveEmptySidecars(String path) async {
   for (final suffix in ['-wal', '-shm', '-journal']) {

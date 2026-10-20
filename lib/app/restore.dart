@@ -368,6 +368,11 @@ class RestoreController extends Notifier<RestoreState> {
       return;
     }
     final epoch = ++_epoch;
+    final token = BackupCancellationToken();
+    _token = token;
+    // Preparation is abortable while the controller is alive or disposed.
+    // Activation itself never receives this token: once the confirmed journal
+    // boundary starts, the restore cannot be interrupted by this path.
     _activating = true;
     state = state.copyWith(
       phase: RestorePhase.preparing,
@@ -375,9 +380,11 @@ class RestoreController extends Notifier<RestoreState> {
       progress: const RestoreProgress(stage: RestoreProgressStage.preparing),
     );
     try {
-      final prepared = await gateway.prepare(archive);
-      if (!_current(epoch)) {
+      final prepared = await gateway.prepare(archive, token: token);
+      if (_token == token) _token = null;
+      if (token.isCancelled || !_current(epoch)) {
         await gateway.discardArchive(archive);
+        _archive = null;
         return;
       }
       state = state.copyWith(
@@ -418,6 +425,7 @@ class RestoreController extends Notifier<RestoreState> {
       await _discardArchive();
     } finally {
       _activating = false;
+      if (_token == token) _token = null;
     }
   }
 

@@ -66,7 +66,10 @@ final class FakeRestoreGateway implements RestoreGateway {
   }
 
   @override
-  Future<RestorePreparedDatabase> prepare(RestoreArchive archive) async {
+  Future<RestorePreparedDatabase> prepare(
+    RestoreArchive archive, {
+    BackupCancellationToken? token,
+  }) async {
     prepareCalls++;
     return RestorePreparedDatabase(
       path: archive.databasePath,
