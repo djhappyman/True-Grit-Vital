@@ -170,8 +170,10 @@ extension BackupRecordStore on RecordStore {
     await _backupReclaimDeleting();
   }
 
-  Future<BackupInventory> inspectOwnSnapshot(BackupSnapshotFile snapshot) =>
-      inspectBackupSnapshot(path: snapshot.path, key: _key);
+  Future<BackupInventory> inspectOwnSnapshot(
+    BackupSnapshotFile snapshot, {
+    BackupCancellationToken? token,
+  }) => inspectBackupSnapshot(path: snapshot.path, key: _key, token: token);
 
   /// Encrypts the captured snapshot in a background isolate. The live dataset
   /// key never leaves the store by public API.
@@ -193,9 +195,14 @@ extension BackupRecordStore on RecordStore {
   );
 
   /// Read-only chunk stream that does not depend on the app-lock write gate.
-  Stream<Uint8List> _backupChunks(String version, int byteCount) async* {
+  Stream<Uint8List> _backupChunks(
+    String version,
+    int byteCount, [
+    BackupCancellationToken? token,
+  ]) async* {
     var offset = 0;
     while (offset < byteCount) {
+      token?.throwIfCancelled();
       final rows = await _rows(
         'SELECT offset,bytes,digest FROM attachment_chunk WHERE version=? AND offset=?',
         [version, offset],
@@ -203,6 +210,7 @@ extension BackupRecordStore on RecordStore {
       if (rows.length != 1) {
         throw const BackupFailure('backup_attachment_mismatch');
       }
+      token?.throwIfCancelled();
       final data = rows.single['bytes'] as Uint8List;
       if (data.isEmpty ||
           data.length > AttachmentLimits.chunkBytes ||
@@ -217,7 +225,10 @@ extension BackupRecordStore on RecordStore {
     }
   }
 
-  Future<BackupInventory> _backupInventory() async {
+  Future<BackupInventory> _backupInventory([
+    BackupCancellationToken? token,
+  ]) async {
+    token?.throwIfCancelled();
     if ((await _rows('PRAGMA integrity_check')).single.values.single != 'ok') {
       throw const BackupFailure('backup_invalid_dataset');
     }
@@ -270,14 +281,18 @@ extension BackupRecordStore on RecordStore {
     var attachmentBytes = 0;
     final lines = <String>[];
     for (final row in attachments) {
+      token?.throwIfCancelled();
       final attachment = _backupAttachmentRead(row);
       final inspection = attachment.inspection;
       if (inspection == null) {
         throw const BackupFailure('backup_attachment_mismatch');
       }
       final digest = await sha256
-          .bind(_backupChunks(attachment.versionId, inspection.byteCount))
+          .bind(
+            _backupChunks(attachment.versionId, inspection.byteCount, token),
+          )
           .first;
+      token?.throwIfCancelled();
       if (digest.toString() != inspection.sha256) {
         throw const BackupFailure('backup_attachment_mismatch');
       }
@@ -355,12 +370,16 @@ extension BackupRecordStore on RecordStore {
 
   /// SQL integrity does not establish the meaning of quantity text. Validate
   /// every historical revision and exact pair before accepting an archive.
-  Future<void> _validateBackupQuantities() async {
+  Future<void> _validateBackupQuantities([
+    BackupCancellationToken? token,
+  ]) async {
     for (final table in ['revision', 'revision_quantity']) {
+      token?.throwIfCancelled();
       String? record;
       var revision = 0;
       var inspected = 0;
       while (true) {
+        token?.throwIfCancelled();
         final columns = table == 'revision'
             ? 'record,revision,amount,entered'
             : 'record,revision,numerator,denominator,entered';
@@ -373,6 +392,7 @@ extension BackupRecordStore on RecordStore {
         inspected += rows.length;
         if (inspected > 2000000) throw const BackupFailure('backup_too_large');
         for (final row in rows) {
+          token?.throwIfCancelled();
           try {
             final entered = ExactQuantity.parse(row['entered'] as String);
             if (table == 'revision') {
@@ -393,6 +413,7 @@ extension BackupRecordStore on RecordStore {
           }
         }
         if (rows.length < 500) break;
+        token?.throwIfCancelled();
         record = rows.last['record'] as String;
         revision = rows.last['revision'] as int;
       }
@@ -402,13 +423,17 @@ extension BackupRecordStore on RecordStore {
 
 /// Opens a captured snapshot with its explicit dataset key and verifies every
 /// row/file invariant required by recovery preview. It never activates data.
+/// [token] bounds an abandoned validation attempt: a cancelled scan stops
+/// before further re-hashing or row work and the caller deletes the staging.
 Future<BackupInventory> inspectBackupSnapshot({
   required String path,
   required List<int> key,
+  BackupCancellationToken? token,
 }) async {
+  token?.throwIfCancelled();
   final store = await RecordStore.open(path: path, key: key, isNew: false);
   try {
-    return await store._backupInventory();
+    return await store._backupInventory(token);
   } finally {
     await store.close();
   }

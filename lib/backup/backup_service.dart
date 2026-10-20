@@ -140,7 +140,10 @@ final class BackupService implements BackupOperations {
       token.throwIfCancelled();
 
       onProgress?.call(const BackupProgress(stage: BackupStage.inspect));
-      final inventory = await recordStore.inspectOwnSnapshot(snapshot);
+      final inventory = await recordStore.inspectOwnSnapshot(
+        snapshot,
+        token: token,
+      );
       token.throwIfCancelled();
 
       final createdAt = clock().toUtc();
@@ -308,6 +311,7 @@ final class BackupService implements BackupOperations {
         inventory = await inspectBackupSnapshot(
           path: stagedPath,
           key: result.datasetKey,
+          token: token,
         );
       } on BackupFailure {
         rethrow;
