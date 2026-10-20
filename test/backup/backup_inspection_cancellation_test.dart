@@ -9,14 +9,24 @@ import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/domain/backup/backup.dart';
 
 /// Regression: a cancellation command during the inspecting/quantity scan of a
-/// capture or restore validation used to be silently unhooured until the whole
-/// scan finished. The token now bounds the scan itself; a cancelled scan stops
-/// before further re-hashing, releases its pins with the capture and preserves
-/// the live dataset and any previous saved output.
+/// capture, restore validation or standalone inspection used to go unhonoured
+/// until the whole scan had finished, so an abandoned command could still
+/// report a complete inventory. Every awaited scan boundary now fails closed
+/// on a cancelled token; the cancelled scans below therefore return no result,
+/// keep the live dataset intact and leave no stray staging or archive behind.
+const _quantityScanRevisions = 640;
+
+/// Event-loop turns of awaited live-store reads ordered between starting the
+/// standalone scan and issuing the cancellation command, calibrated so the
+/// command lands inside the scan's awaited quantity/metadata region while it
+/// is still running.
+const _scanCancellationPacingTurns = 108;
+
 void main() {
   late Directory directory;
   late RecordStore store;
   late BackupService service;
+  late String itemId;
   final key = List.generate(32, (i) => i + 5);
   const password = 'synthetic backup password 73';
 
@@ -39,14 +49,13 @@ void main() {
       unit: 'count',
       type: 'medicine',
     );
+    itemId = item.id;
     await store.record(
       commandId: 'inspect-record',
       itemId: item.id,
       amount: '3',
       actualAt: DateTime.utc(2026, 10, 20, 7),
     );
-    await _attachment(store, 'cancel-attachment-1', item.id, 192);
-    await _attachment(store, 'cancel-attachment-2', item.id, 192);
   });
 
   tearDown(() async {
@@ -63,9 +72,15 @@ void main() {
         .toList();
   }
 
+  Future<void> seedAttachments() async {
+    await _attachment(store, 'cancel-attachment-1', itemId, 192);
+    await _attachment(store, 'cancel-attachment-2', itemId, 192);
+  }
+
   test(
     'cancelling a validation scan fails closed and keeps the live dataset',
     () async {
+      await seedAttachments();
       final token = BackupCancellationToken();
       final source = await Directory('${directory.path}/source').create();
       final snapshot = await store.createBackupSnapshot(
@@ -73,9 +88,9 @@ void main() {
         sessionId: 'cancelscan',
       );
       final scan = store.inspectOwnSnapshot(snapshot, token: token);
-      // Cancel while the scan is still awaiting its row/chunk work, in the
-      // same event loop turn as the scan, so no digest can be reported after
-      // the cancellation command.
+      // Cancel while the scan is still in flight; whichever scan boundary
+      // processes the cancelled command first must fail closed so that no
+      // digest can be reported after the cancellation command.
       Timer(const Duration(), token.cancel);
       final datasetBefore = (await store.records()).length;
       await expectLater(scan, throwsA(_Cancelled()));
@@ -85,8 +100,8 @@ void main() {
       await store.releaseBackupPins('cancelscan');
       expect(await store.records(), hasLength(datasetBefore));
 
-      // The interrupted evaluation left no additional snapshot besides the
-      // file the test created, and cleanup could not touch it.
+      // No archive or snapshot db landed in the shared staging by the failed
+      // scan; only the files the test created elsewhere remain.
       expect(stagingNames(), isEmpty);
 
       // The dataset that cancelled a validation stays fully usable.
@@ -120,8 +135,59 @@ void main() {
   });
 
   test(
+    'a quantity-only snapshot scan cancelled mid-flight returns no inventory',
+    () async {
+      // Revisions beyond one full validation page make the quantity scan cross
+      // awaited read boundaries while the cancellation command is still in
+      // flight instead of finishing between two turns.
+      for (var v = 0; v < _quantityScanRevisions; v++) {
+        await store.record(
+          commandId: 'quantity-scan-$v',
+          itemId: itemId,
+          amount: '3',
+          actualAt: DateTime.utc(2026, 10, 20, 7, v % 60),
+        );
+      }
+      final source = await Directory('${directory.path}/quantity-source')
+          .create();
+      final snapshot = await store.createBackupSnapshot(
+        directory: source,
+        sessionId: 'quant-scans',
+      );
+      // The uncancelled baseline proves the same snapshot stays valid later.
+      final baseline = await store.inspectOwnSnapshot(snapshot);
+      expect(baseline.recordCount, 1 + _quantityScanRevisions);
+      expect(baseline.attachmentCount, 0);
+
+      final livePage = (await store.records()).length;
+      final token = BackupCancellationToken();
+      final scan = store.inspectOwnSnapshot(snapshot, token: token);
+      // Order the command past the snapshot's open and entry phases using the
+      // same awaited round-trip cadence the scan's own queries use, so the
+      // cancelled command arrives while the quantity or metadata scans are
+      // still in flight. Wherever the scan processes it, the next scan
+      // boundary must fail closed instead of returning the completed result.
+      for (var turn = 0; turn < _scanCancellationPacingTurns; turn++) {
+        await store.records(limit: 1);
+      }
+      token.cancel();
+      await expectLater(scan, throwsA(_Cancelled()));
+
+      // The abandoned scan disturbed nothing: the live dataset keeps its
+      // records and the same snapshot still validates identically. No pin or
+      // staging operation belongs to this standalone inspection, so none is
+      // asserted here.
+      expect((await store.records()).length, livePage);
+      final stable = await store.inspectOwnSnapshot(snapshot);
+      expect(stable.recordCount, baseline.recordCount);
+      expect(stable.attachmentCount, baseline.attachmentCount);
+    },
+  );
+
+  test(
     'a capture cancelled at the inspect stage reports no ready archive',
     () async {
+      await seedAttachments();
       final token = BackupCancellationToken();
       Object? failure;
       try {
@@ -130,8 +196,10 @@ void main() {
           token: token,
           onProgress: (progress) {
             if (progress.stage == BackupStage.inspect) {
-              // The command must land either inside the scan or directly
-              // after it; both keep staging clean and never report ready.
+              // The command lands directly before the scan begins; both the
+              // scan's own boundaries and the capture's post-scan boundary
+              // fail a cancelled command, and the capture never reports
+              // ready.
               token.cancel();
             }
           },
@@ -164,14 +232,18 @@ void main() {
   );
 
   test(
-    'restore validation honours a pre-cancelled token without staging',
+    'restore validation of a pre-cancelled command reads no archive',
     () async {
+      // The archive exists on disk when the command arrives, so this proves
+      // precedence only: a pre-cancelled command must fail before any archive
+      // read, decrypt or staging open. Cancellation while a validation is
+      // already mid-run is the scan-regression above.
       final archive = await service.createBackup(
         password: password,
         token: BackupCancellationToken(),
       );
       final file = File(archive.archive.path);
-      await service.discard(archive);
+      expect(await file.exists(), isTrue, reason: 'the archive is live here');
       final token = BackupCancellationToken();
       token.cancel();
       await expectLater(
@@ -182,10 +254,14 @@ void main() {
         ),
         throwsA(_Cancelled()),
       );
+      // The rejected command staged no snapshot and the existing archive stays
+      // untouched until its owner discards it.
       expect(
         stagingNames().where((name) => name.startsWith('snapshot-')),
         isEmpty,
       );
+      await service.discard(archive);
+      expect(await file.exists(), isFalse);
     },
   );
 }

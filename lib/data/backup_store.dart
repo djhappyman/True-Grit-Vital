@@ -235,7 +235,7 @@ extension BackupRecordStore on RecordStore {
     if ((await _rows('PRAGMA foreign_key_check')).isNotEmpty) {
       throw const BackupFailure('backup_invalid_dataset');
     }
-    await _validateBackupQuantities();
+    await _validateBackupQuantities(token);
     final dataset = await _rows('SELECT generation FROM dataset');
     if (dataset.length != 1) {
       throw const BackupFailure('backup_invalid_dataset');
@@ -347,6 +347,10 @@ extension BackupRecordStore on RecordStore {
           );
         })
         .toList(growable: false);
+    // The awaited quantity and metadata scans above consume event-loop turns
+    // after the earlier boundaries, so a command cancelled during them fails
+    // closed here instead of returning a completed result.
+    token?.throwIfCancelled();
     return BackupInventory(
       generation: generation,
       schemaVersion: schemaVersion,
