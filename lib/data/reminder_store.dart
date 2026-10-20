@@ -890,6 +890,19 @@ extension ReminderRecordStore on RecordStore {
       "UPDATE reminder_request SET state='expired',reason='deadline_passed' WHERE active=1 AND json_extract(snapshot,'\$.kind')='ordinary' AND json_extract(snapshot,'\$.trigger')='wall' AND state IN ('pending','prepared','failed','unknown','capacity') AND json_extract(snapshot,'\$.deadline')<=?",
       [now.toUtc().millisecondsSinceEpoch],
     );
+    // Repair rows stranded by an earlier durable write: an active row in a
+    // cancel state is invisible to every work and obsolete list yet still
+    // holds its occurrence bucket. The reported receipt already evidenced
+    // that nothing is registered, so the intent completes without rearming
+    // the same dismissed alert.
+    const strandedCancels =
+        "SELECT token FROM reminder_request WHERE active=1 AND state='cancelled' AND snapshot IS NOT NULL ORDER BY token LIMIT 256";
+    await _db.customStatement(
+      "UPDATE reminder_state SET ordinary_terminal=1 WHERE bucket IN (SELECT bucket FROM reminder_request WHERE token IN ($strandedCancels) AND json_extract(snapshot,'\$.kind')='ordinary' GROUP BY bucket)",
+    );
+    await _db.customStatement(
+      "UPDATE reminder_request SET active=0,cancel_ack=1 WHERE token IN ($strandedCancels)",
+    );
     final active = await _rows(
       "SELECT * FROM reminder_request WHERE active=1 AND snapshot IS NOT NULL AND state IN ('pending','prepared','failed','unknown','capacity') ORDER BY token LIMIT 5001",
     );
@@ -1325,14 +1338,26 @@ extension ReminderRecordStore on RecordStore {
       ReminderReceipt.failed => ReminderRepairState.failed,
       ReminderReceipt.unknown => ReminderRepairState.unknown,
     };
+    // The adapter confirmed the token is no longer registered, so the durable
+    // intent ends here. A stranded active row in a cancel state would vanish
+    // from every work and obsolete list yet still hold its occurrence bucket.
+    final completed = receipt == ReminderReceipt.cancelled;
     await _db.customStatement(
-      'UPDATE reminder_request SET state=?,reason=?,fingerprint=? WHERE token=?',
-      [state.name, reason, adapterFingerprint, requestToken],
+      'UPDATE reminder_request SET state=?,reason=?,fingerprint=?,active=?,cancel_ack=? WHERE token=?',
+      [
+        state.name,
+        reason,
+        adapterFingerprint,
+        completed ? 0 : 1,
+        completed ? 1 : 0,
+        requestToken,
+      ],
     );
     if (raw['snapshot'] != null &&
         [
           ReminderReceipt.consumed,
           ReminderReceipt.postUncertain,
+          ReminderReceipt.cancelled,
         ].contains(receipt)) {
       final r = _desiredRead(raw);
       if (r.kind == ReminderKind.ordinary) {
