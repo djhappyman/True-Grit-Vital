@@ -3429,15 +3429,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chartExact => 'Exact amount';
 
   @override
-  String chartSourceCount(int count) {
+  String chartDoseCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count administrations',
-      one: '1 administration',
+      other: '$count recorded doses',
+      one: '1 recorded dose',
     );
     return '$_temp0';
   }
+
+  @override
+  String chartIngredientCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ingredient amounts',
+      one: '1 ingredient amount',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chartCombinedCountHelp =>
+      'A combined record can contain several amounts.';
+
+  @override
+  String get chartVoidedSourcesHelp =>
+      'Voided records are shown here but do not count towards totals.';
+
+  @override
+  String get chartNoRecordedSources => 'No recorded sources in this range.';
+
+  @override
+  String get chartNoVoidedSources => 'No voided sources in this range.';
 
   @override
   String get chartEventStart => 'Event start';

@@ -80,7 +80,7 @@ void main() {
       await settle(tester);
       expect(find.text('Person: Morgan'), findsOneWidget);
       expect(find.text('4 mg'), findsOneWidget);
-      expect(find.text('2 administrations'), findsOneWidget);
+      expect(find.text('2 recorded doses'), findsOneWidget);
       expect(find.textContaining('Private other medicine'), findsNothing);
       expect(find.textContaining('999'), findsNothing);
       expect(find.byType(ChartPlot), findsOneWidget);
@@ -100,7 +100,7 @@ void main() {
           .singleWhere((label) => label.contains('recorded amounts in mg'));
       expect(summary, contains('Person: Morgan'));
       expect(summary, contains('4 mg'));
-      expect(summary, contains('2 administrations'));
+      expect(summary, contains('2 recorded doses'));
       expect(summary, contains('Oct'));
       await tap(tester, 'Morgan medicine · mg');
       await tap(tester, 'Morgan liquid · ml');
@@ -140,66 +140,65 @@ void main() {
     },
   );
 
-  appTest(
-    'unknown ingredient strength stays unknown and retains its ml source',
-    (tester) async {
-      final f = await launch(tester);
-      final product = (await runIo(
-        tester,
-        () => f.store.createItem(
-          commandId: 'product',
-          expectedPersonRevision: 2,
-          name: 'Saved product',
-          form: 'liquid',
-          unit: 'ml',
-          type: 'Medicine',
-          productComponents: [
-            ProductComponent(
-              ingredientId: 'unknown-ingredient',
-              name: 'Unknown strength ingredient',
-            ),
-            ProductComponent(
-              ingredientId: 'known-ingredient',
-              name: 'Known ingredient',
-              concentrationText: '2',
-            ),
-          ],
-        ),
-      ))!;
-      await runIo(tester, () async {
-        final label = (await f.store.productLabel(
-          personId: meId,
-          itemId: product.id,
-        ))!;
-        await f.store.recordProduct(
-          commandId: 'product-use',
-          personId: meId,
-          expectedPersonRevision: 2,
-          itemId: product.id,
-          actualAt: DateTime.utc(2026, 10, 2, 12),
-          use: ProductUseInput(
-            expectedGeneration: f.store.generation,
-            label: label,
-            enteredVolume: EnteredStockAmount('0.5', 'ml'),
+  appTest('unknown ingredient strength stays unknown and retains its ml source', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final product = (await runIo(
+      tester,
+      () => f.store.createItem(
+        commandId: 'product',
+        expectedPersonRevision: 2,
+        name: 'Saved product',
+        form: 'liquid',
+        unit: 'ml',
+        type: 'Medicine',
+        productComponents: [
+          ProductComponent(
+            ingredientId: 'unknown-ingredient',
+            name: 'Unknown strength ingredient',
           ),
+          ProductComponent(
+            ingredientId: 'known-ingredient',
+            name: 'Known ingredient',
+            concentrationText: '2',
+          ),
+        ],
+      ),
+    ))!;
+    await runIo(tester, () async {
+      final label = (await f.store.productLabel(
+        personId: meId,
+        itemId: product.id,
+      ))!;
+      await f.store.recordProduct(
+        commandId: 'product-use',
+        personId: meId,
+        expectedPersonRevision: 2,
+        itemId: product.id,
+        actualAt: DateTime.utc(2026, 10, 2, 12),
+        use: ProductUseInput(
+          expectedGeneration: f.store.generation,
+          label: label,
+          enteredVolume: EnteredStockAmount('0.5', 'ml'),
+        ),
+      );
+    });
+    f.container
+        .read(routerProvider)
+        .go(
+          '/charts?scope=me&from=2026-10-01T00:00:00Z&before=2026-10-05T00:00:00Z&kind=ingredient&subject=unknown-ingredient&unit=mg&mode=table&sources=true',
         );
-      });
-      f.container
-          .read(routerProvider)
-          .go(
-            '/charts?scope=me&from=2026-10-01T00:00:00Z&before=2026-10-05T00:00:00Z&kind=ingredient&subject=unknown-ingredient&unit=mg&mode=table&sources=true',
-          );
-      await settle(tester);
-      expect(find.text('Unknown'), findsWidgets);
-      expect(find.text('Known total'), findsNothing);
-      expect(find.text('1 administration'), findsOneWidget);
-      expect(find.text('0 mg'), findsNothing);
-      expect(find.textContaining('0.5 ml'), findsWidgets);
-      expect(find.text('Unknown strength ingredient · mg'), findsOneWidget);
-      expect(find.byType(HistoryEntryCard), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    },
-  );
+    await settle(tester);
+    expect(find.text('Unknown'), findsWidgets);
+    expect(find.text('Known total'), findsNothing);
+    expect(find.text('1 ingredient amount'), findsOneWidget);
+    expect(find.text('0 mg'), findsNothing);
+    expect(find.textContaining('0.5 ml'), findsWidgets);
+    expect(find.text('Unknown strength ingredient · mg'), findsOneWidget);
+    expect(find.byType(HistoryEntryCard), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   appTest(
     'source pages restore the chain after a time correction and focus stable paging targets',
@@ -357,8 +356,18 @@ void main() {
       await settle(tester);
       expect(find.text('Total'), findsNothing);
       expect(find.text('0 mg'), findsNothing);
-      expect(find.text('No recorded use in this range.'), findsOneWidget);
+      expect(find.byType(HistoryEntryCard), findsNothing);
+      expect(find.text('No recorded sources in this range.'), findsOneWidget);
+      await tap(tester, 'Voided');
+      expect(
+        find.text(
+          'Voided records are shown here but do not count towards totals.',
+        ),
+        findsOneWidget,
+      );
       expect(find.byType(HistoryEntryCard), findsOneWidget);
+      expect(find.text('Total'), findsNothing);
+      expect(find.text('0 mg'), findsNothing);
     },
   );
 
@@ -419,7 +428,7 @@ void main() {
     expect(find.text('Shown in UTC'), findsOneWidget);
   });
   appTest(
-    'combined administrations count separately from their source card and table paging keeps focus',
+    'combined amounts count separately from their source card and table paging keeps focus',
     (tester) async {
       final f = await launch(tester);
       await runIo(tester, () async {
@@ -448,7 +457,11 @@ void main() {
             '/charts?from=2026-10-01T00:00:00Z&before=2026-11-01T00:00:00Z&mode=table&sources=true',
           );
       await settle(tester);
-      expect(find.text('2 administrations'), findsNWidgets(2));
+      expect(find.text('2 recorded doses'), findsNWidgets(2));
+      expect(
+        find.text('A combined record can contain several amounts.'),
+        findsNWidgets(2),
+      );
       expect(find.byType(HistoryEntryCard), findsOneWidget);
       await tap(tester, 'Next');
       expect(
@@ -462,7 +475,7 @@ void main() {
         'chart table page',
       );
       expect(find.text('Previous'), findsNothing);
-      expect(find.text('2 administrations'), findsNWidgets(2));
+      expect(find.text('2 recorded doses'), findsNWidgets(2));
     },
   );
 }

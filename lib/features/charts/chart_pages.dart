@@ -41,6 +41,11 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
   /// for it, because the current batch then has no name to offer.
   String? seriesLabel;
   bool table = false, filters = false, seriesOpen = false, sourcesOpen = false;
+
+  /// The source list starts with current contributing records because chart
+  /// totals exclude voided revisions. Voided history stays reachable only
+  /// through this explicit local choice.
+  TimelineStatus sourcesStatus = TimelineStatus.recorded;
   int tablePage = 0;
   int? selectedBucket;
   ChartDrilldownCursor? restoredSourceCursor;
@@ -112,6 +117,7 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
           if (seed['return'] != null) 'return': seed['return']!,
           if (selectedBucket != null) 'selected': '$selectedBucket',
           if (sourcesOpen) 'sources': 'true',
+          'sourcesStatus': sourcesStatus.name,
           if (cursor != null) 'cursor': cursor.encode(),
           if (cursor != null)
             'cursors': jsonEncode(
@@ -155,6 +161,9 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
           ? restoredBucket
           : null;
       sourcesOpen = seed['sources'] == 'true';
+      sourcesStatus = seed['sourcesStatus'] == 'voided'
+          ? TimelineStatus.voided
+          : TimelineStatus.recorded;
       try {
         if (seed['cursor'] != null) {
           restoredSourceCursor = ChartDrilldownCursor.decode(seed['cursor']!);
@@ -269,6 +278,10 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
     final unknown = model == null || choice == null || state.batch == null
         ? <int, int>{}
         : chartUnknownCounts(state.batch!, choice.key, model.viewport);
+    final combinedBuckets =
+        model == null || choice == null || state.batch == null
+        ? const <int>{}
+        : _combinedSourceBuckets(state.batch!, choice.key, model.viewport);
     final visibleTablePage = model == null
         ? 0
         : math.min(tablePage, (model.viewport.bucketCount - 1) ~/ 20);
@@ -468,11 +481,15 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
                       ),
                     ),
                     Text(
-                      t.chartSourceCount(
+                      _sourceCountLabel(
+                        t,
+                        choice.key,
                         series.total.knownContributions +
                             series.total.unknownContributions,
                       ),
                     ),
+                    if (combinedBuckets.isNotEmpty)
+                      Text(t.chartCombinedCountHelp),
                     if (series.total.hasUnknownContributions)
                       Text(t.chartIncomplete),
                   ],
@@ -498,10 +515,13 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
                   ),
                   totalHeading(t, series.total),
                   totalAmount(t, series),
-                  t.chartSourceCount(
+                  _sourceCountLabel(
+                    t,
+                    choice.key,
                     series.total.knownContributions +
                         series.total.unknownContributions,
                   ),
+                  if (combinedBuckets.isNotEmpty) t.chartCombinedCountHelp,
                 ].join('\n'),
                 annotations: annotations?.visible ?? [],
                 onBucket: selectBucket,
@@ -546,10 +566,14 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
                             ),
                           ),
                           Text(
-                            t.chartSourceCount(
+                            _sourceCountLabel(
+                              t,
+                              choice.key,
                               bucket.contributionCount + (unknown[index] ?? 0),
                             ),
                           ),
+                          if (combinedBuckets.contains(index))
+                            Text(t.chartCombinedCountHelp),
                         ] else
                           Text(
                             (unknown[index] ?? 0) > 0
@@ -602,7 +626,28 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
                 ),
               ),
               children: [
-                if (sourcesOpen)
+                if (sourcesOpen) ...[
+                  VitalSegments<TimelineStatus>(
+                    key: const ValueKey('chart-source-status'),
+                    values: const [
+                      TimelineStatus.recorded,
+                      TimelineStatus.voided,
+                    ],
+                    selected: sourcesStatus,
+                    label: (value) => value == TimelineStatus.voided
+                        ? t.statusVoided
+                        : t.statusRecorded,
+                    onChanged: (value) {
+                      if (value == sourcesStatus) return;
+                      setState(() {
+                        sourcesStatus = value;
+                        restoredSourceCursor = null;
+                        restoredSourceCursors = [null];
+                      });
+                    },
+                  ),
+                  if (sourcesStatus == TimelineStatus.voided)
+                    Text(t.chartVoidedSourcesHelp),
                   ChartSourcePanel(
                     key: ValueKey(
                       '${choice.key.identity}:$selectedBucket:${model.token.datasetGeneration}',
@@ -623,6 +668,7 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
                                 .beforeExclusive
                           : upper!,
                       displayZone: shownZone,
+                      status: sourcesStatus,
                     ),
                     initialCursors: restoredSourceCursors,
                     onCursorsChanged: (chain) {
@@ -633,6 +679,7 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
                     location: (cursor) =>
                         returnLocation(choice!.key, cursor: cursor),
                   ),
+                ],
               ],
             ),
             const SizedBox(height: 20),
@@ -654,10 +701,11 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
                       Text(
                         annotation.at.isDateOnly
                             ? t.historyDateZone(
-                                MaterialLocalizations.of(context)
-                                    .formatMediumDate(
-                                      annotation.at.civilDate!.calendarValue,
-                                    ),
+                                MaterialLocalizations.of(
+                                  context,
+                                ).formatMediumDate(
+                                  annotation.at.civilDate!.calendarValue,
+                                ),
                                 annotation.at.zoneId!,
                               )
                             : displayStamp(
@@ -775,6 +823,56 @@ List<_SeriesChoice> _seriesChoices(
   return choices.values.toList()..sort((a, b) => a.key.compareTo(b.key));
 }
 
+/// Names the exact counted unit: one recorded dose for an item series, or one
+/// ingredient amount from a recorded product. A combined source card can hold
+/// several of either, so it is never called one administration here.
+String _sourceCountLabel(AppLocalizations t, ChartSeriesKey key, int count) =>
+    key.subject.kind == ChartSubjectKind.item
+    ? t.chartDoseCount(count)
+    : t.chartIngredientCount(count);
+
+/// Buckets whose current contributions include a combined record.
+///
+/// Used only to explain why one source card can account for more than one
+/// counted amount. Voided revisions never contribute.
+Set<int> _combinedSourceBuckets(
+  ChartObservationBatch batch,
+  ChartSeriesKey key,
+  ChartViewport viewport,
+) {
+  final buckets = <int>{};
+  for (final observation in batch.observations) {
+    if (observation.isVoided ||
+        observation.source.combinedActionId == null ||
+        !_observationContributesTo(observation, key)) {
+      continue;
+    }
+    final index = viewport.indexOf(observation.occurredAt);
+    if (index >= 0) buckets.add(index);
+  }
+  return buckets;
+}
+
+/// Mirrors the model's contribution identity, including the saved-label unit
+/// rule for product ingredients.
+bool _observationContributesTo(
+  ChartObservation observation,
+  ChartSeriesKey key,
+) {
+  if (key.subject.kind == ChartSubjectKind.item) {
+    return observation.itemId == key.subject.id && observation.unit == key.unit;
+  }
+  final product = observation.product;
+  if (product == null) return false;
+  for (final componentAmount in product.components) {
+    final component = componentAmount.component;
+    if (component.ingredientId != key.subject.id) continue;
+    final unit = componentAmount.amount == null ? component.massUnit : 'mg';
+    if (unit == key.unit) return true;
+  }
+  return false;
+}
+
 String bucketLabel(BuildContext context, ChartBucketBounds bucket) {
   final locale = MaterialLocalizations.of(context),
       t = AppLocalizations.of(context);
@@ -814,7 +912,7 @@ class ChartSourcePanel extends ConsumerStatefulWidget {
 }
 
 class _ChartSourcePanelState extends ConsumerState<ChartSourcePanel> {
-  late final cursors = List<ChartDrilldownCursor?>.of(widget.initialCursors);
+  late final cursors = _initialCursors();
   late int index = cursors.length - 1;
   final pageFocus = FocusNode(
     debugLabel: 'chart source page',
@@ -824,6 +922,21 @@ class _ChartSourcePanelState extends ConsumerState<ChartSourcePanel> {
   void dispose() {
     pageFocus.dispose();
     super.dispose();
+  }
+
+  /// A restored chain belongs to one exact request. A cursor from another
+  /// status, range or subject is discarded instead of showing a stale page.
+  List<ChartDrilldownCursor?> _initialCursors() {
+    final chain = widget.initialCursors;
+    if (chain.isEmpty ||
+        chain.any(
+          (cursor) =>
+              cursor != null &&
+              cursor.requestIdentity != widget.request.identity,
+        )) {
+      return [null];
+    }
+    return List.of(chain);
   }
 
   void pageChanged() {
@@ -837,8 +950,9 @@ class _ChartSourcePanelState extends ConsumerState<ChartSourcePanel> {
   void didUpdateWidget(ChartSourcePanel oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.request.identity != widget.request.identity) {
-      cursors.clear();
-      cursors.addAll(widget.initialCursors);
+      cursors
+        ..clear()
+        ..addAll(_initialCursors());
       index = cursors.length - 1;
     }
   }
@@ -894,7 +1008,12 @@ class _ChartSourcePanelState extends ConsumerState<ChartSourcePanel> {
           ),
         ],
         if (result.value case final page?) ...[
-          if (page.entries.isEmpty) Text(t.historyNoEntries),
+          if (page.entries.isEmpty)
+            Text(switch (widget.request.status) {
+              TimelineStatus.voided => t.chartNoVoidedSources,
+              TimelineStatus.recorded => t.chartNoRecordedSources,
+              _ => t.historyNoEntries,
+            }),
           for (final entry in page.entries)
             HistoryEntryCard(
               entry: entry,

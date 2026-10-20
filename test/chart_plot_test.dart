@@ -61,7 +61,7 @@ void main() {
     },
   );
   testWidgets(
-    'chart count messages distinguish singular and plural administrations and context',
+    'chart count messages distinguish doses, ingredient amounts and context',
     (tester) async {
       late AppLocalizations t;
       await tester.pumpWidget(
@@ -74,8 +74,10 @@ void main() {
           ),
         ),
       );
-      expect(t.chartSourceCount(1), '1 administration');
-      expect(t.chartSourceCount(2), '2 administrations');
+      expect(t.chartDoseCount(1), '1 recorded dose');
+      expect(t.chartDoseCount(2), '2 recorded doses');
+      expect(t.chartIngredientCount(1), '1 ingredient amount');
+      expect(t.chartIngredientCount(2), '2 ingredient amounts');
       expect(t.chartAnnotationOverflow(1), startsWith('1 more context entry.'));
       expect(
         t.chartAnnotationOverflow(2),

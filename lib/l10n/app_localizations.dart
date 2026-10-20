@@ -5633,11 +5633,41 @@ abstract class AppLocalizations {
   /// **'Exact amount'**
   String get chartExact;
 
-  /// No description provided for @chartSourceCount.
+  /// No description provided for @chartDoseCount.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one {1 administration} other {{count} administrations}}'**
-  String chartSourceCount(int count);
+  /// **'{count, plural, one {1 recorded dose} other {{count} recorded doses}}'**
+  String chartDoseCount(int count);
+
+  /// No description provided for @chartIngredientCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {1 ingredient amount} other {{count} ingredient amounts}}'**
+  String chartIngredientCount(int count);
+
+  /// No description provided for @chartCombinedCountHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'A combined record can contain several amounts.'**
+  String get chartCombinedCountHelp;
+
+  /// No description provided for @chartVoidedSourcesHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Voided records are shown here but do not count towards totals.'**
+  String get chartVoidedSourcesHelp;
+
+  /// No description provided for @chartNoRecordedSources.
+  ///
+  /// In en, this message translates to:
+  /// **'No recorded sources in this range.'**
+  String get chartNoRecordedSources;
+
+  /// No description provided for @chartNoVoidedSources.
+  ///
+  /// In en, this message translates to:
+  /// **'No voided sources in this range.'**
+  String get chartNoVoidedSources;
 
   /// No description provided for @chartEventStart.
   ///

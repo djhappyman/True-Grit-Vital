@@ -3668,14 +3668,26 @@
   "chartChoosePerson": "Choose a person",
   "chartChooseSeries": "Choose a series",
   "chartExact": "Exact amount",
-  "chartSourceCount": "{count, plural, one {1 administration} other {{count} administrations}}",
-  "@chartSourceCount": {
+  "chartDoseCount": "{count, plural, one {1 recorded dose} other {{count} recorded doses}}",
+  "@chartDoseCount": {
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
   },
+  "chartIngredientCount": "{count, plural, one {1 ingredient amount} other {{count} ingredient amounts}}",
+  "@chartIngredientCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chartCombinedCountHelp": "A combined record can contain several amounts.",
+  "chartVoidedSourcesHelp": "Voided records are shown here but do not count towards totals.",
+  "chartNoRecordedSources": "No recorded sources in this range.",
+  "chartNoVoidedSources": "No voided sources in this range.",
   "chartEventStart": "Event start",
   "chartEventEnd": "Event end",
   "chartPlanChanged": "Plan changed",
