@@ -53,16 +53,28 @@ final appearanceBusyProvider = NotifierProvider<AppearanceError, bool>(
 );
 
 class AppearanceController extends Notifier<AppearancePreferences> {
+  // The notifier instance survives a record-store replacement (restore or
+  // dataset switch re-invalidates recordStoreProvider and re-runs build()),
+  // so completion of any delayed work from the old store must be fenced by
+  // an epoch bump; only the newest generation may change preference state,
+  // error state or busy state. Saves still serialise on the shared notifier.
+  int _epoch = 0;
   bool _saving = false;
-  bool _changed = false;
+
   @override
   AppearancePreferences build() {
-    final store = ref.watch(recordStoreProvider).value;
+    // During a record-store reload Riverpod keeps the previous AsyncValue,
+    // whose store the provider has already retired: reading it races with
+    // close and would raise a current-generation error spuriously. Only
+    // read a settled store; a settled rebuild follows when it arrives.
+    final record = ref.watch(recordStoreProvider);
+    final store = record.isReloading ? null : record.value;
+    final epoch = ++_epoch;
     if (store != null) {
       Future.microtask(() async {
         try {
           final raw = await store.readSetting('appearance');
-          if (raw == null || !ref.mounted || _changed) return;
+          if (raw == null || !ref.mounted || epoch != _epoch) return;
           final data = jsonDecode(raw) as Map<String, dynamic>;
           state = AppearancePreferences(
             mode: ThemeMode.values.firstWhere(
@@ -73,7 +85,9 @@ class AppearanceController extends Notifier<AppearancePreferences> {
             reduceMotion: data['reduceMotion'] == true,
           );
         } catch (_) {
-          if (ref.mounted) ref.read(appearanceErrorProvider.notifier).set(true);
+          if (ref.mounted && epoch == _epoch) {
+            ref.read(appearanceErrorProvider.notifier).set(true);
+          }
         }
       });
     }
@@ -83,7 +97,7 @@ class AppearanceController extends Notifier<AppearancePreferences> {
   Future<void> _save(AppearancePreferences next) async {
     if (_saving) return;
     _saving = true;
-    _changed = true;
+    final epoch = ++_epoch;
     ref.read(appearanceBusyProvider.notifier).set(true);
     final previous = state;
     state = next;
@@ -97,12 +111,18 @@ class AppearanceController extends Notifier<AppearancePreferences> {
         }),
       );
     } catch (_) {
-      if (ref.mounted) {
+      // A write from a replaced/store-generation edit must not silently
+      // discard whatever the current dataset loaded: only the latest
+      // generation may roll state back.
+      if (ref.mounted && epoch == _epoch) {
         state = previous;
         ref.read(appearanceErrorProvider.notifier).set(true);
       }
     } finally {
       _saving = false;
+      // While this write is in flight no newer write can start because
+      // _saving serialises publications on the shared notifier instance, so
+      // clearing busy here retires this generation's own indicator.
       if (ref.mounted) ref.read(appearanceBusyProvider.notifier).set(false);
     }
   }
