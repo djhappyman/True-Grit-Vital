@@ -575,12 +575,17 @@ class VitalApp extends ConsumerWidget {
                     statusBarColor: const Color(0x00000000),
                     systemNavigationBarColor: const Color(0x00000000),
                   ),
-            child: ReminderRuntime(
-              child: BackupRuntime(
-                child: ArtifactTransferRuntime(
-                  child: AttachmentRuntime(
-                    child: VitalComponentThemes(
-                      child: LockGate(child: ReminderHost(child: child!)),
+            child: ColoredBox(
+              color: Theme.of(context).colorScheme.background,
+              child: SafeArea(
+                child: ReminderRuntime(
+                  child: BackupRuntime(
+                    child: ArtifactTransferRuntime(
+                      child: AttachmentRuntime(
+                        child: VitalComponentThemes(
+                          child: LockGate(child: ReminderHost(child: child!)),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -611,11 +616,11 @@ enum Destination {
   };
 }
 
+/// App chrome remains fixed while feature content scrolls.
 class VitalShell extends StatelessWidget {
   const VitalShell({super.key, required this.path, required this.child});
   final String path;
   final Widget child;
-
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
@@ -624,27 +629,28 @@ class VitalShell extends StatelessWidget {
         const RestoreRecoveryBanner(),
         SafeArea(
           bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
+          child: VitalPageBody(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             child: Wrap(
               alignment: WrapAlignment.spaceBetween,
               crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 16,
-              runSpacing: 12,
+              spacing: 12,
+              runSpacing: 8,
               children: [
-                Text(
-                  text.appTitle,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const VitalIconTile(LucideIcons.scanLine, size: 40),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(text.appTitle, style: VitalType.label),
+                    ),
+                  ],
                 ),
                 VitalButton.secondary(
+                  leading: const Icon(LucideIcons.settings, size: 20),
                   onPressed: () => context.push('/settings'),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Text(text.settings),
-                  ),
+                  child: Text(text.settings),
                 ),
               ],
             ),
@@ -675,72 +681,184 @@ class ShellNavigation extends StatelessWidget {
   });
   final String path;
   final bool vertical;
-
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
-    // At large text a wrapped labelled layout keeps all destinations readable.
-    if (!vertical && MediaQuery.textScalerOf(context).scale(14) > 21) {
+    final colors = Theme.of(context).colorScheme;
+    final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
+    if (largeText) {
       return Padding(
-        padding: const EdgeInsets.all(8),
-        child: Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final destination in Destination.values)
-              Semantics(
-                selected: path == destination.path,
-                child: VitalButton.secondary(
-                  onPressed: () => context.go(destination.path),
-                  child: Text(destination.label(text)),
-                ),
-              ),
-          ],
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: VitalChrome(
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final destination in Destination.values)
+                  Semantics(
+                    selected: path == destination.path,
+                    child: VitalButton.secondary(
+                      onPressed: () => context.go(destination.path),
+                      child: Text(destination.label(text)),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       );
     }
-    return NavigationBar(
-      direction: vertical ? Axis.vertical : Axis.horizontal,
-      labelPosition: vertical
-          ? NavigationLabelPosition.end
-          : NavigationLabelPosition.bottom,
-      alignment: vertical
-          ? NavigationBarAlignment.start
-          : NavigationBarAlignment.spaceEvenly,
-      selectedKey: ValueKey(path),
-      surfaceOpacity: 1,
-      surfaceBlur: 0,
-      onSelected: (key) {
-        if (key is ValueKey<String>) context.go(key.value);
-      },
-      children: [
-        for (final destination in Destination.values)
-          NavigationItem(
-            key: ValueKey(destination.path),
-            overflow: NavigationOverflow.none,
-            label: Text(destination.label(text)),
-            child: ExcludeSemantics(child: Icon(destination.icon)),
+    final items = <Widget>[
+      for (final destination in Destination.values)
+        Semantics(
+          selected: path == destination.path,
+          child: ButtonStyleOverride(
+            decoration: (context, states, decoration) =>
+                decoration is BoxDecoration
+                ? decoration.copyWith(
+                    color: path == destination.path
+                        ? colors.accent
+                        : const Color(0x00000000),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: path == destination.path
+                          ? colors.primary.withValues(alpha: 0.25)
+                          : const Color(0x00000000),
+                    ),
+                  )
+                : decoration,
+            padding: (context, states, padding) =>
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Button(
+              style: ButtonVariance.ghost,
+              onPressed: () => context.go(destination.path),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ExcludeSemantics(
+                      child: Icon(
+                        destination.icon,
+                        size: 22,
+                        color: path == destination.path
+                            ? colors.accentForeground
+                            : colors.mutedForeground,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      destination.label(text),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: path == destination.path
+                            ? colors.accentForeground
+                            : colors.mutedForeground,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-      ],
+        ),
+    ];
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: VitalLayout.contentWidth),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: VitalChrome(
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: largeText || vertical
+                  ? Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: items,
+                    )
+                  : Row(
+                      children: [
+                        for (final item in items) Expanded(child: item),
+                      ],
+                    ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
 
-class PageContent extends StatelessWidget {
-  const PageContent({super.key, required this.children});
-  final List<Widget> children;
-
+/// A selected glass surface with a complete opaque accessibility fallback.
+class VitalChrome extends ConsumerWidget {
+  const VitalChrome({super.key, required this.child});
+  final Widget child;
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-    child: VitalPageBody(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: children,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).colorScheme;
+    final effective = EffectiveAppearance.compose(
+      preferences: ref.watch(appearanceProvider),
+      systemReduceMotion:
+          MediaQuery.disableAnimationsOf(context) ||
+          MediaQuery.accessibleNavigationOf(context),
+      systemReduceTransparency: MediaQuery.highContrastOf(context),
+      glassValidated: ref.watch(glassValidatedProvider),
+    );
+    final surface = DecoratedBox(
+      decoration: BoxDecoration(
+        color: effective.opaque
+            ? colors.card
+            : colors.card.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: colors.border),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF000000).withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
-    ),
-  );
+      child: child,
+    );
+    if (effective.opaque) return surface;
+    return glass.AdaptiveGlass(
+      shape: const glass.LiquidRoundedSuperellipse(borderRadius: 48),
+      settings: const glass.LiquidGlassSettings(),
+      child: surface,
+    );
+  }
+}
+
+/// One scrolling, keyboard-aware body for primary and secondary screens.
+/// Compatibility adapter; new screens can use VitalPage or VitalScrollBody.
+class PageContent extends StatelessWidget {
+  const PageContent({super.key, required this.children, this.panelled = false});
+  final List<Widget> children;
+  final bool panelled;
+  @override
+  Widget build(BuildContext context) {
+    final hasTitle = children.isNotEmpty && children.first is Heading;
+    return VitalScrollBody(
+      children: [
+        if (hasTitle) VitalPageHeader(title: (children.first as Heading).text),
+        if (panelled)
+          VitalPanel(
+            gap: 0,
+            children: hasTitle ? children.skip(1).toList() : children,
+          )
+        else
+          ...hasTitle ? children.skip(1) : children,
+      ],
+    );
+  }
 }
 
 class AppearancePage extends ConsumerWidget {
@@ -763,149 +881,120 @@ class AppearancePage extends ConsumerWidget {
       systemReduceTransparency: false,
       glassValidated: ref.watch(glassValidatedProvider),
     );
-    return Scaffold(
-      headers: [
-        SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: VitalButton.secondary(
-                onPressed: () {
-                  if (context.canPop()) {
-                    context.pop();
-                  } else {
-                    context.go('/today');
-                  }
-                },
-                child: Text(text.back),
-              ),
+    return EntryPage(
+      children: [
+        Heading(text.appearance),
+        const SizedBox(height: 8),
+        Text(text.appearanceBody),
+        if (saveError)
+          Semantics(liveRegion: true, child: Text(text.appearanceFailure)),
+        const SizedBox(height: 24),
+        const AppLockSettings(),
+        const SizedBox(height: 24),
+        const TimeFormatSettings(),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            VitalButton.secondary(
+              onPressed: () => context.push('/reminders'),
+              child: Text(text.reminders),
             ),
+            VitalButton.secondary(
+              onPressed: () => context.push('/backup'),
+              child: Text(text.backup),
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        Semantics(
+          header: true,
+          child: Text(
+            text.colourMode,
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
-      ],
-      child: PageContent(
-        children: [
-          Semantics(
-            header: true,
-            child: Text(
-              text.appearance,
-              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(text.appearanceBody),
-          if (saveError)
-            Semantics(liveRegion: true, child: Text(text.appearanceFailure)),
-          const SizedBox(height: 24),
-          const AppLockSettings(),
-          const SizedBox(height: 24),
-          const TimeFormatSettings(),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              VitalButton.secondary(
-                onPressed: () => context.push('/reminders'),
-                child: Text(text.reminders),
-              ),
-              VitalButton.secondary(
-                onPressed: () => context.push('/backup'),
-                child: Text(text.backup),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          Semantics(
-            header: true,
-            child: Text(
-              text.colourMode,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final (mode, label) in [
-                (ThemeMode.system, text.system),
-                (ThemeMode.light, text.light),
-                (ThemeMode.dark, text.dark),
-              ])
-                Semantics(
-                  selected: preferences.mode == mode,
-                  child: VitalButton.secondary(
-                    onPressed: saving ? null : () => controller.setMode(mode),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (preferences.mode == mode) ...[
-                          const ExcludeSemantics(
-                            child: Icon(LucideIcons.check, size: 16),
-                          ),
-                          const SizedBox(width: 8),
-                        ],
-                        Text(label),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final (mode, label) in [
+              (ThemeMode.system, text.system),
+              (ThemeMode.light, text.light),
+              (ThemeMode.dark, text.dark),
+            ])
+              Semantics(
+                selected: preferences.mode == mode,
+                child: VitalButton.secondary(
+                  onPressed: saving ? null : () => controller.setMode(mode),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (preferences.mode == mode) ...[
+                        const ExcludeSemantics(
+                          child: Icon(LucideIcons.check, size: 16),
+                        ),
+                        const SizedBox(width: 8),
                       ],
-                    ),
+                      Text(label),
+                    ],
                   ),
                 ),
-            ],
+              ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        SettingsToggleRow(
+          label: text.opaqueSurfaces,
+          description: text.opaqueHelper,
+          value: preferences.opaque,
+          enabled: !saving,
+          onChanged: controller.setOpaque,
+          reduceMotion: effective.reduceMotion,
+        ),
+        SettingsToggleRow(
+          label: text.reduceMotion,
+          description: text.motionHelper,
+          value: preferences.reduceMotion,
+          enabled: !saving,
+          onChanged: controller.setReduceMotion,
+          reduceMotion: effective.reduceMotion,
+        ),
+        const SizedBox(height: 24),
+        SurfaceSample(effective: effective, opaqueChosen: preferences.opaque),
+        const SizedBox(height: 24),
+        Semantics(
+          header: true,
+          child: Text(
+            text.formSamples,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 20),
-          SettingsToggleRow(
-            label: text.opaqueSurfaces,
-            description: text.opaqueHelper,
-            value: preferences.opaque,
-            enabled: !saving,
-            onChanged: controller.setOpaque,
-            reduceMotion: effective.reduceMotion,
-          ),
-          SettingsToggleRow(
-            label: text.reduceMotion,
-            description: text.motionHelper,
-            value: preferences.reduceMotion,
-            enabled: !saving,
-            onChanged: controller.setReduceMotion,
-            reduceMotion: effective.reduceMotion,
-          ),
-          const SizedBox(height: 24),
-          SurfaceSample(effective: effective, opaqueChosen: preferences.opaque),
-          const SizedBox(height: 24),
-          Semantics(
-            header: true,
-            child: Text(
-              text.formSamples,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 24,
-            runSpacing: 16,
-            children: [
-              for (final (icon, label) in [
-                (LucideIcons.pill, text.tablet),
-                (LucideIcons.syringe, text.injection),
-                (LucideIcons.droplets, text.liquid),
-              ])
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ExcludeSemantics(child: Icon(icon)),
-                    const SizedBox(width: 8),
-                    Text(label),
-                  ],
-                ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(text.formHelper),
-        ],
-      ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 24,
+          runSpacing: 16,
+          children: [
+            for (final (icon, label) in [
+              (LucideIcons.pill, text.tablet),
+              (LucideIcons.syringe, text.injection),
+              (LucideIcons.droplets, text.liquid),
+            ])
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ExcludeSemantics(child: Icon(icon)),
+                  const SizedBox(width: 8),
+                  Text(label),
+                ],
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(text.formHelper),
+      ],
     );
   }
 }

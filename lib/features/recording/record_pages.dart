@@ -198,56 +198,54 @@ class StorageGate extends ConsumerWidget {
   }
 }
 
+/// Compatibility entry point for existing feature imports.
 class Heading extends StatelessWidget {
   const Heading(this.text, {super.key});
   final String text;
   @override
-  Widget build(BuildContext context) => Semantics(
-    header: true,
-    child: Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w600),
-      ),
-    ),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 8, bottom: 16),
+    child: Semantics(header: true, child: Text(text, style: VitalType.section)),
   );
 }
 
 class EntryPage extends StatelessWidget {
-  const EntryPage({super.key, required this.children, this.onBack});
+  const EntryPage({
+    super.key,
+    required this.children,
+    this.onBack,
+    this.panelled = true,
+  });
   final List<Widget> children;
   final VoidCallback? onBack;
+  final bool panelled;
   @override
-  Widget build(BuildContext context) => Scaffold(
-    headers: [
-      SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              VitalButton.secondary(
-                onPressed:
-                    onBack ??
-                    () =>
-                        context.canPop() ? context.pop() : context.go('/today'),
-                child: Text(AppLocalizations.of(context).back),
-              ),
-              VitalButton.secondary(
-                multiline: true,
-                onPressed: () => context.push('/appearance'),
-                child: Text(AppLocalizations.of(context).appearance),
-              ),
-            ],
-          ),
-        ),
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final titleIndex = children.indexWhere((child) => child is Heading);
+    return VitalPage(
+      title: titleIndex < 0 ? null : (children[titleIndex] as Heading).text,
+      panelled: panelled,
+      leading: VitalButton.secondary(
+        leading: const Icon(LucideIcons.arrowLeft),
+        onPressed:
+            onBack ??
+            () => context.canPop() ? context.pop() : context.go('/today'),
+        child: Text(t.back),
       ),
-    ],
-    child: SafeArea(top: false, child: PageContent(children: children)),
-  );
+      headerActions: [
+        VitalButton.secondary(
+          leading: const Icon(LucideIcons.sunMoon),
+          onPressed: () => context.push('/appearance'),
+          child: Text(t.appearance),
+        ),
+      ],
+      children: [
+        for (var i = 0; i < children.length; i++)
+          if (i != titleIndex) children[i],
+      ],
+    );
+  }
 }
 
 class RecordCollection extends ConsumerStatefulWidget {
@@ -307,7 +305,19 @@ class _RecordCollectionState extends ConsumerState<RecordCollection> {
 
     return PageContent(
       children: [
-        Heading(destination.label(t)),
+        VitalPageHeader(
+          title: destination.label(t),
+          icon: destination.icon,
+          actions: destination == Destination.substances
+              ? [
+                  VitalButton(
+                    leading: const Icon(LucideIcons.plus),
+                    onPressed: () => context.push('/create'),
+                    child: Text(t.create),
+                  ),
+                ]
+              : const [],
+        ),
         if (destination == Destination.today) const DraftList(),
         if (destination == Destination.today) const AttachmentJobs(),
         if (notice != null &&
@@ -343,19 +353,16 @@ class _RecordCollectionState extends ConsumerState<RecordCollection> {
         if (destination == Destination.events)
           Text(t.eventsBody)
         else if (destination == Destination.substances) ...[
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: VitalButton(
-              onPressed: () => context.push('/create'),
-              child: Text(t.create),
-            ),
-          ),
-          const SizedBox(height: 20),
           items.when(
             data: (items) => Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (items.isEmpty) Text(t.substancesReady),
+                if (items.isEmpty)
+                  VitalEmptyState(
+                    title: t.substances,
+                    description: t.substancesReady,
+                    icon: LucideIcons.pill,
+                  ),
                 for (final item in items)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
@@ -363,14 +370,14 @@ class _RecordCollectionState extends ConsumerState<RecordCollection> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            item.name,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          VitalRecordHeader(
+                            title: item.name,
+                            subtitle: t.itemDetails(
+                              item.form,
+                              item.type,
+                              item.unit,
+                            ),
                           ),
-                          Text(
-                            t.profileOwner(ownerLabel(ref, t, item.personId)),
-                          ),
-                          Text(t.itemDetails(item.form, item.type, item.unit)),
                           const SizedBox(height: 12),
                           Wrap(
                             spacing: 12,
@@ -484,8 +491,10 @@ class _PagedRecordListState extends ConsumerState<PagedRecordList> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (page == 0 && rows.isEmpty) ...[
-                  Heading(t.noRecords),
-                  Text(widget.emptyBody),
+                  VitalEmptyState(
+                    title: t.noRecords,
+                    description: widget.emptyBody,
+                  ),
                 ],
                 for (final record in rows.take(50))
                   if (visited.add(record.id))
@@ -515,11 +524,14 @@ class LoadFailure extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    return Column(
-      children: [
-        Text(message ?? t.historyUnavailable),
-        VitalButton.secondary(onPressed: onRetry, child: Text(t.retry)),
-      ],
+    return VitalNotice(
+      tone: VitalTone.danger,
+      icon: LucideIcons.circleAlert,
+      action: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: VitalButton.secondary(onPressed: onRetry, child: Text(t.retry)),
+      ),
+      child: Text(message ?? t.historyUnavailable),
     );
   }
 }
@@ -626,7 +638,10 @@ class _RecordCardState extends ConsumerState<RecordCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(r.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+            VitalRecordHeader(
+              title: r.name,
+              icon: r.isVoided ? LucideIcons.history : LucideIcons.circleCheck,
+            ),
             if (!r.isVoided && widget.showActions)
               IntervalRecordChoices(record: r),
             Text(
@@ -954,7 +969,7 @@ class LabelledInput extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+        Text(label, style: VitalType.label),
         const SizedBox(height: 8),
         Semantics(
           label: semanticLabel ?? label,
@@ -969,8 +984,29 @@ class LabelledInput extends StatelessWidget {
                 : TextInputAction.next,
           ),
         ),
-        if (helper != null) Text(helper!),
-        if (error != null) Semantics(liveRegion: true, child: Text(error!)),
+        if (helper != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              helper!,
+              style: VitalType.metadata.copyWith(
+                color: Theme.of(context).colorScheme.mutedForeground,
+              ),
+            ),
+          ),
+        if (error != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Semantics(
+              liveRegion: true,
+              child: Text(
+                error!,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.destructive,
+                ),
+              ),
+            ),
+          ),
       ],
     ),
   );

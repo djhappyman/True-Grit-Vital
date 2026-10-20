@@ -15,20 +15,8 @@ class SettingsSection extends StatelessWidget {
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      Semantics(
-        header: true,
-        child: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      ),
-      const SizedBox(height: 10),
-      for (var index = 0; index < children.length; index++) ...[
-        if (index > 0) const SizedBox(height: 8),
-        children[index],
-      ],
-    ],
-  );
+  Widget build(BuildContext context) =>
+      VitalPanel(title: title, gap: 8, children: children);
 }
 
 /// A destination row, not a toggle. The whole row is one semantic button and
@@ -83,8 +71,8 @@ class _SettingsNavigationRowState extends State<SettingsNavigationRow> {
               constraints: const BoxConstraints(minHeight: 72),
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
               decoration: BoxDecoration(
-                color: colours.card,
-                borderRadius: BorderRadius.circular(VitalLayout.surfaceRadius),
+                color: colours.secondary,
+                borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: _focused ? colours.ring : const Color(0x00000000),
                   width: 2,
@@ -96,14 +84,13 @@ class _SettingsNavigationRowState extends State<SettingsNavigationRow> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          widget.label,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
+                        Text(widget.label, style: VitalType.label),
                         const SizedBox(height: 4),
                         Text(
                           widget.description,
-                          style: TextStyle(color: colours.mutedForeground),
+                          style: VitalType.metadata.copyWith(
+                            color: colours.mutedForeground,
+                          ),
                         ),
                       ],
                     ),
@@ -170,30 +157,13 @@ class SettingsNotice extends StatelessWidget {
   final bool isError;
 
   @override
-  Widget build(BuildContext context) {
-    final colours = Theme.of(context).colorScheme;
-    return Semantics(
-      liveRegion: true,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: colours.card,
-          borderRadius: BorderRadius.circular(VitalLayout.surfaceRadius),
-          border: isError
-              ? Border.all(color: colours.destructive, width: 1)
-              : null,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              message,
-              style: isError ? TextStyle(color: colours.destructive) : null,
-            ),
-            if (action != null) ...[const SizedBox(height: 12), action!],
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    child: VitalNotice(
+      tone: isError ? VitalTone.danger : VitalTone.neutral,
+      icon: isError ? LucideIcons.circleAlert : LucideIcons.info,
+      action: action,
+      child: Text(message),
+    ),
+  );
 }

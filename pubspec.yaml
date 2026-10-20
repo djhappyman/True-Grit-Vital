@@ -40,6 +40,12 @@ dev_dependencies:
 
 flutter:
   generate: true
+  fonts:
+    - family: NotoSans
+      fonts:
+        - asset: assets/fonts/NotoSans-Regular.ttf
+        - asset: assets/fonts/NotoSans-Bold.ttf
+          weight: 700
   assets:
     - LICENSE
     - assets/fonts/

@@ -31,6 +31,7 @@ class SettingsPage extends ConsumerWidget {
         ref.watch(appearanceErrorProvider) ||
         ref.watch(displayPreferencesProvider).failed;
     return EntryPage(
+      panelled: false,
       children: [
         const RestoreRecoveryBanner(),
         Heading(t.settings),

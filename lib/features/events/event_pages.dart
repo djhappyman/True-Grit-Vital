@@ -207,8 +207,11 @@ class _EventsPageState extends ConsumerState<EventsPage> {
     final picked = selected.toList();
     return PageContent(
       children: [
-        Heading(t.events),
-        Text(t.eventHelp),
+        VitalPageHeader(
+          title: t.events,
+          description: t.eventHelp,
+          icon: LucideIcons.calendarRange,
+        ),
         const SizedBox(height: 16),
         Wrap(
           spacing: 12,
@@ -226,7 +229,12 @@ class _EventsPageState extends ConsumerState<EventsPage> {
         else if (!result.hasValue)
           Text(t.loadingRecords)
         else ...[
-          if (visible!.isEmpty) Text(t.eventEmpty),
+          if (visible!.isEmpty)
+            VitalEmptyState(
+              title: t.events,
+              description: t.eventEmpty,
+              icon: LucideIcons.calendarRange,
+            ),
           if (visible.isNotEmpty) Text(t.eventSelectHelp),
           for (final event in visible.take(50))
             Padding(
@@ -236,14 +244,10 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      event.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 20,
-                      ),
+                    VitalRecordHeader(
+                      title: event.name,
+                      icon: LucideIcons.calendarRange,
                     ),
-                    Text(t.profileOwner(ownerLabel(ref, t, event.personId))),
                     Text(
                       event.eventType == 'cycle'
                           ? t.eventCycle

@@ -262,6 +262,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(field('backup-password'), 'a long enough password');
     await tester.enterText(field('backup-confirm'), 'a long enough password');
+    await tester.ensureVisible(find.byKey(const ValueKey('backup-create')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('backup-create')));
     await tester.pump();
     expect(find.text('Preparing records'), findsOneWidget);

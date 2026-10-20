@@ -168,7 +168,7 @@ void main() {
         ),
       ),
     );
-    expect(tester.getSize(find.byKey(const Key('content'))).width, 560);
+    expect(tester.getSize(find.byKey(const Key('content'))).width, 608);
     expect(tester.getCenter(find.byKey(const Key('content'))).dx, 600);
   });
 
@@ -741,11 +741,11 @@ void main() {
     );
     expect(
       vitalTheme(Brightness.dark).colorScheme.background,
-      const Color(0xFF181A1D),
+      const Color(0xFF101715),
     );
     expect(
       vitalTheme(Brightness.dark).colorScheme.secondary,
-      const Color(0xFF343A41),
+      const Color(0xFF101B17),
     );
   });
 }

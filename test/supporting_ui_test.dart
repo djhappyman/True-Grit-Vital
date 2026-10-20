@@ -22,7 +22,7 @@ import 'package:true_grit_vital/features/recording/record_pages.dart';
 import 'package:true_grit_vital/features/supporting/supporting_pages.dart';
 import 'package:true_grit_vital/features/supporting/supporting_trends.dart';
 
-import 'vital_app_test.dart' show appTest, launch, runIo, settle;
+import 'vital_app_test.dart' show appTest, launch, runIo, settle, waitForText;
 
 Future<void> tap(WidgetTester tester, String text) async {
   FocusManager.instance.primaryFocus?.unfocus();
@@ -192,6 +192,7 @@ void main() {
       expect(find.text('Files'), findsNothing);
       await enter(tester, 'Title', 'Original report without results');
       await tap(tester, 'Save');
+      await waitForText(tester, 'No results recorded.');
       expect(find.byType(SupportingDetailPage), findsOneWidget);
       expect(find.text('No results recorded.'), findsOneWidget);
       final saved = (await runIo(

@@ -87,8 +87,9 @@ class ReportPreviewPage extends ConsumerWidget {
         ),
       ],
       child: artifact == null
-          ? PageContent(children: [Text(t.reportUnavailable)])
+          ? PageContent(panelled: true, children: [Text(t.reportUnavailable)])
           : PageContent(
+              panelled: true,
               children: [
                 Heading(t.reportPreviewTitle),
                 Semantics(

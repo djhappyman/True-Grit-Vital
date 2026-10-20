@@ -27,6 +27,10 @@ The single-user revision passed 1,427 host tests with one existing skip, all 15 
 
 Android and Linux builds are checked separately. The current source tree refuses release builds until owner-supplied signing and G07 clearance exist. Debug builds use development signing. The earlier APK/upload request remains cancelled.
 
+The shared [UI framework](../design/components.md) now applies Stitch-informed typography, containers, controls and page layouts to the existing features. Light mode uses a white canvas; dark mode follows the green-black reference palette. Navigation stays fixed at the bottom, and device safe areas are enforced centrally. The source PNG/HTML references remain in the repository. This presentation work adds no new tracking capabilities; glass retains its existing device-validation gate and opaque fallback.
+
+The framework revision passed 1,432 host tests with one existing skip, including 33 existing routes in both themes, fixed-navigation checks and safe-area/large-text layout checks. The native Linux boot and normal debug build also passed. These are host checks; physical Android acceptance remains open below.
+
 ## Still open
 
 - Physical Android boot, TalkBack, large text/keyboard acceptance and measured performance budgets.

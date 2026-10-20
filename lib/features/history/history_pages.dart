@@ -255,7 +255,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     }
     return ListView(
       controller: scroll,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(VitalLayout.gutter),
       children: [
         Center(
           child: ConstrainedBox(
@@ -265,8 +265,11 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Heading(t.history),
-                Text(t.shownInZone(display.resolveZone(zone).zoneId)),
+                VitalPageHeader(
+                  title: t.history,
+                  description: t.shownInZone(display.resolveZone(zone).zoneId),
+                  icon: LucideIcons.history,
+                ),
                 Wrap(
                   spacing: 12,
                   runSpacing: 12,
@@ -606,16 +609,33 @@ class HistoryEntryCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(t.profileOwner(ownerLabel(ref, t, entry.personId))),
-            Text(switch (entry.status) {
-              TimelineEntryStatus.recorded => t.statusRecorded,
-              TimelineEntryStatus.skipped => t.statusSkipped,
-              TimelineEntryStatus.voided => t.statusVoided,
-            }),
+            Text(
+              t.profileOwner(ownerLabel(ref, t, entry.personId)),
+              style: VitalType.metadata.copyWith(
+                color: Theme.of(context).colorScheme.mutedForeground,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: VitalBadge(
+                switch (entry.status) {
+                  TimelineEntryStatus.recorded => t.statusRecorded,
+                  TimelineEntryStatus.skipped => t.statusSkipped,
+                  TimelineEntryStatus.voided => t.statusVoided,
+                },
+                tone: entry.status == TimelineEntryStatus.recorded
+                    ? VitalTone.positive
+                    : VitalTone.neutral,
+              ),
+            ),
+            const SizedBox(height: 16),
             if (entry is SkippedTimelineEntry) ...[
-              Text(
-                (entry as SkippedTimelineEntry).context.itemName ??
+              VitalRecordHeader(
+                title:
+                    (entry as SkippedTimelineEntry).context.itemName ??
                     t.historyInspection,
+                icon: LucideIcons.calendarClock,
               ),
               Text(
                 t.historyPlannedAmount(
@@ -646,9 +666,9 @@ class HistoryEntryCard extends ConsumerWidget {
                   (entry as CombinedTimelineEntry).components,
                 _ => <CombinedTimelineComponent>[],
               }) ...[
-                Text(component.record.name),
-                Text(
-                  t.ownerAmount(
+                VitalRecordHeader(
+                  title: component.record.name,
+                  subtitle: t.ownerAmount(
                     ownerLabel(ref, t, entry.personId),
                     stockRecordAmountNumber(t, component.record),
                     component.record.actualUnit,
@@ -668,10 +688,26 @@ class HistoryEntryCard extends ConsumerWidget {
               excludeSemantics: true,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [Text(relative), if (!entry.dateOnly) Text(exact)],
+                children: [
+                  Text(relative, style: VitalType.label),
+                  if (!entry.dateOnly)
+                    Text(
+                      exact,
+                      style: VitalType.metadata.copyWith(
+                        color: Theme.of(context).colorScheme.mutedForeground,
+                      ),
+                    ),
+                ],
               ),
             ),
-            VitalButton.secondary(onPressed: onInspect, child: Text(t.view)),
+            const SizedBox(height: 12),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: VitalButton.secondary(
+                onPressed: onInspect,
+                child: Text(t.view),
+              ),
+            ),
           ],
         ),
       ),

@@ -115,7 +115,7 @@ abstract class AppLocalizations {
   /// Primary destination for optional cycles and prescription courses.
   ///
   /// In en, this message translates to:
-  /// **'Cycles'**
+  /// **'Events'**
   String get events;
 
   /// Development-shell heading or navigation label. Keep UK English, complete meaning and brief wording; this preview has no saved records.

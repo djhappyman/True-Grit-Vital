@@ -1,6 +1,8 @@
 import 'package:flutter/services.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../ui/vital_ui.dart';
+
 /// One semantic switch and one keyboard target for the whole shared row.
 class SettingsToggleRow extends StatefulWidget {
   const SettingsToggleRow({
@@ -64,7 +66,8 @@ class _SettingsToggleRowState extends State<SettingsToggleRow> {
               constraints: const BoxConstraints(minHeight: 72),
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
+                color: colours.secondary,
+                borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: _focused ? colours.ring : const Color(0x00000000),
                   width: 2,
@@ -76,10 +79,7 @@ class _SettingsToggleRowState extends State<SettingsToggleRow> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          widget.label,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
+                        Text(widget.label, style: VitalType.label),
                         const SizedBox(height: 4),
                         Text(
                           widget.description,

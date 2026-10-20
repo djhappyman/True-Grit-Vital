@@ -74,11 +74,9 @@ class _StockPageState extends ConsumerState<StockPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text(
-                              c.label,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
+                            VitalRecordHeader(
+                              title: c.label,
+                              icon: LucideIcons.archive,
                             ),
                             StockItemName(itemId: c.itemId),
                             if (c.productLabel != null)

@@ -19,7 +19,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get substances => 'Substances';
 
   @override
-  String get events => 'Cycles';
+  String get events => 'Events';
 
   @override
   String get history => 'History';

@@ -31,7 +31,7 @@ There are no remote user accounts or cloud record synchronisation. Watch integra
 
 ## Design references
 
-UI contributors should start with the [Stitch design references](docs/design/README.md). Full-resolution screenshots, original HTML and design metadata are kept in the repository as the visual target for the Flutter interface. UI pull requests should identify the reference screen and include comparison screenshots.
+UI contributors should start with the [shared component framework](docs/design/components.md) and [Stitch design references](docs/design/README.md). Full-resolution screenshots, original HTML and design metadata are kept in the repository. Reusable panels, headers, typography, fields and controls provide the visual foundation for implemented features. UI pull requests should identify the reference screen and include comparison screenshots.
 
 ## Prerequisites
 

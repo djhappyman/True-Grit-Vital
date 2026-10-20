@@ -1,13 +1,13 @@
 # Design references
 
-The owner selected the Stitch designs as Vital's visual target. Use the saved PNGs and HTML when implementing or reviewing the Flutter interface.
+The owner selected the strongest parts of the Stitch designs as Vital's shared visual language. Use the saved PNGs and HTML together with the [implemented component framework](components.md) when building or reviewing the Flutter interface. Reuse the framework across existing features rather than copying generated capabilities.
 
 **Current snapshot:** [20 October 2026](stitch/2026-10-20/README.md), including full-resolution screen images, unchanged HTML exports, generated design tokens and supporting assets. The snapshot separates visible screens from hidden earlier variants.
 
 ## Contribution workflow
 
 1. Find the relevant current screen in the snapshot index. Read its PNG, HTML and metadata together; canvas labels and generated export titles sometimes differ.
-2. Match its layout, spacing, typography, colours, geometry and glass placement using shadcn_flutter controls and selected liquid_glass_widgets surfaces.
+2. Use the shared layout, typography, containers and shadcn controls informed by the reference. Light mode has a pure white canvas; dark mode follows the green-black reference palette. Navigation remains fixed at the bottom and every screen respects device safe areas.
 3. Compare the Flutter screen against the reference at the same logical width and colour mode. Check large text, touch targets, contrast, keyboard behaviour and opaque/reduced-motion settings as well.
 4. Include the reference path and comparison screenshots in UI pull requests. Explain necessary platform or accessibility adaptations. Obtain owner agreement for intentional visual redesigns.
 

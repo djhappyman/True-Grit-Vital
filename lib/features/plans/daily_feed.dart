@@ -71,7 +71,11 @@ class _DailyFeedState extends ConsumerState<DailyFeed> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (result.rows.isEmpty && result.complete)
-                  Text(t.planNothingToday),
+                  VitalEmptyState(
+                    title: t.today,
+                    description: t.planNothingToday,
+                    icon: LucideIcons.calendarCheck,
+                  ),
                 if (due.isNotEmpty)
                   VitalSection(
                     title: Text(t.todayDue),
@@ -555,12 +559,11 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              r.itemName,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+            VitalRecordHeader(
+              title: r.itemName,
+              subtitle: expectationLabel(context, ref, t, e),
+              icon: resolved ? LucideIcons.circleCheck : LucideIcons.pill,
             ),
-            Text(t.profileOwner(ownerLabel(ref, t, e.identity.personId))),
-            Text(expectationLabel(context, ref, t, e)),
             if (boundaryBlocked) ...[
               Text(t.phaseReviewIssue),
               VitalButton.secondary(
@@ -595,7 +598,7 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
             ],
             Semantics(
               liveRegion: true,
-              child: Text(
+              child: VitalBadge(
                 t.planProgress(
                   r.takenCount,
                   r.skippedCount,
@@ -663,7 +666,16 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
                   child: Text(t.record),
                 ),
               ],
-              if (!widget.historyMode && !currentlyPaused) Text(t.planTakenNow),
+              if (!widget.historyMode && !currentlyPaused)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    t.planTakenNow,
+                    style: VitalType.metadata.copyWith(
+                      color: Theme.of(context).colorScheme.mutedForeground,
+                    ),
+                  ),
+                ),
               if (!widget.historyMode && e.identity.sourceActualId != null)
                 Text(t.intervalTakenHelp),
               if (!widget.historyMode &&

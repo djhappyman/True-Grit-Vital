@@ -71,9 +71,12 @@ class _LockGateState extends ConsumerState<LockGate>
               child: SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                  child: VitalPanel(
                     children: [
+                      const Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: VitalIconTile(LucideIcons.shieldCheck, size: 48),
+                      ),
                       Semantics(
                         header: true,
                         child: Text(

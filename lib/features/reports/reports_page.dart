@@ -140,15 +140,23 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
         ),
       ],
       child: people.when(
-        loading: () => PageContent(children: [Text(t.loadingRecords)]),
-        error: (_, _) => PageContent(children: [Text(t.profileUnavailable)]),
+        loading: () =>
+            PageContent(panelled: true, children: [Text(t.loadingRecords)]),
+        error: (_, _) =>
+            PageContent(panelled: true, children: [Text(t.profileUnavailable)]),
         data: (profiles) {
           if (profiles.isEmpty) {
-            return PageContent(children: [Text(t.profileUnavailable)]);
+            return PageContent(
+              panelled: true,
+              children: [Text(t.profileUnavailable)],
+            );
           }
           const requested = meId;
           if (!profiles.any((profile) => profile.id == requested)) {
-            return PageContent(children: [Text(t.profileUnavailable)]);
+            return PageContent(
+              panelled: true,
+              children: [Text(t.profileUnavailable)],
+            );
           }
           const selected = meId;
           if (!initialised) {
@@ -193,6 +201,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
               .where((profile) => profile.id == effective.personId)
               .firstOrNull;
           return PageContent(
+            panelled: true,
             children: [
               Heading(t.reportsTitle),
               Text(t.reportScopeHelp),

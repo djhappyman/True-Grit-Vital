@@ -12,7 +12,7 @@
   "@substances": {
     "description": "Development-shell heading or navigation label. Keep UK English, complete meaning and brief wording; this preview has no saved records."
   },
-  "events": "Cycles",
+  "events": "Events",
   "@events": {
     "description": "Primary destination for optional cycles and prescription courses."
   },
