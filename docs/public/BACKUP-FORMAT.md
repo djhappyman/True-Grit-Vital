@@ -2,7 +2,7 @@
 
 This is the development format implemented on 20 October 2026. Host tests cover round trips, wrong passwords, authenticated tampering, truncation, hostile framing, cancellation and staged restoration. G04 expert review and Android timing/storage/power-loss evidence remain open.
 
-The backup contains a coherent encrypted SQLite snapshot, including protected attachment chunks and every local profile. It is a full-installation backup. A person-scoped JSON/CSV export is a separate feature.
+The backup contains a coherent encrypted SQLite snapshot, including protected attachment chunks and the sole local profile. It is a full-installation backup. A date-filtered JSON/CSV export is a separate feature.
 
 ## Layout
 
@@ -37,7 +37,7 @@ Creation requires at least 12 password characters and at most 1,024 UTF-8 bytes.
 
 `VACUUM INTO` captures the live encrypted database. Backup-purpose pins retain ready attachment versions until capture/self-validation finishes. The completed archive is decrypted and reopened before the app offers it for saving. Integrity, foreign keys, ownership, ready-attachment hashes and historical quantity representations are checked. Quantity validation is paged and bounded to two million rows per quantity table.
 
-Restore copies the selected file into protected intake storage, authenticates and validates a staged database, previews its people/scope, then requires explicit full-replacement confirmation. Preparation migrates the staged copy, rekeys it for this installation, preserves the installation app-lock preference, clears device-local drafts/jobs/actions, tombstones operation receipts and assigns fresh dataset/reminder namespaces.
+Restore copies the selected file into protected intake storage, authenticates and validates a staged database, previews its records and coverage, then requires explicit full-replacement confirmation. Preparation migrates the staged copy, rekeys it for this installation, preserves the installation app-lock preference, clears device-local drafts/jobs/actions, tombstones operation receipts and assigns fresh dataset/reminder namespaces.
 
 Activation closes the live store, verifies a previous-dataset copy, writes a recovery journal, atomically renames the prepared database, reopens it and completes or rolls back. Generated previews and staged outbound copies are cleared before switching. Native reminder registrations are rebuilt from durable intent. Startup recovery preserves evidence when neither a valid active nor previous dataset can be established.
 
@@ -46,3 +46,5 @@ Activation closes the live store, verifies a previous-dataset copy, writes a rec
 The reader bounds the inner snapshot to 4 GiB and ready attachments to 20,000. Destination limits are separate: Android outbound staging is at most 512 MiB; the current Linux portal save adapter buffers at most 64 MiB. An oversized save is rejected while its staged backup remains available. Multi-gigabyte performance, actual storage exhaustion and Android release-binary behaviour are not accepted by host tests alone.
 
 Process-checkpoint recovery has been exercised. Directory syncing outside Linux and real device power-loss behaviour still require platform evidence; this is not a durability certification.
+
+The app accepts only a snapshot containing the sole active `me` owner. Legacy multi-person archives are rejected before replacement; records are never silently merged or discarded. Ownership keys remain in format v1 for referential integrity and older snapshot validation.

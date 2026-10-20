@@ -28,9 +28,7 @@ class ChartsPage extends ConsumerStatefulWidget {
 class _ChartsPageState extends ConsumerState<ChartsPage> {
   late final seed = Uri.parse(widget.location).queryParameters;
   final from = TextEditingController(), before = TextEditingController();
-  late final personId = seed['scope'] == null || seed['scope'] == 'everyone'
-      ? meId
-      : seed['scope']!;
+  static const personId = meId;
   ChartBucketSize granularity = ChartBucketSize.day;
   DateTime? lower, upper;
   String? zone, configured, seriesIdentity, error, repairedZone;

@@ -1,3 +1,5 @@
+import 'fixtures/single_user.dart';
+
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -137,7 +139,7 @@ void main() {
       final f = await launch(tester);
       final adult = (await runIo(
         tester,
-        () => f.store.createProfile(
+        () => f.store.configureOwnProfile(
           commandId: newCommandId(),
           name: 'Same complete adult name',
           adultConfirmed: true,

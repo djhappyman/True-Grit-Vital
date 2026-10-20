@@ -1,3 +1,5 @@
+import 'fixtures/single_user.dart';
+
 import 'package:true_grit_vital/ui/vital_ui.dart';
 
 import 'dart:async';
@@ -78,13 +80,14 @@ launchPlan(
   if (person != meId) {
     person = (await runIo(
       tester,
-      () => store.createProfile(
+      () => store.configureOwnProfile(
         commandId: 'other',
         name: 'Other Adult',
         adultConfirmed: true,
       ),
     ))!.id;
   }
+  person = meId;
   final owner = (await runIo(tester, () => store.profileById(person)))!;
   final item = (await runIo(
     tester,
@@ -277,7 +280,7 @@ void main() {
     await tap(tester, 'Save');
     expect((await runIo(tester, f.store.drafts))!, isEmpty);
   });
-  appTest('another adult plan retains ownership across Everyone and Me', (
+  appTest('your plan stays available despite a legacy saved feed choice', (
     tester,
   ) async {
     final f = await launchPlan(tester, person: 'other');
@@ -285,7 +288,7 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), '0.1250');
     await tap(tester, 'Preview');
     await tap(tester, 'Save');
-    expect(find.text('Taken'), findsNothing);
+    expect(find.text('Taken'), findsWidgets);
     await runIo(
       tester,
       () => f.store.saveBrowsingScope(const FeedScope.everyone()),
@@ -299,13 +302,13 @@ void main() {
       () => f.store.records(scope: const FeedScope.everyone()),
     ))!;
     expect(records.single.personId, f.item.personId);
-    expect(records.single.source, RecordSource.recordedOnBehalf);
+    expect(records.single.source, RecordSource.selfReported);
     expect(
       (await runIo(
         tester,
         () => f.store.records(scope: const FeedScope.me()),
       ))!,
-      isEmpty,
+      hasLength(1),
     );
   });
   appTest(

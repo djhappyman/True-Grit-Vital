@@ -2,7 +2,7 @@
 
 **A local-first substance tracker for adults who want a clear record of what they use, when they use it, and what they have left.**
 
-Vital brings medicines, supplements and other substances into one place: doses, schedules, reminders, stock, use periods and history. It supports separate local adult profiles, so someone helping another adult can keep their records distinct. Optional lab panels and observations provide context alongside recorded use.
+Vital brings medicines, supplements and other substances into one place: doses, schedules, reminders, stock, use periods and history. It is a single-user app, with one local profile and one feed. Optional lab panels and observations provide context alongside recorded use.
 
 The goal is less guesswork and better-organised information for personal review or conversations with a healthcare professional. Vital records information; it does not diagnose conditions, recommend treatment or establish that a substance caused a change.
 
@@ -12,22 +12,22 @@ This is an early development project, public from its first source release. Andr
 
 Implemented areas include:
 
-- Local adult profiles, encrypted storage, private drafts and optional Android app lock.
+- One local profile, encrypted storage, private drafts and optional Android app lock.
 - Substances, exact quantities, corrections, Undo, containers and stock.
 - Daily, weekday, calendar and interval schedules, pauses, phases and Android reminders.
 - Ready-mixed products, combined logging, optional sites, cycles and courses.
 - Protected file/photo attachments, bounded image/PDF previews and explicit sharing.
-- Person-specific History, a medication calendar, charts and source-record inspection.
+- History, a medication calendar, charts and source-record inspection.
 - Manual lab panels and supporting observations, with original values, units, source links and ranges.
 - R01 substance summaries, R02 detailed history and R03 event reports, with PDF/text previews and reviewed-artifact saving or sharing.
-- Person-scoped JSON/CSV exports with exact quantities, corrections, private defaults and reviewed-file saving.
+- Date-filtered JSON/CSV exports with exact quantities, corrections, private defaults and reviewed-file saving.
 - Password-protected full-installation backups, staged restore, fresh dataset generations and interruption recovery.
-- Settings, scoped archive/deletion, local help, bundled licences and bounded redacted diagnostics.
+- Settings, your profile, record deletion, local help, bundled licences and bounded redacted diagnostics.
 - Reminder health, bounded reconciliation and release preflight/evidence tools.
 
 **Not a finished or clinically validated release.** The new flows are implemented and host tested. Physical-device accessibility, performance, Android lifecycle and destination behaviour, backup-format review and distribution clearance remain open. See [current progress and next work](docs/public/STATUS.md) and the [20 October implementation report](docs/public/IMPLEMENTATION-2026-10-20.md).
 
-There are no remote user accounts or cloud record synchronisation. Multiple profiles are local records, not separate remote access permissions. Watch integrations and a general wellness dashboard are outside the current scope.
+There are no remote user accounts or cloud record synchronisation. Watch integrations and a general wellness dashboard are outside the current scope.
 
 ## Prerequisites
 

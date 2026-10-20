@@ -32,6 +32,7 @@ final storeLoaderProvider = Provider<Future<RecordStore> Function()>(
       isNew: location.isNew,
     );
     try {
+      await store.enableSingleUser();
       await bootstrap.activate(location);
       return store;
     } catch (_) {

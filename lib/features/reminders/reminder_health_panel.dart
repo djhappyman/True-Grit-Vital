@@ -45,7 +45,7 @@ class ReminderHealthPanel extends ConsumerWidget {
             Text(t.reminderBlocked),
         ],
         if (health.scopes.isEmpty && health.blockers.isEmpty)
-          Text(t.reminderUnprepared(t.everyone)),
+          Text(t.reminderUnprepared(t.reminders)),
         if (health.capacity.deferred > 0) ...[
           const SizedBox(height: 12),
           // Per-plan capacity rows stay in the plan view, so the combined
@@ -106,9 +106,9 @@ class ReminderHealthPanel extends ConsumerWidget {
   }
 
   static String _fallbackLabel(AppLocalizations t, String scope) {
-    if (scope == 'everyone') return t.everyone;
+    if (scope == 'everyone') return t.reminders;
     if (scope.startsWith('event:')) return t.events;
-    if (scope.startsWith('person:')) return t.people;
+    if (scope.startsWith('person:')) return t.reminders;
     if (scope.startsWith('plan:')) return t.substances;
     return t.schedule;
   }

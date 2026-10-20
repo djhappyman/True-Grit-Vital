@@ -11,7 +11,10 @@ void main() {
     final originalState = tester.state(find.byType(ProfileForm));
     await tap(tester, 'Back');
     expect(tester.state(find.byType(ProfileForm)), same(originalState));
-    expect(find.textContaining('select Save to open Today'), findsOneWidget);
+    expect(
+      find.text('Enter your name and confirm you are an adult to start.'),
+      findsOneWidget,
+    );
     await tap(tester, 'Adult confirmed');
     await tap(tester, 'Save');
     expect(find.text('Today'), findsWidgets);

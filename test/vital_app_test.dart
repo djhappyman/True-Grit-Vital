@@ -1,3 +1,6 @@
+import 'package:true_grit_vital/app/artifact_transfer.dart';
+import 'package:true_grit_vital/platform/artifact_transfer.dart';
+
 import 'dart:async';
 
 import 'package:true_grit_vital/features/recording/combined_pages.dart';
@@ -134,6 +137,9 @@ launch(
         (ref) => Stream.value(DeviceZoneObservation.fromId('Europe/London')),
       ),
       storeLoaderProvider.overrideWithValue(() => Future.value(store)),
+      artifactTransferGatewayProvider.overrideWithValue(
+        const UnsupportedArtifactTransfer(),
+      ),
       if (appearanceWriter != null)
         appearanceWriterProvider.overrideWithValue(appearanceWriter),
       if (timeResolver != null)

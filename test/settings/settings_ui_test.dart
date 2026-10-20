@@ -26,9 +26,9 @@ void main() {
   ) async {
     await launch(tester);
     await tap(tester, 'Settings');
-    expect(find.text('Appearance, people, privacy and help.'), findsOneWidget);
+    expect(find.text('Appearance, privacy, records and help.'), findsOneWidget);
     for (final label in [
-      'People',
+      'Profile',
       'Privacy',
       'Appearance',
       'Reminders',
@@ -54,7 +54,7 @@ void main() {
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     await launch(tester);
     await tap(tester, 'Settings');
-    expect(find.text('Appearance, people, privacy and help.'), findsOneWidget);
+    expect(find.text('Appearance, privacy, records and help.'), findsOneWidget);
     await tester.ensureVisible(find.text('Licences'));
     await tester.pump();
     expect(tester.takeException(), isNull);
@@ -127,7 +127,7 @@ void main() {
     );
     expect(
       find.text(
-        'Anyone who can unlock this device can see every local profile. Adult profiles are not separate accounts.',
+        'Anyone who can unlock Vital on this device can see your records.',
       ),
       findsOneWidget,
     );

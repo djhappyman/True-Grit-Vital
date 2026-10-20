@@ -84,11 +84,8 @@ void main() {
   final inventory = BackupInventory(
     generation: 'generation_ui',
     schemaVersion: 21,
-    people: const [
-      BackupPerson(id: 'me', name: 'Me', archived: false),
-      BackupPerson(id: 'other', name: 'Synthetic adult', archived: false),
-    ],
-    peopleCount: 2,
+    people: const [BackupPerson(id: 'me', name: 'Me', archived: false)],
+    peopleCount: 1,
     recordCount: 4,
     itemCount: 2,
     supportingCount: 1,
@@ -189,7 +186,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('backup-create')));
     await tester.pumpAndSettle();
     expect(find.text('Backup ready'), findsOneWidget);
-    expect(find.text('Includes 2 adults and 3 files.'), findsOneWidget);
+    expect(find.text('Includes 1 adult and 3 files.'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('backup-save')));
     await tester.pumpAndSettle();
     expect(operations.saves, 1);

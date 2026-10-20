@@ -197,69 +197,25 @@ class EventsPage extends ConsumerStatefulWidget {
 
 class _EventsPageState extends ConsumerState<EventsPage> {
   final selected = <String>{};
-  final selectedOwners = <String, String>{};
   int offset = 0;
-  FeedScope? previousScope;
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context),
-        scope = ref.watch(browsingScopeProvider);
-    final people = ref.watch(profilesProvider);
-    if (!scope.hasValue || !people.hasValue) {
-      return PageContent(children: [Text(t.loadingRecords)]);
-    }
-    if (previousScope != scope.requireValue) {
-      offset = 0;
-      previousScope = scope.requireValue;
-    }
-    final query = (
-      personId: scope.requireValue.isEveryone
-          ? null
-          : scope.requireValue.personId,
-      offset: offset,
-    );
+    final t = AppLocalizations.of(context);
+    final query = (personId: meId, offset: offset);
     final result = ref.watch(eventPageProvider(query));
-    final owners = people.requireValue.where((p) => !p.isArchived).toList();
-    final visible = result.value
-        ?.where(
-          (e) =>
-              owners.any((p) => p.id == e.personId) &&
-              (scope.requireValue.isEveryone ||
-                  e.personId == scope.requireValue.personId),
-        )
-        .toList();
-    final picked = selected
-        .where(
-          (id) =>
-              owners.any((p) => p.id == selectedOwners[id]) &&
-              (scope.requireValue.isEveryone ||
-                  selectedOwners[id] == scope.requireValue.personId),
-        )
-        .toList();
+    final visible = result.value;
+    final picked = selected.toList();
     return PageContent(
       children: [
         Heading(t.events),
-        Text(
-          scope.requireValue.isEveryone
-              ? t.everyone
-              : t.profileOwner(
-                  ownerLabel(ref, t, scope.requireValue.personId!),
-                ),
-        ),
         Text(t.eventHelp),
         const SizedBox(height: 16),
         Wrap(
           spacing: 12,
           runSpacing: 12,
           children: [
-            VitalButton.secondary(
-              onPressed: () => context.push('/scope'),
-              child: Text(t.scope),
-            ),
             VitalButton(
-              onPressed: () => context.push(
-                '/event-create${scope.requireValue.isEveryone ? '' : '?person=${scope.requireValue.personId}'}',
-              ),
+              onPressed: () => context.push('/event-create'),
               child: Text(t.create),
             ),
           ],
@@ -326,9 +282,6 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                             onPressed: () => setState(() {
                               if (!selected.add(event.id)) {
                                 selected.remove(event.id);
-                                selectedOwners.remove(event.id);
-                              } else {
-                                selectedOwners[event.id] = event.personId;
                               }
                             }),
                             child: Text(
@@ -365,7 +318,6 @@ class _EventsPageState extends ConsumerState<EventsPage> {
             VitalButton.secondary(
               onPressed: () => setState(() {
                 selected.clear();
-                selectedOwners.clear();
               }),
               child: Text(t.eventClear),
             ),
@@ -673,8 +625,8 @@ final class MembershipFields {
 }
 
 class EventForm extends ConsumerStatefulWidget {
-  const EventForm({super.key, this.personId, this.eventId});
-  final String? personId, eventId;
+  const EventForm({super.key, this.eventId});
+  final String? eventId;
   @override
   ConsumerState<EventForm> createState() => _EventFormState();
 }
@@ -699,7 +651,7 @@ class _EventFormState extends DurableFormState<EventForm> {
   @override
   DraftKind get entryKind => DraftKind.event;
   @override
-  String? get entryPerson => owner?.id ?? widget.personId;
+  String? get entryPerson => owner?.id ?? meId;
   @override
   int? get entryPersonRevision => owner?.revision;
   @override
@@ -969,24 +921,7 @@ class _EventFormState extends DurableFormState<EventForm> {
       return EntryPage(children: [Text(t.draftUnavailable)]);
     }
     if (owner == null) {
-      final person = current?.personId ?? widget.personId;
-      if (person == null) {
-        return EntryPage(
-          children: [
-            Heading(t.choosePerson),
-            for (final p in people.requireValue.where((p) => !p.isArchived))
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: VitalButton.secondary(
-                  multiline: true,
-                  onPressed: () =>
-                      context.pushReplacement('/event-create?person=${p.id}'),
-                  child: Text(personLabel(t, people.requireValue, p.id)),
-                ),
-              ),
-          ],
-        );
-      }
+      final person = current?.personId ?? meId;
       owner = people.requireValue.where((p) => p.id == person).firstOrNull;
     }
     if (owner == null) return EntryPage(children: [Text(t.profileUnavailable)]);

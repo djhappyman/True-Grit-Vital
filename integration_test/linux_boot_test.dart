@@ -41,6 +41,7 @@ void main() {
       key: location.key,
       isNew: location.isNew,
     );
+    await store.enableSingleUser();
     await bootstrap.activate(location);
     final me = (await store.profileById(meId))!;
     await store.editProfile(
@@ -75,6 +76,7 @@ void main() {
       key: reopened.key,
       isNew: false,
     );
+    await store.enableSingleUser();
     await bootstrap.activate(reopened);
     final container = ProviderContainer(
       overrides: [
@@ -120,7 +122,7 @@ void main() {
       1,
     );
     container.read(routerProvider).go('/settings');
-    await waitFor(find.text('Appearance, people, privacy and help.'));
+    await waitFor(find.text('Appearance, privacy, records and help.'));
     for (final label in ['Reports', 'Exports', 'Backup', 'Restore']) {
       expect(find.text(label), findsOneWidget);
     }

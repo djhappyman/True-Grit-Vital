@@ -1,3 +1,5 @@
+import 'fixtures/single_user.dart';
+
 import 'package:go_router/go_router.dart';
 import 'package:true_grit_vital/features/charts/chart_pages.dart';
 
@@ -120,15 +122,9 @@ void main() {
           );
         }
 
-        await toggle('history-person-toggle');
-        await tap(tester, 'Me');
         expect(
-          tester
-              .getSemantics(find.byKey(const ValueKey('history-person-toggle')))
-              .getSemanticsData()
-              .flagsCollection
-              .isExpanded,
-          Tristate.isFalse,
+          find.byKey(const ValueKey('history-person-toggle')),
+          findsNothing,
         );
         await toggle('history-filters-toggle');
         await toggle('history-type-toggle');
@@ -145,7 +141,7 @@ void main() {
       final f = await launch(tester);
       final adult = (await runIo(
         tester,
-        () => f.store.createProfile(
+        () => f.store.configureOwnProfile(
           commandId: newCommandId(),
           name: 'Sam chart owner',
           adultConfirmed: true,
@@ -789,83 +785,6 @@ void main() {
       },
     );
   }
-
-  appTest('History resolves Everyone to Me and chooses one adult locally', (
-    tester,
-  ) async {
-    final f = await launch(tester);
-    final adult = (await runIo(
-      tester,
-      () => f.store.createProfile(
-        commandId: newCommandId(),
-        name: 'Sam Taylor',
-        adultConfirmed: true,
-      ),
-    ))!;
-    await runIo(
-      tester,
-      () => f.store.saveBrowsingScope(const FeedScope.everyone()),
-    );
-    f.container.read(routerProvider).go('/history');
-    await settle(tester);
-    expect(
-      f.container
-          .read(historyControllerProvider('/history'))
-          .query!
-          .filter
-          .scope
-          .personId,
-      meId,
-    );
-    await tap(tester, 'Me');
-    expect(find.text('Everyone'), findsNothing);
-    await tap(tester, 'Sam Taylor');
-    expect(
-      f.container
-          .read(historyControllerProvider('/history'))
-          .query!
-          .filter
-          .scope
-          .personId,
-      adult.id,
-    );
-    expect(
-      (await runIo(tester, f.store.readBrowsingScope))!.isEveryone,
-      isTrue,
-    );
-    await tester.tap(find.text('Calendar'));
-    await tester.pump();
-    final q = f.container.read(historyControllerProvider('/history')).query!;
-    final grid0 = tester.widget<HistoryMonthGrid>(
-      find.byType(HistoryMonthGrid),
-    );
-    await runIo(
-      tester,
-      () => f.container.read(
-        historyCalendarProvider(
-          CalendarRequest(
-            q.restart(
-              filter: q.filter.restart(clearFrom: true, clearBefore: true),
-            ),
-            historyCalendarDates(grid0.month, 1),
-          ),
-        ).future,
-      ),
-    );
-    expect(find.byType(HistoryMonthGrid), findsOneWidget);
-    final grid = tester.widget<HistoryMonthGrid>(find.byType(HistoryMonthGrid));
-    expect(grid.selected, isNotNull);
-    expect(
-      f.container
-          .read(historyControllerProvider('/history'))
-          .query!
-          .filter
-          .scope
-          .personId,
-      adult.id,
-    );
-    expect(tester.takeException(), isNull);
-  });
 
   appTest('wide windows retain anchored horizontal root navigation', (
     tester,

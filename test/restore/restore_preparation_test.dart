@@ -102,15 +102,15 @@ void main() {
       expect(prepared.previousNamespace, beforeNamespace);
       expect(prepared.reminderNamespace, isNot(beforeNamespace));
       expect(prepared.schemaVersion, greaterThanOrEqualTo(21));
-      expect(prepared.peopleCount, 2);
+      expect(prepared.peopleCount, 1);
       expect(prepared.recordCount, 3);
-      expect(prepared.itemCount, 5);
+      expect(prepared.itemCount, 4);
       expect(prepared.supportingCount, 3);
 
       final restored = await openFixtureStore(archivePath);
       try {
         expect(restored.generation, prepared.generation);
-        expect((await restored.profiles()), hasLength(2));
+        expect((await restored.profiles()), hasLength(1));
         expect((await restored.drafts()), isEmpty);
         final panel = await restored.supportingRecord(meId, 'v19-panel-exact');
         expect(panel, isNotNull);
@@ -260,9 +260,7 @@ void main() {
     live = await openFixtureStore(livePath);
     final db = raw(archivePath);
     try {
-      final other =
-          db.select("SELECT id FROM person WHERE id<>'me'").single['id']
-              as String;
+      const other = 'missing-person';
       db.execute('PRAGMA foreign_keys=OFF');
       db.execute("UPDATE attachment_record SET person=? WHERE id=?", [
         other,

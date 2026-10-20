@@ -1,4 +1,3 @@
-import 'package:true_grit_vital/ui/vital_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -245,83 +244,6 @@ void main() {
       final r = (await runIo(tester, f.store.records))!.single;
       expect(r.product!.components.every((c) => c.amount == null), true);
       expect(r.product!.volume, ExactAmount.parseEntry('1'));
-      expect(tester.takeException(), isNull);
-    },
-  );
-
-  appTest(
-    'same-name adult label draft keeps ownership through scope change and archive',
-    (tester) async {
-      final f = await launch(tester);
-      final adult = (await runIo(
-        tester,
-        () => f.store.createProfile(
-          commandId: newCommandId(),
-          name: 'Alex',
-          adultConfirmed: true,
-        ),
-      ))!;
-      await runIo(
-        tester,
-        () => f.store.createProfile(
-          commandId: newCommandId(),
-          name: 'Alex',
-          adultConfirmed: true,
-        ),
-      );
-      final item = (await runIo(
-        tester,
-        () => f.store.createItem(
-          commandId: newCommandId(),
-          personId: adult.id,
-          expectedPersonRevision: adult.revision,
-          name: 'Alex full product name',
-          form: 'Liquid',
-          unit: 'ml',
-          type: 'Test',
-          productComponents: ingredients(),
-        ),
-      ))!;
-      f.container
-          .read(routerProvider)
-          .go('/products/${adult.id}/label/${item.id}');
-      await settle(tester);
-      await editIngredient(
-        tester,
-        'Ingredient name',
-        0,
-        'Unfinished original ingredient',
-      );
-      await runIo(
-        tester,
-        () => f.store.saveBrowsingScope(const FeedScope.me()),
-      );
-      await settle(tester);
-      expect(find.text('Person: Alex. Profile ${adult.id}'), findsOneWidget);
-      final draft = (await runIo(tester, f.store.drafts))!.single;
-      expect(draft.personId, adult.id);
-      await runIo(
-        tester,
-        () => f.store.archiveProfile(
-          commandId: newCommandId(),
-          personId: adult.id,
-          expectedRevision: adult.revision,
-        ),
-      );
-      await settle(tester);
-      expect(
-        tester
-            .widget<VitalButton>(find.widgetWithText(VitalButton, 'Save'))
-            .onPressed,
-        isNull,
-      );
-      expect(
-        tester
-            .widget<TextField>(ingredientField('Ingredient name', 0))
-            .controller!
-            .text,
-        'Unfinished original ingredient',
-      );
       expect(tester.takeException(), isNull);
     },
   );

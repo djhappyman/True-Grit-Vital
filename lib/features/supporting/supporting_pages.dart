@@ -53,7 +53,7 @@ class SupportingRecordsPage extends ConsumerStatefulWidget {
 
 class _SupportingPageState extends ConsumerState<SupportingRecordsPage> {
   late final seed = Uri.parse(widget.location).queryParameters;
-  String get person => seed['person'] ?? meId;
+  String get person => meId;
   late SupportingRecordKind kind = seed['kind'] == 'observation'
       ? SupportingRecordKind.observation
       : SupportingRecordKind.labPanel;

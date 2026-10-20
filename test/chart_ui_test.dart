@@ -1,3 +1,5 @@
+import 'fixtures/single_user.dart';
+
 import 'package:fl_chart/fl_chart.dart' as plot;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/services.dart';
@@ -21,7 +23,7 @@ void main() {
     (tester) async {
       final f = await launch(tester);
       final selected = await runIo(tester, () async {
-        final adult = await f.store.createProfile(
+        final adult = await f.store.configureOwnProfile(
           commandId: 'adult',
           name: 'Morgan',
           adultConfirmed: true,
@@ -42,6 +44,7 @@ void main() {
           await f.store.record(
             commandId: 'm$day',
             personId: adult.id,
+            expectedPersonRevision: adult.revision,
             itemId: medicine.id,
             amount: '$day',
             actualAt: DateTime.utc(2026, 10, day, 12),
@@ -50,13 +53,14 @@ void main() {
         await f.store.record(
           commandId: 'liquid',
           personId: adult.id,
+          expectedPersonRevision: adult.revision,
           itemId: liquid.id,
           amount: '2',
           actualAt: DateTime.utc(2026, 10, 2, 12),
         );
         await f.store.record(
           commandId: 'mine',
-          expectedPersonRevision: 2,
+          expectedPersonRevision: adult.revision,
           itemId: mine.id,
           amount: '999',
           actualAt: DateTime.utc(2026, 10, 1, 12),

@@ -1,3 +1,5 @@
+import 'fixtures/single_user.dart';
+
 import 'package:true_grit_vital/app/device_zone.dart';
 import 'package:true_grit_vital/platform/device_zone.dart';
 
@@ -178,7 +180,7 @@ void main() {
       final f = await launch(tester);
       final adult = (await runIo(
         tester,
-        () => f.store.createProfile(
+        () => f.store.configureOwnProfile(
           commandId: 'adult',
           name: 'Morgan',
           adultConfirmed: true,
@@ -207,7 +209,7 @@ void main() {
           tester,
           () => f.store.supportingRecords(SupportingQuery(personId: meId)),
         ))!.entries,
-        isEmpty,
+        hasLength(1),
       );
       await tap(tester, 'Files');
       expect(
@@ -423,7 +425,7 @@ void main() {
             ),
           );
         }
-        final other = await f.store.createProfile(
+        final other = await f.store.configureOwnProfile(
           commandId: 'other',
           name: 'Other adult',
           adultConfirmed: true,
@@ -836,75 +838,14 @@ void main() {
     expect(history.length, 1);
     expect(history.single.isVoided, isFalse);
   });
-  appTest('archived adult keeps a pending request discardable', (tester) async {
-    final f = await launch(tester);
-    final adult = (await runIo(
-      tester,
-      () => f.store.createProfile(
-        commandId: 'pending-adult',
-        name: 'Morgan',
-        adultConfirmed: true,
-      ),
-    ))!;
-    await runIo(tester, () async {
-      await f.store.saveLabPanel(
-        SaveLabPanelCommand(
-          commandId: 'archive-pending-seed',
-          generation: f.store.generation,
-          expectedPersonRevision: adult.revision,
-          panel: panel('report', adult.id),
-        ),
-      );
-      await f.store.saveDraft(
-        OrdinaryDraft.supportingVoid(
-          id: 'archive-pending',
-          operationId: 'archive-pending',
-          generation: f.store.generation,
-          personId: adult.id,
-          personRevision: adult.revision,
-          recordId: 'report',
-          recordRevision: 1,
-          isVoided: true,
-        ),
-      );
-      await f.store.archiveProfile(
-        commandId: 'archive-pending-owner',
-        personId: adult.id,
-        expectedRevision: adult.revision,
-      );
-    });
-    f.container.read(routerProvider).go('/supporting/${adult.id}/report');
-    await settle(tester);
-    expect(find.text('Void pending'), findsOneWidget);
-    expect(
-      find.text(
-        'This adult is archived. Discard the saved request or restore the adult first.',
-      ),
-      findsOneWidget,
-    );
-    final resume = find.ancestor(
-      of: find.text('Resume'),
-      matching: find.byType(VitalButton),
-    );
-    expect(tester.widget<VitalButton>(resume).onPressed, isNull);
-    await tap(tester, 'Discard');
-    expect(await runIo(tester, f.store.drafts), isEmpty);
-    expect(find.text('Request discarded.'), findsOneWidget);
-    expect(
-      (await runIo(
-        tester,
-        () => f.store.supportingRecord(adult.id, 'report'),
-      ))!.isVoided,
-      isFalse,
-    );
-  });
+
   appTest('History supporting entry retains named adult and return context', (
     tester,
   ) async {
     final f = await launch(tester);
     final adult = (await runIo(
       tester,
-      () => f.store.createProfile(
+      () => f.store.configureOwnProfile(
         commandId: 'named',
         name: 'Named adult',
         adultConfirmed: true,

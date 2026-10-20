@@ -193,16 +193,11 @@ class _RestorePageState extends ConsumerState<RestorePage> {
           const SizedBox(height: 8),
           Text(t.restoreOlderWarning),
         ],
-        if (preview.multiplePeople) ...[
-          const SizedBox(height: 8),
-          Text(t.restoreMultipleWarning(preview.peopleCount)),
-        ],
         const SizedBox(height: 20),
         Text(
           t.restorePeople,
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
-        Text(t.restorePeopleCount(preview.peopleCount)),
         if (preview.coverage.isEmpty)
           for (final person in preview.people)
             Text(
@@ -227,8 +222,6 @@ class _RestorePageState extends ConsumerState<RestorePage> {
                   : t.restoreCoverageEmpty,
             ),
           ],
-        if (preview.peopleTruncated)
-          Text(t.restorePeopleMore(preview.people.length)),
         const SizedBox(height: 20),
         Text(
           t.restoreCoverage,
@@ -408,6 +401,7 @@ String _errorText(AppLocalizations t, String code) => switch (code) {
   RestoreCodes.passwordRequired => t.restorePasswordRequired,
   RestoreCodes.passwordLong => t.restorePasswordLong,
   RestoreCodes.wrongPassword => t.restoreWrongPassword,
+  RestoreCodes.multiplePeople => t.restoreSingleUserRequired,
   RestoreCodes.corrupt => t.restoreCorrupt,
   RestoreCodes.unsupportedVersion => t.restoreUnsupportedVersion,
   RestoreCodes.tooLarge => t.restoreTooLarge,

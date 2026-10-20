@@ -751,19 +751,19 @@ abstract class AppLocalizations {
   /// Local adult profiles. Preserve full identity and consequences; short headings and one-word commands.
   ///
   /// In en, this message translates to:
-  /// **'This person is aged 18 or over.'**
+  /// **'I am 18 or older.'**
   String get adultHelper;
 
   /// Required first-run profile setup and how to continue.
   ///
   /// In en, this message translates to:
-  /// **'Confirm your display name and that you are an adult, then select Save to open Today.'**
+  /// **'Enter your name and confirm you are an adult to start.'**
   String get profileSetupHelp;
 
   /// Local adult profiles. Preserve full identity and consequences; short headings and one-word commands.
   ///
   /// In en, this message translates to:
-  /// **'Enter a display name and confirm this person is an adult.'**
+  /// **'Enter your name and confirm you are an adult.'**
   String get profileRequired;
 
   /// Local adult profiles. Preserve full identity and consequences; short headings and one-word commands.
@@ -5402,7 +5402,7 @@ abstract class AppLocalizations {
   /// No description provided for @historyScopeFixed.
   ///
   /// In en, this message translates to:
-  /// **'This view keeps its selected person. Other feeds stay unchanged.'**
+  /// **'Your filters stay selected when you open a record.'**
   String get historyScopeFixed;
 
   /// No description provided for @historyPlanUnknown.
@@ -6823,7 +6823,7 @@ abstract class AppLocalizations {
   /// Explains the single-person structured export selection.
   ///
   /// In en, this message translates to:
-  /// **'Choose one adult, a date range and the content to include. The preview is the exact file you can save.'**
+  /// **'Choose a date range and the content to include. The preview is the exact file you can save.'**
   String get exportSelectionHelp;
 
   /// Label for choosing the one adult whose records are exported.
@@ -6895,7 +6895,7 @@ abstract class AppLocalizations {
   /// Privacy statement for single-person export.
   ///
   /// In en, this message translates to:
-  /// **'Only this adult is included. Other adults and their records are never exported.'**
+  /// **'Your records are included. Notes stay private unless you include them.'**
   String get exportPrivateHelp;
 
   /// Heading for private inclusion choices.
@@ -7261,7 +7261,7 @@ abstract class AppLocalizations {
   /// Short introduction to the settings inventory.
   ///
   /// In en, this message translates to:
-  /// **'Appearance, people, privacy and help.'**
+  /// **'Appearance, privacy, records and help.'**
   String get settingsBody;
 
   /// Settings notice when appearance or time format persistence failed.
@@ -7321,7 +7321,7 @@ abstract class AppLocalizations {
   /// Reports row helper in Settings.
   ///
   /// In en, this message translates to:
-  /// **'Review a person’s substance report.'**
+  /// **'Review your substance reports.'**
   String get settingsReportsBody;
 
   /// Exports row label, shown only when the export capability is available.
@@ -7333,7 +7333,7 @@ abstract class AppLocalizations {
   /// Exports row helper in Settings.
   ///
   /// In en, this message translates to:
-  /// **'Save structured data for one person.'**
+  /// **'Save your records as structured data.'**
   String get settingsExportsBody;
 
   /// Backup row label, shown only when the backup capability is available.
@@ -7417,7 +7417,7 @@ abstract class AppLocalizations {
   /// Truthful limit of local adult profiles: they express relationship and ownership, not separate access rights.
   ///
   /// In en, this message translates to:
-  /// **'Anyone who can unlock this device can see every local profile. Adult profiles are not separate accounts.'**
+  /// **'Anyone who can unlock Vital on this device can see your records.'**
   String get privacyOperator;
 
   /// Explains the difference between archive and delete without exposing another person’s data.
@@ -7459,7 +7459,7 @@ abstract class AppLocalizations {
   /// Explains that Me is retained when its records are deleted.
   ///
   /// In en, this message translates to:
-  /// **'Your records. Me stays available after deletion.'**
+  /// **'Your profile stays available after deletion.'**
   String get privacyMeOwner;
 
   /// Ownership label for another adult in the privacy list.
@@ -7471,7 +7471,7 @@ abstract class AppLocalizations {
   /// Confirms deletion of only the main user’s records.
   ///
   /// In en, this message translates to:
-  /// **'Delete all saved records for Me? This cannot be undone. Me stays available and other people are not changed.'**
+  /// **'Delete all your saved records, files and drafts? This cannot be undone. Saved or shared copies outside Vital remain.'**
   String get deleteMeBody;
 
   /// Live result after archiving one adult.
@@ -7513,7 +7513,7 @@ abstract class AppLocalizations {
   /// Live result after deleting the main user’s records.
   ///
   /// In en, this message translates to:
-  /// **'Records deleted. Me is still available.'**
+  /// **'Records deleted. Your profile is still available.'**
   String get privacyMeDeleted;
 
   /// Live result after deleting another adult.
@@ -7525,7 +7525,7 @@ abstract class AppLocalizations {
   /// Failure result for an archive, reactivation or deletion write.
   ///
   /// In en, this message translates to:
-  /// **'Could not confirm the change. Review the people shown here before trying again.'**
+  /// **'Could not confirm the change. Review your records before trying again.'**
   String get privacyNotSaved;
 
   /// Explains the bounded content of local diagnostics.
@@ -7663,7 +7663,7 @@ abstract class AppLocalizations {
   /// Short truthful product description without a medical claim.
   ///
   /// In en, this message translates to:
-  /// **'Vital keeps substance records for adults on this device.'**
+  /// **'Vital keeps your substance records on this device.'**
   String get aboutBody;
 
   /// Truthful intended-purpose limit without claiming certification or clinical authority.
@@ -7723,7 +7723,7 @@ abstract class AppLocalizations {
   /// Plain explanation of the report selection before generation.
   ///
   /// In en, this message translates to:
-  /// **'Choose one adult, exact dates, and whether to include private context.'**
+  /// **'Choose exact dates and whether to include private context.'**
   String get reportScopeHelp;
 
   /// Adult selection label.
@@ -7897,13 +7897,13 @@ abstract class AppLocalizations {
   /// Missing adult recovery.
   ///
   /// In en, this message translates to:
-  /// **'This adult is unavailable. Choose another adult.'**
+  /// **'Your profile is unavailable. Reopen Vital and try again.'**
   String get reportPersonMissing;
 
   /// Archived adult recovery.
   ///
   /// In en, this message translates to:
-  /// **'This adult is archived. Restore the adult or choose another adult.'**
+  /// **'Your profile is unavailable. Reopen Vital and try again.'**
   String get reportPersonArchived;
 
   /// Unavailable time zone recovery.
@@ -8101,7 +8101,7 @@ abstract class AppLocalizations {
   /// Report selection or validation message.
   ///
   /// In en, this message translates to:
-  /// **'No events are available for this person.'**
+  /// **'No events are available.'**
   String get reportNoEvents;
 
   /// Report selection or validation message.
@@ -8119,7 +8119,7 @@ abstract class AppLocalizations {
   /// Prominent scope label; a full backup is not single-person.
   ///
   /// In en, this message translates to:
-  /// **'All adults included'**
+  /// **'All your records'**
   String get backupAllAdults;
 
   /// Prominent label that attached files are inside the full backup.
@@ -8479,7 +8479,7 @@ abstract class AppLocalizations {
   /// Label for the people represented in the archive.
   ///
   /// In en, this message translates to:
-  /// **'People'**
+  /// **'Profile'**
   String get restorePeople;
 
   /// Count of people represented in the archive.
@@ -8563,7 +8563,7 @@ abstract class AppLocalizations {
   /// States the full-replacement consequence and rollback boundary.
   ///
   /// In en, this message translates to:
-  /// **'Replacing removes current records, drafts and reminder settings for every person on this device. A rollback copy is kept until the restored dataset opens.'**
+  /// **'Replacing removes your current records, drafts and reminder settings on this device. A rollback copy is kept until the restored records open.'**
   String get restoreConsequence;
 
   /// Positive confirmation switch for a full replacement.
@@ -8775,6 +8775,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An interrupted restore was cleared. Your existing records are still in use.'**
   String get restoreRecoveryCleaned;
+
+  /// Settings and setup page for the sole local user.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profile;
+
+  /// Opens the sole local user profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name and report details.'**
+  String get settingsProfileBody;
+
+  /// Fail-closed recovery for an unexpected multi-person prototype dataset.
+  ///
+  /// In en, this message translates to:
+  /// **'This older dataset contains other people. Open it with the previous version of Vital. Your records have not been deleted.'**
+  String get singleUserRequired;
+
+  /// Rejects a legacy multi-person backup before replacing any live records.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup contains other people. Choose a backup containing only your records.'**
+  String get restoreSingleUserRequired;
 }
 
 class _AppLocalizationsDelegate

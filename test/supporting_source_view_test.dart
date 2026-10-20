@@ -1,3 +1,5 @@
+import 'fixtures/single_user.dart';
+
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -133,7 +135,7 @@ void main() {
     final f = await launch(tester);
     final adult = (await runIo(
       tester,
-      () => f.store.createProfile(
+      () => f.store.configureOwnProfile(
         commandId: 'source-back-adult',
         name: 'Morgan',
         adultConfirmed: true,
@@ -339,18 +341,10 @@ void main() {
     expect(find.byType(AttachmentPreviewSurface), findsNothing);
   });
 
-  appTest('a source route for another person exposes no attachment', (
+  appTest('an old foreign-person source route exposes no attachment', (
     tester,
   ) async {
     final f = await launch(tester);
-    final other = (await runIo(
-      tester,
-      () => f.store.createProfile(
-        commandId: 'other-adult',
-        name: 'Other adult',
-        adultConfirmed: true,
-      ),
-    ))!;
     final first = await save(tester, f.store, panelWithSource());
     final file = await seedSupportingFile(
       tester,
@@ -358,13 +352,13 @@ void main() {
       targetId: 'panel',
       targetRevision: first.revision,
     );
-    f.container.read(routerProvider).go(sourceRoute(file, personId: other.id));
+    f.container
+        .read(routerProvider)
+        .go(sourceRoute(file, personId: 'another-person'));
     await settle(tester);
     expect(
-      find.text(
-        'This saved source is no longer available. The record keeps its saved source details.',
-      ),
-      findsOneWidget,
+      f.container.read(routerProvider).routeInformationProvider.value.uri.path,
+      '/today',
     );
     expect(find.text(file.name), findsNothing);
     expect(find.byType(AttachmentPreviewSurface), findsNothing);

@@ -53,6 +53,12 @@ import 'vital_theme.dart';
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: '/today',
+    redirect: (_, state) {
+      final person =
+          state.pathParameters['person'] ?? state.uri.queryParameters['person'];
+      if (person != null && person != meId) return '/today';
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/supporting',
@@ -72,7 +78,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => StorageGate(
           child: ReportsPage(
             key: ValueKey(state.uri.toString()),
-            personId: state.uri.queryParameters['person'],
             from: state.uri.queryParameters['from'],
             before: state.uri.queryParameters['before'],
             returnLocation: state.uri.queryParameters['return'],
@@ -84,7 +89,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => StorageGate(
           child: SupportingForm(
             key: ValueKey(state.uri.toString()),
-            personId: state.pathParameters['person']!,
+            personId: meId,
             itemId: state.uri.queryParameters['item'],
             eventId: state.uri.queryParameters['event'],
             returnLocation: state.uri.queryParameters['return'],
@@ -96,7 +101,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => StorageGate(
           child: SupportingForm(
             key: ValueKey(state.uri.toString()),
-            personId: state.pathParameters['person']!,
+            personId: meId,
             observation: true,
             itemId: state.uri.queryParameters['item'],
             eventId: state.uri.queryParameters['event'],
@@ -109,7 +114,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => StorageGate(
           child: SupportingTrendsPage(
             key: ValueKey(state.uri.toString()),
-            personId: state.pathParameters['person']!,
+            personId: meId,
             metricId: state.uri.queryParameters['metric'] ?? '',
           ),
         ),
@@ -119,7 +124,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => StorageGate(
           child: SupportingForm(
             key: ValueKey(state.uri.toString()),
-            personId: state.pathParameters['person']!,
+            personId: meId,
             id: state.pathParameters['id']!,
             returnLocation: state.uri.queryParameters['return'],
           ),
@@ -130,7 +135,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => StorageGate(
           child: SupportingDetailPage(
             key: ValueKey(state.uri.toString()),
-            personId: state.pathParameters['person']!,
+            personId: meId,
             id: state.pathParameters['id']!,
             returnLocation: state.uri.queryParameters['return'],
             revision: int.tryParse(state.uri.queryParameters['revision'] ?? ''),
@@ -170,7 +175,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               id: TimelineEntryId.parse(
                 '$prefix:${state.pathParameters['id']}',
               ),
-              personId: state.uri.queryParameters['person'] ?? meId,
+              personId: meId,
               returnLocation: state.uri.queryParameters['return'] ?? '/history',
             ),
           );
@@ -190,7 +195,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                     ],
                   )
                 : AttachmentListPage(
-                    personId: state.pathParameters['person']!,
+                    personId: meId,
                     kind: kind,
                     targetId: state.pathParameters['target']!,
                     restoreFocus:
@@ -220,7 +225,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/supporting-source/:person/:id',
         builder: (_, state) => StorageGate(
           child: SupportingSourceViewerPage(
-            personId: state.pathParameters['person']!,
+            personId: meId,
             attachmentId: state.pathParameters['id']!,
             revision:
                 int.tryParse(state.uri.queryParameters['revision'] ?? '') ?? 0,
@@ -230,9 +235,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/event-create',
-        builder: (_, state) => StorageGate(
-          child: EventForm(personId: state.uri.queryParameters['person']),
-        ),
+        builder: (_, state) => const StorageGate(child: EventForm()),
       ),
       GoRoute(
         path: '/event/:id/revisions',
@@ -280,7 +283,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/use/:person/:item/edit',
         builder: (_, state) => StorageGate(
           child: UsePeriodForm(
-            personId: state.pathParameters['person']!,
+            personId: meId,
             itemId: state.pathParameters['item']!,
             periodId: state.uri.queryParameters['period'],
           ),
@@ -290,7 +293,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/use/:person/:item',
         builder: (_, state) => StorageGate(
           child: UseHistoryPage(
-            personId: state.pathParameters['person']!,
+            personId: meId,
             itemId: state.pathParameters['item']!,
           ),
         ),
@@ -329,7 +332,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/products/:person/label/:item',
         builder: (_, state) => StorageGate(
           child: ProductLabelForm(
-            personId: state.pathParameters['person']!,
+            personId: meId,
             itemId: state.pathParameters['item']!,
           ),
         ),
@@ -338,7 +341,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/stock/:person/create',
         builder: (_, state) => StorageGate(
           child: StockContainerForm(
-            personId: state.pathParameters['person']!,
+            personId: meId,
             itemId: state.uri.queryParameters['item'] ?? '',
           ),
         ),
@@ -347,7 +350,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/stock/:person/adjust/:container',
         builder: (_, state) => StorageGate(
           child: StockAdjustmentForm(
-            personId: state.pathParameters['person']!,
+            personId: meId,
             containerId: state.pathParameters['container']!,
             notices: state.uri.queryParameters['notices'] == 'true',
           ),
@@ -357,38 +360,29 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/stock/:person',
         builder: (_, state) => StorageGate(
           child: StockPage(
-            personId: state.pathParameters['person']!,
+            personId: meId,
             itemId: state.uri.queryParameters['item'],
           ),
         ),
       ),
       GoRoute(
-        path: '/person-history/:id',
-        builder: (_, state) => StorageGate(
-          child: PersonHistory(personId: state.pathParameters['id']!),
-        ),
-      ),
-      GoRoute(
-        path: '/people',
-        builder: (_, _) => const StorageGate(child: PeoplePage()),
-      ),
-      GoRoute(
-        path: '/scope',
-        builder: (_, state) => StorageGate(
-          child: ScopePage(
-            chooseOwner: state.uri.queryParameters['create'] == 'true',
-          ),
-        ),
-      ),
-      GoRoute(
-        path: '/people/add',
+        path: '/profile',
         builder: (_, _) => const StorageGate(child: ProfileForm()),
       ),
+      // Safe exits for bookmarks from the earlier multi-person prototype.
       GoRoute(
-        path: '/people/:id',
-        builder: (_, state) => StorageGate(
-          child: ProfileForm(personId: state.pathParameters['id']!),
-        ),
+        path: '/recorded',
+        builder: (_, _) => const StorageGate(child: RecordedDosesPage()),
+      ),
+      GoRoute(path: '/person-history/:id', redirect: (_, _) => '/recorded'),
+      GoRoute(path: '/people', redirect: (_, _) => '/profile'),
+      GoRoute(path: '/people/add', redirect: (_, _) => '/profile'),
+      GoRoute(path: '/people/:id', redirect: (_, _) => '/profile'),
+      GoRoute(
+        path: '/scope',
+        redirect: (_, state) => state.uri.queryParameters['create'] == 'true'
+            ? '/create'
+            : '/today',
       ),
       GoRoute(
         path: '/backup',
@@ -436,7 +430,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => StorageGate(
           child: RevisionHistory(
             recordId: state.pathParameters['id']!,
-            personId: state.uri.queryParameters['person'] ?? meId,
+            personId: meId,
           ),
         ),
       ),
@@ -444,28 +438,25 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/types/:person/edit',
         builder: (_, state) => StorageGate(
           child: ItemTypeForm(
-            personId: state.pathParameters['person']!,
+            personId: meId,
             typeId: state.uri.queryParameters['type'],
           ),
         ),
       ),
       GoRoute(
         path: '/types/:person',
-        builder: (_, state) => StorageGate(
-          child: ItemTypesPage(personId: state.pathParameters['person']!),
-        ),
+        builder: (_, state) =>
+            StorageGate(child: ItemTypesPage(personId: meId)),
       ),
       GoRoute(
         path: '/create',
-        builder: (_, state) => StorageGate(
-          child: ItemForm(personId: state.uri.queryParameters['person']),
-        ),
+        builder: (_, state) => const StorageGate(child: ItemForm()),
       ),
       GoRoute(
         path: '/site/:person/:record',
         builder: (_, state) => StorageGate(
           child: SiteForm(
-            personId: state.pathParameters['person']!,
+            personId: meId,
             recordId: state.pathParameters['record']!,
           ),
         ),
@@ -474,7 +465,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/combined/:person/edit/:action',
         builder: (_, state) => StorageGate(
           child: CombinedForm(
-            personId: state.pathParameters['person']!,
+            personId: meId,
             actionId: state.pathParameters['action']!,
             undo: state.uri.queryParameters['undo'] == 'true',
             returnLocation: state.uri.queryParameters['return'],
@@ -485,7 +476,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/combined/:person',
         builder: (_, state) => StorageGate(
           child: CombinedForm(
-            personId: state.pathParameters['person']!,
+            personId: meId,
             initialItemId: state.uri.queryParameters['item'],
           ),
         ),
@@ -500,7 +491,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => StorageGate(
           child: DoseForm(
             recordId: state.pathParameters['id']!,
-            personId: state.uri.queryParameters['person'] ?? meId,
+            personId: meId,
             returnLocation: state.uri.queryParameters['return'],
           ),
         ),

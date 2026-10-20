@@ -1,3 +1,5 @@
+import '../test/fixtures/single_user.dart';
+
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -39,7 +41,7 @@ void main() {
           adultConfirmed: true,
         );
       }
-      final adult = await store.createProfile(
+      final adult = await store.configureOwnProfile(
         commandId: newCommandId(),
         name: 'Synthetic reminder adult',
         adultConfirmed: true,

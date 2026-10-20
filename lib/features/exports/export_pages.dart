@@ -27,7 +27,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
   late final _zone = ref.read(displayZoneProvider);
   late final _from = TextEditingController(text: _seed['from'] ?? '');
   late final _before = TextEditingController(text: _seed['before'] ?? '');
-  late String _person = _seed['person'] ?? meId;
+  static const _person = meId;
   late ExportFormat _format =
       ExportFormat.values
           .where((value) => value.name == _seed['format'])
@@ -159,26 +159,6 @@ class _ExportPageState extends ConsumerState<ExportPage> {
           _buildPreview(t, state, artifact, handoff)
         else ...[
           Text(t.exportSelectionHelp),
-          VitalSection(
-            title: Text(t.exportPerson),
-            children: [
-              VitalSegments<String>(
-                values: [for (final person in available) person.id],
-                selected: _person,
-                onChanged: (value) {
-                  _person = value;
-                  _changed();
-                },
-                label: (value) {
-                  final name = personLabel(t, available, value);
-                  final archived = available
-                      .firstWhere((person) => person.id == value)
-                      .isArchived;
-                  return archived ? t.exportArchivedLabel(name) : name;
-                },
-              ),
-            ],
-          ),
           VitalSection(
             title: Text(t.exportRange),
             children: [

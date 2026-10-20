@@ -65,11 +65,14 @@ extension RestoreRecordStore on RecordStore {
       final people =
           (await staged._rows('SELECT count(*) c FROM person')).single['c']!
               as int;
-      if (people < 1 ||
-          (await staged._rows("SELECT id FROM person WHERE id='me'")).length !=
+      if (people != 1 ||
+          (await staged._rows(
+                "SELECT id FROM person WHERE id='me' AND archived=0",
+              )).length !=
               1) {
-        throw const RestoreFailure(RestoreCodes.corrupt);
+        throw const RestoreFailure(RestoreCodes.multiplePeople);
       }
+      await staged.enableSingleUser();
       if ((await staged._rows(
                 "SELECT count(*) c FROM attachment_record r WHERE r.state='ready' AND NOT EXISTS(SELECT 1 FROM attachment_link l WHERE l.attachment=r.id AND l.person=r.person)",
               )).single['c'] !=

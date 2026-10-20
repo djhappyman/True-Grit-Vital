@@ -135,11 +135,8 @@ BackupHeader _header() => BackupHeader(
 BackupInventory _inventory() => BackupInventory(
   generation: 'gggggggggggggggg',
   schemaVersion: 21,
-  people: const [
-    BackupPerson(id: 'me', name: 'Me', archived: false),
-    BackupPerson(id: 'adult-two', name: 'Synthetic Adult', archived: true),
-  ],
-  peopleCount: 2,
+  people: const [BackupPerson(id: 'me', name: 'Me', archived: false)],
+  peopleCount: 1,
   recordCount: 3,
   itemCount: 5,
   supportingCount: 3,
@@ -151,17 +148,6 @@ BackupInventory _inventory() => BackupInventory(
       person: BackupPerson(id: 'me', name: 'Me', archived: false),
       recordCount: 2,
       attachmentCount: 1,
-      earliestRecord: null,
-      latestRecord: null,
-    ),
-    BackupPersonCoverage(
-      person: BackupPerson(
-        id: 'adult-two',
-        name: 'Synthetic Adult',
-        archived: true,
-      ),
-      recordCount: 1,
-      attachmentCount: 0,
       earliestRecord: null,
       latestRecord: null,
     ),
@@ -263,12 +249,9 @@ void main() {
     await tester.pump();
     await tap(tester, 'Check');
     expect(find.text('Backup contents'), findsOneWidget);
-    expect(find.text('2 people'), findsOneWidget);
     expect(find.text('Me'), findsOneWidget);
-    expect(find.text('Synthetic Adult (Archived)'), findsOneWidget);
     expect(find.text('3 records'), findsOneWidget);
     expect(find.text('2 records'), findsOneWidget);
-    expect(find.text('1 record'), findsOneWidget);
     expect(find.text('1 attachment'), findsOneWidget);
     expect(find.textContaining('2026-09-01'), findsOneWidget);
     expect(find.text('Replace'), findsOneWidget);

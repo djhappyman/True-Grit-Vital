@@ -1,3 +1,5 @@
+import '../test/fixtures/single_user.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -38,7 +40,7 @@ void main() {
       );
     }
     final token = DateTime.now().microsecondsSinceEpoch;
-    final adult = await store.createProfile(
+    final adult = await store.configureOwnProfile(
       commandId: newCommandId(),
       name: 'Synthetic product adult $token',
       adultConfirmed: true,

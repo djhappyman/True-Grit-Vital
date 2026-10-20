@@ -69,6 +69,10 @@ final class BackupRestoreGateway implements RestoreGateway {
         ),
       ),
     );
+    if (!staged.inventory.singleUserCompatible) {
+      await staged.discard();
+      throw const RestoreFailure(RestoreCodes.multiplePeople);
+    }
     // The authenticated reader has its own staged snapshot; the intake copy is
     // no longer needed and is removed as soon as validation succeeds.
     await intake.discard(pick);

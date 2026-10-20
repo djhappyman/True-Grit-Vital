@@ -423,18 +423,12 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
 
   Future<void> save() async {
     if (frozen == null && frozenCorrection == null) return;
-    await commit(
-      (_) async {
-        final result = frozen != null
-            ? await ref.read(combinedWriterProvider)(frozen!)
-            : await ref.read(combinedCorrectionWriterProvider)(
-                frozenCorrection!,
-              );
-        ref.read(savedRecordProvider.notifier).set(result.records.first);
-      },
-      successPath:
-          widget.returnLocation ?? '/person-history/${widget.personId}',
-    );
+    await commit((_) async {
+      final result = frozen != null
+          ? await ref.read(combinedWriterProvider)(frozen!)
+          : await ref.read(combinedCorrectionWriterProvider)(frozenCorrection!);
+      ref.read(savedRecordProvider.notifier).set(result.records.first);
+    }, successPath: widget.returnLocation ?? '/recorded');
   }
 
   @override
@@ -1099,7 +1093,7 @@ class _SiteFormState extends DurableFormState<SiteForm> {
             expectedRevision: capturedTargetRevision!,
             siteLabel: site.text.trim().isEmpty ? null : site.text,
           ),
-      successPath: '/person-history/${widget.personId}',
+      successPath: '/recorded',
     );
   }
 

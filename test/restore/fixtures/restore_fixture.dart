@@ -49,7 +49,17 @@ void writeFixtureDatabase(String path) {
     db.execute("PRAGMA cipher='chacha20'");
     db.execute('PRAGMA key="x\'${hexKey(restoreTestKey)}\'"');
     db.execute(
-      File('test/data/fixtures/record_store_v19.sql').readAsStringSync(),
+      File('test/data/fixtures/record_store_v19.sql')
+          .readAsStringSync()
+          .split('\n')
+          .where(
+            (line) =>
+                !line.startsWith('INSERT INTO') ||
+                !line.contains(
+                  '06c9760b7d2c8b8fad6699a875c23fb7234fa8295a3f5da9',
+                ),
+          )
+          .join('\n'),
     );
   } finally {
     db.close();

@@ -1,3 +1,5 @@
+import '../test/fixtures/single_user.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -37,7 +39,7 @@ void main() {
         adultConfirmed: true,
       );
     }
-    final owner = await store.createProfile(
+    final owner = await store.configureOwnProfile(
       commandId: newCommandId(),
       name: 'Synthetic file adult',
       adultConfirmed: true,

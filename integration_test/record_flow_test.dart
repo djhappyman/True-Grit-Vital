@@ -1,3 +1,5 @@
+import '../test/fixtures/single_user.dart';
+
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -105,7 +107,7 @@ void main() {
       '0.5',
       '0.5',
     ]);
-    final other = await store.createProfile(
+    final other = await store.configureOwnProfile(
       commandId: newCommandId(),
       name: 'Synthetic other adult',
       adultConfirmed: true,
@@ -146,9 +148,10 @@ void main() {
       tester,
       find.descendant(of: otherCard, matching: find.text('Voided')),
     );
-    final otherRecord = (await store.records(personId: other.id)).single;
+    final otherRecord = (await store.records(personId: other.id))
+        .firstWhere((r) => r.itemId == otherItem.id);
     expect(otherRecord.revision, 3);
-    expect(otherRecord.source, RecordSource.recordedOnBehalf);
+    expect(otherRecord.source, RecordSource.selfReported);
     expect(otherRecord.isVoided, isTrue);
     expect((await store.recordById(record.id))!.revision, 3);
     final planId = newCommandId();
@@ -210,7 +213,7 @@ void main() {
     final plannedActual = (await store.records(personId: other.id))
         .singleWhere((row) => !row.isVoided);
     expect(plannedActual.enteredAmount, '0.125');
-    expect(plannedActual.source, RecordSource.recordedOnBehalf);
+    expect(plannedActual.source, RecordSource.selfReported);
     final again = await bootstrap.prepare();
     expect(again.isNew, isFalse);
     expect(again.key, location.key);
@@ -228,7 +231,7 @@ void main() {
       );
       expect(
         (await reopened.recordById(otherRecord.id, personId: other.id))!.source,
-        RecordSource.recordedOnBehalf,
+        RecordSource.selfReported,
       );
       final reopenedPlan = (await reopened.capturedDailyRows(
         scope: FeedScope.person(other.id),

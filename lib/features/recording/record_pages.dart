@@ -138,7 +138,7 @@ class StorageGate extends ConsumerWidget {
                     final me = people.where((p) => p.isMe).firstOrNull;
                     if (me != null && !me.adultConfirmed) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (context.mounted) context.go('/people/$meId');
+                        if (context.mounted) context.go('/profile');
                       });
                       return Scaffold(
                         child: PageContent(
@@ -181,6 +181,9 @@ class StorageGate extends ConsumerWidget {
                       : error is StorageBootstrapException &&
                             error.code == 'linux_keyring_unavailable'
                       ? text.keyringBody
+                      : error is StateError &&
+                            error.message == 'single_user_required'
+                      ? text.singleUserRequired
                       : text.recoveryBody,
                 ),
                 const SizedBox(height: 20),
@@ -257,20 +260,17 @@ class RecordCollection extends ConsumerStatefulWidget {
 class _RecordCollectionState extends ConsumerState<RecordCollection> {
   Destination get destination => widget.destination;
   int itemPages = 1;
-  FeedScope? itemScope;
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final notice = ref.watch(savedRecordProvider);
-    final scopeState = ref.watch(browsingScopeProvider);
     final people = ref.watch(profilesProvider);
-    if (!scopeState.hasValue || !people.hasValue) {
+    if (!people.hasValue) {
       return PageContent(
         children: [
-          if (scopeState.hasError || people.hasError)
+          if (people.hasError)
             LoadFailure(
               onRetry: () {
-                ref.invalidate(browsingScopeProvider);
                 ref.invalidate(profilesProvider);
               },
             )
@@ -279,11 +279,7 @@ class _RecordCollectionState extends ConsumerState<RecordCollection> {
         ],
       );
     }
-    final scope = scopeState.requireValue;
-    if (itemScope != scope) {
-      itemPages = 1;
-      itemScope = scope;
-    }
+    const scope = FeedScope.me();
     final itemResults = [
       for (var page = 0; page < itemPages; page++)
         ref.watch(scopedItemsPageProvider((scope: scope, offset: page * 50))),
@@ -339,25 +335,6 @@ class _RecordCollectionState extends ConsumerState<RecordCollection> {
                     ),
             ),
           ),
-        Text(
-          scope.isEveryone
-              ? t.everyone
-              : t.profileOwner(ownerLabel(ref, t, scope.personId!)),
-        ),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            VitalButton.secondary(
-              onPressed: () => context.push('/scope'),
-              child: Text(t.scope),
-            ),
-            VitalButton.secondary(
-              onPressed: () => context.push('/people'),
-              child: Text(t.people),
-            ),
-          ],
-        ),
         const SizedBox(height: 16),
         if (destination == Destination.today) StockNotices(scope: scope),
         if (destination == Destination.today) DailyFeed(scope: scope),
@@ -369,11 +346,7 @@ class _RecordCollectionState extends ConsumerState<RecordCollection> {
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: VitalButton(
-              onPressed: () => context.push(
-                scope.isEveryone
-                    ? '/scope?create=true'
-                    : '/create?person=${scope.personId}',
-              ),
+              onPressed: () => context.push('/create'),
               child: Text(t.create),
             ),
           ),
@@ -677,8 +650,8 @@ class _RecordCardState extends ConsumerState<RecordCard> {
                 false) ...[
               Text(t.archivedHelp),
               VitalButton.secondary(
-                onPressed: () => context.push('/people/${r.personId}'),
-                child: Text(t.people),
+                onPressed: () => context.push('/profile'),
+                child: Text(t.profile),
               ),
             ],
             Text(t.itemDetails(r.form, r.type, r.actualUnit)),
@@ -811,6 +784,52 @@ class _RecordCardState extends ConsumerState<RecordCard> {
   }
 }
 
+/// Immediate review after logging, with the same correction and Undo controls
+/// as the recorded section of Today. The full timeline remains in History.
+class RecordedDosesPage extends ConsumerWidget {
+  const RecordedDosesPage({super.key});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
+    final notice = ref.watch(savedRecordProvider);
+    return EntryPage(
+      children: [
+        Heading(t.history),
+        if (notice != null && notice.personId == meId)
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              notice.isVoided
+                  ? t.voidedContext(
+                      ownerLabel(ref, t, meId),
+                      notice.name,
+                      stockRecordAmountNumber(t, notice),
+                      notice.actualUnit,
+                    )
+                  : t.savedContext(
+                      ownerLabel(ref, t, meId),
+                      notice.name,
+                      stockRecordAmountNumber(t, notice),
+                      notice.actualUnit,
+                    ),
+            ),
+          ),
+        PagedRecordList(
+          query: (
+            itemId: null,
+            actualFrom: null,
+            actualBefore: null,
+            limit: 51,
+            offset: 0,
+            scope: const FeedScope.me(),
+          ),
+          emptyBody: t.historyReady,
+        ),
+      ],
+    );
+  }
+}
+
 class ItemHistory extends ConsumerStatefulWidget {
   const ItemHistory({super.key, required this.itemId});
   final String itemId;
@@ -822,6 +841,7 @@ class _ItemHistoryState extends ConsumerState<ItemHistory> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+    final notice = ref.watch(savedRecordProvider);
     return ref
         .watch(itemLookupProvider(widget.itemId))
         .when(
@@ -831,6 +851,25 @@ class _ItemHistoryState extends ConsumerState<ItemHistory> {
               if (item == null)
                 Text(t.noItem)
               else ...[
+                if (notice != null && notice.itemId == item.id)
+                  Semantics(
+                    liveRegion: true,
+                    child: Text(
+                      notice.isVoided
+                          ? t.voidedContext(
+                              ownerLabel(ref, t, meId),
+                              notice.name,
+                              stockRecordAmountNumber(t, notice),
+                              notice.actualUnit,
+                            )
+                          : t.savedContext(
+                              ownerLabel(ref, t, meId),
+                              notice.name,
+                              stockRecordAmountNumber(t, notice),
+                              notice.actualUnit,
+                            ),
+                    ),
+                  ),
                 Text(item.name),
                 ProductLabelPanel(item: item),
                 VitalButton.secondary(
@@ -1229,8 +1268,7 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
 }
 
 class ItemForm extends ConsumerStatefulWidget {
-  const ItemForm({super.key, this.personId});
-  final String? personId;
+  const ItemForm({super.key});
   @override
   ConsumerState<ItemForm> createState() => _ItemFormState();
 }
@@ -1357,9 +1395,7 @@ class _ItemFormState extends DurableFormState<ItemForm> {
     final t = AppLocalizations.of(context);
     final people = ref.watch(profilesProvider);
     if (!people.hasValue) return EntryPage(children: [Text(t.loadingRecords)]);
-    owner ??= people.value!
-        .where((p) => p.id == (widget.personId ?? meId))
-        .firstOrNull;
+    owner ??= people.value!.where((p) => p.id == meId).firstOrNull;
     if (owner == null || !people.value!.any((p) => p.id == owner!.id)) {
       dirty = false;
       return EntryPage(children: [Text(t.profileUnavailable)]);
@@ -1899,69 +1935,64 @@ class _DoseFormState extends DurableFormState<DoseForm> {
       }
       if (intervalReviews == null || !mounted) return;
     }
-    await commit(
-      (command) async {
-        final store = await ref.read(recordStoreProvider.future);
-        if (original case final r?) {
-          final result = await store.correct(
-            commandId: command,
-            recordId: r.id,
-            expectedRevision: capturedTargetRevision!,
-            amount: !amountEdited || entered.isEmpty ? null : entered,
-            actualAt: at,
-            personId: r.personId,
-            expectedPersonRevision: capturedPersonRevision,
-            stockCorrection: stockCorrection,
-            intervalReviews: intervalReviews,
-          );
-          ref.read(savedRecordProvider.notifier).set(result);
-        } else {
-          final result = productLabel != null
-              ? await store.recordProduct(
-                  commandId: command,
-                  itemId: item!.id,
-                  actualAt: at,
-                  personId: item!.personId,
-                  expectedPersonRevision: capturedPersonRevision!,
-                  siteLabel: site.text.trim().isEmpty ? null : site.text,
-                  use: frozenProductUse!,
-                )
-              : stockUse != null
-              ? await store.record(
-                  commandId: command,
-                  itemId: item!.id,
-                  amount: entered,
-                  actualAt: at,
-                  personId: item!.personId,
-                  expectedPersonRevision: capturedPersonRevision,
-                  siteLabel: site.text.trim().isEmpty ? null : site.text,
-                  stockUse: stockUse,
-                )
-              : site.text.trim().isNotEmpty
-              ? await store.record(
-                  commandId: command,
-                  itemId: item!.id,
-                  amount: entered,
-                  actualAt: at,
-                  personId: item!.personId,
-                  expectedPersonRevision: capturedPersonRevision,
-                  siteLabel: site.text,
-                )
-              : await ref.read(recordWriterProvider)((
-                  commandId: command,
-                  itemId: item!.id,
-                  amount: entered,
-                  actualAt: at,
-                  personId: item!.personId,
-                  expectedPersonRevision: capturedPersonRevision,
-                ));
-          ref.read(savedRecordProvider.notifier).set(result);
-        }
-      },
-      successPath:
-          widget.returnLocation ??
-          '/person-history/${original?.personId ?? item!.personId}',
-    );
+    await commit((command) async {
+      final store = await ref.read(recordStoreProvider.future);
+      if (original case final r?) {
+        final result = await store.correct(
+          commandId: command,
+          recordId: r.id,
+          expectedRevision: capturedTargetRevision!,
+          amount: !amountEdited || entered.isEmpty ? null : entered,
+          actualAt: at,
+          personId: r.personId,
+          expectedPersonRevision: capturedPersonRevision,
+          stockCorrection: stockCorrection,
+          intervalReviews: intervalReviews,
+        );
+        ref.read(savedRecordProvider.notifier).set(result);
+      } else {
+        final result = productLabel != null
+            ? await store.recordProduct(
+                commandId: command,
+                itemId: item!.id,
+                actualAt: at,
+                personId: item!.personId,
+                expectedPersonRevision: capturedPersonRevision!,
+                siteLabel: site.text.trim().isEmpty ? null : site.text,
+                use: frozenProductUse!,
+              )
+            : stockUse != null
+            ? await store.record(
+                commandId: command,
+                itemId: item!.id,
+                amount: entered,
+                actualAt: at,
+                personId: item!.personId,
+                expectedPersonRevision: capturedPersonRevision,
+                siteLabel: site.text.trim().isEmpty ? null : site.text,
+                stockUse: stockUse,
+              )
+            : site.text.trim().isNotEmpty
+            ? await store.record(
+                commandId: command,
+                itemId: item!.id,
+                amount: entered,
+                actualAt: at,
+                personId: item!.personId,
+                expectedPersonRevision: capturedPersonRevision,
+                siteLabel: site.text,
+              )
+            : await ref.read(recordWriterProvider)((
+                commandId: command,
+                itemId: item!.id,
+                amount: entered,
+                actualAt: at,
+                personId: item!.personId,
+                expectedPersonRevision: capturedPersonRevision,
+              ));
+        ref.read(savedRecordProvider.notifier).set(result);
+      }
+    }, successPath: widget.returnLocation ?? '/recorded');
   }
 
   @override
@@ -2115,8 +2146,8 @@ class _DoseFormState extends DurableFormState<DoseForm> {
       if (!ownerValid) ...[
         Text(t.conflictFailure),
         VitalButton.secondary(
-          onPressed: () => context.push('/people'),
-          child: Text(t.people),
+          onPressed: () => context.push('/profile'),
+          child: Text(t.profile),
         ),
       ],
       Text(

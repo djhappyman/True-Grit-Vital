@@ -200,7 +200,7 @@ launch(
     UncontrolledProviderScope(container: container, child: const VitalApp()),
   );
   await settle(tester);
-  await waitForText(tester, pending == null ? 'Reminders' : 'Person: Ada (Me)');
+  await waitForText(tester, pending == null ? 'Reminders' : 'Person: Ada');
   return (store: store, container: container, action: pending);
 }
 
@@ -231,7 +231,7 @@ void main() {
     (tester) async {
       final fixture = await launch(tester, action: ReminderActionKind.snooze);
       expect(
-        find.text('Person: Ada (Me)'),
+        find.text('Person: Ada'),
         findsOneWidget,
         reason: tester
             .widgetList<Text>(find.byType(Text))
@@ -288,7 +288,7 @@ void main() {
     (tester) async {
       final fixture = await launch(tester, action: ReminderActionKind.taken);
       expect(
-        find.text('Person: Ada (Me)'),
+        find.text('Person: Ada'),
         findsOneWidget,
         reason: tester
             .widgetList<Text>(find.byType(Text))
@@ -443,101 +443,6 @@ void main() {
     expect((await runIo(tester, () => fixture.store.records()))!, isEmpty);
   });
 
-  appTest('same-name adults retain distinct pending and health identities', (
-    tester,
-  ) async {
-    final fixture = await launch(tester, action: ReminderActionKind.snooze);
-    final duplicate = (await runIo(tester, () async {
-      final other = await fixture.store.createProfile(
-        commandId: 'duplicate-person',
-        name: 'Ada',
-        adultConfirmed: true,
-      );
-      final item = await fixture.store.createItem(
-        commandId: 'duplicate-item',
-        personId: other.id,
-        expectedPersonRevision: 1,
-        name: 'Second substance',
-        form: 'tablet',
-        unit: 'mg',
-        type: 'medicine',
-      );
-      await fixture.store.saveDailyPlan(
-        commandId: 'duplicate-plan',
-        expectedPersonRevision: 1,
-        expectedGeneration: fixture.store.generation,
-        plan: DailyPlanVersion(
-          personId: other.id,
-          itemId: item.id,
-          planId: 'p2',
-          versionId: 'v2',
-          start: CivilDate.fromDateTime(DateTime.now().toUtc()),
-          zoneBasis: const FollowingLocal(),
-          timing: DailySlots([
-            DailySlot(
-              id: 'am',
-              time: WallTime(14, 0),
-              amount: PlannedAmount(
-                quantity: ExactQuantity.parse('2'),
-                unit: 'mg',
-              ),
-              reminderEnabled: false,
-            ),
-          ]),
-        ),
-      );
-      await fixture.store.setPlanReminders(
-        commandId: 'duplicate-enable',
-        planId: 'p2',
-        personId: other.id,
-        expectedPlanRevision: 1,
-        expectedPersonRevision: 1,
-        enabled: true,
-      );
-      return other;
-    }))!;
-    await settle(tester);
-    expect(find.text('Person: Ada (Me)'), findsOneWidget);
-    await tap(tester, 'Cancel');
-    fixture.container.read(routerProvider).go('/reminders');
-    await waitForText(tester, 'Reminders');
-    await tap(tester, 'Retry');
-    final stop = DateTime.now().add(const Duration(seconds: 10));
-    while (find
-        .textContaining('Ada. Profile ${duplicate.id}')
-        .evaluate()
-        .isEmpty) {
-      if (DateTime.now().isAfter(stop)) {
-        final state = fixture.container.read(remindersProvider);
-        fail(
-          'Coverage did not settle: cap=${state.report.capabilities?.supported}, failed=${state.report.failed}, scopes=${state.report.projection?.coverage.map((c) => c.scope).join(',')}; path=${fixture.container.read(routerProvider).routeInformationProvider.value.uri}; displayed=${tester.widgetList<Text>(find.byType(Text)).map((t) => t.data).join(' | ')}',
-        );
-      }
-      // Advance real isolate IO and the widget clock together without adding
-      // 36 fixed delays per observation of this transaction-heavy projection.
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 1)),
-      );
-      await tester.pump();
-    }
-    await settle(tester);
-    expect(
-      find.textContaining('Ada. Profile ${duplicate.id}'),
-      findsWidgets,
-      reason: tester
-          .widgetList<Text>(find.byType(Text))
-          .map((t) => t.data)
-          .join(' | '),
-    );
-    expect(find.textContaining('Ada (Me)'), findsWidgets);
-    expect(find.byType(RemindersPage), findsOneWidget);
-    expect(find.byType(ReminderActionPage), findsNothing);
-    expect(
-      fixture.container.read(routerProvider).routerDelegate.state.uri.path,
-      '/reminders',
-    );
-    expect((await runIo(tester, () => fixture.store.records()))!, isEmpty);
-  });
   appTest('permission observation never prompts and explicit Allow requests once', (
     tester,
   ) async {

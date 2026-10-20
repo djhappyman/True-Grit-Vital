@@ -1,5 +1,7 @@
 import 'package:true_grit_vital/ui/vital_ui.dart';
 
+import 'fixtures/single_user.dart';
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -379,7 +381,7 @@ void main() {
         gateway: gateway,
         reopen: true,
         prepare: (store, _) async {
-          final owner = await store.createProfile(
+          final owner = await store.configureOwnProfile(
             commandId: newCommandId(),
             name: 'Recovered adult',
             adultConfirmed: true,
@@ -421,7 +423,7 @@ void main() {
       );
       expect(
         await runIo(tester, () => f.store.attachments(personId: meId)),
-        isEmpty,
+        hasLength(1),
       );
       expect(
         await runIo(tester, f.store.readBrowsingScope),
@@ -669,7 +671,7 @@ void main() {
       f.container.read(routerProvider).go('/attachment/${file.id}');
       await settle(tester);
       await tap(tester, 'Share');
-      expect(find.textContaining('Main Adult (Me)'), findsWidgets);
+      expect(find.textContaining('Main Adult'), findsWidgets);
       await tap(tester, 'Share');
       expect(f.handoff.shares, 1);
       expect(f.handoff.chunks.values.single.toBytes(), source);
@@ -733,69 +735,7 @@ void main() {
       expect(await runIo(tester, f.store.pendingAttachmentJobs), isEmpty);
     },
   );
-  attachmentAppTest(
-    'archived person explains why file actions are unavailable',
-    (tester) async {
-      late AdultProfile owner;
-      late SubstanceItem item;
-      late AttachmentRecord file;
-      final f = await fixture(
-        tester,
-        prepare: (store, _) async {
-          owner = await store.createProfile(
-            commandId: newCommandId(),
-            name: 'Archived adult',
-            adultConfirmed: true,
-          );
-          item = await store.createItem(
-            commandId: newCommandId(),
-            personId: owner.id,
-            expectedPersonRevision: owner.revision,
-            name: 'Archived source',
-            form: 'Tablet',
-            unit: 'count',
-            type: 'Test',
-          );
-          file = await seedFile(store, item, await png(8, 8));
-          owner = await store.archiveProfile(
-            commandId: newCommandId(),
-            personId: owner.id,
-            expectedRevision: owner.revision,
-          );
-        },
-      );
-      const reason =
-          'This person is archived. Reactivate them in People to manage files.';
-      f.container.read(routerProvider).go('/files/${owner.id}/item/${item.id}');
-      await settle(tester);
-      expect(find.text(reason), findsOneWidget);
-      expect(
-        tester
-            .widget<VitalButton>(find.widgetWithText(VitalButton, 'Choose'))
-            .onPressed,
-        isNull,
-      );
-      f.container.read(routerProvider).go('/attachment/${file.id}');
-      await waitForText(tester, 'Original file');
-      expect(find.text(reason), findsOneWidget);
-      for (final label in ['Rename', 'Delete', 'Save']) {
-        expect(
-          tester
-              .widget<VitalButton>(find.widgetWithText(VitalButton, label))
-              .onPressed,
-          isNull,
-          reason: label,
-        );
-      }
-      expect(find.widgetWithText(VitalButton, 'Share'), findsNothing);
-      await tester.tap(
-        find.widgetWithText(VitalButton, 'Delete'),
-        warnIfMissed: false,
-      );
-      await settle(tester);
-      expect(find.text('Delete from record'), findsNothing);
-    },
-  );
+
   attachmentAppTest('voided dose explains why files cannot be added', (
     tester,
   ) async {

@@ -531,15 +531,15 @@
   "@adultConfirmed": {
     "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
   },
-  "adultHelper": "This person is aged 18 or over.",
+  "adultHelper": "I am 18 or older.",
   "@adultHelper": {
     "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
   },
-  "profileSetupHelp": "Confirm your display name and that you are an adult, then select Save to open Today.",
+  "profileSetupHelp": "Enter your name and confirm you are an adult to start.",
   "@profileSetupHelp": {
     "description": "Required first-run profile setup and how to continue."
   },
-  "profileRequired": "Enter a display name and confirm this person is an adult.",
+  "profileRequired": "Enter your name and confirm you are an adult.",
   "@profileRequired": {
     "description": "Local adult profiles. Preserve full identity and consequences; short headings and one-word commands."
   },
@@ -3615,7 +3615,7 @@
       }
     }
   },
-  "historyScopeFixed": "This view keeps its selected person. Other feeds stay unchanged.",
+  "historyScopeFixed": "Your filters stay selected when you open a record.",
   "historyPlanUnknown": "No saved plan context. No missed use is inferred.",
   "historyInspection": "Source",
   "historyUnknownSource": "This source is no longer available. Return to history and refresh.",
@@ -4600,7 +4600,7 @@
   "@exportTitle": {
     "description": "Page title for structured JSON or CSV export."
   },
-  "exportSelectionHelp": "Choose one adult, a date range and the content to include. The preview is the exact file you can save.",
+  "exportSelectionHelp": "Choose a date range and the content to include. The preview is the exact file you can save.",
   "@exportSelectionHelp": {
     "description": "Explains the single-person structured export selection."
   },
@@ -4660,7 +4660,7 @@
   "@exportSupportingHelp": {
     "description": "Explains which supporting records are included."
   },
-  "exportPrivateHelp": "Only this adult is included. Other adults and their records are never exported.",
+  "exportPrivateHelp": "Your records are included. Notes stay private unless you include them.",
   "@exportPrivateHelp": {
     "description": "Privacy statement for single-person export."
   },
@@ -4967,7 +4967,7 @@
   "@settings": {
     "description": "Settings screen heading and shell navigation label."
   },
-  "settingsBody": "Appearance, people, privacy and help.",
+  "settingsBody": "Appearance, privacy, records and help.",
   "@settingsBody": {
     "description": "Short introduction to the settings inventory."
   },
@@ -5007,7 +5007,7 @@
   "@reports": {
     "description": "Reports row label, shown only when the report capability is available."
   },
-  "settingsReportsBody": "Review a person’s substance report.",
+  "settingsReportsBody": "Review your substance reports.",
   "@settingsReportsBody": {
     "description": "Reports row helper in Settings."
   },
@@ -5015,7 +5015,7 @@
   "@exports": {
     "description": "Exports row label, shown only when the export capability is available."
   },
-  "settingsExportsBody": "Save structured data for one person.",
+  "settingsExportsBody": "Save your records as structured data.",
   "@settingsExportsBody": {
     "description": "Exports row helper in Settings."
   },
@@ -5071,7 +5071,7 @@
   "@privacyBody": {
     "description": "Privacy screen introduction."
   },
-  "privacyOperator": "Anyone who can unlock this device can see every local profile. Adult profiles are not separate accounts.",
+  "privacyOperator": "Anyone who can unlock Vital on this device can see your records.",
   "@privacyOperator": {
     "description": "Truthful limit of local adult profiles: they express relationship and ownership, not separate access rights."
   },
@@ -5099,7 +5099,7 @@
   "@privacyNoneArchived": {
     "description": "Empty state for the archived people section."
   },
-  "privacyMeOwner": "Your records. Me stays available after deletion.",
+  "privacyMeOwner": "Your profile stays available after deletion.",
   "@privacyMeOwner": {
     "description": "Explains that Me is retained when its records are deleted."
   },
@@ -5107,7 +5107,7 @@
   "@privacyOtherOwner": {
     "description": "Ownership label for another adult in the privacy list."
   },
-  "deleteMeBody": "Delete all saved records for Me? This cannot be undone. Me stays available and other people are not changed.",
+  "deleteMeBody": "Delete all your saved records, files and drafts? This cannot be undone. Saved or shared copies outside Vital remain.",
   "@deleteMeBody": {
     "description": "Confirms deletion of only the main user’s records."
   },
@@ -5171,7 +5171,7 @@
       }
     }
   },
-  "privacyMeDeleted": "Records deleted. Me is still available.",
+  "privacyMeDeleted": "Records deleted. Your profile is still available.",
   "@privacyMeDeleted": {
     "description": "Live result after deleting the main user’s records."
   },
@@ -5185,7 +5185,7 @@
       }
     }
   },
-  "privacyNotSaved": "Could not confirm the change. Review the people shown here before trying again.",
+  "privacyNotSaved": "Could not confirm the change. Review your records before trying again.",
   "@privacyNotSaved": {
     "description": "Failure result for an archive, reactivation or deletion write."
   },
@@ -5277,7 +5277,7 @@
   "@about": {
     "description": "Help section heading for the product description."
   },
-  "aboutBody": "Vital keeps substance records for adults on this device.",
+  "aboutBody": "Vital keeps your substance records on this device.",
   "@aboutBody": {
     "description": "Short truthful product description without a medical claim."
   },
@@ -5317,7 +5317,7 @@
   "@reportsTitle": {
     "description": "Page heading and History entry for person-scoped report selection."
   },
-  "reportScopeHelp": "Choose one adult, exact dates, and whether to include private context.",
+  "reportScopeHelp": "Choose exact dates and whether to include private context.",
   "@reportScopeHelp": {
     "description": "Plain explanation of the report selection before generation."
   },
@@ -5462,11 +5462,11 @@
   "@reportAttachmentLimit": {
     "description": "Attachment limit failure with a recovery step."
   },
-  "reportPersonMissing": "This adult is unavailable. Choose another adult.",
+  "reportPersonMissing": "Your profile is unavailable. Reopen Vital and try again.",
   "@reportPersonMissing": {
     "description": "Missing adult recovery."
   },
-  "reportPersonArchived": "This adult is archived. Restore the adult or choose another adult.",
+  "reportPersonArchived": "Your profile is unavailable. Reopen Vital and try again.",
   "@reportPersonArchived": {
     "description": "Archived adult recovery."
   },
@@ -5614,7 +5614,7 @@
   "@reportEventRangeHelp": {
     "description": "Report selection or validation message."
   },
-  "reportNoEvents": "No events are available for this person.",
+  "reportNoEvents": "No events are available.",
   "@reportNoEvents": {
     "description": "Report selection or validation message."
   },
@@ -5626,7 +5626,7 @@
   "@backupCreateHeading": {
     "description": "Section heading above the backup password fields."
   },
-  "backupAllAdults": "All adults included",
+  "backupAllAdults": "All your records",
   "@backupAllAdults": {
     "description": "Prominent scope label; a full backup is not single-person."
   },
@@ -5894,7 +5894,7 @@
       }
     }
   },
-  "restorePeople": "People",
+  "restorePeople": "Profile",
   "@restorePeople": {
     "description": "Label for the people represented in the archive."
   },
@@ -5993,7 +5993,7 @@
       }
     }
   },
-  "restoreConsequence": "Replacing removes current records, drafts and reminder settings for every person on this device. A rollback copy is kept until the restored dataset opens.",
+  "restoreConsequence": "Replacing removes your current records, drafts and reminder settings on this device. A rollback copy is kept until the restored records open.",
   "@restoreConsequence": {
     "description": "States the full-replacement consequence and rollback boundary."
   },
@@ -6141,5 +6141,21 @@
   "restoreRecoveryCleaned": "An interrupted restore was cleared. Your existing records are still in use.",
   "@restoreRecoveryCleaned": {
     "description": "Truthful in-memory notice after verified dataset recovery."
+  },
+  "profile": "Profile",
+  "@profile": {
+    "description": "Settings and setup page for the sole local user."
+  },
+  "settingsProfileBody": "Your name and report details.",
+  "@settingsProfileBody": {
+    "description": "Opens the sole local user profile."
+  },
+  "singleUserRequired": "This older dataset contains other people. Open it with the previous version of Vital. Your records have not been deleted.",
+  "@singleUserRequired": {
+    "description": "Fail-closed recovery for an unexpected multi-person prototype dataset."
+  },
+  "restoreSingleUserRequired": "This backup contains other people. Choose a backup containing only your records.",
+  "@restoreSingleUserRequired": {
+    "description": "Rejects a legacy multi-person backup before replacing any live records."
   }
 }

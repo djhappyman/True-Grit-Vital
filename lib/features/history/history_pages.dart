@@ -43,14 +43,10 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   TimelineStatus status = TimelineStatus.all;
   CivilDate? selected, month;
   DateTime? appliedFrom, appliedBefore;
-  bool calendar = false,
-      filtersOpen = false,
-      initialised = false,
-      peopleOpen = false;
+  bool calendar = false, filtersOpen = false, initialised = false;
   String? dateError;
   DateTime? movedAt;
   String? configuredIdentity;
-  FeedScope? localScope;
   final Map<String, String> labels = {};
   final _anchorKey = GlobalKey();
   bool _anchorPositioned = false;
@@ -65,7 +61,6 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     events = {...?seed['event']?.split(',')};
     initialised = false;
     configuredIdentity = null;
-    localScope = null;
     dateError = null;
     movedAt = null;
     _anchorPositioned = false;
@@ -166,23 +161,13 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     final t = AppLocalizations.of(context),
         zone = ref.watch(displayZoneProvider),
         preferences = ref.watch(displayPreferencesProvider),
-        scopeValue = ref.watch(browsingScopeProvider),
         people = ref.watch(profilesProvider),
         state = ref.watch(historyControllerProvider(widget.location));
-    if (!scopeValue.hasValue || !people.hasValue) {
+    if (!people.hasValue) {
       return PageContent(children: [Text(t.loadingRecords)]);
     }
-    final requested = seed['scope'];
-    // History always has one adult; the combined management view stays in Today.
-    final candidate =
-        localScope?.personId ??
-        (requested != null && requested != 'everyone'
-            ? requested
-            : scopeValue.requireValue.personId);
-    final personId = people.requireValue.any((p) => p.id == candidate)
-        ? candidate!
-        : meId;
-    final scope = FeedScope.person(personId);
+    const personId = meId;
+    const scope = FeedScope.me();
     final anchor = seed['anchor'];
     final originalAnchorTime = DateTime.tryParse(seed['anchorAt'] ?? '');
     final anchorEntry = anchor == null || originalAnchorTime == null
@@ -258,7 +243,6 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     }
     final visible = ModalRoute.of(context)?.isCurrent != false;
     scheduleMicrotask(() => controller.visible(visible));
-    final owner = ownerLabel(ref, t, personId);
     if (!_anchorPositioned &&
         anchor != null &&
         state.entries.any((entry) => entry.id.sortKey == anchor)) {
@@ -287,19 +271,6 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                   spacing: 12,
                   runSpacing: 12,
                   children: [
-                    MergeSemantics(
-                      child: Semantics(
-                        key: const ValueKey('history-person-toggle'),
-                        expanded: peopleOpen,
-                        child: VitalButton.secondary(
-                          multiline: true,
-                          trailing: const Icon(LucideIcons.chevronDown),
-                          onPressed: () =>
-                              setState(() => peopleOpen = !peopleOpen),
-                          child: Text(owner),
-                        ),
-                      ),
-                    ),
                     MergeSemantics(
                       child: Semantics(
                         key: const ValueKey('history-filters-toggle'),
@@ -359,28 +330,6 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                     ),
                   ],
                 ),
-                if (peopleOpen)
-                  VitalSurface(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (final person in people.requireValue)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: VitalButton.secondary(
-                              multiline: true,
-                              onPressed: () => setState(() {
-                                localScope = FeedScope.person(person.id);
-                                peopleOpen = false;
-                              }),
-                              child: Text(
-                                personLabel(t, people.requireValue, person.id),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
                 const SizedBox(height: 16),
                 VitalSegments<bool>(
                   values: const [false, true],

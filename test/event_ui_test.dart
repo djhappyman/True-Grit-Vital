@@ -1,3 +1,5 @@
+import 'fixtures/single_user.dart';
+
 import 'dart:convert';
 
 import 'package:true_grit_vital/ui/vital_ui.dart';
@@ -153,12 +155,13 @@ void main() {
       final f = await launch(tester);
       final adult = (await runIo(
         tester,
-        () => f.store.createProfile(
+        () => f.store.configureOwnProfile(
           commandId: newCommandId(),
           name: 'Another adult',
           adultConfirmed: true,
         ),
       ))!;
+      await settle(tester);
       f.container.read(routerProvider).go('/event-create?person=${adult.id}');
       await settle(tester);
       await enter(tester, 'Event name', 'Named prescription');
@@ -652,7 +655,7 @@ void main() {
     final f = await launch(tester);
     final owner = (await runIo(
       tester,
-      () => f.store.createProfile(
+      () => f.store.configureOwnProfile(
         commandId: newCommandId(),
         name: 'Another adult',
         adultConfirmed: true,

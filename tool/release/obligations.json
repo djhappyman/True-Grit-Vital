@@ -34,16 +34,16 @@
     },
     {
       "id": "US02",
-      "summary": "Keep my own profile and separate profiles for other adults",
+      "summary": "Keep one local profile for my records",
       "owner": "03",
       "implementation": "done",
       "verification": "host-tested",
       "tests": [
-        "test/profile_ui_test.dart",
-        "test/data/profile_store_test.dart"
+        "test/single_user_ui_test.dart",
+        "test/data/single_user_store_test.dart"
       ],
       "gate": "",
-      "note": ""
+      "note": "20 October owner correction supersedes multi-person behaviour. Historical story IDs are retained for traceability."
     },
     {
       "id": "US03",
@@ -77,7 +77,7 @@
     },
     {
       "id": "US06",
-      "summary": "Preserve draft and reminder ownership across profile switches",
+      "summary": "Preserve private drafts and reminders through navigation and locking",
       "owner": "04",
       "implementation": "done",
       "verification": "host-tested",
@@ -86,7 +86,7 @@
         "test/profile_navigation_test.dart"
       ],
       "gate": "",
-      "note": ""
+      "note": "20 October owner correction supersedes multi-person behaviour. Historical story IDs are retained for traceability."
     },
     {
       "id": "US07",
@@ -867,51 +867,55 @@
     },
     {
       "id": "US71",
-      "summary": "Manage several adults in one combined feed",
+      "summary": "Manage my records in one personal feed",
       "owner": "03",
       "implementation": "done",
       "verification": "host-tested",
       "tests": [
-        "test/profile_ui_test.dart"
+        "test/single_user_ui_test.dart",
+        "test/data/single_user_store_test.dart"
       ],
       "gate": "",
-      "note": ""
+      "note": "20 October owner correction supersedes multi-person behaviour. Historical story IDs are retained for traceability."
     },
     {
       "id": "US72",
-      "summary": "Keep a personal Me feed beside the management view",
+      "summary": "Open my own records directly",
       "owner": "03",
       "implementation": "done",
       "verification": "host-tested",
       "tests": [
-        "test/profile_navigation_test.dart"
+        "test/single_user_ui_test.dart",
+        "test/data/single_user_store_test.dart"
       ],
       "gate": "",
-      "note": ""
+      "note": "20 October owner correction supersedes multi-person behaviour. Historical story IDs are retained for traceability."
     },
     {
       "id": "US73",
-      "summary": "Inspect one adult's individual feed and information",
+      "summary": "Inspect my history and profile",
       "owner": "03",
       "implementation": "done",
       "verification": "host-tested",
       "tests": [
-        "test/profile_ui_test.dart"
+        "test/single_user_ui_test.dart",
+        "test/data/single_user_store_test.dart"
       ],
       "gate": "",
-      "note": ""
+      "note": "20 October owner correction supersedes multi-person behaviour. Historical story IDs are retained for traceability."
     },
     {
       "id": "US74",
-      "summary": "Name and retain the person for every combined-feed action",
+      "summary": "Capture my record identity independently of navigation",
       "owner": "03",
       "implementation": "done",
       "verification": "host-tested",
       "tests": [
-        "test/profile_navigation_test.dart"
+        "test/single_user_ui_test.dart",
+        "test/data/single_user_store_test.dart"
       ],
       "gate": "",
-      "note": ""
+      "note": "20 October owner correction supersedes multi-person behaviour. Historical story IDs are retained for traceability."
     },
     {
       "id": "US75",
@@ -964,11 +968,11 @@
   "screens": [
     {
       "id": "S01",
-      "heading": "Welcome",
-      "route": "/people/add",
+      "heading": "Profile",
+      "route": "/profile",
       "state": "partial",
       "owner": "03",
-      "note": "Initial setup shares the profile form; dedicated first-launch review is open."
+      "note": "The sole local profile. The earlier People screen is retired; its historical ID is retained."
     },
     {
       "id": "S02",
@@ -1084,19 +1088,19 @@
     },
     {
       "id": "S16",
-      "heading": "People",
-      "route": "/people",
+      "heading": "Profile",
+      "route": "/profile",
       "state": "implemented",
       "owner": "03",
-      "note": ""
+      "note": "The sole local profile. The earlier People screen is retired; its historical ID is retained."
     },
     {
       "id": "S17",
       "heading": "Profile",
-      "route": "/people/:id",
+      "route": "/profile",
       "state": "implemented",
       "owner": "03",
-      "note": ""
+      "note": "The sole local profile. The earlier People screen is retired; its historical ID is retained."
     },
     {
       "id": "S18",
@@ -1112,7 +1116,7 @@
       "route": "/settings",
       "state": "implemented",
       "owner": "01",
-      "note": "People, appearance, reminders, data tools, privacy, help, licences and local diagnostics."
+      "note": "Profile, appearance, reminders, data tools, privacy, help, licences and local diagnostics."
     },
     {
       "id": "S20",
@@ -1126,12 +1130,13 @@
   "sheets": [
     {
       "id": "M01",
-      "family": "Feed scope/person selector",
+      "family": "Single-user record context",
       "state": "implemented",
       "owner": "03",
       "evidence": [
-        "lib/features/recording/record_pages.dart"
-      ]
+        "test/single_user_ui_test.dart"
+      ],
+      "note": "Person selector retired by the 20 October owner correction."
     },
     {
       "id": "M02",
@@ -1349,13 +1354,14 @@
     },
     {
       "id": "C05",
-      "obligation": "Person ownership, Everyone/Me scoping and bounded reads",
+      "obligation": "Single-user identity, rejection of legacy multi-person data and bounded reads",
       "owner": "03",
       "status": "open",
       "requiredEvidence": "Pilot evidence for this obligation",
       "reference": "tool/release/obligations.json",
       "evidenceTests": [
-        "test/profile_navigation_test.dart"
+        "test/single_user_ui_test.dart",
+        "test/data/single_user_store_test.dart"
       ]
     },
     {
@@ -1521,5 +1527,5 @@
     }
   ],
   "verificationNote": "Host-tested means a named host test path exists as inventory evidence. It is not a fresh per-story pass or a pilot acceptance claim. T10 validates path existence and ownership only.",
-  "ownerNote": "Owners are delivery steps from docs/specification/implementation-plan.md. A story's owner does not transfer T10 ownership of another feature module."
+  "ownerNote": "Owners are delivery steps from docs/specification/implementation-plan.md. A story's owner does not transfer T10 ownership of another feature module. 20 October: the owner requested single-user operation and confirmed there is no real data to preserve. Earlier multi-person requirements are superseded."
 }

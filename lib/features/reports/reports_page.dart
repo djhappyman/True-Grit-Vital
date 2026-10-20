@@ -18,14 +18,8 @@ const reportsLocation = '/reports';
 const reportPreviewLocation = '/reports/preview';
 
 class ReportsPage extends ConsumerStatefulWidget {
-  const ReportsPage({
-    super.key,
-    this.personId,
-    this.from,
-    this.before,
-    this.returnLocation,
-  });
-  final String? personId, from, before, returnLocation;
+  const ReportsPage({super.key, this.from, this.before, this.returnLocation});
+  final String? from, before, returnLocation;
   @override
   ConsumerState<ReportsPage> createState() => _ReportsPageState();
 }
@@ -34,7 +28,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   final from = TextEditingController(),
       through = TextEditingController(),
       reportName = TextEditingController();
-  String? personId, dateError;
+  String? dateError;
   bool initialised = false, openedPreview = false;
 
   @override
@@ -152,15 +146,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
           if (profiles.isEmpty) {
             return PageContent(children: [Text(t.profileUnavailable)]);
           }
-          final requested = personId ?? widget.personId;
-          if (requested != null &&
-              !profiles.any((profile) => profile.id == requested)) {
+          const requested = meId;
+          if (!profiles.any((profile) => profile.id == requested)) {
             return PageContent(children: [Text(t.profileUnavailable)]);
           }
-          final selected = requested ?? profiles.first.id;
+          const selected = meId;
           if (!initialised) {
             initialised = true;
-            personId = selected;
             final now = DateTime.now();
             from.text = widget.from ?? '${now.year}-01-01';
             through.text =
@@ -205,40 +197,6 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
               Heading(t.reportsTitle),
               Text(t.reportScopeHelp),
               const SizedBox(height: 16),
-              Semantics(
-                header: true,
-                child: Text(
-                  t.reportPerson,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final profile in profiles)
-                    MergeSemantics(
-                      child: Semantics(
-                        selected: profile.id == effective.personId,
-                        child: profile.id == effective.personId
-                            ? VitalButton(
-                                onPressed: state.busy
-                                    ? null
-                                    : () => _choosePerson(profile.id),
-                                child: Text(profile.name),
-                              )
-                            : VitalButton.secondary(
-                                onPressed: state.busy
-                                    ? null
-                                    : () => _choosePerson(profile.id),
-                                child: Text(profile.name),
-                              ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 20),
               VitalSegments<ReportTemplateId>(
                 values: ReportTemplateId.values,
                 selected: effective.template,
@@ -441,29 +399,6 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
         },
       ),
     );
-  }
-
-  void _choosePerson(String id) {
-    personId = id;
-    final selection = ref.read(reportControllerProvider).selection;
-    if (selection == null) return;
-    ref
-        .read(reportControllerProvider.notifier)
-        .select(
-          ReportSelection(
-            template: selection.template,
-            includeSkipped: selection.includeSkipped,
-            includeUnrecorded: selection.includeUnrecorded,
-            personId: id,
-            fromDate: selection.fromDate,
-            beforeDate: selection.beforeDate,
-            displayZone: selection.displayZone,
-            includeSupporting: selection.includeSupporting,
-            includeNotes: selection.includeSupporting && selection.includeNotes,
-            includeAttachments: selection.includeAttachments,
-          ),
-        );
-    reportName.clear();
   }
 
   void _setItems(Iterable<String> ids) {

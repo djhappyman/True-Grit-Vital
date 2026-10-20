@@ -408,6 +408,12 @@ final class BackupInventory {
   final List<BackupPersonCoverage> coverage;
   final DateTime? earliestRecord, latestRecord;
 
+  bool get singleUserCompatible =>
+      peopleCount == 1 &&
+      people.length == 1 &&
+      people.single.id == 'me' &&
+      !people.single.archived;
+
   BackupSnapshotSummary summaryFor(int snapshotBytes, String snapshotSha256) =>
       BackupSnapshotSummary(
         bytes: snapshotBytes,

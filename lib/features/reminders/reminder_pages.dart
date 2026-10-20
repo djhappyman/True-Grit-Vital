@@ -206,7 +206,7 @@ class RemindersPage extends ConsumerWidget {
     final profiles =
         ref.watch(profilesProvider).value ?? const <AdultProfile>[];
     String scopeLabel(String scope) {
-      if (scope == 'everyone') return t.everyone;
+      if (scope == 'everyone') return t.reminders;
       if (scope.startsWith('event:')) {
         final event = ref.watch(eventLookupProvider(scope.substring(6))).value;
         return event == null

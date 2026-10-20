@@ -291,6 +291,10 @@ class RestoreController extends Notifier<RestoreState> {
         await gateway.discardArchive(archive);
         throw const BackupFailure('backup_cancelled');
       }
+      if (!archive.inventory.singleUserCompatible) {
+        await gateway.discardArchive(archive);
+        throw const RestoreFailure(RestoreCodes.multiplePeople);
+      }
       _archive = archive;
       _pick = null;
       state = state.copyWith(

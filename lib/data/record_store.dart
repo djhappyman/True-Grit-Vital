@@ -486,6 +486,41 @@ final class RecordStore {
     return result;
   }
 
+  /// Activates the single-user product boundary before a live installation
+  /// becomes available. The older ownership schema remains readable by the
+  /// archive inspector and regression fixtures. It is not a profile manager.
+  /// Never merge or silently delete an unexpected older person's records.
+  Future<void> enableSingleUser() async {
+    await _db.transaction(() async {
+      final people = await _rows('SELECT id,archived FROM person LIMIT 2');
+      if (people.length != 1 ||
+          people.single['id'] != meId ||
+          people.single['archived'] != 0) {
+        throw StateError('single_user_required');
+      }
+      await _db.customStatement(
+        "DELETE FROM setting WHERE key='browsing_scope'",
+      );
+      // Also stop direct repository calls from adding a second person after
+      // bootstrap. These guards travel with the protected backup snapshot.
+      await _db.customStatement("""
+        CREATE TRIGGER IF NOT EXISTS single_user_insert
+        BEFORE INSERT ON person WHEN NEW.id <> 'me'
+        BEGIN SELECT RAISE(ABORT, 'single_user_required'); END
+      """);
+      await _db.customStatement("""
+        CREATE TRIGGER IF NOT EXISTS single_user_update
+        BEFORE UPDATE ON person WHEN NEW.id <> 'me' OR NEW.archived <> 0
+        BEGIN SELECT RAISE(ABORT, 'single_user_required'); END
+      """);
+      await _db.customStatement("""
+        CREATE TRIGGER IF NOT EXISTS single_user_delete
+        BEFORE DELETE ON person
+        BEGIN SELECT RAISE(ABORT, 'single_user_required'); END
+      """);
+    });
+  }
+
   AdultProfile _profile(Map<String, Object?> r) => AdultProfile(
     id: r['id'] as String,
     name: r['name'] as String,

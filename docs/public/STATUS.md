@@ -1,6 +1,6 @@
 # Development checkpoint
 
-Vital is an unfinished Android-first substance tracker for adults. It keeps separate local profiles, doses, schedules, stock, use periods, cycles/courses, history and reports. Lab panels and observations provide optional context. Profiles are local records under one operator, with Everyone, Me and individual feeds.
+Vital is an unfinished Android-first substance tracker for adults. It keeps your doses, schedules, stock, use periods, cycles/courses, history and reports. Lab panels and observations provide optional context. One local adult and one feed replace the earlier multi-person prototype.
 
 ## Implemented
 
@@ -9,11 +9,11 @@ The foundation includes encrypted records, corrections and Undo; private drafts;
 The 20 October integration adds:
 
 - Supporting-record source linking, locale-aware numeric input, note-only observations, conservative comparison identity and durable void/restore recovery.
-- R01 substance summaries, R02 detailed history and R03 event reports. Person, dates, items and optional context feed one captured PDF/text artifact. Source files are listed, not silently embedded in the report.
-- Person-scoped JSON/CSV exports, with exact quantities and revisions and private notes excluded by default.
+- R01 substance summaries, R02 detailed history and R03 event reports. Dates, items and optional context feed one captured PDF/text artifact for your profile. Source files are listed, not silently embedded in the report.
+- Date-filtered JSON/CSV exports, with exact quantities and revisions and private notes excluded by default.
 - Protected artifact saving and Android share offers. The same reviewed bytes and checksum reach bounded private staging; a share offer does not prove receipt.
 - Authenticated full-installation backups and staged, explicitly confirmed full replacement. Validation, migration, fresh generations, stale-action rejection, previous-dataset rollback and startup recovery are implemented. The installation app-lock preference is retained.
-- Settings, scoped archive/reactivation/deletion, help, catalogue attribution, full bundled notices and a bounded redacted local diagnostic log. No diagnostic uploader exists.
+- Settings, your profile, record deletion, help, catalogue attribution, full bundled notices and a bounded redacted local diagnostic log. No diagnostic uploader exists.
 - Reminder health and bounded repair, with explicit incomplete/deferred/failed states.
 - A machine-readable obligation inventory, dependency/licence checks, release preflight and isolated boot tools.
 
@@ -23,7 +23,7 @@ The interface remains a development UI. Host tests establish specific behaviour;
 
 A real native Linux smoke uses encrypted SQLite and a unique Secret Service namespace. It verifies persistence, navigation, exports, report rendering with embedded fonts, backup creation/self-validation and bootstrap reopening with staging present. Its synthetic records and unique key are removed after success.
 
-The combined test results, integration repairs and evidence boundaries are recorded in the [implementation report](IMPLEMENTATION-2026-10-20.md). Schema 21 remains current; the new report/export/backup/restore/settings work requires no further migration. The earlier supporting-record migrations remain part of this source checkpoint.
+The single-user revision passed 1,427 host tests with one existing skip, all 15 separate-process recovery suites and the native Linux boot check. The combined test results, integration repairs and evidence boundaries are recorded in the [implementation report](IMPLEMENTATION-2026-10-20.md). Schema 21 remains current; the new report/export/backup/restore/settings work requires no further migration. The earlier supporting-record migrations remain part of this source checkpoint.
 
 Android and Linux builds are checked separately. The current source tree refuses release builds until owner-supplied signing and G07 clearance exist. Debug builds use development signing. The earlier APK/upload request remains cancelled.
 

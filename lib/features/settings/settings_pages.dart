@@ -48,12 +48,12 @@ class SettingsPage extends ConsumerWidget {
         ],
         const SizedBox(height: 28),
         SettingsSection(
-          title: t.people,
+          title: t.profile,
           children: [
             SettingsNavigationRow(
-              label: t.people,
-              description: t.settingsPeopleBody,
-              onPressed: () => context.push('/people'),
+              label: t.profile,
+              description: t.settingsProfileBody,
+              onPressed: () => context.push('/profile'),
             ),
             SettingsNavigationRow(
               label: t.privacy,

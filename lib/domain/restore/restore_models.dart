@@ -13,6 +13,7 @@ final class RestoreFailure implements Exception {
 /// Stable codes shared by the gateway, controller and presentation.
 abstract final class RestoreCodes {
   static const locked = 'restore_locked';
+  static const multiplePeople = 'restore_multiple_people';
   static const unavailable = 'restore_unavailable';
   static const chooseArchive = 'restore_choose_archive';
   static const passwordRequired = 'restore_password_required';

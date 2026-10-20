@@ -75,18 +75,6 @@ final diagnosticEventsProvider = FutureProvider<List<DiagnosticEvent>>(
 /// Small injectable boundary for the destructive data-management actions so a
 /// failed write can be tested honestly without faking a successful store.
 abstract interface class ProfilePrivacyActions {
-  Future<void> archive({
-    required String commandId,
-    required String personId,
-    required int expectedRevision,
-  });
-
-  Future<void> reactivate({
-    required String commandId,
-    required String personId,
-    required int expectedRevision,
-  });
-
   Future<void> delete({
     required String commandId,
     required String personId,
@@ -99,28 +87,6 @@ final class StoreProfilePrivacyActions implements ProfilePrivacyActions {
 
   final Future<RecordStore> Function() _store;
   final Future<void> Function()? beforeDelete;
-
-  @override
-  Future<void> archive({
-    required String commandId,
-    required String personId,
-    required int expectedRevision,
-  }) async => (await _store()).archiveProfile(
-    commandId: commandId,
-    personId: personId,
-    expectedRevision: expectedRevision,
-  );
-
-  @override
-  Future<void> reactivate({
-    required String commandId,
-    required String personId,
-    required int expectedRevision,
-  }) async => (await _store()).reactivateProfile(
-    commandId: commandId,
-    personId: personId,
-    expectedRevision: expectedRevision,
-  );
 
   @override
   Future<void> delete({

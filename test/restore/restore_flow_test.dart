@@ -46,7 +46,7 @@ void main() {
         token: BackupCancellationToken(),
       );
       expect(creation.byteCount, greaterThan(512));
-      expect(creation.inventory.peopleCount, 2);
+      expect(creation.inventory.peopleCount, 1);
       expect(creation.archive.existsSync(), isTrue);
 
       await expectLater(
@@ -118,9 +118,9 @@ void main() {
         currentSchemaVersion: 21,
       );
       expect(preview.fileName, creation.fileName);
-      expect(preview.people, hasLength(2));
-      expect(preview.coverage, hasLength(2));
-      expect(preview.multiplePeople, isTrue);
+      expect(preview.people, hasLength(1));
+      expect(preview.coverage, hasLength(1));
+      expect(preview.multiplePeople, isFalse);
       expect(preview.recordCount, 3);
       expect(preview.earliestRecord, isNotNull);
       expect(preview.latestRecord, isNotNull);

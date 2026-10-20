@@ -260,13 +260,13 @@ void main() {
       await tap(tester, 'Back');
       await tap(tester, 'Discard');
       expect(await runIo(tester, f.store.drafts), isEmpty);
-      await tap(tester, 'People');
-      await tap(tester, 'Add');
+      container.read(routerProvider).go('/profile');
+      await settle(tester);
       await tester.enterText(find.byType(TextField).first, 'Unfinished adult');
       await tap(tester, 'Adult confirmed');
       final profile = (await runIo(tester, f.store.drafts))!.single;
       expect(profile.kind, DraftKind.profile);
-      expect(profile.fields['adult'], 'true');
+      expect(profile.fields['adult'], 'false');
     },
   );
   appTest(

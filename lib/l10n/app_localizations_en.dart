@@ -376,15 +376,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adultConfirmed => 'Adult confirmed';
 
   @override
-  String get adultHelper => 'This person is aged 18 or over.';
+  String get adultHelper => 'I am 18 or older.';
 
   @override
   String get profileSetupHelp =>
-      'Confirm your display name and that you are an adult, then select Save to open Today.';
+      'Enter your name and confirm you are an adult to start.';
 
   @override
-  String get profileRequired =>
-      'Enter a display name and confirm this person is an adult.';
+  String get profileRequired => 'Enter your name and confirm you are an adult.';
 
   @override
   String get profileFailure =>
@@ -3299,7 +3298,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get historyScopeFixed =>
-      'This view keeps its selected person. Other feeds stay unchanged.';
+      'Your filters stay selected when you open a record.';
 
   @override
   String get historyPlanUnknown =>
@@ -4198,7 +4197,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportSelectionHelp =>
-      'Choose one adult, a date range and the content to include. The preview is the exact file you can save.';
+      'Choose a date range and the content to include. The preview is the exact file you can save.';
 
   @override
   String get exportPerson => 'Adult';
@@ -4241,7 +4240,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportPrivateHelp =>
-      'Only this adult is included. Other adults and their records are never exported.';
+      'Your records are included. Notes stay private unless you include them.';
 
   @override
   String get exportPrivacy => 'Privacy';
@@ -4503,7 +4502,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings => 'Settings';
 
   @override
-  String get settingsBody => 'Appearance, people, privacy and help.';
+  String get settingsBody => 'Appearance, privacy, records and help.';
 
   @override
   String get settingsDisplayUnsaved =>
@@ -4534,13 +4533,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reports => 'Reports';
 
   @override
-  String get settingsReportsBody => 'Review a person’s substance report.';
+  String get settingsReportsBody => 'Review your substance reports.';
 
   @override
   String get exports => 'Exports';
 
   @override
-  String get settingsExportsBody => 'Save structured data for one person.';
+  String get settingsExportsBody => 'Save your records as structured data.';
 
   @override
   String get backup => 'Backup';
@@ -4584,7 +4583,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyOperator =>
-      'Anyone who can unlock this device can see every local profile. Adult profiles are not separate accounts.';
+      'Anyone who can unlock Vital on this device can see your records.';
 
   @override
   String get privacyArchiveHelp =>
@@ -4608,15 +4607,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyNoneArchived => 'No archived people.';
 
   @override
-  String get privacyMeOwner =>
-      'Your records. Me stays available after deletion.';
+  String get privacyMeOwner => 'Your profile stays available after deletion.';
 
   @override
   String get privacyOtherOwner => 'Records for this adult.';
 
   @override
   String get deleteMeBody =>
-      'Delete all saved records for Me? This cannot be undone. Me stays available and other people are not changed.';
+      'Delete all your saved records, files and drafts? This cannot be undone. Saved or shared copies outside Vital remain.';
 
   @override
   String privacyArchived(String person) {
@@ -4649,7 +4647,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get privacyMeDeleted => 'Records deleted. Me is still available.';
+  String get privacyMeDeleted =>
+      'Records deleted. Your profile is still available.';
 
   @override
   String privacyDeleted(String person) {
@@ -4658,7 +4657,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyNotSaved =>
-      'Could not confirm the change. Review the people shown here before trying again.';
+      'Could not confirm the change. Review your records before trying again.';
 
   @override
   String get diagnosticsBody =>
@@ -4737,8 +4736,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get about => 'About';
 
   @override
-  String get aboutBody =>
-      'Vital keeps substance records for adults on this device.';
+  String get aboutBody => 'Vital keeps your substance records on this device.';
 
   @override
   String get aboutLimit =>
@@ -4772,7 +4770,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportScopeHelp =>
-      'Choose one adult, exact dates, and whether to include private context.';
+      'Choose exact dates and whether to include private context.';
 
   @override
   String get reportPerson => 'Person';
@@ -4880,11 +4878,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportPersonMissing =>
-      'This adult is unavailable. Choose another adult.';
+      'Your profile is unavailable. Reopen Vital and try again.';
 
   @override
   String get reportPersonArchived =>
-      'This adult is archived. Restore the adult or choose another adult.';
+      'Your profile is unavailable. Reopen Vital and try again.';
 
   @override
   String get reportZoneUnavailable =>
@@ -5004,7 +5002,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose one event and dates that cover its recorded start and end. Dates without a known boundary stay uncertain.';
 
   @override
-  String get reportNoEvents => 'No events are available for this person.';
+  String get reportNoEvents => 'No events are available.';
 
   @override
   String get reportNameLimit => 'Use a report name of 120 characters or fewer.';
@@ -5013,7 +5011,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backupCreateHeading => 'Create backup';
 
   @override
-  String get backupAllAdults => 'All adults included';
+  String get backupAllAdults => 'All your records';
 
   @override
   String get backupIncludesFiles => 'Attached files included';
@@ -5228,7 +5226,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get restorePeople => 'People';
+  String get restorePeople => 'Profile';
 
   @override
   String restorePeopleCount(int count) {
@@ -5323,7 +5321,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restoreConsequence =>
-      'Replacing removes current records, drafts and reminder settings for every person on this device. A rollback copy is kept until the restored dataset opens.';
+      'Replacing removes your current records, drafts and reminder settings on this device. A rollback copy is kept until the restored records open.';
 
   @override
   String get restoreReplaceAll => 'Replace all records';
@@ -5449,4 +5447,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get restoreRecoveryCleaned =>
       'An interrupted restore was cleared. Your existing records are still in use.';
+
+  @override
+  String get profile => 'Profile';
+
+  @override
+  String get settingsProfileBody => 'Your name and report details.';
+
+  @override
+  String get singleUserRequired =>
+      'This older dataset contains other people. Open it with the previous version of Vital. Your records have not been deleted.';
+
+  @override
+  String get restoreSingleUserRequired =>
+      'This backup contains other people. Choose a backup containing only your records.';
 }

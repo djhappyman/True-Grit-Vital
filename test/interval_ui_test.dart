@@ -330,6 +330,7 @@ void main() {
       tester,
       () => f.store.record(
         commandId: 'extra',
+        expectedPersonRevision: 3,
         itemId: f.item.id,
         personId: f.item.personId,
         amount: '1.2500',

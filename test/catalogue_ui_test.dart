@@ -1,4 +1,4 @@
-import 'package:true_grit_vital/ui/vital_ui.dart';
+import 'fixtures/single_user.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -276,12 +276,13 @@ void main() {
       );
       final other = (await runIo(
         tester,
-        () => f.store.createProfile(
+        () => f.store.configureOwnProfile(
           commandId: 'other-adult',
           name: 'Other adult',
           adultConfirmed: true,
         ),
       ))!;
+      await settle(tester);
       f.container.read(routerProvider).go('/create?person=${other.id}');
       await settle(tester);
       await tap(tester, 'Search');
@@ -304,6 +305,7 @@ void main() {
       expect(find.textContaining('Version: first'), findsOneWidget);
       f.container.read(routerProvider).go('/today');
       await settle(tester);
+      await settle(tester);
       f.container.read(routerProvider).go('/create?person=${other.id}');
       await settle(tester);
       expect(find.textContaining('Version: first'), findsOneWidget);
@@ -325,7 +327,7 @@ void main() {
           tester,
           () => f.store.items(scope: const FeedScope.me()),
         ))!,
-        isEmpty,
+        hasLength(1),
       );
       expect((await runIo(tester, () => f.store.drafts()))!, isEmpty);
     },
@@ -424,71 +426,6 @@ void main() {
         'My custom product',
       );
       expect(find.text('Select'), findsNothing);
-    },
-  );
-
-  appTest(
-    'type draft retains captured adult and stops on archive and deletion',
-    (tester) async {
-      final f = await launch(tester);
-      final other = (await runIo(
-        tester,
-        () => f.store.createProfile(
-          commandId: 'draft-owner',
-          name: 'Type owner',
-          adultConfirmed: true,
-        ),
-      ))!;
-      f.container.read(routerProvider).go('/types/${other.id}/edit');
-      await settle(tester);
-      await enter(tester, 'Type name', 'Private grouping');
-      f.container.read(routerProvider).go('/today');
-      await settle(tester);
-      f.container.read(routerProvider).go('/types/${other.id}/edit');
-      await settle(tester);
-      expect(
-        tester.widget<TextField>(input('Type name')).controller!.text,
-        'Private grouping',
-      );
-      final draft = (await runIo(tester, () => f.store.drafts()))!.single;
-      expect(draft.kind, DraftKind.itemType);
-      expect(draft.personId, other.id);
-      expect(draft.personRevision, other.revision);
-      await runIo(
-        tester,
-        () => f.store.archiveProfile(
-          commandId: 'archive-type-owner',
-          personId: other.id,
-          expectedRevision: other.revision,
-        ),
-      );
-      await settle(tester);
-      expect(tester.widget<TextField>(input('Type name')).enabled, false);
-      expect(
-        tester
-            .widget<VitalButton>(find.widgetWithText(VitalButton, 'Save'))
-            .onPressed,
-        isNull,
-      );
-      final archived = (await runIo(
-        tester,
-        () => f.store.profileById(other.id),
-      ))!;
-      await runIo(
-        tester,
-        () => f.store.deleteProfile(
-          commandId: 'delete-type-owner',
-          personId: other.id,
-          expectedRevision: archived.revision,
-        ),
-      );
-      await settle(tester);
-      expect(find.byType(TextField), findsNothing);
-      expect((await runIo(tester, () => f.store.drafts()))!, isEmpty);
-      expect(
-        (await runIo(tester, () => f.store.itemTypes(personId: other.id)))!,
-        isEmpty,
-      );
     },
   );
 }
