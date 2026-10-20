@@ -49,12 +49,88 @@ final supportingMetricsProvider = FutureProvider.autoDispose
 /// Ready protected files owned by this adult, for authoring a saved source
 /// reference. The form freezes the selected file id, metadata revision and
 /// content version; a later file change cannot rewrite that captured source.
+///
+/// Only one bounded page is read at a time so a long file list never loads
+/// unbounded rows. The newest-first offset order is stable; the form merges
+/// later pages by id and rejects any page from a replaced generation.
+const supportingSourcePageSize = 50;
+
+final class SupportingSourceRequest {
+  const SupportingSourceRequest({required this.personId, required this.offset});
+  final String personId;
+  final int offset;
+  @override
+  bool operator ==(Object other) =>
+      other is SupportingSourceRequest &&
+      other.personId == personId &&
+      other.offset == offset;
+  @override
+  int get hashCode => Object.hash(personId, offset);
+}
+
+final class SupportingSourcePage {
+  const SupportingSourcePage({
+    required this.records,
+    required this.nextOffset,
+    required this.generation,
+  });
+  final List<AttachmentRecord> records;
+
+  /// The offset to request next, or null when this was the last page.
+  final int? nextOffset;
+
+  /// Null only for the locked empty result, which the form discards.
+  final String? generation;
+  bool get hasMore => nextOffset != null;
+}
+
+typedef SupportingSourceReader = Future<SupportingSourcePage> Function(
+  SupportingSourceRequest request,
+);
+
+/// Reads one newest-first page through the existing attachment query. Files
+/// for another adult, staging or deleting files and files from a replaced
+/// generation are not eligible sources.
+final supportingSourceReaderProvider = Provider<SupportingSourceReader>(
+  (ref) => (request) async {
+    final store = await ref.read(recordStoreProvider.future);
+    final found = await store.attachments(
+      personId: request.personId,
+      limit: supportingSourcePageSize,
+      offset: request.offset,
+    );
+    return SupportingSourcePage(
+      records: [
+        for (final record in found)
+          if (supportingSourceEligible(
+            record,
+            personId: request.personId,
+            generation: store.generation,
+          ))
+            record,
+      ],
+      nextOffset: found.length == supportingSourcePageSize
+          ? request.offset + found.length
+          : null,
+      generation: store.generation,
+    );
+  },
+);
+
 final supportingSourceCandidatesProvider = FutureProvider.autoDispose
-    .family<List<AttachmentRecord>, String>((ref, personId) async {
-      if (ref.watch(appLockProvider.select((s) => s.locked))) return [];
+    .family<SupportingSourcePage, SupportingSourceRequest>((
+      ref,
+      request,
+    ) async {
+      if (ref.watch(appLockProvider.select((s) => s.locked))) {
+        return const SupportingSourcePage(
+          records: [],
+          nextOffset: null,
+          generation: null,
+        );
+      }
       ref.watch(recordStoreProvider.select((s) => s.value?.generation));
-      final store = await ref.watch(recordStoreProvider.future);
-      return store.attachments(personId: personId, limit: 50);
+      return ref.watch(supportingSourceReaderProvider)(request);
     });
 
 final supportingTrendReaderProvider =

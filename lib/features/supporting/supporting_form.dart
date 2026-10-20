@@ -1,11 +1,13 @@
 import '../../app/app_lock.dart';
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/supporting.dart';
+import '../../app/storage.dart';
 import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
@@ -41,6 +43,12 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
   final openMetrics = <String>{};
   int page = 0, metricOffset = 0;
   final metricSearch = TextEditingController();
+  final sourceCandidates = <AttachmentRecord>[];
+  int sourceOffset = 0;
+  bool sourceHasMore = false, sourceLoading = false, sourceLoaded = false;
+  bool sourceFailed = false;
+  String? sourceGeneration;
+  int _sourceRequest = 0;
   static const pageSize = 10;
   SupportingFormModel get form => model!;
   bool get observation =>
@@ -189,10 +197,124 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
   String _sourceLabel(AppLocalizations t, SupportingSourceReference source) =>
       source.originalText ?? t.supportingSavedSourceReference(source.version);
 
+  /// Reads one bounded page of saved files. Only the latest request may
+  /// update the list, so a closed section, an app lock or a replaced dataset
+  /// cannot let an older page appear later.
+  Future<void> loadSourceCandidates() async {
+    if (sourceLoading) return;
+    final request = ++_sourceRequest;
+    setState(() {
+      sourceLoading = true;
+      sourceFailed = false;
+    });
+    try {
+      final page = await ref.read(
+        supportingSourceCandidatesProvider(
+          SupportingSourceRequest(
+            personId: widget.personId,
+            offset: sourceOffset,
+          ),
+        ).future,
+      );
+      if (!mounted || request != _sourceRequest) return;
+      final generation = ref.read(recordStoreProvider).value?.generation;
+      if (ref.read(appLockProvider).locked) {
+        setState(() => sourceLoading = false);
+        return;
+      }
+      if (page.generation == null || page.generation != generation) {
+        // A replaced dataset must not be offered. Do not auto-retry: the
+        // visible retry stays a deliberate choice.
+        setState(() {
+          sourceLoading = false;
+          sourceFailed = true;
+        });
+        return;
+      }
+      final merged = mergeSupportingSourcePage(sourceCandidates, page.records);
+      setState(() {
+        sourceCandidates
+          ..clear()
+          ..addAll(merged);
+        sourceOffset = page.nextOffset ?? sourceOffset;
+        sourceHasMore = page.hasMore;
+        sourceGeneration = page.generation;
+        sourceLoaded = true;
+        sourceLoading = false;
+      });
+    } catch (_) {
+      if (!mounted || request != _sourceRequest) return;
+      setState(() {
+        sourceLoading = false;
+        sourceFailed = true;
+      });
+    }
+  }
+
+  void resetSourceCandidates() {
+    _sourceRequest++;
+    setState(() {
+      sourceCandidates.clear();
+      sourceOffset = 0;
+      sourceHasMore = false;
+      sourceLoaded = false;
+      sourceLoading = false;
+      sourceFailed = false;
+      sourceGeneration = null;
+    });
+  }
+
+  void toggleDetails() {
+    if (details) {
+      setState(() {
+        details = false;
+        if (sourceLoading) {
+          // Discard the page in flight; reopening loads from the same offset.
+          _sourceRequest++;
+          sourceLoading = false;
+        }
+      });
+      return;
+    }
+    setState(() => details = true);
+    if (!sourceLoaded && !sourceFailed) unawaited(loadSourceCandidates());
+  }
+
   Widget sourceReferences(bool enabled, AppLocalizations t) {
-    final candidates = ref.watch(
-      supportingSourceCandidatesProvider(widget.personId),
+    final generation = ref.watch(
+      recordStoreProvider.select((s) => s.value?.generation),
     );
+    if (sourceLoaded &&
+        sourceGeneration != null &&
+        generation != null &&
+        generation != sourceGeneration) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && sourceGeneration != generation) {
+          resetSourceCandidates();
+        }
+      });
+    } else if (details && !sourceLoaded && !sourceLoading && !sourceFailed) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted &&
+            details &&
+            !sourceLoaded &&
+            !sourceLoading &&
+            !sourceFailed) {
+          unawaited(loadSourceCandidates());
+        }
+      });
+    }
+    final visible = generation == null
+        ? const <AttachmentRecord>[]
+        : [
+            for (final record in sourceCandidates)
+              if (supportingSourceEligible(
+                record,
+                personId: widget.personId,
+                generation: generation,
+              ))
+                record,
+          ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -224,19 +346,17 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
         const SizedBox(height: 12),
         Text(t.supportingSourceFiles),
         Text(t.supportingSourceFilesHelp),
-        if (candidates.hasError)
+        if (sourceFailed)
           LoadFailure(
             message: t.supportingLoadFailure,
-            onRetry: () => ref.invalidate(
-              supportingSourceCandidatesProvider(widget.personId),
-            ),
+            onRetry: () => unawaited(loadSourceCandidates()),
           )
-        else if (!candidates.hasValue)
-          Text(t.loadingRecords)
-        else if (candidates.value!.isEmpty)
-          Text(t.supportingNoSourceFiles)
-        else
-          for (final record in candidates.value!)
+        else if (!sourceLoaded)
+          Text(t.loadingRecords),
+        if (sourceLoaded) ...[
+          if (visible.isEmpty && !sourceHasMore)
+            Text(t.supportingNoSourceFiles),
+          for (final record in visible)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Column(
@@ -265,6 +385,20 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
                 ],
               ),
             ),
+          if (sourceLoading)
+            Text(t.loadingRecords)
+          else if (sourceHasMore && !sourceFailed)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: VitalButton.secondary(
+                  onPressed: () => unawaited(loadSourceCandidates()),
+                  child: Text(t.more),
+                ),
+              ),
+            ),
+        ],
       ],
     );
   }
@@ -526,7 +660,7 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
       SupportingDisclosure(
         label: observation ? t.supportingDetails : t.supportingSource,
         open: details,
-        onPressed: () => setState(() => details = !details),
+        onPressed: toggleDetails,
       ),
       if (details)
         VitalSurface(
