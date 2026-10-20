@@ -8,7 +8,8 @@ import '../../app/settings_toggle_row.dart';
 import '../../app/vital_app.dart';
 import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
-import '../events/event_pages.dart' show eventPageProvider;
+import '../events/event_pages.dart'
+    show eventDateLabel, eventLookupProvider, eventPageProvider;
 import '../../ui/vital_ui.dart';
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
@@ -194,6 +195,18 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                     .addDays(1),
                 displayZone: ref.read(displayZoneProvider),
               );
+          final eventLookup =
+              effective.template.requiresEvent && effective.eventId != null
+              ? ref.watch(eventLookupProvider(effective.eventId!))
+              : null;
+          final selectedEvent = eventLookup?.value;
+          final eventGuidance = selectedEvent == null
+              ? null
+              : _eventRangeGuidance(selectedEvent, effective);
+          final selectedEventMissing =
+              eventLookup != null &&
+              eventLookup.hasValue &&
+              eventLookup.value == null;
           final items =
               ref.watch(reportItemsProvider(effective.personId)).value ??
               const <SubstanceItem>[];
@@ -238,6 +251,19 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                       .read(reportControllerProvider.notifier)
                       .select(effective.copyWith(eventId: eventId)),
                 ),
+                if (eventLookup != null) ...[
+                  const SizedBox(height: 16),
+                  _SelectedEventReview(
+                    lookup: eventLookup,
+                    guidance: eventGuidance,
+                    enabled: !state.busy,
+                    onApplyDates: eventGuidance == null
+                        ? null
+                        : () => _applyEventDates(eventGuidance),
+                    onRetry: () =>
+                        ref.invalidate(eventLookupProvider(effective.eventId!)),
+                  ),
+                ],
               ],
               if (effective.template ==
                   ReportTemplateId.r02DetailedHistory) ...[
@@ -391,7 +417,12 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 )
               else
                 VitalButton(
-                  onPressed: state.busy ? null : () => _generate(use24Hour),
+                  onPressed:
+                      state.busy ||
+                          selectedEventMissing ||
+                          (eventGuidance != null && !eventGuidance.covers)
+                      ? null
+                      : () => _generate(use24Hour),
                   child: Text(t.reportPreview),
                 ),
               if (state.phase == ReportPhase.cancelled)
@@ -414,47 +445,63 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     ref.read(reportControllerProvider.notifier).setItems(ids);
   }
 
+  void _applyEventDates(_EventRangeGuidance guidance) {
+    from.text = guidance.fromDate.toString();
+    through.text = guidance.throughDate.toString();
+  }
+
   void _generate(bool use24Hour) {
     final selection = ref.read(reportControllerProvider).selection;
     if (selection == null) return;
+    final t = AppLocalizations.of(context);
     final start = parseDate(from.text), before = parseDate(through.text);
     if (start == null || before == null) {
-      setState(() => dateError = AppLocalizations.of(context).historyDateError);
+      setState(() => dateError = t.historyDateError);
       return;
     }
     if (before.compareTo(start) < 0) {
-      setState(() => dateError = AppLocalizations.of(context).historyDateError);
+      setState(() => dateError = t.historyDateError);
       return;
     }
     if (reportName.text.trim().length > 120) {
-      setState(() => dateError = AppLocalizations.of(context).reportNameLimit);
+      setState(() => dateError = t.reportNameLimit);
       return;
     }
     if (selection.template.requiresEvent && selection.eventId == null) {
-      setState(
-        () => dateError = AppLocalizations.of(context).reportEventRequired,
-      );
+      setState(() => dateError = t.reportEventRequired);
       return;
     }
     final exclusive = before.addDays(1);
+    final next = selection.copyWith(
+      personId: selection.personId,
+      fromDate: start,
+      beforeDate: exclusive,
+      displayZone: ref.read(displayZoneProvider),
+      reportName: reportName.text.trim().isEmpty
+          ? null
+          : reportName.text.trim(),
+      includeNotes: selection.includeNotes,
+      includeAttachments: selection.includeAttachments,
+      includeSupporting: selection.includeSupporting,
+      itemIds: selection.itemIds,
+    );
+    if (next.template.requiresEvent && next.eventId != null) {
+      final lookup = ref.read(eventLookupProvider(next.eventId!));
+      final event = lookup.value;
+      if (lookup.hasValue && event == null) {
+        setState(() => dateError = t.reportEventMissing);
+        return;
+      }
+      if (event != null) {
+        final guidance = _eventRangeGuidance(event, next);
+        if (!guidance.covers) {
+          setState(() => dateError = _eventRangeMessage(t, guidance));
+          return;
+        }
+      }
+    }
     setState(() => dateError = null);
-    ref
-        .read(reportControllerProvider.notifier)
-        .select(
-          selection.copyWith(
-            personId: selection.personId,
-            fromDate: start,
-            beforeDate: exclusive,
-            displayZone: ref.read(displayZoneProvider),
-            reportName: reportName.text.trim().isEmpty
-                ? null
-                : reportName.text.trim(),
-            includeNotes: selection.includeNotes,
-            includeAttachments: selection.includeAttachments,
-            includeSupporting: selection.includeSupporting,
-            itemIds: selection.itemIds,
-          ),
-        );
+    ref.read(reportControllerProvider.notifier).select(next);
     ref.read(reportControllerProvider.notifier).generate(use24Hour: use24Hour);
   }
 }
@@ -648,3 +695,165 @@ class _EventSelectionState extends ConsumerState<_EventSelection> {
     );
   }
 }
+
+/// Keeps the chosen event visible and explains a date window that would make
+/// capture fail, without changing the entered range until the user applies it.
+class _SelectedEventReview extends StatelessWidget {
+  const _SelectedEventReview({
+    required this.lookup,
+    required this.guidance,
+    required this.enabled,
+    required this.onApplyDates,
+    required this.onRetry,
+  });
+  final AsyncValue<EventRecord?> lookup;
+  final _EventRangeGuidance? guidance;
+  final bool enabled;
+  final VoidCallback? onApplyDates;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final event = lookup.value;
+    return VitalSurface(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (event != null) ...[
+            Text(
+              t.reportEventSelected(event.name),
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              t.eventPlannedLabel(
+                eventDateLabel(t, event.plannedStart),
+                eventDateLabel(t, event.plannedEnd, open: true),
+              ),
+            ),
+            if (event.actualStart != null || event.actualEnd != null)
+              Text(
+                t.eventActualLabel(
+                  eventDateLabel(t, event.actualStart),
+                  eventDateLabel(t, event.actualEnd, open: !event.completed),
+                ),
+              ),
+            Text(t.reportEventZoneValue(event.zoneId)),
+            if (event.completed) Text(t.eventCompleted),
+            if (guidance != null && !guidance!.covers) ...[
+              const SizedBox(height: 8),
+              Semantics(
+                liveRegion: true,
+                child: Text(_eventRangeMessage(t, guidance!)),
+              ),
+              const SizedBox(height: 8),
+              Semantics(
+                button: true,
+                label: t.reportEventApplyRangeLabel(
+                  guidance!.fromDate.toString(),
+                  guidance!.throughDate.toString(),
+                ),
+                child: VitalButton.secondary(
+                  onPressed: enabled ? onApplyDates : null,
+                  child: Text(t.apply),
+                ),
+              ),
+            ],
+          ] else if (lookup.hasError)
+            LoadFailure(onRetry: onRetry)
+          else if (lookup.hasValue)
+            Text(t.reportEventMissing)
+          else
+            Text(t.loadingRecords),
+        ],
+      ),
+    );
+  }
+}
+
+/// The report window that covers the event's known boundaries, expressed in
+/// the selected display zone so the date inputs and backend day bounds match.
+///
+/// Missing boundaries keep the corresponding entered date. They are never
+/// replaced with an unrecorded or guessed date.
+final class _EventRangeGuidance {
+  const _EventRangeGuidance({
+    required this.covers,
+    required this.fromDate,
+    required this.throughDate,
+    required this.startKnown,
+    required this.endKnown,
+  });
+  final bool covers;
+  final CivilDate fromDate, throughDate;
+  final bool startKnown, endKnown;
+}
+
+_EventRangeGuidance _eventRangeGuidance(
+  EventRecord event,
+  ReportSelection selection,
+) {
+  final display = DisplayTime();
+  CivilDate? displayDate(DateTime? instant) => instant == null
+      ? null
+      : display.instant(instant, selection.displayZone).civilDate;
+  final start = displayDate(
+    _eventBoundaryInstant(
+      event.actualStart ?? event.plannedStart,
+      event.zoneId,
+    ),
+  );
+  final endDate = event.actualEnd;
+  final endInstant =
+      _eventBoundaryInstant(endDate, event.zoneId, endOfDay: true) ??
+      event.completedAt;
+  var end = displayDate(endInstant);
+  if (end != null &&
+      endDate?.precision == EventDatePrecision.day &&
+      display.dayBounds(end, selection.displayZone).start == endInstant) {
+    // A final day includes that whole day. The exclusive boundary belongs to
+    // the next day, so the last included report date is the day before it.
+    end = end.addDays(-1);
+  }
+  var from = start ?? selection.fromDate;
+  var through = end ?? selection.beforeDate.addDays(-1);
+  if (end != null && end.compareTo(from) < 0) from = end;
+  if (start != null && through.compareTo(start) < 0) through = start;
+  return _EventRangeGuidance(
+    covers: eventSelectionCovers(event, selection),
+    fromDate: from,
+    throughDate: through,
+    startKnown: start != null,
+    endKnown: end != null,
+  );
+}
+
+DateTime? _eventBoundaryInstant(
+  EventDate? date,
+  String zone, {
+  bool endOfDay = false,
+}) {
+  switch (date?.precision) {
+    case EventDatePrecision.exact:
+      return DateTime.parse(date!.value!).toUtc();
+    case EventDatePrecision.day:
+      final day = CivilDate.parse(date!.value!);
+      return DisplayTime()
+          .dayBounds(endOfDay ? day.addDays(1) : day, zone)
+          .start;
+    default:
+      return null;
+  }
+}
+
+String _eventRangeMessage(AppLocalizations t, _EventRangeGuidance guidance) =>
+    guidance.startKnown && guidance.endKnown
+    ? t.reportEventRangeAction(
+        guidance.fromDate.toString(),
+        guidance.throughDate.toString(),
+      )
+    : t.reportEventRangePartialAction(
+        guidance.fromDate.toString(),
+        guidance.throughDate.toString(),
+      );

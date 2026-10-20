@@ -5627,6 +5627,60 @@
   "@reportEventRangeHelp": {
     "description": "Report selection or validation message."
   },
+  "reportEventSelected": "Event: {name}",
+  "@reportEventSelected": {
+    "description": "Selected event identity above its recorded dates.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reportEventZoneValue": "Event zone: {zone}",
+  "@reportEventZoneValue": {
+    "description": "Zone used for the selected event's recorded boundaries.",
+    "placeholders": {
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "reportEventRangeAction": "The selected dates do not include this event. Apply {from} to {through} to cover its recorded start and end.",
+  "@reportEventRangeAction": {
+    "description": "Actionable range explanation when both event boundaries are known.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "through": {
+        "type": "String"
+      }
+    }
+  },
+  "reportEventRangePartialAction": "The selected dates do not include this event. Apply {from} to {through} to cover its recorded dates.",
+  "@reportEventRangePartialAction": {
+    "description": "Actionable range explanation when at least one event boundary is unknown.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "through": {
+        "type": "String"
+      }
+    }
+  },
+  "reportEventApplyRangeLabel": "Set report dates from {from} to {through}",
+  "@reportEventApplyRangeLabel": {
+    "description": "Accessible name for the one-word Apply date action.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "through": {
+        "type": "String"
+      }
+    }
+  },
   "reportNoEvents": "No events are available.",
   "@reportNoEvents": {
     "description": "Report selection or validation message."

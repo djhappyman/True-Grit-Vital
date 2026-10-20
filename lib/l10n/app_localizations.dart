@@ -8110,6 +8110,36 @@ abstract class AppLocalizations {
   /// **'Choose one event and dates that cover its recorded start and end. Dates without a known boundary stay uncertain.'**
   String get reportEventRangeHelp;
 
+  /// Selected event identity above its recorded dates.
+  ///
+  /// In en, this message translates to:
+  /// **'Event: {name}'**
+  String reportEventSelected(String name);
+
+  /// Zone used for the selected event's recorded boundaries.
+  ///
+  /// In en, this message translates to:
+  /// **'Event zone: {zone}'**
+  String reportEventZoneValue(String zone);
+
+  /// Actionable range explanation when both event boundaries are known.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected dates do not include this event. Apply {from} to {through} to cover its recorded start and end.'**
+  String reportEventRangeAction(String from, String through);
+
+  /// Actionable range explanation when at least one event boundary is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected dates do not include this event. Apply {from} to {through} to cover its recorded dates.'**
+  String reportEventRangePartialAction(String from, String through);
+
+  /// Accessible name for the one-word Apply date action.
+  ///
+  /// In en, this message translates to:
+  /// **'Set report dates from {from} to {through}'**
+  String reportEventApplyRangeLabel(String from, String through);
+
   /// Report selection or validation message.
   ///
   /// In en, this message translates to:

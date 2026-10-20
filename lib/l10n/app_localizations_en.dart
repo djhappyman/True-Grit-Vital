@@ -5018,6 +5018,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose one event and dates that cover its recorded start and end. Dates without a known boundary stay uncertain.';
 
   @override
+  String reportEventSelected(String name) {
+    return 'Event: $name';
+  }
+
+  @override
+  String reportEventZoneValue(String zone) {
+    return 'Event zone: $zone';
+  }
+
+  @override
+  String reportEventRangeAction(String from, String through) {
+    return 'The selected dates do not include this event. Apply $from to $through to cover its recorded start and end.';
+  }
+
+  @override
+  String reportEventRangePartialAction(String from, String through) {
+    return 'The selected dates do not include this event. Apply $from to $through to cover its recorded dates.';
+  }
+
+  @override
+  String reportEventApplyRangeLabel(String from, String through) {
+    return 'Set report dates from $from to $through';
+  }
+
+  @override
   String get reportNoEvents => 'No events are available.';
 
   @override
