@@ -519,6 +519,34 @@ class _AttachmentTileState extends ConsumerState<AttachmentTile> {
   }
 }
 
+/// One confirmed removal. Tests override this seam to model a reply that is
+/// lost after the store committed, which a widget cannot otherwise observe.
+typedef AttachmentDeleteRequest = ({
+  String commandId,
+  AttachmentRecord attachment,
+  int expectedPersonRevision,
+});
+final attachmentDeleteProvider =
+    Provider<Future<void> Function(AttachmentDeleteRequest)>(
+      (ref) =>
+          (request) async =>
+              (await ref.read(recordStoreProvider.future)).deleteAttachment(
+                commandId: request.commandId,
+                attachment: request.attachment,
+                expectedPersonRevision: request.expectedPersonRevision,
+              ),
+    );
+
+/// Resolves a possibly committed removal before resubmitting its command, so an
+/// uncertain reply is never repeated under a different identity.
+Future<void> replayAttachmentDelete({
+  required RecordStore store,
+  required String commandId,
+  required Future<void> Function() delete,
+}) async {
+  if (!await store.operationCommitted(commandId)) await delete();
+}
+
 class AttachmentViewerPage extends ConsumerStatefulWidget {
   const AttachmentViewerPage({
     super.key,
@@ -540,7 +568,12 @@ class _AttachmentViewerPageState extends ConsumerState<AttachmentViewerPage> {
   FocusNode? pendingFocus;
   bool deleting = false, focusRestored = false;
   String? completedDeletionRoute;
-  String? error;
+  // The file and owner revision reviewed for the first confirmation attempt.
+  // They are released only once the store has definitively rejected that
+  // attempt; see remove.
+  String? error, deleteCommand;
+  AttachmentRecord? deleteTarget;
+  int? deleteOwnerRevision;
   @override
   void dispose() {
     renameFocus.dispose();
@@ -548,6 +581,12 @@ class _AttachmentViewerPageState extends ConsumerState<AttachmentViewerPage> {
     shareFocus.dispose();
     saveFocus.dispose();
     super.dispose();
+  }
+
+  void clearDeleteAttempt() {
+    deleteCommand = null;
+    deleteTarget = null;
+    deleteOwnerRevision = null;
   }
 
   void restoreFocus(FocusNode node) {
@@ -591,27 +630,47 @@ class _AttachmentViewerPageState extends ConsumerState<AttachmentViewerPage> {
       deleting = true;
       error = null;
     });
+    // The first confirmation freezes the file and owner revision the person
+    // actually reviewed. A possibly uncertain outcome (a lost acknowledgement
+    // or an interrupted write) keeps that identity so the retry can first
+    // resolve whether the store already committed instead of removing under a
+    // new identity. Only a conflict the store rejected inside its transaction
+    // proves nothing was applied; the next confirmation then captures the
+    // revisions currently shown, never the stale ones that failed.
+    deleteTarget ??= record;
+    deleteOwnerRevision ??= ownerRevision;
+    final command = deleteCommand ??= newCommandId(),
+        target = deleteTarget!,
+        expectedPersonRevision = deleteOwnerRevision!;
     try {
-      // Each confirmation is a fresh attempt. A retry after a conflict must
-      // review the record and owner revision currently shown, never repeat the
-      // stale values that failed; the store validates both again.
-      await (await ref.read(recordStoreProvider.future)).deleteAttachment(
-        commandId: newCommandId(),
-        attachment: record,
-        expectedPersonRevision: ownerRevision,
+      final store = await ref.read(recordStoreProvider.future);
+      await replayAttachmentDelete(
+        store: store,
+        commandId: command,
+        delete: () => ref.read(attachmentDeleteProvider)((
+          commandId: command,
+          attachment: target,
+          expectedPersonRevision: expectedPersonRevision,
+        )),
       );
-      completedDeletionRoute = '${attachmentRoute(record)}?focus=choose';
+      clearDeleteAttempt();
+      completedDeletionRoute = '${attachmentRoute(target)}?focus=choose';
       if (mounted && !ref.read(appLockProvider).locked) {
         context.go(completedDeletionRoute!);
       }
-    } catch (failure) {
+    } on CommandConflict catch (failure) {
+      // _command refuses inside its transaction, so a conflict means this
+      // attempt applied nothing. An app lock only blocked the resolution read,
+      // so keep the identity and let the next confirmation resolve it.
+      if (failure.code != 'app_locked') clearDeleteAttempt();
       if (mounted) {
-        setState(
-          () => error = attachmentFailureText(
-            t,
-            failure is CommandConflict ? failure.code : null,
-          ),
-        );
+        setState(() => error = attachmentFailureText(t, failure.code));
+      }
+    } catch (_) {
+      // The outcome may be committed but unacknowledged. Keep the identity so
+      // the next explicit confirmation resolves it before resubmitting.
+      if (mounted) {
+        setState(() => error = attachmentFailureText(t, null));
       }
     } finally {
       if (mounted) setState(() => deleting = false);

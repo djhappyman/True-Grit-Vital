@@ -17,6 +17,7 @@ import 'package:true_grit_vital/app/device_zone.dart';
 import 'package:true_grit_vital/app/storage.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
+import 'package:true_grit_vital/features/attachments/attachment_pages.dart';
 import 'package:true_grit_vital/features/recording/record_pages.dart';
 import 'package:true_grit_vital/platform/attachments.dart';
 import 'package:true_grit_vital/platform/device_zone.dart';
@@ -202,6 +203,7 @@ fixture(
   WidgetTester tester, {
   FixtureFileGateway? gateway,
   Future<void> Function(RecordStore, SubstanceItem)? prepare,
+  Future<void> Function(AttachmentDeleteRequest)? deleteOverride,
   bool reopen = false,
 }) async {
   final directory = (await runIo(
@@ -253,6 +255,8 @@ fixture(
       ),
       attachmentGatewayProvider.overrideWithValue(files),
       attachmentHandoffProvider.overrideWithValue(handoff),
+      if (deleteOverride != null)
+        attachmentDeleteProvider.overrideWithValue(deleteOverride),
     ],
   );
   activeContainer = container;
@@ -692,6 +696,103 @@ void main() {
       expect(
         await runIo(tester, () => f.store.attachmentById(file.id)),
         isNull,
+      );
+    },
+  );
+  attachmentAppTest(
+    'uncertain delete failure retries the reviewed command and its exact file',
+    (tester) async {
+      final attempts = <AttachmentDeleteRequest>[];
+      late RecordStore attemptStore;
+      final f = await fixture(
+        tester,
+        prepare: (store, _) async {
+          attemptStore = store;
+        },
+        deleteOverride: (request) async {
+          attempts.add(request);
+          // The first reply is lost without proof of a rollback, so the
+          // reviewed command identity must survive for the retry.
+          if (attempts.length == 1) {
+            throw StateError('injected_uncertain_removal');
+          }
+          await attemptStore.deleteAttachment(
+            commandId: request.commandId,
+            attachment: request.attachment,
+            expectedPersonRevision: request.expectedPersonRevision,
+          );
+        },
+      );
+      final source = (await runIo(tester, () => png(8, 8)))!;
+      final file = (await runIo(
+        tester,
+        () => seedFile(f.store, f.item, source),
+      ))!;
+      f.container.read(routerProvider).go('/attachment/${file.id}');
+      await settle(tester);
+      await tap(tester, 'Delete');
+      await tap(tester, 'Delete');
+      await waitForText(
+        tester,
+        'Unable to complete this file action. Try again.',
+      );
+      expect(attempts, hasLength(1));
+      expect(
+        await runIo(tester, () => f.store.attachmentById(file.id)),
+        isNotNull,
+      );
+      // The retry reviews the same identity instead of silently starting over.
+      await tap(tester, 'Delete');
+      await tap(tester, 'Delete');
+      await waitForText(
+        tester,
+        'No files attached. Choose a file or an existing photo to add one.',
+      );
+      expect(attempts, hasLength(2));
+      expect(attempts[1].commandId, attempts[0].commandId);
+      expect(attempts[1].attachment.id, attempts[0].attachment.id);
+      expect(attempts[1].attachment.revision, attempts[0].attachment.revision);
+      expect(
+        attempts[1].expectedPersonRevision,
+        attempts[0].expectedPersonRevision,
+      );
+      expect(
+        await runIo(tester, () => f.store.attachmentById(file.id)),
+        isNull,
+      );
+    },
+  );
+  attachmentAppTest(
+    'a committed removal resolves its command before any resubmission',
+    (tester) async {
+      final f = await fixture(tester),
+          source = (await runIo(tester, () => png(8, 8)))!;
+      final file = (await runIo(
+        tester,
+        () => seedFile(f.store, f.item, source),
+      ))!;
+      const command = 'reviewed-delete-command';
+      await runIo(
+        tester,
+        () => f.store.deleteAttachment(
+          commandId: command,
+          attachment: file,
+          expectedPersonRevision: 2,
+        ),
+      );
+      var resubmitted = false;
+      await runIo(
+        tester,
+        () => replayAttachmentDelete(
+          store: f.store,
+          commandId: command,
+          delete: () async => resubmitted = true,
+        ),
+      );
+      expect(resubmitted, isFalse);
+      expect(
+        await runIo(tester, () => f.store.operationCommitted(command)),
+        isTrue,
       );
     },
   );
