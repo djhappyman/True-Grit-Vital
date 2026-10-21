@@ -10280,6 +10280,258 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{status} · {time}'**
   String calendarEntryState(String status, String time);
+
+  /// Short description under the Events page title.
+  ///
+  /// In en, this message translates to:
+  /// **'Courses and cycles add context to your recorded use.'**
+  String get screenEventsDescription;
+
+  /// Event status for an event that has started and is not marked complete.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get screenEventsActive;
+
+  /// Event status for an event whose start date is still in the future.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get screenEventsUpcoming;
+
+  /// Filter choice that shows every loaded event.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get screenEventsAll;
+
+  /// Loaded active event count for the Events header.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 active} other{{count} active}}'**
+  String screenEventsActiveCount(int count);
+
+  /// Loaded upcoming event count for the Events header.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 upcoming} other{{count} upcoming}}'**
+  String screenEventsUpcomingCount(int count);
+
+  /// Loaded completed event count for the Events header.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 completed} other{{count} completed}}'**
+  String screenEventsCompletedCount(int count);
+
+  /// Header count when more than one page of events exists, so the shown number is not presented as a whole-collection count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 shown} other{{count} shown}}'**
+  String screenEventsShown(int count);
+
+  /// Explains that status filters cover only the loaded event page, not the whole collection.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters only cover the events shown.'**
+  String get screenEventsLoadedOnly;
+
+  /// Filtered empty state for the Events list.
+  ///
+  /// In en, this message translates to:
+  /// **'No events match this filter.'**
+  String get screenEventsNoMatches;
+
+  /// Event date range. Values keep their recorded precision.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String screenEventsRange(String start, String end);
+
+  /// Saved start boundary without claiming that a planned start actually occurred.
+  ///
+  /// In en, this message translates to:
+  /// **'Start: {date}'**
+  String screenEventsStarted(String date);
+
+  /// Future event start date.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts {date}'**
+  String screenEventsStarts(String date);
+
+  /// Event has neither a usable start nor end date.
+  ///
+  /// In en, this message translates to:
+  /// **'No dates recorded'**
+  String get screenEventsNoDates;
+
+  /// Elapsed day position in an event whose start and end both resolve. This describes time, not adherence.
+  ///
+  /// In en, this message translates to:
+  /// **'Day {day} of {total}'**
+  String screenEventsDayOf(int day, int total);
+
+  /// Time elapsed in the event date range. Never an adherence percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% elapsed'**
+  String screenEventsPercentElapsed(int percent);
+
+  /// Label for elapsed time across an event's date range.
+  ///
+  /// In en, this message translates to:
+  /// **'Date progress'**
+  String get screenEventsHorizon;
+
+  /// Items recorded as members of an active or completed event.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked items'**
+  String get screenEventsLinkedItems;
+
+  /// Items recorded as members of a future event.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned items'**
+  String get screenEventsPlannedItems;
+
+  /// Short warning when an event date boundary cannot resolve, so timing and the derived status stay uncertain.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates need review'**
+  String get screenEventsDatesReview;
+
+  /// The event end date has passed and its end review has not been dismissed or completed.
+  ///
+  /// In en, this message translates to:
+  /// **'End review due'**
+  String get screenEventsReviewDue;
+
+  /// Accessible label for the event card overflow control.
+  ///
+  /// In en, this message translates to:
+  /// **'More actions for {name}'**
+  String screenEventsMoreFor(String name);
+
+  /// Accessible label for opening an event's details. It contains the visible Details command.
+  ///
+  /// In en, this message translates to:
+  /// **'Details for {name}'**
+  String screenEventsDetailsFor(String name);
+
+  /// Accessible label for editing an event. It contains the visible Edit command.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {name}'**
+  String screenEventsEditFor(String name);
+
+  /// Accessible label for adding an event to the combined history selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Select {name} for combined history'**
+  String screenEventsSelectFor(String name);
+
+  /// Accessible label when an event is already in the combined history selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected {name} for combined history'**
+  String screenEventsSelectedFor(String name);
+
+  /// Accessible label for opening an upcoming event's configuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure {name}'**
+  String screenEventsConfigureFor(String name);
+
+  /// Accessible label for the end review action.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the end of {name}'**
+  String screenEventsReviewFor(String name);
+
+  /// Accessible label for an event's revision history.
+  ///
+  /// In en, this message translates to:
+  /// **'Revisions for {name}'**
+  String screenEventsRevisionsFor(String name);
+
+  /// Accessible label for the unavailable event note preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note for {name}'**
+  String screenEventsNoteFor(String name);
+
+  /// One-word visible label for the event note preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get screenEventsNote;
+
+  /// Title for the unavailable event notes preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Event notes'**
+  String get screenEventsNotes;
+
+  /// Truthful preview state. Does not claim saved notes exist.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved event notes are not available in this version. Nothing is added.'**
+  String get screenEventsNotesUnavailable;
+
+  /// Factual completion state. Does not claim that every item was audited.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked complete. Recorded history stays available.'**
+  String get screenEventsCompletedNote;
+
+  /// Title for the factual notice about what events do and do not change.
+  ///
+  /// In en, this message translates to:
+  /// **'Event context'**
+  String get screenEventsContext;
+
+  /// Heading for event dates and timing on the detail page.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get screenEventsDates;
+
+  /// Label for the planned event date range.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get screenEventsPlanned;
+
+  /// Label for the actual event date range.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get screenEventsActual;
+
+  /// Accessible label for the event status filter strip.
+  ///
+  /// In en, this message translates to:
+  /// **'Event status'**
+  String get screenEventsFilterLabel;
+
+  /// An event with an end date but no saved start.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends {date}'**
+  String screenEventsEnds(String date);
+
+  /// Saved events whose current phase cannot be resolved from their recorded dates.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 needs date review} other{{count} need date review}}'**
+  String screenEventsReviewCount(int count);
+
+  /// A linked substance name could not be loaded or no longer resolves. Saved membership identity remains available in event detail.
+  ///
+  /// In en, this message translates to:
+  /// **'Substance unavailable'**
+  String get screenEventsItemUnavailable;
 }
 
 class _AppLocalizationsDelegate

@@ -33,6 +33,13 @@ Native Flutter captures from the remaining-screen rollout. Designs use the saved
 - A container without an active notice says No notice. Zero stock with notices disabled is never described as stocked. The redundant profile label is removed, and surfaces use shared semantic geometry.
 - Lead verification: 39 stock regression checks, five visual/safe-area checks, an expanded 320/390/430 px double-text check and clean project analysis. Physical-device accessibility, keyboard and performance evidence remains open.
 
+## Events
+
+- [Light](light-events.png), [dark](dark-events.png), [full light](light-events-full.png) and [full dark](dark-events-full.png) show saved cycles and prescription courses. [Detail light](light-event-detail-full.png), [detail dark](dark-event-detail-full.png) and [narrow/double text](dark-events-narrow-double-text.png) use the same real components and routes.
+- Create, status filters, selection/combined history, details, Configure, end review and revisions remain live. Counts are whole-collection only when the first page is complete; larger collections say shown and preserve paging. Notes remain an explicit preview.
+- Lead review separated unresolved dates from Active, corrected end-only labels and date-progress arithmetic, refreshed list timing every minute and reused the shared badge/button styling. Event titles get their full card width. Progress describes elapsed dates, not dose adherence.
+- Lead verification: 33 regression checks, 12 final UI checks, five framework/safe-area checks, two loaded capture checks and clean analysis. Includes partial/end-only dates, midnight status rollover, real forms, paging and 320 px double text. Device accessibility/performance gates remain open.
+
 ## History
 
 - [Light](light-history.png), [dark](dark-history.png), [full light](light-history-full.png) and [full dark](dark-history-full.png) implement the owner’s replacement monthly-calendar composition, using the same shared surfaces, controls, palette and type scale.

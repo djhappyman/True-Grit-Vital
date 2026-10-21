@@ -6623,4 +6623,203 @@ class AppLocalizationsEn extends AppLocalizations {
   String calendarEntryState(String status, String time) {
     return '$status · $time';
   }
+
+  @override
+  String get screenEventsDescription =>
+      'Courses and cycles add context to your recorded use.';
+
+  @override
+  String get screenEventsActive => 'Active';
+
+  @override
+  String get screenEventsUpcoming => 'Upcoming';
+
+  @override
+  String get screenEventsAll => 'All';
+
+  @override
+  String screenEventsActiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count active',
+      one: '1 active',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String screenEventsUpcomingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count upcoming',
+      one: '1 upcoming',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String screenEventsCompletedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count completed',
+      one: '1 completed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String screenEventsShown(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count shown',
+      one: '1 shown',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get screenEventsLoadedOnly => 'Filters only cover the events shown.';
+
+  @override
+  String get screenEventsNoMatches => 'No events match this filter.';
+
+  @override
+  String screenEventsRange(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String screenEventsStarted(String date) {
+    return 'Start: $date';
+  }
+
+  @override
+  String screenEventsStarts(String date) {
+    return 'Starts $date';
+  }
+
+  @override
+  String get screenEventsNoDates => 'No dates recorded';
+
+  @override
+  String screenEventsDayOf(int day, int total) {
+    return 'Day $day of $total';
+  }
+
+  @override
+  String screenEventsPercentElapsed(int percent) {
+    return '$percent% elapsed';
+  }
+
+  @override
+  String get screenEventsHorizon => 'Date progress';
+
+  @override
+  String get screenEventsLinkedItems => 'Linked items';
+
+  @override
+  String get screenEventsPlannedItems => 'Planned items';
+
+  @override
+  String get screenEventsDatesReview => 'Dates need review';
+
+  @override
+  String get screenEventsReviewDue => 'End review due';
+
+  @override
+  String screenEventsMoreFor(String name) {
+    return 'More actions for $name';
+  }
+
+  @override
+  String screenEventsDetailsFor(String name) {
+    return 'Details for $name';
+  }
+
+  @override
+  String screenEventsEditFor(String name) {
+    return 'Edit $name';
+  }
+
+  @override
+  String screenEventsSelectFor(String name) {
+    return 'Select $name for combined history';
+  }
+
+  @override
+  String screenEventsSelectedFor(String name) {
+    return 'Selected $name for combined history';
+  }
+
+  @override
+  String screenEventsConfigureFor(String name) {
+    return 'Configure $name';
+  }
+
+  @override
+  String screenEventsReviewFor(String name) {
+    return 'Review the end of $name';
+  }
+
+  @override
+  String screenEventsRevisionsFor(String name) {
+    return 'Revisions for $name';
+  }
+
+  @override
+  String screenEventsNoteFor(String name) {
+    return 'Add a note for $name';
+  }
+
+  @override
+  String get screenEventsNote => 'Note';
+
+  @override
+  String get screenEventsNotes => 'Event notes';
+
+  @override
+  String get screenEventsNotesUnavailable =>
+      'Saved event notes are not available in this version. Nothing is added.';
+
+  @override
+  String get screenEventsCompletedNote =>
+      'Marked complete. Recorded history stays available.';
+
+  @override
+  String get screenEventsContext => 'Event context';
+
+  @override
+  String get screenEventsDates => 'Dates';
+
+  @override
+  String get screenEventsPlanned => 'Planned';
+
+  @override
+  String get screenEventsActual => 'Actual';
+
+  @override
+  String get screenEventsFilterLabel => 'Event status';
+
+  @override
+  String screenEventsEnds(String date) {
+    return 'Ends $date';
+  }
+
+  @override
+  String screenEventsReviewCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count need date review',
+      one: '1 needs date review',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get screenEventsItemUnavailable => 'Substance unavailable';
 }

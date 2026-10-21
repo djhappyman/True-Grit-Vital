@@ -3,6 +3,7 @@ import '../../app/display_preferences.dart';
 import '../../ui/vital_ui.dart';
 
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart' show showDialog;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -192,15 +193,15 @@ DateTime parseMembershipInstant(String raw) {
   return DateTime.parse(value.value!);
 }
 
-enum _EventFilter { all, active, upcoming, completed }
+enum _EventFilter { all, active, upcoming, completed, review }
 
-enum _EventPhase { active, upcoming, completed }
+enum _EventPhase { active, upcoming, completed, review }
 
 _EventPhase _eventPhase(EventRecord event, DateTime now) {
   if (event.completed) return _EventPhase.completed;
-  return cycleTiming(event, now).startsIn == null
-      ? _EventPhase.active
-      : _EventPhase.upcoming;
+  final timing = cycleTiming(event, now);
+  if (timing.startsIn != null) return _EventPhase.upcoming;
+  return timing.elapsed == null ? _EventPhase.review : _EventPhase.active;
 }
 
 bool _eventReviewDue(EventRecord event, DateTime now) {
@@ -252,9 +253,8 @@ String _eventDateText(
       return date.value!;
     case EventDatePrecision.month:
       final parts = date.value!.split('-');
-      return DateFormat.yMMM(
-        Localizations.localeOf(context).toLanguageTag(),
-      ).format(DateTime(int.parse(parts[0]), int.parse(parts[1])));
+      return DateFormat.yMMM(Localizations.localeOf(context).toLanguageTag())
+          .format(DateTime(int.parse(parts[0]), int.parse(parts[1])));
     case EventDatePrecision.day:
       final value = CivilDate.parse(date.value!);
       return DateFormat(
@@ -295,7 +295,7 @@ String _eventRangeText(
   final hasStart = (event.actualStart ?? event.plannedStart) != null;
   final hasEnd = (event.actualEnd ?? event.plannedEnd) != null;
   if (!hasStart && !hasEnd) return t.screenEventsNoDates;
-  if (!hasStart) return t.screenEventsStarts(end);
+  if (!hasStart) return t.screenEventsEnds(end);
   if (!hasEnd) return t.screenEventsStarted(start);
   return t.screenEventsRange(start, end);
 }
@@ -352,6 +352,20 @@ class _EventsPageState extends ConsumerState<EventsPage> {
   final selected = <String>{};
   int offset = 0;
   _EventFilter filter = _EventFilter.all;
+  Timer? _clockTimer;
+  @override
+  void initState() {
+    super.initState();
+    _clockTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _clockTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -383,6 +397,11 @@ class _EventsPageState extends ConsumerState<EventsPage> {
       _EventFilter.completed =>
         visible
                 ?.where((e) => _eventPhase(e, now) == _EventPhase.completed)
+                .toList() ??
+            const <EventRecord>[],
+      _EventFilter.review =>
+        visible
+                ?.where((e) => _eventPhase(e, now) == _EventPhase.review)
                 .toList() ??
             const <EventRecord>[],
     };
@@ -422,6 +441,8 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                       t.screenEventsCompletedCount(
                         counts[_EventPhase.completed] ?? 0,
                       ),
+                      if ((counts[_EventPhase.review] ?? 0) > 0)
+                        t.screenEventsReviewCount(counts[_EventPhase.review]!),
                     ].join(' · ')
                   : t.screenEventsShown(visible.length),
               dot: true,
@@ -450,12 +471,9 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                         child: StitchButton(
                           compact: true,
                           onPressed: () => setState(() => filter = choice),
+                          primary: filter == choice,
                           child: Text(
                             _filterLabel(t, choice, counts, complete),
-                            style: StitchType.small.copyWith(
-                              color: filter == choice ? c.accent : c.muted,
-                              fontWeight: FontWeight.w600,
-                            ),
                           ),
                         ),
                       ),
@@ -563,6 +581,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
       _EventFilter.active => (t.screenEventsActive, _EventPhase.active),
       _EventFilter.upcoming => (t.screenEventsUpcoming, _EventPhase.upcoming),
       _EventFilter.completed => (t.eventCompleted, _EventPhase.completed),
+      _EventFilter.review => (t.review, _EventPhase.review),
     };
     return complete && phase != null
         ? t.stitchFilterCount(label, counts[phase] ?? 0)
@@ -628,7 +647,7 @@ class _EventCardState extends ConsumerState<_EventCard> {
         semantics: t.screenEventsConfigureFor(event.name),
         details: false,
       ),
-      _EventPhase.active => (
+      _EventPhase.active || _EventPhase.review => (
         label: t.details,
         route: '/event/${event.id}',
         semantics: t.screenEventsDetailsFor(event.name),
@@ -644,10 +663,10 @@ class _EventCardState extends ConsumerState<_EventCard> {
         (timing.elapsed! + timing.remaining!) > 0;
     final total = progress ? timing.elapsed! + timing.remaining! : 0;
     final percent = progress
-        ? (((timing.elapsed! + 1) / total) * 100).round().clamp(0, 100)
+        ? ((timing.elapsed! / total) * 100).round().clamp(0, 100)
         : 0;
     return StitchSurface(
-      radius: VitalLayout.sectionRadius,
+      radius: VitalLayout.surfaceRadius,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -664,30 +683,27 @@ class _EventCardState extends ConsumerState<_EventCard> {
                       runSpacing: 4,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        StitchBadge(switch (phase) {
-                          _EventPhase.active => t.screenEventsActive,
-                          _EventPhase.upcoming => t.screenEventsUpcoming,
-                          _EventPhase.completed => t.eventCompleted,
-                        }, dot: !completed),
+                        StitchBadge(
+                          switch (phase) {
+                            _EventPhase.active => t.screenEventsActive,
+                            _EventPhase.upcoming => t.screenEventsUpcoming,
+                            _EventPhase.completed => t.eventCompleted,
+                            _EventPhase.review => t.screenEventsDatesReview,
+                          },
+                          dot:
+                              phase == _EventPhase.active ||
+                              phase == _EventPhase.upcoming,
+                          warning: phase == _EventPhase.review,
+                        ),
                         if (reviewDue)
                           StitchBadge(t.screenEventsReviewDue, warning: true),
-                        if (datesReview)
+                        if (datesReview && phase != _EventPhase.review)
                           StitchBadge(t.screenEventsDatesReview, warning: true),
                         Text(
                           _eventTypeLabel(t, event),
                           style: StitchType.small.copyWith(color: c.muted),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      event.name,
-                      style: StitchType.name.copyWith(color: c.ink),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _eventMetaText(context, ref, t, event, widget.now),
-                      style: StitchType.caption.copyWith(color: c.muted),
                     ),
                   ],
                 ),
@@ -707,6 +723,13 @@ class _EventCardState extends ConsumerState<_EventCard> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 8),
+          Text(event.name, style: StitchType.name.copyWith(color: c.ink)),
+          const SizedBox(height: 4),
+          Text(
+            _eventMetaText(context, ref, t, event, widget.now),
+            style: StitchType.caption.copyWith(color: c.muted),
           ),
           if (progress) ...[
             const SizedBox(height: 12),
@@ -815,12 +838,7 @@ class _EventCardState extends ConsumerState<_EventCard> {
                   key: ValueKey('screen-events-select-${event.id}'),
                   icon: selected ? LucideIcons.check : null,
                   onPressed: widget.onToggleSelected,
-                  child: Text(
-                    selected ? t.eventSelected : t.eventSelect,
-                    style: StitchType.small.copyWith(
-                      color: selected ? c.accent : c.muted,
-                    ),
-                  ),
+                  child: Text(selected ? t.eventSelected : t.eventSelect),
                 ),
               ),
               Semantics(
@@ -919,13 +937,7 @@ class _EventMoreCommand extends StatelessWidget {
       quiet: true,
       compact: true,
       onPressed: onPressed,
-      child: Text(
-        label,
-        style: StitchType.small.copyWith(
-          color: StitchColors(context).accent,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+      child: Text(label),
     ),
   );
 }
@@ -935,30 +947,14 @@ class _EventItemChip extends ConsumerWidget {
   final String itemId;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppLocalizations.of(context), c = StitchColors(context);
-    final item = ref.watch(itemLookupProvider(itemId)).value;
-    return Container(
-      constraints: const BoxConstraints(minHeight: 32),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: c.inset,
-        borderRadius: BorderRadius.circular(VitalLayout.pillRadius),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ExcludeSemantics(
-            child: Icon(LucideIcons.pill, size: 15, color: c.accent),
-          ),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              item?.name ?? t.loadingRecords,
-              style: StitchType.small.copyWith(color: c.ink),
-            ),
-          ),
-        ],
-      ),
+    final t = AppLocalizations.of(context);
+    final result = ref.watch(itemLookupProvider(itemId));
+    return VitalBadge(
+      result.value?.name ??
+          (result.hasError || result.hasValue
+              ? t.screenEventsItemUnavailable
+              : t.loadingRecords),
+      compact: true,
     );
   }
 }
@@ -1154,13 +1150,18 @@ class EventDetailPage extends ConsumerWidget {
           runSpacing: 4,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            StitchBadge(switch (phase) {
-              _EventPhase.active => t.screenEventsActive,
-              _EventPhase.upcoming => t.screenEventsUpcoming,
-              _EventPhase.completed => t.eventCompleted,
-            }, dot: !completed),
+            StitchBadge(
+              switch (phase) {
+                _EventPhase.active => t.screenEventsActive,
+                _EventPhase.upcoming => t.screenEventsUpcoming,
+                _EventPhase.completed => t.eventCompleted,
+                _EventPhase.review => t.screenEventsDatesReview,
+              },
+              dot: phase == _EventPhase.active || phase == _EventPhase.upcoming,
+              warning: phase == _EventPhase.review,
+            ),
             if (reviewDue) StitchBadge(t.screenEventsReviewDue, warning: true),
-            if (timingUnavailable)
+            if (timingUnavailable && phase != _EventPhase.review)
               StitchBadge(t.screenEventsDatesReview, warning: true),
             Text(
               _eventTypeLabel(t, event),

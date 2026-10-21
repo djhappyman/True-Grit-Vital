@@ -7762,9 +7762,9 @@
       }
     }
   },
-  "screenEventsStarted": "Started {date}",
+  "screenEventsStarted": "Start: {date}",
   "@screenEventsStarted": {
-    "description": "Event with a start date and no end date.",
+    "description": "Saved start boundary without claiming that a planned start actually occurred.",
     "placeholders": {
       "date": {
         "type": "String"
@@ -7805,7 +7805,7 @@
       }
     }
   },
-  "screenEventsHorizon": "Cycle horizon",
+  "screenEventsHorizon": "Date progress",
   "@screenEventsHorizon": {
     "description": "Label for elapsed time across an event's date range."
   },
@@ -7941,5 +7941,27 @@
   "screenEventsFilterLabel": "Event status",
   "@screenEventsFilterLabel": {
     "description": "Accessible label for the event status filter strip."
+  },
+  "screenEventsEnds": "Ends {date}",
+  "@screenEventsEnds": {
+    "description": "An event with an end date but no saved start.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "screenEventsReviewCount": "{count, plural, =1{1 needs date review} other{{count} need date review}}",
+  "@screenEventsReviewCount": {
+    "description": "Saved events whose current phase cannot be resolved from their recorded dates.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenEventsItemUnavailable": "Substance unavailable",
+  "@screenEventsItemUnavailable": {
+    "description": "A linked substance name could not be loaded or no longer resolves. Saved membership identity remains available in event detail."
   }
 }

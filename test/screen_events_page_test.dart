@@ -31,7 +31,7 @@ void main() {
       find.text('1 Oct 2026 to 30 Nov 2026 · Day 24 of 61'),
       findsOneWidget,
     );
-    expect(find.text('39% elapsed'), findsOneWidget);
+    expect(find.text('38% elapsed'), findsOneWidget);
     expect(find.text('Telmisartan'), findsOneWidget);
     expect(find.text('Vitamin D3 + K2'), findsNWidgets(2));
     expect(tester.takeException(), isNull);
@@ -189,7 +189,52 @@ void main() {
     await settle(tester);
     await waitForText(tester, 'Partial Date Course');
     expect(find.text('Dates need review'), findsOneWidget);
+    expect(find.text('Active (1)'), findsNothing);
+    expect(find.text('Review (1)'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  appTest('Events labels end-only dates and never assumes an active phase', (
+    tester,
+  ) async {
+    final f = await launch(tester, todayClock: screenEventsNow);
+    await screenEvent(
+      tester,
+      f.store,
+      id: 'end-only',
+      name: 'End-only course',
+      type: 'prescription',
+      start: null,
+      end: screenEventDay(2026, 11, 30),
+    );
+    f.container.read(routerProvider).go('/events');
+    await settle(tester);
+    await waitForText(tester, 'End-only course');
+    expect(find.text('Ends 30 Nov 2026'), findsOneWidget);
+    expect(find.text('Review (1)'), findsOneWidget);
+    expect(find.text('Active (1)'), findsNothing);
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+  });
+
+  appTest('Events refreshes time-based status while left open', (tester) async {
+    var now = DateTime.utc(2026, 10, 23, 22, 59);
+    final f = await launch(tester, todayClock: () => now);
+    await screenEvent(
+      tester,
+      f.store,
+      id: 'rollover',
+      name: 'Rollover course',
+      type: 'cycle',
+      start: screenEventDay(2026, 10, 24),
+    );
+    f.container.read(routerProvider).go('/events');
+    await settle(tester);
+    await waitForText(tester, 'Upcoming (1)');
+    now = now.add(const Duration(minutes: 1));
+    await tester.pump(const Duration(minutes: 1));
+    await settle(tester);
+    expect(find.text('Active (1)'), findsOneWidget);
+    expect(find.text('Upcoming (1)'), findsNothing);
   });
 
   appTest('Events keeps full names and 48px targets at 320px double text', (
