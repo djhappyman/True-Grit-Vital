@@ -177,6 +177,7 @@ DailyAction skipAction({
   String id = 'skip-1',
   bool undone = false,
   String? recordId,
+  String? reason,
   DateTime? recordedAt,
 }) => DailyAction(
   id: id,
@@ -186,6 +187,7 @@ DailyAction skipAction({
   sequence: 1,
   recordedAt: recordedAt ?? DateTime.utc(2026, 10, 19, 9),
   recordId: recordId,
+  reason: reason,
 );
 
 DailyAction takenAction({

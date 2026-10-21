@@ -267,6 +267,9 @@ String ledgerItemText(
     lines.add('Tags: ${entry.contextTags.join(', ')}');
   }
   if (entry.notes != null) lines.add('Note: ${entry.notes}');
+  if (entry.skipReason != null) {
+    lines.add('Skip reason: ${entry.skipReason}');
+  }
   if (entry.planName != null) lines.add('Plan: ${entry.planName}');
   return lines.join('\n');
 }

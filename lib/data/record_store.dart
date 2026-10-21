@@ -1096,7 +1096,8 @@ final class RecordStore {
           if (stockUse != null) _stockUsePayload(stockUse),
           if (productUse != null) productUse.toJson(),
           ?siteLabel,
-          _doseContextPayload(normalisedContext),
+          if (!normalisedContext.isEmpty)
+            _doseContextPayload(normalisedContext),
         ],
         () => _recordInTransaction(
           commandId: commandId,

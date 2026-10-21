@@ -2087,8 +2087,8 @@ class _DoseFormState extends DurableFormState<DoseForm> {
     frozenIntervalClockSample = decodeIntervalClock(
       fields['intervalClockSample'],
     );
-    note.text = fields['notes'] ?? '';
-    tags.text = fields['contextTags'] ?? '';
+    if (fields.containsKey('notes')) note.text = fields['notes']!;
+    if (fields.containsKey('contextTags')) tags.text = fields['contextTags']!;
   }
 
   bool siteOpen = false, _timeExpanded = false;

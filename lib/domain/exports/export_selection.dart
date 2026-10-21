@@ -23,6 +23,7 @@ final class ExportLimits {
     this.maxDays = 3660,
     this.maxDoseRecords = 10000,
     this.maxDoseRevisions = 20000,
+    this.maxSkippedRecords = 5000,
     this.maxSupportingRecords = 2000,
     this.maxSupportingResults = 10000,
     this.maxBytes = 24 * 1024 * 1024,
@@ -34,6 +35,7 @@ final class ExportLimits {
   final int maxDays,
       maxDoseRecords,
       maxDoseRevisions,
+      maxSkippedRecords,
       maxSupportingRecords,
       maxSupportingResults,
       maxBytes,
@@ -46,6 +48,7 @@ final class ExportLimits {
     if (maxDays < 1 ||
         maxDoseRecords < 1 ||
         maxDoseRevisions < 1 ||
+        maxSkippedRecords < 1 ||
         maxSupportingRecords < 1 ||
         maxSupportingResults < 1 ||
         maxBytes < 1024 ||

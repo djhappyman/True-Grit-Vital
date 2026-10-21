@@ -13,6 +13,7 @@ import 'package:true_grit_vital/domain/stock/exact_amount.dart';
 import 'package:true_grit_vital/reports/report_fonts.dart';
 import 'package:true_grit_vital/reports/templates/r02_history_template.dart';
 import 'package:true_grit_vital/reports/templates/r03_event_template.dart';
+import 'package:true_grit_vital/reports/templates/report_layout.dart';
 import 'package:true_grit_vital/reports/templates/report_template_catalog.dart';
 
 import '../domain/history/history_test_data.dart';
@@ -39,6 +40,8 @@ ReportSnapshot historySnapshot({
   int unrecorded = 0,
   String longName = '',
   String personId = 'me',
+  bool includeNotes = false,
+  String? skipReason,
 }) {
   final captured = ReportSnapshot.build(
     selection: ReportSelection(
@@ -47,6 +50,7 @@ ReportSnapshot historySnapshot({
       fromDate: CivilDate(2026, 10, 18),
       beforeDate: CivilDate(2026, 10, 22),
       displayZone: 'Europe/London',
+      includeNotes: includeNotes,
     ),
     cutoff: ReportCutoff(
       generatedAt: DateTime.utc(2026, 10, 21, 12),
@@ -90,7 +94,7 @@ ReportSnapshot historySnapshot({
     skipped: [
       for (var i = 0; i < skipped; i++)
         SkippedTimelineEntry(
-          action: skipAction(id: 'skip-$i'),
+          action: skipAction(id: 'skip-$i', reason: skipReason),
           context: TimelinePlanContext(
             expectation: exactExpectation(
               item: 'item-1',
@@ -381,6 +385,34 @@ void main() {
       expect(decoded, contains('Not recorded:'));
       expect(decoded, contains('does not prove the dose was missed'));
       expect(decoded, isNot(contains('Substance summary')));
+    });
+    test('ledger text shows a skip reason only when notes were selected', () {
+      final privateSnapshot = historySnapshot(
+        records: 0,
+        skipped: 1,
+        skipReason: 'Felt unwell',
+      );
+      final privateEntry =
+          (privateSnapshot.templateData! as ReportHistoryData).entries.single;
+      expect(privateEntry.skipReason, isNull);
+      expect(
+        ledgerItemText(privateEntry, 'Europe/London', use24Hour: true),
+        isNot(contains('Felt unwell')),
+      );
+
+      final sharedSnapshot = historySnapshot(
+        records: 0,
+        skipped: 1,
+        skipReason: 'Felt unwell',
+        includeNotes: true,
+      );
+      final sharedEntry =
+          (sharedSnapshot.templateData! as ReportHistoryData).entries.single;
+      expect(sharedEntry.skipReason, 'Felt unwell');
+      expect(
+        ledgerItemText(sharedEntry, 'Europe/London', use24Hour: true),
+        contains('Skip reason: Felt unwell'),
+      );
     });
   });
 

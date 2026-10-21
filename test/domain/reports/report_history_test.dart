@@ -36,6 +36,7 @@ ReportSnapshot snapshot({
   Iterable<UseRecord> records = const [],
   bool includeSkipped = true,
   bool includeUnrecorded = true,
+  bool includeNotes = false,
   String? eventId,
   Iterable<String> itemIds = const [],
   String person = 'me',
@@ -51,6 +52,7 @@ ReportSnapshot snapshot({
     itemIds: itemIds,
     includeSkipped: includeSkipped,
     includeUnrecorded: includeUnrecorded,
+    includeNotes: includeNotes,
   ),
   cutoff: ReportCutoff(
     generatedAt: generatedAt ?? DateTime.utc(2026, 10, 20, 12),
@@ -84,12 +86,13 @@ SkippedTimelineEntry skipEntry({
   String id = 'skip-1',
   DailyExpectation? expectation,
   String person = 'me',
+  String? reason,
 }) {
   final e =
       expectation ??
       exactExpectation(person: person, instant: DateTime.utc(2026, 10, 19, 7));
   return SkippedTimelineEntry(
-    action: skipAction(id: id),
+    action: skipAction(id: id, reason: reason),
     context: TimelinePlanContext(
       expectation: e,
       planName: 'Morning plan',
@@ -255,6 +258,36 @@ void main() {
         );
         expect(data.coverageNote, contains('may be incomplete'));
         expect(data.coverageNote, isNot(contains('observedZoneUnavailable')));
+      },
+    );
+
+    test(
+      'keeps a skip row while hiding its reason unless notes are selected',
+      () {
+        final private = snapshot();
+        final privateData = ReportHistoryData.build(
+          snapshot: private,
+          skipped: [skipEntry(reason: 'Felt unwell')],
+        );
+        final privateEntry = privateData.entries.single;
+        expect(privateEntry.id, 's:skip-1');
+        expect(privateEntry.status, ReportLedgerStatus.skipped);
+        expect(privateEntry.skipReason, isNull);
+        expect(
+          privateData.structuredText(private, use24Hour: true),
+          isNot(contains('Felt unwell')),
+        );
+
+        final shared = snapshot(includeNotes: true);
+        final sharedData = ReportHistoryData.build(
+          snapshot: shared,
+          skipped: [skipEntry(reason: 'Felt unwell')],
+        );
+        expect(sharedData.entries.single.skipReason, 'Felt unwell');
+        expect(
+          sharedData.structuredText(shared, use24Hour: true),
+          contains('Skip reason: Felt unwell'),
+        );
       },
     );
 

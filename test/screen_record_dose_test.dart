@@ -285,6 +285,115 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  appTest('an old correction draft keeps saved dose context untouched', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final item = (await runIo(
+      tester,
+      () => createItem(f.store, name: 'Synthetic correction dose'),
+    ))!;
+    final saved = (await runIo(tester, () async {
+      final profile = (await f.store.profileById(meId))!;
+      final record = await f.store.record(
+        commandId: 'context-record',
+        itemId: item.id,
+        amount: '1',
+        actualAt: DateTime.utc(2026, 10, 20, 8),
+        expectedPersonRevision: profile.revision,
+        context: const DoseContext(
+          notes: 'Saved note',
+          contextTags: ['Morning', 'With food'],
+        ),
+      );
+      await f.store.saveDraft(
+        OrdinaryDraft(
+          id: 'correction:me:${record.id}',
+          generation: f.store.generation,
+          operationId: 'old-correction-draft',
+          kind: DraftKind.correction,
+          personId: meId,
+          personRevision: profile.revision,
+          targetId: record.id,
+          targetRevision: record.revision,
+          fields: const {'amount': '2'},
+        ),
+      );
+      return record;
+    }))!;
+
+    f.container.read(routerProvider).go('/correct/${saved.id}?person=me');
+    await waitForText(tester, 'Correct use');
+    await tap(tester, 'More');
+    final note = find.descendant(
+      of: find.widgetWithText(LabelledInput, 'Note (optional)'),
+      matching: find.byType(TextField),
+    );
+    final tags = find.descendant(
+      of: find.widgetWithText(LabelledInput, 'Tags (optional)'),
+      matching: find.byType(TextField),
+    );
+    expect(tester.widget<TextField>(note).controller!.text, 'Saved note');
+    expect(
+      tester.widget<TextField>(tags).controller!.text,
+      'Morning, With food',
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  appTest('a correction draft that explicitly clears context wins', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final item = (await runIo(
+      tester,
+      () => createItem(f.store, name: 'Synthetic cleared context dose'),
+    ))!;
+    final saved = (await runIo(tester, () async {
+      final profile = (await f.store.profileById(meId))!;
+      final record = await f.store.record(
+        commandId: 'context-record',
+        itemId: item.id,
+        amount: '1',
+        actualAt: DateTime.utc(2026, 10, 20, 8),
+        expectedPersonRevision: profile.revision,
+        context: const DoseContext(
+          notes: 'Saved note',
+          contextTags: ['Morning'],
+        ),
+      );
+      await f.store.saveDraft(
+        OrdinaryDraft(
+          id: 'correction:me:${record.id}',
+          generation: f.store.generation,
+          operationId: 'cleared-correction-draft',
+          kind: DraftKind.correction,
+          personId: meId,
+          personRevision: profile.revision,
+          targetId: record.id,
+          targetRevision: record.revision,
+          fields: const {'amount': '2', 'notes': '', 'contextTags': ''},
+        ),
+      );
+      return record;
+    }))!;
+
+    f.container.read(routerProvider).go('/correct/${saved.id}?person=me');
+    await waitForText(tester, 'Correct use');
+    await tap(tester, 'More');
+    final note = find.descendant(
+      of: find.widgetWithText(LabelledInput, 'Note (optional)'),
+      matching: find.byType(TextField),
+    );
+    final tags = find.descendant(
+      of: find.widgetWithText(LabelledInput, 'Tags (optional)'),
+      matching: find.byType(TextField),
+    );
+    expect(tester.widget<TextField>(note).controller!.text, isEmpty);
+    expect(tester.widget<TextField>(tags).controller!.text, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+
   appTest('320/390/430 layouts keep the full dose sheet reachable', (
     tester,
   ) async {

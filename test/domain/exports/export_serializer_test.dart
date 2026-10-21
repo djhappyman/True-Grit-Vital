@@ -9,12 +9,16 @@ ExportSelection selection({
   ExportFormat format = ExportFormat.json,
   bool includeNotes = false,
   ExportLimits limits = ExportLimits.standard,
+  List<ExportContent> contents = const [
+    ExportContent.doses,
+    ExportContent.supporting,
+  ],
 }) => ExportSelection(
   personId: meId,
   fromDay: CivilDate(2026, 10, 1),
   beforeDay: CivilDate(2026, 11, 1),
   zoneId: 'UTC',
-  contents: const [ExportContent.doses, ExportContent.supporting],
+  contents: contents,
   format: format,
   includeNotes: includeNotes,
   limits: limits,
@@ -94,10 +98,28 @@ ExportSupportingRevision supporting({
   );
 }
 
+ExportSkippedAction skip({String? reason = 'Felt unwell'}) =>
+    ExportSkippedAction(
+      actionId: 'skip-1',
+      itemId: 'item-1',
+      itemName: 'Synthetic dose',
+      itemForm: 'Liquid',
+      itemType: 'Medicine',
+      occurredAt: DateTime.utc(2026, 10, 6, 7),
+      recordedAt: DateTime.utc(2026, 10, 6, 7, 5),
+      dateOnly: false,
+      timeNeedsReview: false,
+      savedDate: CivilDate(2026, 10, 6),
+      planZone: 'UTC',
+      planName: 'Morning plan',
+      reason: reason,
+    );
+
 ExportDocument document({
   ExportFormat format = ExportFormat.json,
   bool includeNotes = false,
   List<ExportDoseRevision>? doses,
+  List<ExportSkippedAction> skipped = const [],
   List<ExportSupportingRevision>? supportingRows,
   ExportLimits? limits,
 }) => ExportDocument(
@@ -110,6 +132,7 @@ ExportDocument document({
   personName: 'Alex',
   reportName: 'A. Example',
   doses: doses ?? [dose(amount: ExactAmount(BigInt.from(5), BigInt.two))],
+  skipped: skipped,
   supporting: supportingRows ?? [supporting(notes: 'Private note')],
 );
 
@@ -164,6 +187,36 @@ void main() {
       }
     });
 
+    test('skip rows keep the same columns and never invent a dose', () {
+      final text = encodeExportCsv(
+        document(format: ExportFormat.csv, skipped: [skip()]),
+      );
+      final lines = text.split('\r\n');
+      expect(lines, hasLength(4));
+      expect(lines.first.split(','), contains('skip_reason'));
+      final skipLine = lines.firstWhere((line) => line.startsWith('skip,'));
+      expect(skipLine, contains('skip-1'));
+      expect(skipLine, contains('Felt unwell'));
+      expect(
+        lines.every((line) => _fieldCount(line) == exportCsvHeader.length),
+        isTrue,
+      );
+    });
+
+    test('a skip without doses content is rejected', () {
+      expect(
+        () => ExportDocument(
+          selection: selection(contents: const [ExportContent.supporting]),
+          generatedAt: DateTime.utc(2026, 10, 20, 12),
+          personName: 'Alex',
+          doses: const [],
+          skipped: [skip()],
+          supporting: const [],
+        ),
+        throwsArgumentError,
+      );
+    });
+
     test('formula text from a record is escaped in the artifact', () {
       final text = encodeExportCsv(
         document(
@@ -198,6 +251,8 @@ void main() {
         'times',
         'provenance',
         'corrections',
+        'context',
+        'skipped',
         'privacy',
       ]) {
         expect(semantics[key], isA<String>());
@@ -209,6 +264,26 @@ void main() {
       expect(actual['amountDecimal'], '2.5');
       expect(row['entered'], {'amount': '2.5', 'unit': 'ml'});
       expect(row['isCurrent'], true);
+    });
+
+    test('skip collection carries action identity and gates the reason', () {
+      final without = document(skipped: [skip(reason: null)]).toJson();
+      final row =
+          (without['skipped'] as List<Object?>).single as Map<String, Object?>;
+      expect(row['actionId'], 'skip-1');
+      expect(row['item'], {
+        'id': 'item-1',
+        'name': 'Synthetic dose',
+        'form': 'Liquid',
+        'type': 'Medicine',
+      });
+      expect(row['reason'], isNull);
+
+      final withReason = document(skipped: [skip()]).toJson();
+      final selected =
+          (withReason['skipped'] as List<Object?>).single
+              as Map<String, Object?>;
+      expect(selected['reason'], 'Felt unwell');
     });
 
     test('unrelated people never appear', () {

@@ -234,6 +234,143 @@ void main() {
     expect(csvText, contains('word for word'));
   });
 
+  test('dose, skip and supporting rows share one aligned CSV shape', () async {
+    final mine = await item(meId);
+    await store.saveItemDetail(
+      commandId: 'detail-save',
+      itemId: mine.id,
+      instructions: 'Use the labelled amount, then review.',
+      notes: 'Private detail note.',
+      expectedRevision: null,
+      expectedPersonRevision: 2,
+    );
+    await store.record(
+      commandId: 'dose-alignment',
+      itemId: mine.id,
+      amount: '1',
+      actualAt: DateTime.utc(2026, 10, 5, 10),
+      expectedPersonRevision: 2,
+    );
+    await panel(notes: 'Private supporting note.');
+    final date = CivilDate(2026, 10, 20);
+    await store.saveDailyPlan(
+      commandId: 'plan-alignment',
+      plan: DailyPlanVersion(
+        personId: meId,
+        planId: 'plan-alignment',
+        itemId: mine.id,
+        versionId: 'v1',
+        start: date,
+        timing: DailyCount(
+          1,
+          PlannedAmount(
+            quantity: ExactQuantity.parse('1'),
+            enteredText: '1',
+            unit: 'ml',
+          ),
+        ),
+        zoneBasis: const FollowingLocal(),
+        calendar: const EveryDay(),
+      ),
+      expectedPersonRevision: 2,
+      expectedGeneration: store.generation,
+    );
+    final planRow = (await store.dailyRows(
+      from: date,
+      toExclusive: date.addDays(1),
+      observedZone: 'UTC',
+    )).rows.single;
+    final skipped = await store.actDaily(
+      commandId: 'skip-alignment',
+      row: planRow,
+      kind: DailyActionKind.skip,
+      skipReason: 'Felt unwell',
+    );
+
+    final document = await store.captureExport(
+      selection(format: ExportFormat.csv, includeNotes: true),
+    );
+    expect(document.skipped.single.actionId, skipped.id);
+    expect(document.skipped.single.reason, 'Felt unwell');
+    final lines = utf8
+        .decode(ExportArtifact.build(document).bytes)
+        .split('\r\n');
+    expect(lines.first.split(','), exportCsvHeader);
+    expect(
+      lines.every((line) => _fieldCount(line) == exportCsvHeader.length),
+      isTrue,
+    );
+    expect(lines.first, contains('item_instructions'));
+    expect(lines.first, contains('skip_reason'));
+    expect(
+      lines.firstWhere((line) => line.startsWith('skip,')),
+      contains('Felt unwell'),
+    );
+  });
+
+  test('skip bound fails instead of truncating exported actions', () async {
+    final date = CivilDate(2026, 10, 20);
+    final items = <SubstanceItem>[];
+    for (final suffix in ['a', 'b']) {
+      final created = await store.createItem(
+        commandId: 'skip-bound-item-$suffix',
+        expectedPersonRevision: 2,
+        name: 'Synthetic skip item $suffix',
+        form: 'Liquid',
+        unit: 'ml',
+        type: 'Medicine',
+      );
+      items.add(created);
+      await store.saveDailyPlan(
+        commandId: 'skip-bound-plan-$suffix',
+        plan: DailyPlanVersion(
+          personId: meId,
+          planId: 'skip-bound-plan-$suffix',
+          itemId: created.id,
+          versionId: 'skip-bound-version-$suffix',
+          start: date,
+          timing: DailyCount(
+            1,
+            PlannedAmount(
+              quantity: ExactQuantity.parse('1'),
+              enteredText: '1',
+              unit: 'ml',
+            ),
+          ),
+          zoneBasis: const FollowingLocal(),
+          calendar: const EveryDay(),
+        ),
+        expectedPersonRevision: 2,
+        expectedGeneration: store.generation,
+      );
+    }
+    final rows = (await store.dailyRows(
+      from: date,
+      toExclusive: date.addDays(1),
+      observedZone: 'UTC',
+    )).rows;
+    for (final row in rows) {
+      await store.actDaily(
+        commandId: 'skip-bound-${row.expectation.itemId}',
+        row: row,
+        kind: DailyActionKind.skip,
+        skipReason: 'Felt unwell',
+      );
+    }
+    await expectLater(
+      store.captureExport(
+        selection(limits: const ExportLimits(maxSkippedRecords: 1)),
+      ),
+      throwsA(
+        isA<ExportLimitException>().having(
+          (error) => error.code,
+          'code',
+          'export_skipped_records',
+        ),
+      ),
+    );
+  });
+
   test(
     'unknown and partial collection dates are excluded and disclosed',
     () async {
@@ -522,4 +659,22 @@ void main() {
       ExactAmount(BigInt.one, BigInt.from(8)),
     );
   });
+}
+
+int _fieldCount(String line) {
+  var fields = 1;
+  var quoted = false;
+  for (var i = 0; i < line.length; i++) {
+    final unit = line.codeUnitAt(i);
+    if (unit == 0x22) {
+      if (quoted && i + 1 < line.length && line.codeUnitAt(i + 1) == 0x22) {
+        i++;
+      } else {
+        quoted = !quoted;
+      }
+    } else if (unit == 0x2C && !quoted) {
+      fields++;
+    }
+  }
+  return fields;
 }

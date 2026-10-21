@@ -27,6 +27,7 @@ String encodeExportCsv(ExportDocument document) {
   final rows = <List<Object?>>[
     exportCsvHeader,
     for (final row in document.doses) _doseCsvRow(row),
+    for (final row in document.skipped) _skipCsvRow(row),
     for (final row in document.supporting) ..._supportingCsvRows(row),
   ];
   for (var i = 0; i < rows.length; i++) {
@@ -99,6 +100,12 @@ const exportCsvHeader = <String>[
   'item_notes',
   'context_tags',
   'dose_notes',
+  'skip_reason',
+  'skip_date_only',
+  'skip_time_needs_review',
+  'skip_saved_date',
+  'skip_plan_zone',
+  'skip_plan_name',
 ];
 
 List<Object?> _doseCsvRow(ExportDoseRevision row) {
@@ -170,8 +177,54 @@ List<Object?> _doseCsvRow(ExportDoseRevision row) {
     row.itemNotes,
     row.contextTags.join('; '),
     row.notes,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
   ];
 }
+
+List<Object?> _skipCsvRow(ExportSkippedAction row) => [
+  'skip',
+  row.actionId,
+  null,
+  null,
+  null,
+  row.occurredAt.toUtc().toIso8601String(),
+  row.recordedAt.toUtc().toIso8601String(),
+  null,
+  null,
+  row.itemId,
+  row.itemName,
+  row.itemForm,
+  row.itemType,
+  // primary unit through combined action id
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  // catalogue and product snapshot values
+  for (var i = 0; i < 13; i++) null,
+  // supporting, result values and shared notes
+  for (var i = 0; i < 20; i++) null,
+  // item instructions, item notes, context tags, dose notes
+  null,
+  null,
+  null,
+  null,
+  row.reason,
+  _boolean(row.dateOnly),
+  _boolean(row.timeNeedsReview),
+  row.savedDate.toString(),
+  row.planZone,
+  row.planName,
+];
 
 List<List<Object?>> _supportingCsvRows(ExportSupportingRevision row) {
   final snapshot = row.snapshot;
@@ -225,6 +278,12 @@ List<List<Object?>> _supportingCsvRows(ExportSupportingRevision row) {
         null,
         null,
         null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
       ],
     ];
   }
@@ -250,6 +309,12 @@ List<List<Object?>> _supportingCsvRows(ExportSupportingRevision row) {
         (result.provenance ?? snapshot.provenance).specimenText,
         (result.provenance ?? snapshot.provenance).recordedBy,
         snapshot.notes,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
         null,
         null,
         null,

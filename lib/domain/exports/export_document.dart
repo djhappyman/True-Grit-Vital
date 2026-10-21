@@ -1,3 +1,4 @@
+import '../history/timeline_entry.dart';
 import '../products/products.dart';
 import '../records.dart';
 import '../stock/stored_stock.dart';
@@ -265,6 +266,82 @@ Map<String, Object?>? _withoutSources(Object? value) {
   return {...Map<String, Object?>.from(value), 'sourceReferences': <Object?>[]};
 }
 
+/// One immutable explicit skip action inside the selected range.
+///
+/// A skip is a saved fact, not a dose. It carries the action identity and the
+/// planned instant, and never an amount, quantity or revision. [reason] is
+/// free text and stays null unless private notes were selected.
+final class ExportSkippedAction {
+  const ExportSkippedAction({
+    required this.actionId,
+    required this.itemId,
+    required this.itemName,
+    required this.itemForm,
+    required this.itemType,
+    required this.occurredAt,
+    required this.recordedAt,
+    required this.dateOnly,
+    required this.timeNeedsReview,
+    required this.savedDate,
+    required this.planZone,
+    this.planName,
+    this.reason,
+  });
+
+  factory ExportSkippedAction.fromEntry(
+    SkippedTimelineEntry entry, {
+    required String? itemName,
+    required String? itemForm,
+    required String? itemType,
+    required bool includeNotes,
+  }) => ExportSkippedAction(
+    actionId: entry.action.id,
+    itemId: entry.itemId,
+    itemName: itemName ?? entry.context.itemName ?? entry.itemId,
+    itemForm: itemForm ?? '',
+    itemType: itemType ?? '',
+    occurredAt: entry.occurredAt,
+    recordedAt: entry.action.recordedAt,
+    dateOnly: entry.dateOnly,
+    timeNeedsReview: entry.timeNeedsReview,
+    savedDate: entry.savedDate,
+    planZone: entry.planZone,
+    planName: entry.context.planName,
+    reason: includeNotes ? entry.action.reason : null,
+  );
+
+  /// Saved daily action identity. Never a fabricated dose record id.
+  final String actionId, itemId, itemName, itemForm, itemType;
+
+  /// Planned instant, or the plan-zone day start for a date-only skip.
+  final DateTime occurredAt;
+
+  /// When the skip action itself was saved.
+  final DateTime recordedAt;
+  final bool dateOnly, timeNeedsReview;
+  final CivilDate savedDate;
+  final String planZone;
+  final String? planName, reason;
+
+  Map<String, Object?> toJson() => {
+    'actionId': actionId,
+    'item': {
+      'id': itemId,
+      'name': itemName,
+      'form': itemForm,
+      'type': itemType,
+    },
+    'occurredAt': occurredAt.toUtc().toIso8601String(),
+    'recordedAt': recordedAt.toUtc().toIso8601String(),
+    'dateOnly': dateOnly,
+    'timeNeedsReview': timeNeedsReview,
+    'savedDate': savedDate.toString(),
+    'planZone': planZone,
+    'planName': planName,
+    'reason': reason,
+  };
+}
+
 /// Truthful disclosure of the supporting records left out of a structured
 /// export because their collection date is unknown or partial and therefore
 /// not positionable inside the selected range.
@@ -294,15 +371,20 @@ final class ExportDocument {
     required this.personName,
     required Iterable<ExportDoseRevision> doses,
     required Iterable<ExportSupportingRevision> supporting,
+    Iterable<ExportSkippedAction> skipped = const [],
     this.undatedCollection,
     this.reportName,
     this.recordSchemaVersion = 23,
   }) : doses = List.unmodifiable(doses),
-       supporting = List.unmodifiable(supporting) {
+       supporting = List.unmodifiable(supporting),
+       skipped = List.unmodifiable(skipped) {
     if (!generatedAt.isUtc) throw ArgumentError('generated_at_utc');
     if (!selection.includes(ExportContent.supporting) &&
         undatedCollection != null) {
       throw ArgumentError('export_omissions');
+    }
+    if (!selection.includes(ExportContent.doses) && skipped.isNotEmpty) {
+      throw ArgumentError('export_skips');
     }
   }
 
@@ -313,12 +395,14 @@ final class ExportDocument {
   final int recordSchemaVersion;
   final List<ExportDoseRevision> doses;
   final List<ExportSupportingRevision> supporting;
+  final List<ExportSkippedAction> skipped;
 
   /// Set exactly when supporting content is selected. Discloses the records
   /// excluded for an unknown or partial collection date without their content.
   final ExportUndatedOmission? undatedCollection;
 
   int get doseRecords => doses.map((row) => row.recordId).toSet().length;
+  int get skippedActions => skipped.length;
   int get supportingRecords =>
       supporting.map((row) => row.recordId).toSet().length;
   int get supportingResults =>
@@ -356,6 +440,7 @@ final class ExportDocument {
         },
       },
     'doses': [for (final row in doses) row.toJson()],
+    'skipped': [for (final row in skipped) row.toJson()],
     'supporting': [for (final row in supporting) row.toJson()],
   };
 }
@@ -367,6 +452,7 @@ const _semantics = <String, String>{
   'provenance': 'source is unspecified, selfReported or recordedOnBehalf. Catalogue, product, strength and site values are immutable snapshots saved with the revision.',
   'corrections': 'Every saved revision is included. Revision 1 enteredAt is the original entry time. Later enteredAt values are correction times. isCurrent marks the revision used by the app.',
   'context': 'context.tags are neutral labels chosen by the person for the dose. context.note is null unless notesIncluded is true. Neither value is inferred from a substance, label or schedule.',
-  'privacy': 'Only the selected adult is exported. Supporting notes, authored substance instructions and notes, and dose notes appear only when notesIncluded is true. Dose context tags are structured metadata chosen by the person and are always included. File attachments and their internal references are never included.',
+  'skipped': 'skipped lists explicit skip actions saved inside the selected range when doses content is selected. actionId is the saved daily action identity. occurredAt is the planned instant, or the plan-zone day start for a date-only skip; recordedAt is when the skip itself was saved. reason is null unless notesIncluded is true. A skip has no amount, quantity or revision, and its item values are current item metadata, never inferred content.',
+  'privacy': 'Only the selected adult is exported. Supporting notes, authored substance instructions and notes, dose notes and skip reasons appear only when notesIncluded is true. Dose context tags are structured metadata chosen by the person and are always included. Skip facts and their action identity are always included. File attachments and their internal references are never included.',
   'omissions': 'Supporting records whose collection date is unknown or partial have no positionable date inside the selected range and are excluded. omissions.collectionDateUnknownOrPartial discloses how many were omitted, never their content. counted false means they exceeded the bounded counting window and records is null.',
 };

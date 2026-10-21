@@ -38,6 +38,7 @@ final class ReportLedgerEntry {
     this.site,
     this.notes,
     this.contextTags = const [],
+    this.skipReason,
     this.identityComplete = true,
   }) {
     if (id.isEmpty ||
@@ -90,6 +91,10 @@ final class ReportLedgerEntry {
   final String? planName, site;
   final String? notes;
   final List<String> contextTags;
+
+  /// Explicit skip reason, present only when notes were selected in the report
+  /// capture. The skip row itself never depends on this free-text field.
+  final String? skipReason;
 
   String get typeLabel => type.trim().isEmpty ? 'Uncategorised' : type;
 }
@@ -166,6 +171,9 @@ final class ReportHistoryData implements ReportTemplateData {
             dateOnly: skip.dateOnly,
             timeNeedsReview: skip.timeNeedsReview,
             planName: skip.context.planName,
+            skipReason: snapshot.selection.includeNotes
+                ? skip.action.reason
+                : null,
             identityComplete: descriptor != null,
           ),
         );
@@ -353,6 +361,9 @@ final class ReportHistoryData implements ReportTemplateData {
         lines.add('  Tags: ${entry.contextTags.join(', ')}');
       }
       if (entry.notes != null) lines.add('  Note: ${entry.notes}');
+      if (entry.skipReason != null) {
+        lines.add('  Skip reason: ${entry.skipReason}');
+      }
       if (entry.source != RecordSource.unspecified) {
         lines.add('  Source: ${_sourceText(entry.source)}');
       }

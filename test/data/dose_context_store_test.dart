@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/domain/exports/exports.dart';
 
@@ -375,6 +376,54 @@ void main() {
       },
     );
 
+    test('export keeps skip identity and gates the free-text reason', () async {
+      final skipped = await store.actDaily(
+        commandId: 'skip-export',
+        row: await row(),
+        kind: DailyActionKind.skip,
+        skipReason: 'Felt unwell',
+      );
+      ExportSelection export({
+        required bool includeNotes,
+        ExportFormat format = ExportFormat.json,
+      }) => ExportSelection(
+        personId: meId,
+        fromDay: date,
+        beforeDay: date.addDays(1),
+        zoneId: 'Europe/London',
+        contents: const [ExportContent.doses],
+        format: format,
+        includeNotes: includeNotes,
+      );
+
+      final private = await store.captureExport(export(includeNotes: false));
+      expect(private.skipped.single.actionId, skipped.id);
+      expect(private.skipped.single.itemId, item.id);
+      expect(private.skipped.single.reason, isNull);
+      final privateJson = private.toJson();
+      final privateRow =
+          (privateJson['skipped'] as List<Object?>).single
+              as Map<String, Object?>;
+      expect(privateRow['actionId'], skipped.id);
+      expect(privateRow['reason'], isNull);
+
+      final shared = await store.captureExport(export(includeNotes: true));
+      expect(shared.skipped.single.reason, 'Felt unwell');
+
+      final csv = utf8.decode(
+        ExportArtifact.build(
+          await store.captureExport(
+            export(includeNotes: false, format: ExportFormat.csv),
+          ),
+        ).bytes,
+      );
+      final skipLine = csv
+          .split('\r\n')
+          .firstWhere((line) => line.startsWith('skip,'));
+      expect(skipLine, contains(skipped.id));
+      expect(skipLine, isNot(contains('Felt unwell')));
+    });
+
     test('skip accepts no reason and taken never accepts one', () async {
       await store.actDaily(
         commandId: 'skip-empty',
@@ -402,6 +451,41 @@ void main() {
         ),
         throwsArgumentError,
       );
+    });
+  });
+
+  group('legacy record command identity', () {
+    test('a pre-D10 empty-context record command still replays', () async {
+      final directory = await Directory.systemTemp.createTemp('vital-legacy-');
+      final path = '${directory.path}/records.db';
+      final key = List.generate(32, (i) => i + 9);
+      final db = sqlite3.open(path);
+      final hex = key.map((v) => v.toRadixString(16).padLeft(2, '0')).join();
+      db.execute("PRAGMA cipher='chacha20'");
+      db.execute("PRAGMA key=\"x'$hex'\"");
+      db.execute(
+        await File('test/data/fixtures/record_store_v1.sql').readAsString(),
+      );
+      db.close();
+      final store = await RecordStore.open(path: path, key: key, isNew: false);
+      addTearDown(() async {
+        await store.close();
+        await directory.delete(recursive: true);
+      });
+
+      final replay = await store.record(
+        commandId: 'fixture-operation',
+        itemId: 'item',
+        amount: '0.125000',
+        actualAt: DateTime.fromMicrosecondsSinceEpoch(
+          1792368000000000,
+          isUtc: true,
+        ),
+      );
+      expect(replay.alreadyCommitted, isTrue);
+      expect(replay.id, 'record');
+      expect(replay.notes, isNull);
+      expect(replay.contextTags, isEmpty);
     });
   });
 }

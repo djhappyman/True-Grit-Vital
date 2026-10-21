@@ -30,6 +30,14 @@ extension ExportRecordStore on RecordStore {
       final doses = selection.includes(ExportContent.doses)
           ? await _captureDoses(selection, start.start, end.start, cancellation)
           : <ExportDoseRevision>[];
+      final skipped = selection.includes(ExportContent.doses)
+          ? await _captureSkipped(
+              selection,
+              start.start,
+              end.start,
+              cancellation,
+            )
+          : <ExportSkippedAction>[];
       final supporting = selection.includes(ExportContent.supporting)
           ? await _captureSupporting(
               selection,
@@ -49,6 +57,7 @@ extension ExportRecordStore on RecordStore {
         reportName: profile.reportName,
         recordSchemaVersion: _db.schemaVersion,
         doses: doses,
+        skipped: skipped,
         supporting: supporting,
         undatedCollection: undated,
       );
@@ -148,6 +157,94 @@ extension ExportRecordStore on RecordStore {
       revisions.add(revision);
     }
     return revisions;
+  }
+
+  /// Bounded explicit skip actions inside the same range as the dose capture.
+  /// The timeline query supplies the saved action identity, plan instant and
+  /// zone, so no date or reason is reconstructed here.
+  Future<List<ExportSkippedAction>> _captureSkipped(
+    ExportSelection selection,
+    DateTime start,
+    DateTime endExclusive,
+    ExportCancellation? cancellation,
+  ) async {
+    final limits = selection.limits;
+    final entries = <SkippedTimelineEntry>[];
+    TimelineQuery query = TimelineQuery(
+      filter: TimelineFilter(
+        scope: FeedScope.person(selection.personId),
+        fromInstant: start,
+        beforeInstant: endExclusive,
+        status: TimelineStatus.skipped,
+      ),
+      displayZone: selection.zoneId,
+      limit: TimelineLimits.maxPageSize,
+    );
+    while (true) {
+      cancellation?.throwIfCancelled();
+      final page = await timeline(query);
+      for (final entry in page.entries) {
+        if (entry is! SkippedTimelineEntry) continue;
+        if (entries.length >= limits.maxSkippedRecords) {
+          throw const ExportLimitException('export_skipped_records');
+        }
+        entries.add(entry);
+      }
+      final next = page.next;
+      if (next == null) break;
+      query = TimelineQuery(
+        filter: query.filter,
+        displayZone: selection.zoneId,
+        limit: TimelineLimits.maxPageSize,
+        cursor: next,
+      );
+    }
+    final items = await _skipItems(
+      selection.personId,
+      entries.map((entry) => entry.itemId),
+    );
+    final actions = <ExportSkippedAction>[];
+    var estimated = 4096;
+    for (final entry in entries) {
+      cancellation?.throwIfCancelled();
+      final item = items[entry.itemId];
+      final action = ExportSkippedAction.fromEntry(
+        entry,
+        itemName: item?['name'] as String?,
+        itemForm: item?['form'] as String?,
+        itemType: item?['type'] as String?,
+        includeNotes: selection.includeNotes,
+      );
+      estimated += utf8.encode(jsonEncode(action.toJson())).length + 2;
+      if (estimated > limits.maxBytes) {
+        throw const ExportLimitException('export_bytes');
+      }
+      actions.add(action);
+    }
+    return actions;
+  }
+
+  /// Current item metadata for skipped actions. A missing row stays absent and
+  /// the saved plan item name is used instead; nothing is inferred.
+  Future<Map<String, Map<String, Object?>>> _skipItems(
+    String personId,
+    Iterable<String> itemIds,
+  ) async {
+    final ids = itemIds.toSet().toList();
+    final result = <String, Map<String, Object?>>{};
+    for (var offset = 0; offset < ids.length; offset += 200) {
+      final chunk = ids.skip(offset).take(200).toList();
+      if (chunk.isEmpty) break;
+      final marks = List.filled(chunk.length, '?').join(',');
+      final rows = await _rows(
+        'SELECT id,name,form,type FROM item WHERE person=? AND id IN ($marks)',
+        [personId, ...chunk],
+      );
+      for (final row in rows) {
+        result[row['id'] as String] = row;
+      }
+    }
+    return result;
   }
 
   Future<List<ExportSupportingRevision>> _captureSupporting(
