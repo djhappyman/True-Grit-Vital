@@ -989,7 +989,13 @@ class VitalSegments<T> extends StatelessWidget {
               children: [
                 for (var i = 0; i < values.length; i++) ...[
                   if (i > 0) const SizedBox(width: 4),
-                  SizedBox(width: widths[i], child: _option(values[i])),
+                  SizedBox(
+                    width: widths[i],
+                    child: _SelectedSegment(
+                      selected: values[i] == selected,
+                      child: _option(values[i]),
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -998,6 +1004,46 @@ class VitalSegments<T> extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Reveal selection inside its own strip without scrolling an outer pager.
+class _SelectedSegment extends StatefulWidget {
+  const _SelectedSegment({required this.selected, required this.child});
+  final bool selected;
+  final Widget child;
+  @override
+  State<_SelectedSegment> createState() => _SelectedSegmentState();
+}
+
+class _SelectedSegmentState extends State<_SelectedSegment> {
+  @override
+  void initState() {
+    super.initState();
+    _reveal();
+  }
+
+  @override
+  void didUpdateWidget(_SelectedSegment oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selected && !oldWidget.selected) _reveal();
+  }
+
+  void _reveal() {
+    if (!widget.selected) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !widget.selected) return;
+      final object = context.findRenderObject();
+      if (object is! RenderBox || !object.hasSize) return;
+      Scrollable.of(context).position.ensureVisible(
+        object,
+        duration: Duration.zero,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 /// Shared optional information, preserving input state while collapsed.

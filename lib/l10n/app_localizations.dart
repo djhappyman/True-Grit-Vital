@@ -11072,6 +11072,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 item is only in All because its plan could not be checked.} other{{count} items are only in All because their plans could not be checked.}}'**
   String featureStatusUnresolvedHelp(int count);
+
+  /// No description provided for @featureVaultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data'**
+  String get featureVaultTitle;
+
+  /// No description provided for @featureVaultDatabase.
+  ///
+  /// In en, this message translates to:
+  /// **'Database files'**
+  String get featureVaultDatabase;
+
+  /// No description provided for @featureVaultBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes saved files, drafts and retained history. Excludes exported files and backups.'**
+  String get featureVaultBody;
+
+  /// No description provided for @featureVaultCountsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Current doses and supporting records exclude voided entries.'**
+  String get featureVaultCountsHelp;
+
+  /// No description provided for @featureVaultDoses.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded doses'**
+  String get featureVaultDoses;
+
+  /// Measured physical database storage size. Unit is bytes, KiB, MiB or GiB.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} {unit}'**
+  String featureVaultSize(String value, String unit);
+
+  /// Exact measured size for accessibility.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} bytes'**
+  String featureVaultExactBytes(String count);
+
+  /// No description provided for @featureVaultUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Size unavailable'**
+  String get featureVaultUnavailable;
+
+  /// No description provided for @featureVaultFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Local data could not be read. Try again.'**
+  String get featureVaultFailed;
+
+  /// No description provided for @featureVaultReportDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Report dates'**
+  String get featureVaultReportDates;
+
+  /// No description provided for @featureVaultThirty.
+  ///
+  /// In en, this message translates to:
+  /// **'30d'**
+  String get featureVaultThirty;
+
+  /// No description provided for @featureVaultNinety.
+  ///
+  /// In en, this message translates to:
+  /// **'90d'**
+  String get featureVaultNinety;
+
+  /// No description provided for @featureVaultYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get featureVaultYear;
+
+  /// No description provided for @featureVaultThirtyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days, including today'**
+  String get featureVaultThirtyLabel;
+
+  /// No description provided for @featureVaultNinetyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 90 days, including today'**
+  String get featureVaultNinetyLabel;
+
+  /// No description provided for @featureVaultYearLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Year to date'**
+  String get featureVaultYearLabel;
+
+  /// Inclusive dates displayed before opening the report selection.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {through}'**
+  String featureVaultRange(String from, String through);
 }
 
 class _AppLocalizationsDelegate

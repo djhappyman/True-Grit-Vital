@@ -7160,4 +7160,63 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get featureVaultTitle => 'Local data';
+
+  @override
+  String get featureVaultDatabase => 'Database files';
+
+  @override
+  String get featureVaultBody =>
+      'Includes saved files, drafts and retained history. Excludes exported files and backups.';
+
+  @override
+  String get featureVaultCountsHelp =>
+      'Current doses and supporting records exclude voided entries.';
+
+  @override
+  String get featureVaultDoses => 'Recorded doses';
+
+  @override
+  String featureVaultSize(String value, String unit) {
+    return '$value $unit';
+  }
+
+  @override
+  String featureVaultExactBytes(String count) {
+    return '$count bytes';
+  }
+
+  @override
+  String get featureVaultUnavailable => 'Size unavailable';
+
+  @override
+  String get featureVaultFailed => 'Local data could not be read. Try again.';
+
+  @override
+  String get featureVaultReportDates => 'Report dates';
+
+  @override
+  String get featureVaultThirty => '30d';
+
+  @override
+  String get featureVaultNinety => '90d';
+
+  @override
+  String get featureVaultYear => 'Year';
+
+  @override
+  String get featureVaultThirtyLabel => 'Last 30 days, including today';
+
+  @override
+  String get featureVaultNinetyLabel => 'Last 90 days, including today';
+
+  @override
+  String get featureVaultYearLabel => 'Year to date';
+
+  @override
+  String featureVaultRange(String from, String through) {
+    return '$from to $through';
+  }
 }

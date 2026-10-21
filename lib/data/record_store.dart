@@ -15,6 +15,8 @@ import 'package:drift/drift.dart' as drift;
 import 'package:drift/native.dart';
 
 import '../domain/records.dart';
+import '../domain/privacy/vault_summary.dart';
+export '../domain/privacy/vault_summary.dart';
 import '../domain/products/products.dart';
 export '../domain/products/products.dart';
 import '../domain/reminders/reminders.dart';
@@ -61,6 +63,7 @@ part 'catalogue_store.dart';
 part 'stock_store.dart';
 part 'product_store.dart';
 part 'substance_status_store.dart';
+part 'vault_summary_store.dart';
 part 'combined_store.dart';
 part 'reminder_store.dart';
 part 'event_store.dart';

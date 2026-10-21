@@ -8405,5 +8405,52 @@
         "type": "int"
       }
     }
+  },
+  "featureVaultTitle": "Local data",
+  "featureVaultDatabase": "Database files",
+  "featureVaultBody": "Includes saved files, drafts and retained history. Excludes exported files and backups.",
+  "featureVaultCountsHelp": "Current doses and supporting records exclude voided entries.",
+  "featureVaultDoses": "Recorded doses",
+  "featureVaultSize": "{value} {unit}",
+  "@featureVaultSize": {
+    "description": "Measured physical database storage size. Unit is bytes, KiB, MiB or GiB.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "featureVaultExactBytes": "{count} bytes",
+  "@featureVaultExactBytes": {
+    "description": "Exact measured size for accessibility.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "featureVaultUnavailable": "Size unavailable",
+  "featureVaultFailed": "Local data could not be read. Try again.",
+  "featureVaultReportDates": "Report dates",
+  "featureVaultThirty": "30d",
+  "featureVaultNinety": "90d",
+  "featureVaultYear": "Year",
+  "featureVaultThirtyLabel": "Last 30 days, including today",
+  "featureVaultNinetyLabel": "Last 90 days, including today",
+  "featureVaultYearLabel": "Year to date",
+  "featureVaultRange": "{from} to {through}",
+  "@featureVaultRange": {
+    "description": "Inclusive dates displayed before opening the report selection.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "through": {
+        "type": "String"
+      }
+    }
   }
 }

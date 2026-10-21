@@ -8,12 +8,13 @@ import '../../app/privacy.dart';
 import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
 import 'settings_widgets.dart';
+import 'settings_vault.dart';
 
 /// The three factual groups of the Settings hub.
 ///
 /// Each group maps to one card whose rows are real, capability-gated
 /// destinations. The filter only chooses which cards are shown; no group owns a
-/// second copy of a form, and every destination stays reachable from `All`.
+/// second copy of a form.
 enum SettingsHubGroup { general, privacy, data }
 
 /// Settings: one hub for the implemented capabilities.
@@ -22,17 +23,25 @@ enum SettingsHubGroup { general, privacy, data }
 /// route is actually registered by the integrated build, or when a caller
 /// explicitly injects one through [settingsCapabilitiesProvider]. A missing
 /// capability is absent, not a disabled placeholder. Features that are not
-/// implemented are shown as labelled previews and never as working controls.
+/// implemented stay in the roadmap rather than becoming dead controls.
 class SettingsPage extends ConsumerStatefulWidget {
-  const SettingsPage({super.key});
+  const SettingsPage({super.key, this.initialGroup = SettingsHubGroup.general});
+  final SettingsHubGroup initialGroup;
 
   @override
   ConsumerState<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  /// `null` shows every group, so the hub hides no destination by default.
-  SettingsHubGroup _group = SettingsHubGroup.general;
+  late SettingsHubGroup _group = widget.initialGroup;
+
+  @override
+  void didUpdateWidget(SettingsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialGroup != widget.initialGroup) {
+      _group = widget.initialGroup;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +115,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         icon: LucideIcons.database,
         description: t.screenSettingsDataBody,
         children: [
+          const SettingsVaultSummary(),
+          const SizedBox(height: 8),
+          if (capabilities.hasReports) ...[
+            SettingsReportDates(reportsPath: capabilities.reportsPath!),
+            const SizedBox(height: 8),
+          ],
           if (capabilities.hasReports)
             SettingsNavigationRow(
               icon: LucideIcons.fileText,
@@ -156,7 +171,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 const SizedBox(height: 12),
                 _SettingsGroupFilter(
                   group: _group,
-                  onChanged: (group) => setState(() => _group = group!),
+                  onChanged: (group) => setState(() => _group = group),
                 ),
               ],
             ),
@@ -231,21 +246,20 @@ class _SettingsHero extends StatelessWidget {
   }
 }
 
-/// Short mutually exclusive group choices, with `All` first.
+/// The three mutually exclusive sections of the hub.
 ///
 /// The shared segment control supplies the 48px targets, keyboard activation
-/// and selected-state semantics; wrapping at large text keeps every label
-/// readable.
+/// and selected-state semantics; horizontal scrolling keeps large text readable.
 class _SettingsGroupFilter extends StatelessWidget {
   const _SettingsGroupFilter({required this.group, required this.onChanged});
 
-  final SettingsHubGroup? group;
-  final ValueChanged<SettingsHubGroup?> onChanged;
+  final SettingsHubGroup group;
+  final ValueChanged<SettingsHubGroup> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    return VitalSegments<SettingsHubGroup?>(
+    return VitalSegments<SettingsHubGroup>(
       values: const [
         SettingsHubGroup.general,
         SettingsHubGroup.privacy,
@@ -254,7 +268,6 @@ class _SettingsGroupFilter extends StatelessWidget {
       selected: group,
       onChanged: onChanged,
       label: (value) => switch (value) {
-        null => t.screenSettingsGroupAll,
         SettingsHubGroup.general => t.screenSettingsGroupGeneral,
         SettingsHubGroup.privacy => t.privacy,
         SettingsHubGroup.data => t.data,

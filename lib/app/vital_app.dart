@@ -420,7 +420,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       vitalRoute(path: '/restore', builder: (_, _) => const RestorePage()),
       vitalRoute(
         path: '/settings',
-        builder: (_, _) => const StorageGate(child: SettingsPage()),
+        builder: (_, state) => StorageGate(
+          child: SettingsPage(
+            initialGroup: switch (state.uri.queryParameters['group']) {
+              'data' => SettingsHubGroup.data,
+              'privacy' => SettingsHubGroup.privacy,
+              _ => SettingsHubGroup.general,
+            },
+          ),
+        ),
       ),
       vitalRoute(
         path: '/settings/privacy',
