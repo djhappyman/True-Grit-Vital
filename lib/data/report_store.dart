@@ -198,7 +198,9 @@ extension ReportStore on RecordStore {
             generation: attachment.generation,
             expectedRevision: attachment.revision,
             purpose: 'report',
-            expiresAt: generatedAt.add(const Duration(hours: 24)),
+            // The lease protects live files; its lifetime is independent of
+            // the timestamp captured for the report.
+            expiresAt: DateTime.now().toUtc().add(const Duration(hours: 24)),
           );
           pins.add(pin);
           attachmentRefs.add(

@@ -259,6 +259,27 @@ void main() {
     expect(capture.snapshot.attachments.single.targetId, inside.id);
     expect(capture.pins.single.attachment.targetId, inside.id);
     await capture.releasePins!();
+
+    // An injected historical report timestamp must not expire a live file
+    // lease. This stays a regression even when the host date changes.
+    final leaseStart = DateTime.now().toUtc();
+    final historical = await store.captureReport(
+      selection: selection().copyWith(includeAttachments: true),
+      now: () => DateTime.utc(2000),
+    );
+    expect(historical.snapshot.cutoff.generatedAt, DateTime.utc(2000));
+    expect(historical.pins, hasLength(2));
+    for (final pin in historical.pins) {
+      expect(
+        pin.expiresAt!.isAfter(leaseStart.add(const Duration(hours: 23))),
+        isTrue,
+      );
+      expect(
+        pin.expiresAt!.isBefore(leaseStart.add(const Duration(hours: 25))),
+        isTrue,
+      );
+    }
+    await historical.releasePins!();
   });
 
   test('leaves R01 on the existing shared capture path', () async {
