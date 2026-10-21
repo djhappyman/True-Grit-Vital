@@ -8225,5 +8225,148 @@
         "type": "String"
       }
     }
+  },
+  "featureWeekRange": "{start} to {end}",
+  "@featureWeekRange": {
+    "description": "Dashboard week navigation. The localised first and last date of the shown week. The word to joins them without a dash.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "featureWeekPrevious": "Previous week",
+  "@featureWeekPrevious": {
+    "description": "Accessible name for the previous-week arrow on the dashboard."
+  },
+  "featureWeekNext": "Next week",
+  "@featureWeekNext": {
+    "description": "Accessible name for the next-week arrow on the dashboard."
+  },
+  "featureWeekSummary": "Week summary",
+  "@featureWeekSummary": {
+    "description": "Dashboard weekly summary heading."
+  },
+  "featureWeekSummaryHelp": "Counts cover planned doses.",
+  "@featureWeekSummaryHelp": {
+    "description": "Dashboard weekly summary. States that the totals count planned dose slots, not every kind of record."
+  },
+  "featureWeekPlanned": "Planned",
+  "@featureWeekPlanned": {
+    "description": "Dashboard weekly summary metric label."
+  },
+  "featureWeekRecorded": "Recorded",
+  "@featureWeekRecorded": {
+    "description": "Dashboard weekly summary metric label."
+  },
+  "featureWeekSkipped": "Skipped",
+  "@featureWeekSkipped": {
+    "description": "Dashboard weekly summary metric label."
+  },
+  "featureWeekIncomplete": "Some days could not be calculated. This summary is incomplete.",
+  "@featureWeekIncomplete": {
+    "description": "Dashboard weekly summary. Truthful partial state when a calculation or action-history limit was reached."
+  },
+  "featureWeekNoPlans": "No doses are planned this week.",
+  "@featureWeekNoPlans": {
+    "description": "Dashboard weekly summary. Empty week state. No zero ratio is shown."
+  },
+  "featureWeekViewing": "Viewing",
+  "@featureWeekViewing": {
+    "description": "Dashboard badge for a selected day that is not today."
+  },
+  "featureWeekViewingHelp": "Taken, Skip and Snooze stay on today. Record uses the time you enter.",
+  "@featureWeekViewingHelp": {
+    "description": "Dashboard browsed-day note. Explains that one-tap current-time actions remain on today and the record form takes an explicit time."
+  },
+  "featureWeekDaySequence": "Day sequence",
+  "@featureWeekDaySequence": {
+    "description": "Dashboard heading replacing Today's sequence while another date is browsed."
+  },
+  "featureWeekNothingPlanned": "No doses are planned for this day.",
+  "@featureWeekNothingPlanned": {
+    "description": "Dashboard browsed-day empty state."
+  },
+  "featureWeekNoRecorded": "No doses recorded on this day.",
+  "@featureWeekNoRecorded": {
+    "description": "Dashboard browsed-day recorded section empty state."
+  },
+  "featureWeekQuickRecord": "Quick record",
+  "@featureWeekQuickRecord": {
+    "description": "Dashboard quick-record configuration dialog heading."
+  },
+  "featureWeekFavouritesHelp": "Choose as-needed plans and their order.",
+  "@featureWeekFavouritesHelp": {
+    "description": "Dashboard quick-record configuration. Explains the saved subset and order."
+  },
+  "featureWeekFavouritesEmptyHelp": "With nothing chosen, every as-needed plan appears.",
+  "@featureWeekFavouritesEmptyHelp": {
+    "description": "Dashboard quick-record configuration. Explains the default when no saved subset exists."
+  },
+  "featureWeekFavouritesStale": "{count, plural, =1{1 saved choice is no longer available.} other{{count} saved choices are no longer available.}}",
+  "@featureWeekFavouritesStale": {
+    "description": "Dashboard quick-record configuration. Saved plans deleted or changed away from as-needed are reported instead of silently replaced.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "featureWeekFavouritesStaleHelp": "Saving removes them.",
+  "@featureWeekFavouritesStaleHelp": {
+    "description": "Dashboard quick-record configuration. States the effect of saving after unavailable choices were found."
+  },
+  "featureWeekFavouriteSaveFailure": "Not saved. Your saved choices are unchanged.",
+  "@featureWeekFavouriteSaveFailure": {
+    "description": "Dashboard quick-record configuration. Storage failure with the last committed selection preserved."
+  },
+  "featureWeekFavouriteLoadFailure": "Saved choices could not be loaded.",
+  "@featureWeekFavouriteLoadFailure": {
+    "description": "Dashboard quick-record row. Non-blocking load failure for the saved subset."
+  },
+  "featureWeekPlansLoadFailure": "Plans could not be loaded.",
+  "@featureWeekPlansLoadFailure": {
+    "description": "Dashboard quick-record row. Non-blocking plan load failure."
+  },
+  "featureWeekFavouriteListIncomplete": "The plan list is incomplete. Reload before saving.",
+  "@featureWeekFavouriteListIncomplete": {
+    "description": "Dashboard quick-record configuration. Saving is disabled when the full collection could not be read."
+  },
+  "featureWeekFavouriteUnavailable": "{count, plural, =1{1 saved choice is unavailable.} other{{count} saved choices are unavailable.}}",
+  "@featureWeekFavouriteUnavailable": {
+    "description": "Dashboard quick-record row. Saved plans that no longer exist or are no longer as-needed.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "featureWeekMoveUp": "Move up",
+  "@featureWeekMoveUp": {
+    "description": "Accessible name for moving one saved quick-record choice earlier."
+  },
+  "featureWeekMoveDown": "Move down",
+  "@featureWeekMoveDown": {
+    "description": "Accessible name for moving one saved quick-record choice later."
+  },
+  "featureWeekInclude": "Include {name}",
+  "@featureWeekInclude": {
+    "description": "Accessible name for the quick-record choice checkbox, including the full plan name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "featureWeekNoAsNeeded": "No as-needed plans.",
+  "@featureWeekNoAsNeeded": {
+    "description": "Dashboard quick-record row when no as-needed plan exists."
+  },
+  "featureWeekUtc": "Times shown in UTC.",
+  "@featureWeekUtc": {
+    "description": "Dashboard week navigation. Visible fallback when no device zone was observed."
   }
 }
