@@ -196,6 +196,19 @@ void main() {
           if (route.key == 'schedule') {
             await waitForText(tester, 'RECURRENCE');
           }
+          if (route.key == 'stock') {
+            await runIo(
+              tester,
+              () => fixture.container.read(
+                stockContainersProvider((
+                  personId: meId,
+                  itemId: items.first.id,
+                  offset: 0,
+                )).future,
+              ),
+            );
+            await waitForText(tester, 'No containers');
+          }
           if (route.key == 'today') {
             final loaded = Stopwatch()..start();
             while (find.byType(DailyRowCard).evaluate().length < items.length) {

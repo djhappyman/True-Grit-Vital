@@ -49,10 +49,7 @@ class _StockPageState extends ConsumerState<StockPage> {
       panelled: false,
       children: [
         Heading(t.stock),
-        _StockIntro(
-          personName: ownerLabel(ref, t, owner.id),
-          archived: archived,
-        ),
+        _StockIntro(archived: archived),
         const SizedBox(height: 24),
         if (!archived && widget.itemId == null) ...[
           _StockAttention(personId: owner.id),
@@ -92,8 +89,7 @@ class _StockPageState extends ConsumerState<StockPage> {
 /// Header context for the vault. The archived state stays read only and does
 /// not offer stock mutations or notice controls.
 class _StockIntro extends StatelessWidget {
-  const _StockIntro({required this.personName, required this.archived});
-  final String personName;
+  const _StockIntro({required this.archived});
   final bool archived;
   @override
   Widget build(BuildContext context) {
@@ -101,14 +97,6 @@ class _StockIntro extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          t.profileOwner(personName),
-          style: StitchType.body.copyWith(
-            color: c.ink,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 4),
         Text(
           t.stockLocalNoticeHelp,
           style: StitchType.body.copyWith(color: c.muted),
@@ -137,8 +125,8 @@ class _StockIntro extends StatelessWidget {
   }
 }
 
-/// Whole-person low and refill notices from the stored notice query, ordered by
-/// urgency. This is a real collection-wide read, not a filtered loaded page.
+/// Low and refill notices from a bounded page of the collection-wide query.
+/// The loaded notice page is ordered by urgency; more notices remain explicit.
 class _StockAttention extends ConsumerWidget {
   const _StockAttention({required this.personId});
   final String personId;
@@ -156,9 +144,8 @@ class _StockAttention extends ConsumerWidget {
           data: (page) {
             final rows = [...page.rows]
               ..sort((a, b) {
-                final rank = _stockNoticeRank(
-                  a.container.notice,
-                ).compareTo(_stockNoticeRank(b.container.notice));
+                final rank = _stockNoticeRank(a.container.notice)
+                    .compareTo(_stockNoticeRank(b.container.notice));
                 if (rank != 0) return rank;
                 final item = a.itemName.toLowerCase().compareTo(
                   b.itemName.toLowerCase(),
@@ -215,7 +202,7 @@ class _StockNoticeCard extends StatelessWidget {
         colors = StitchColors(context);
     final caption = StitchType.caption.copyWith(color: colors.muted);
     return StitchSurface(
-      radius: 16,
+      radius: VitalLayout.sectionRadius,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -350,7 +337,7 @@ class _StockContainerCard extends ConsumerWidget {
         .value
         ?.name;
     return StitchSurface(
-      radius: 16,
+      radius: VitalLayout.sectionRadius,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -557,7 +544,7 @@ class _StockAdd extends StatelessWidget {
     );
     return StitchSurface(
       key: const ValueKey('stock-add'),
-      radius: 16,
+      radius: VitalLayout.sectionRadius,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -619,7 +606,7 @@ class _StockPrivacy extends StatelessWidget {
     final t = AppLocalizations.of(context), c = StitchColors(context);
     return StitchSurface(
       inset: true,
-      radius: 16,
+      radius: VitalLayout.sectionRadius,
       padding: const EdgeInsets.all(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -673,7 +660,7 @@ Widget _stockNoticeBadge(AppLocalizations t, StoredStockContainer c) {
 }
 
 IconData _stockUnitIcon(String unit) => switch (unit) {
-  'ml' => LucideIcons.droplet,
+  'ml' => LucideIcons.droplets,
   'count' => LucideIcons.package,
   _ => LucideIcons.pill,
 };

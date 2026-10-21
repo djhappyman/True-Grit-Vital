@@ -6305,4 +6305,53 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get screenRecordSkipNote =>
       'Skip is available on Today for a scheduled dose.';
+
+  @override
+  String get screenStockActionNeeded => 'Action needed';
+
+  @override
+  String get screenStockAddAllHelp => 'Open a substance to add its container.';
+
+  @override
+  String get screenStockAddHeading => 'Add container';
+
+  @override
+  String get screenStockAddItemHelp =>
+      'Add a physical container for this substance.';
+
+  @override
+  String get screenStockArchived =>
+      'This profile is archived. Stock is read only.';
+
+  @override
+  String get screenStockContainers => 'Active containers';
+
+  @override
+  String get screenStockGaps =>
+      'Pack scanning, batch lots, expiry, capacity and runout forecasts are not available yet.';
+
+  @override
+  String get screenStockLoadedOnly => 'Only the loaded page is shown.';
+
+  @override
+  String get screenStockMoreNotices => 'More containers need attention.';
+
+  @override
+  String get screenStockNoContainers => 'No containers';
+
+  @override
+  String get screenStockNoContainersHelp =>
+      'Add a container when you need to track its supply.';
+
+  @override
+  String get screenStockNoticesAction => 'Notices';
+
+  @override
+  String get screenStockStocked => 'No notice';
+
+  @override
+  String get screenStockUnavailable => 'Unavailable';
+
+  @override
+  String get screenStockUnknown => 'Unknown';
 }

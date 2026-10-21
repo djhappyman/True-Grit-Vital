@@ -7287,7 +7287,7 @@
   },
   "screenStockActionNeeded": "Action needed",
   "@screenStockActionNeeded": {
-    "description": "Stock screen. Section heading for whole-collection low and refill notices, ordered by urgency."
+    "description": "Stock screen. Section heading for a bounded notice page from the collection-wide query, ordered by urgency within the loaded page."
   },
   "screenStockAddAllHelp": "Open a substance to add its container.",
   "@screenStockAddAllHelp": {
@@ -7333,9 +7333,9 @@
   "@screenStockNoticesAction": {
     "description": "Stock screen. Opens the existing notice settings route for this container."
   },
-  "screenStockStocked": "Stocked",
+  "screenStockStocked": "No notice",
   "@screenStockStocked": {
-    "description": "Stock screen. Status when a known balance has no low, refill or unknown notice."
+    "description": "Stock screen. Status when the container has no active notice. A zero balance with notices disabled is not described as stocked."
   },
   "screenStockUnavailable": "Unavailable",
   "@screenStockUnavailable": {

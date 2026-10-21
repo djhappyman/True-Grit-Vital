@@ -130,7 +130,7 @@ void main() {
     expect(find.text('Remaining: 0 ml'), findsWidgets);
     expect(find.text('Remaining: 1 ml'), findsWidgets);
     expect(find.text('Forecast not available yet'), findsWidgets);
-    expect(find.text('Stocked'), findsOneWidget);
+    expect(find.text('No notice'), findsOneWidget);
 
     await tester.ensureVisible(find.byKey(ValueKey('stock-adjust-${low.id}')));
     await settle(tester);
@@ -184,7 +184,7 @@ void main() {
     expect(find.text('Only the loaded page is shown.'), findsNothing);
   });
 
-  appTest('stock containers grow for long names at 320px and double text', (
+  appTest('stock containers grow for long names at double text', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(320, 740);
@@ -210,18 +210,25 @@ void main() {
     f.container.read(routerProvider).go('/stock/$meId');
     await settle(tester);
     await waitForText(tester, 'Magnesium Glycinate Extra Strength');
-    expect(tester.takeException(), isNull);
-    expect(
-      find.text('Original amber bottle from the pharmacy cabinet'),
-      findsWidgets,
-    );
-    await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('stock-add-action')),
-      300,
-    );
-    await settle(tester);
-    expect(tester.takeException(), isNull);
-    expect(find.byKey(const ValueKey('stock-add-action')), findsOneWidget);
+    for (final width in [320.0, 390.0, 430.0]) {
+      tester.view.physicalSize = Size(width, 740);
+      await settle(tester);
+      expect(tester.takeException(), isNull, reason: '$width at double text');
+      expect(
+        find.text('Original amber bottle from the pharmacy cabinet'),
+        findsWidgets,
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('stock-add-action')),
+        300,
+      );
+      await settle(tester);
+      expect(tester.takeException(), isNull, reason: '$width at double text');
+      expect(
+        find.byKey(const ValueKey('stock-add-action')).hitTestable(),
+        findsOneWidget,
+      );
+    }
   });
 
   appTest('unknown stock stays unknown and is never shown as zero', (
@@ -270,6 +277,25 @@ void main() {
     await settle(tester);
     expect(find.text(secondPage.label), findsOneWidget);
     expect(find.text('Previous'), findsOneWidget);
+  });
+
+  appTest('zero without notice rules is not described as stocked', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final item = (await runIo(
+      tester,
+      () => makeItem(f.store, 'Empty supply'),
+    ))!;
+    await runIo(
+      tester,
+      () => makeContainer(f.store, item, label: 'Empty bottle', opening: '0'),
+    );
+    f.container.read(routerProvider).go('/stock/$meId');
+    await waitForText(tester, 'Remaining: 0 ml');
+    expect(find.text('No notice'), findsOneWidget);
+    expect(find.text('Stocked'), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   for (final theme in [ThemeMode.dark, ThemeMode.light]) {

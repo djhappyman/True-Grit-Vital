@@ -25,4 +25,12 @@ Native Flutter captures from the remaining-screen rollout. Designs come only fro
 - Lead verification: 70 regression checks, five visual/safe-area checks and clean project analysis. Coverage includes 320/390/430 px at normal/double text, actual save/correct/Undo, source replacement, lock recovery and reminder navigation. The capture harness waits for the form/source reads and can save a full composition as well as the device viewport.
 - Physical-device keyboard, screen-reader and performance evidence remains open.
 
+## Inventory
+
+- [Light](light-stock.png), [dark](dark-stock.png), [full light](light-stock-full.png) and [full dark](dark-stock-full.png) show the canonical Stock page with synthetic known, low and unknown balances.
+- [Narrow light](light-stock-narrow.png) and [dark](dark-stock-narrow.png), plus [bottom light](light-stock-narrow-bottom.png) and [dark](dark-stock-narrow-bottom.png), show deliberate stacking and reachable actions at 320 px / double text.
+- Notice cards use a bounded page from the collection-wide notice query, prioritised within that page, with further notices explicitly indicated. Container paging stays separate. Exact balances, Adjust, notice settings and item-scoped Add remain real; the unscoped Add section opens Substances to choose an item. Scanning, lots, expiry, capacity and forecasts remain named gaps.
+- A container without an active notice says No notice. Zero stock with notices disabled is never described as stocked. The redundant profile label is removed, and surfaces use shared semantic geometry.
+- Lead verification: 39 stock regression checks, five visual/safe-area checks, an expanded 320/390/430 px double-text check and clean project analysis. Physical-device accessibility, keyboard and performance evidence remains open.
+
 Run logs are local under `output/stitch-screen-rollout-2026-10-21/`. The [roadmap](../../roadmap.md) tracks the remaining screens and capability gaps.

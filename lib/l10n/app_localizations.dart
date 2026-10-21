@@ -9869,6 +9869,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Skip is available on Today for a scheduled dose.'**
   String get screenRecordSkipNote;
+
+  /// Stock screen. Section heading for a bounded notice page from the collection-wide query, ordered by urgency within the loaded page.
+  ///
+  /// In en, this message translates to:
+  /// **'Action needed'**
+  String get screenStockActionNeeded;
+
+  /// Stock screen. A container needs the saved substance identity, so the unscoped vault opens the substance list.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a substance to add its container.'**
+  String get screenStockAddAllHelp;
+
+  /// Stock screen. Heading for the manual container section. The visible command stays Add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add container'**
+  String get screenStockAddHeading;
+
+  /// Stock screen. Manual container creation for the substance this vault is scoped to.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a physical container for this substance.'**
+  String get screenStockAddItemHelp;
+
+  /// Stock screen. Archived profiles keep their balances visible without stock or notice changes.
+  ///
+  /// In en, this message translates to:
+  /// **'This profile is archived. Stock is read only.'**
+  String get screenStockArchived;
+
+  /// Stock screen. Section heading for the bounded container page.
+  ///
+  /// In en, this message translates to:
+  /// **'Active containers'**
+  String get screenStockContainers;
+
+  /// Stock screen. Names unavailable D13 to D15 capabilities; never presents example lot, expiry or forecast data.
+  ///
+  /// In en, this message translates to:
+  /// **'Pack scanning, batch lots, expiry, capacity and runout forecasts are not available yet.'**
+  String get screenStockGaps;
+
+  /// Stock screen. Truthful paging caption because no whole-collection stock filter is applied.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the loaded page is shown.'**
+  String get screenStockLoadedOnly;
+
+  /// Stock screen. Further notice rows exist beyond the shown ones.
+  ///
+  /// In en, this message translates to:
+  /// **'More containers need attention.'**
+  String get screenStockMoreNotices;
+
+  /// Stock screen. Empty state heading when no stock containers are stored.
+  ///
+  /// In en, this message translates to:
+  /// **'No containers'**
+  String get screenStockNoContainers;
+
+  /// Stock screen. Empty state help. Stock stays optional.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a container when you need to track its supply.'**
+  String get screenStockNoContainersHelp;
+
+  /// Stock screen. Opens the existing notice settings route for this container.
+  ///
+  /// In en, this message translates to:
+  /// **'Notices'**
+  String get screenStockNoticesAction;
+
+  /// Stock screen. Status when the container has no active notice. A zero balance with notices disabled is not described as stocked.
+  ///
+  /// In en, this message translates to:
+  /// **'No notice'**
+  String get screenStockStocked;
+
+  /// Stock screen. The aggregate stock total could not be calculated; this is not zero.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get screenStockUnavailable;
+
+  /// Stock screen. The remaining balance is unknown; this is not zero.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get screenStockUnknown;
 }
 
 class _AppLocalizationsDelegate
