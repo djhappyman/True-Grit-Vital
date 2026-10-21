@@ -8657,5 +8657,61 @@
         "type": "int"
       }
     }
+  },
+  "featureEventsTotals": "Event totals",
+  "@featureEventsTotals": {
+    "description": "Event overview: Event totals"
+  },
+  "featureEventsRecorded": "Recorded doses",
+  "@featureEventsRecorded": {
+    "description": "Event overview: Recorded doses"
+  },
+  "featureEventsSkipped": "Skipped actions",
+  "@featureEventsSkipped": {
+    "description": "Event overview: Skipped actions"
+  },
+  "featureEventsLinked": "Linked substances",
+  "@featureEventsLinked": {
+    "description": "Event overview: Linked substances"
+  },
+  "featureEventsCountsHelp": "Current records within the event and membership dates. These counts do not measure adherence.",
+  "@featureEventsCountsHelp": {
+    "description": "Event overview: Current records within the event and membership dates. These counts do not measure adherence."
+  },
+  "featureEventsCountsReview": "Review the event dates to see totals.",
+  "@featureEventsCountsReview": {
+    "description": "Event overview: Review the event dates to see totals."
+  },
+  "featureEventsSkippedReview": "Some skipped times need review.",
+  "@featureEventsSkippedReview": {
+    "description": "Event overview: Some skipped times need review."
+  },
+  "featureEventsCountsFailed": "Totals could not be read. Try again.",
+  "@featureEventsCountsFailed": {
+    "description": "Event overview: Totals could not be read. Try again."
+  },
+  "featureEventsNotes": "Notes",
+  "@featureEventsNotes": {
+    "description": "Event overview: Notes"
+  },
+  "featureEventsNotesHelp": "Private event notes. Included in event reports only when notes are selected.",
+  "@featureEventsNotesHelp": {
+    "description": "Event overview: Private event notes. Included in event reports only when notes are selected."
+  },
+  "featureEventsNotesLong": "Use 8000 characters or fewer for event notes.",
+  "@featureEventsNotesLong": {
+    "description": "Event overview: Use 8000 characters or fewer for event notes."
+  },
+  "featureEventsCounts": "{recorded} recorded · {skipped} skipped",
+  "@featureEventsCounts": {
+    "description": "Whole-event current dose and explicit skip counts, distinct from adherence.",
+    "placeholders": {
+      "recorded": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
   }
 }

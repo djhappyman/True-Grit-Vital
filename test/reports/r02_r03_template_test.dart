@@ -189,11 +189,17 @@ ReportSnapshot productSnapshot() {
   return captured.withTemplateData(data);
 }
 
-ReportSnapshot eventSnapshot({bool ongoing = true, int records = 3}) {
+ReportSnapshot eventSnapshot({
+  bool ongoing = true,
+  int records = 3,
+  String notes = '',
+  bool includeNotes = false,
+}) {
   final e = EventRecord(
     id: 'event-1',
     personId: 'me',
     name: 'Example recorded course',
+    notes: notes,
     eventType: 'Course',
     zoneId: 'Europe/London',
     revision: 1,
@@ -227,6 +233,7 @@ ReportSnapshot eventSnapshot({bool ongoing = true, int records = 3}) {
       beforeDate: CivilDate(2026, 10, 21),
       displayZone: 'Europe/London',
       eventId: e.id,
+      includeNotes: includeNotes,
     ),
     cutoff: ReportCutoff(
       generatedAt: DateTime.utc(2026, 10, 20, 12),
@@ -417,6 +424,26 @@ void main() {
   });
 
   group('R03 event review', () {
+    test(
+      'renders authored event notes only after explicit inclusion',
+      () async {
+        final note = List.filled(
+          80,
+          'Private original context: 0.125 mg.',
+        ).join('\n');
+        for (final include in [false, true]) {
+          final snapshot = eventSnapshot(notes: note, includeNotes: include);
+          expect(
+            reportTextFor(snapshot, use24Hour: true).contains(note),
+            include,
+          );
+          final rendered = await const R03EventRenderer(fontLoader: fonts)
+              .render(snapshot, use24Hour: true);
+          expect(String.fromCharCodes(rendered.bytes.take(5)), '%PDF-');
+          expect(rendered.pageCount, greaterThanOrEqualTo(1));
+        }
+      },
+    );
     test('renders members, open use periods and the event ledger', () async {
       final snapshot = eventSnapshot(records: 60);
       final rendered = await const R03EventRenderer(fontLoader: fonts)

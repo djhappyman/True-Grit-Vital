@@ -7388,4 +7388,47 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get featureEventsTotals => 'Event totals';
+
+  @override
+  String get featureEventsRecorded => 'Recorded doses';
+
+  @override
+  String get featureEventsSkipped => 'Skipped actions';
+
+  @override
+  String get featureEventsLinked => 'Linked substances';
+
+  @override
+  String get featureEventsCountsHelp =>
+      'Current records within the event and membership dates. These counts do not measure adherence.';
+
+  @override
+  String get featureEventsCountsReview =>
+      'Review the event dates to see totals.';
+
+  @override
+  String get featureEventsSkippedReview => 'Some skipped times need review.';
+
+  @override
+  String get featureEventsCountsFailed =>
+      'Totals could not be read. Try again.';
+
+  @override
+  String get featureEventsNotes => 'Notes';
+
+  @override
+  String get featureEventsNotesHelp =>
+      'Private event notes. Included in event reports only when notes are selected.';
+
+  @override
+  String get featureEventsNotesLong =>
+      'Use 8000 characters or fewer for event notes.';
+
+  @override
+  String featureEventsCounts(int recorded, int skipped) {
+    return '$recorded recorded · $skipped skipped';
+  }
 }

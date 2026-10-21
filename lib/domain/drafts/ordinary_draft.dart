@@ -49,6 +49,7 @@ final class OrdinaryDraft {
       DraftKind.event => {
         'id',
         'name',
+        'notes',
         'zone',
         'type',
         'plannedStart',

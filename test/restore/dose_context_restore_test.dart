@@ -107,6 +107,37 @@ void main() {
         kind: DailyActionKind.skip,
         skipReason: 'Felt unwell',
       );
+      final event = EventRecord(
+        id: 'context-event',
+        personId: meId,
+        name: 'Context event',
+        eventType: 'cycle',
+        zoneId: 'UTC',
+        revision: 1,
+        plannedStart: EventDate.day(date),
+        plannedEnd: EventDate.day(date),
+        notes: 'Private event wording: 0.125 mg.',
+        memberships: [
+          EventMembership(
+            id: 'context-member',
+            itemId: item.id,
+            personId: meId,
+            effectiveFrom: DateTime.utc(2026, 10, 20),
+            revision: 1,
+          ),
+        ],
+      );
+      final eventCommand = SaveEventCommand(
+        commandId: 'event-save',
+        generation: live.generation,
+        expectedRevision: null,
+        expectedPersonRevision: 2,
+        event: event,
+      );
+      await live.saveEvent(
+        eventCommand,
+        membershipReview: await live.previewEventMembership(eventCommand),
+      );
 
       final service = BackupService(
         recordStore: live,
@@ -144,6 +175,11 @@ void main() {
         isNew: false,
       );
       final restored = (await live.recordById(corrected.id))!;
+      expect((await live.eventById(event.id))!.notes, event.notes);
+      expect((await live.eventHistory(event.id)).single.notes, event.notes);
+      final eventSummary = (await live.eventUseSummary(event.id))!;
+      expect(eventSummary.recorded, 1);
+      expect(eventSummary.skipped, 1);
       expect(restored.notes, 'Saved dose note.');
       expect(restored.contextTags, ['Morning', 'With food']);
       final history = await live.history(corrected.id);
@@ -186,6 +222,7 @@ void main() {
       final privateText = utf8.decode(ExportArtifact.build(private).bytes);
       expect(privateText, isNot(contains('Saved dose note.')));
       expect(privateText, isNot(contains('Felt unwell')));
+      expect(privateText, isNot(contains(event.notes)));
       expect(privateText, contains('Morning'));
 
       final shared = await live.captureExport(export(includeNotes: true));

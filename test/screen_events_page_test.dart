@@ -63,9 +63,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  appTest('Events More reveals real revisions and an honest note preview', (
-    tester,
-  ) async {
+  appTest('Events More opens canonical notes and revisions', (tester) async {
     final f = await launch(tester, todayClock: screenEventsNow);
     await seedScreenEvents(tester, f.store);
     final before = (await runIo(tester, f.store.events))!.length;
@@ -87,14 +85,17 @@ void main() {
       findsOneWidget,
     );
     await tap(tester, 'Note');
-    expect(find.text('Event notes'), findsOneWidget);
+    await waitForText(tester, 'Notes');
+    expect(
+      f.container.read(routerProvider).routerDelegate.state.uri.path,
+      '/event/b-autumn/edit',
+    );
     expect(
       find.text(
-        'Saved event notes are not available in this version. Nothing is added.',
+        'Private event notes. Included in event reports only when notes are selected.',
       ),
       findsOneWidget,
     );
-    await tap(tester, 'Done');
     expect((await runIo(tester, f.store.events))!.length, before);
     expect(tester.takeException(), isNull);
   });

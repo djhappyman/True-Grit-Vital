@@ -149,6 +149,7 @@ final class EventRecord {
     this.completed = false,
     this.completedAt,
     this.endReviewDismissed = false,
+    this.notes = '',
     Iterable<EventMembership> memberships = const [],
   }) : memberships = List.unmodifiable(memberships) {
     if ([
@@ -159,6 +160,7 @@ final class EventRecord {
           zoneId,
         ].any((v) => v.isEmpty) ||
         revision < 1 ||
+        notes.length > 8000 ||
         completedAt != null && !completedAt!.isUtc ||
         this.memberships.any((m) => m.personId != personId) ||
         this.memberships.map((m) => m.id).toSet().length !=
@@ -179,6 +181,7 @@ final class EventRecord {
     }
   }
   final String id, personId, name, eventType, zoneId;
+  final String notes;
   final int revision;
   final EventDate? plannedStart, plannedEnd, actualStart, actualEnd;
   final bool completed, endReviewDismissed;
@@ -188,6 +191,7 @@ final class EventRecord {
     String? name,
     String? eventType,
     String? zoneId,
+    String? notes,
     int? revision,
     EventDate? plannedStart,
     EventDate? plannedEnd,
@@ -208,6 +212,7 @@ final class EventRecord {
     name: name ?? this.name,
     eventType: eventType ?? this.eventType,
     zoneId: zoneId ?? this.zoneId,
+    notes: notes ?? this.notes,
     revision: revision ?? this.revision,
     plannedStart: clearPlannedStart ? null : plannedStart ?? this.plannedStart,
     plannedEnd: clearPlannedEnd ? null : plannedEnd ?? this.plannedEnd,
@@ -281,6 +286,7 @@ final class EventRecord {
     'completed': completed,
     'completedAt': completedAt?.toIso8601String(),
     'endReviewDismissed': endReviewDismissed,
+    if (notes.isNotEmpty) 'notes': notes,
     'memberships': memberships.map((m) => m.toJson()).toList(),
   };
   factory EventRecord.fromJson(Map<String, Object?> json) => EventRecord(
@@ -297,6 +303,7 @@ final class EventRecord {
     completed: json['completed']! as bool,
     completedAt: _instant(json['completedAt']),
     endReviewDismissed: json['endReviewDismissed']! as bool,
+    notes: json['notes'] as String? ?? '',
     memberships: (json['memberships']! as List).map(
       (v) => EventMembership.fromJson(Map<String, Object?>.from(v as Map)),
     ),

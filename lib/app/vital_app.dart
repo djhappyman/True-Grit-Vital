@@ -255,8 +255,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       vitalRoute(
         path: '/event/:id/edit',
-        builder: (_, state) =>
-            StorageGate(child: EventForm(eventId: state.pathParameters['id']!)),
+        builder: (_, state) => StorageGate(
+          child: EventForm(
+            eventId: state.pathParameters['id']!,
+            initialDetails: state.uri.queryParameters['notes'] == 'true',
+          ),
+        ),
       ),
       vitalRoute(
         path: '/event/:id/decision',

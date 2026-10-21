@@ -11444,6 +11444,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{No skipped actions} =1{1 skipped action} other{{count} skipped actions}}'**
   String featureContextExportSkipCount(int count);
+
+  /// Event overview: Event totals
+  ///
+  /// In en, this message translates to:
+  /// **'Event totals'**
+  String get featureEventsTotals;
+
+  /// Event overview: Recorded doses
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded doses'**
+  String get featureEventsRecorded;
+
+  /// Event overview: Skipped actions
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped actions'**
+  String get featureEventsSkipped;
+
+  /// Event overview: Linked substances
+  ///
+  /// In en, this message translates to:
+  /// **'Linked substances'**
+  String get featureEventsLinked;
+
+  /// Event overview: Current records within the event and membership dates. These counts do not measure adherence.
+  ///
+  /// In en, this message translates to:
+  /// **'Current records within the event and membership dates. These counts do not measure adherence.'**
+  String get featureEventsCountsHelp;
+
+  /// Event overview: Review the event dates to see totals.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the event dates to see totals.'**
+  String get featureEventsCountsReview;
+
+  /// Event overview: Some skipped times need review.
+  ///
+  /// In en, this message translates to:
+  /// **'Some skipped times need review.'**
+  String get featureEventsSkippedReview;
+
+  /// Event overview: Totals could not be read. Try again.
+  ///
+  /// In en, this message translates to:
+  /// **'Totals could not be read. Try again.'**
+  String get featureEventsCountsFailed;
+
+  /// Event overview: Notes
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get featureEventsNotes;
+
+  /// Event overview: Private event notes. Included in event reports only when notes are selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Private event notes. Included in event reports only when notes are selected.'**
+  String get featureEventsNotesHelp;
+
+  /// Event overview: Use 8000 characters or fewer for event notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 8000 characters or fewer for event notes.'**
+  String get featureEventsNotesLong;
+
+  /// Whole-event current dose and explicit skip counts, distinct from adherence.
+  ///
+  /// In en, this message translates to:
+  /// **'{recorded} recorded · {skipped} skipped'**
+  String featureEventsCounts(int recorded, int skipped);
 }
 
 class _AppLocalizationsDelegate

@@ -73,6 +73,7 @@ final class ReportEventData implements ReportTemplateData {
     required this.notRecordedCount,
     required this.usePeriodsComplete,
     required this.scopeComplete,
+    required this.notes,
   }) : members = List.unmodifiable(members),
        entries = List.unmodifiable(entries);
   factory ReportEventData.build({
@@ -239,6 +240,7 @@ final class ReportEventData implements ReportTemplateData {
 
     return ReportEventData._(
       eventId: event.id,
+      notes: selection.includeNotes ? event.notes : '',
       name: event.name,
       eventType: event.eventType,
       zoneId: event.zoneId,
@@ -259,6 +261,7 @@ final class ReportEventData implements ReportTemplateData {
   }
 
   final String eventId, name, eventType, zoneId;
+  final String notes;
   final EventDate? plannedStart, plannedEnd, actualStart, actualEnd;
   final bool completed, boundsNeedReview, usePeriodsComplete, scopeComplete;
   final DateTime? completedAt;
@@ -294,6 +297,7 @@ final class ReportEventData implements ReportTemplateData {
       if (snapshot.reportIdentity != null)
         'Report name: ${snapshot.reportIdentity}',
       'Event: $name',
+      if (notes.isNotEmpty) 'Event notes: $notes',
       'Event type: $eventType',
       'Event zone: $zoneId',
       'Planned: ${_dateRange(plannedStart, plannedEnd, zoneId, use24Hour: use24Hour)}',

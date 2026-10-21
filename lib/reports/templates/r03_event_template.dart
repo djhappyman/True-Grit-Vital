@@ -70,6 +70,12 @@ final class R03EventRenderer implements ReportTemplateRenderer {
       ],
       pw.SizedBox(height: 16),
       _countsBox(data),
+      if (data.notes.isNotEmpty) ...[
+        pw.SizedBox(height: 12),
+        reportSectionHeading('Event notes'),
+        pw.SizedBox(height: 6),
+        pw.Text(data.notes, overflow: pw.TextOverflow.span),
+      ],
       pw.SizedBox(height: 16),
       reportSectionHeading('Event members'),
       pw.SizedBox(height: 6),

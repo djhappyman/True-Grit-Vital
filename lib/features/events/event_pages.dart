@@ -19,6 +19,7 @@ import '../../ui/stitch_ui.dart';
 import '../plans/today_hero.dart' show todayNowProvider;
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
+import 'event_summary_widgets.dart';
 
 typedef EventWriter = Future<void> Function(
   SaveEventCommand command,
@@ -730,6 +731,8 @@ class _EventCardState extends ConsumerState<_EventCard> {
             _eventMetaText(context, ref, t, event, widget.now),
             style: StitchType.caption.copyWith(color: c.muted),
           ),
+          const SizedBox(height: 12),
+          EventSummaryFacts(event: event, compact: true),
           if (progress) ...[
             const SizedBox(height: 12),
             MergeSemantics(
@@ -893,7 +896,8 @@ class _EventCardState extends ConsumerState<_EventCard> {
                   _EventMoreCommand(
                     label: t.screenEventsNote,
                     semantics: t.screenEventsNoteFor(event.name),
-                    onPressed: () => _showNotesPreview(context, t),
+                    onPressed: () =>
+                        context.push('/event/${event.id}/edit?notes=true'),
                   ),
                 ],
               ),
@@ -903,21 +907,6 @@ class _EventCardState extends ConsumerState<_EventCard> {
       ),
     );
   }
-
-  Future<void> _showNotesPreview(BuildContext context, AppLocalizations t) =>
-      showVitalDialog<void>(
-        context: context,
-        builder: (context) => VitalDialog(
-          title: Text(t.screenEventsNotes),
-          content: Text(t.screenEventsNotesUnavailable),
-          actions: [
-            StitchButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(t.done),
-            ),
-          ],
-        ),
-      );
 }
 
 class _EventMoreCommand extends StatelessWidget {
@@ -1300,6 +1289,15 @@ class EventDetailPage extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 20),
+        VitalPanel(
+          title: t.featureEventsTotals,
+          children: [EventSummaryFacts(event: event)],
+        ),
+        if (event.notes.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          EventNotes(notes: event.notes),
+        ],
+        const SizedBox(height: 20),
         Semantics(
           header: true,
           child: Text(t.eventMembers, style: StitchType.heading),
@@ -1441,8 +1439,9 @@ final class MembershipFields {
 }
 
 class EventForm extends ConsumerStatefulWidget {
-  const EventForm({super.key, this.eventId});
+  const EventForm({super.key, this.eventId, this.initialDetails = false});
   final String? eventId;
+  final bool initialDetails;
   @override
   ConsumerState<EventForm> createState() => _EventFormState();
 }
@@ -1450,6 +1449,7 @@ class EventForm extends ConsumerStatefulWidget {
 class _EventFormState extends DurableFormState<EventForm> {
   final name = TextEditingController(),
       zone = TextEditingController(text: 'Europe/London');
+  final notes = TextEditingController();
   final plannedStart = TextEditingController(),
       plannedEnd = TextEditingController();
   final actualStart = TextEditingController(),
@@ -1465,6 +1465,9 @@ class _EventFormState extends DurableFormState<EventForm> {
   List<UseRecord>? entering, leaving;
   bool restoringPreview = false;
   @override
+  String get entryFallback =>
+      widget.eventId == null ? '/events' : '/event/${widget.eventId}';
+  @override
   DraftKind get entryKind => DraftKind.event;
   @override
   String? get entryPerson => owner?.id ?? meId;
@@ -1478,6 +1481,7 @@ class _EventFormState extends DurableFormState<EventForm> {
   Map<String, String> captureEntry() => {
     'id': id,
     'name': name.text,
+    'notes': notes.text,
     'zone': zone.text,
     'type': type,
     'plannedStart': plannedStart.text,
@@ -1494,6 +1498,7 @@ class _EventFormState extends DurableFormState<EventForm> {
   void restoreEntry(Map<String, String> f) {
     id = f['id']!;
     name.text = f['name'] ?? '';
+    if (f.containsKey('notes')) notes.text = f['notes']!;
     zone.text = f['zone'] ?? '';
     type = f['type'] ?? 'cycle';
     plannedStart.text = f['plannedStart'] ?? '';
@@ -1524,6 +1529,7 @@ class _EventFormState extends DurableFormState<EventForm> {
     super.initState();
     for (final c in [
       name,
+      notes,
       zone,
       plannedStart,
       plannedEnd,
@@ -1555,6 +1561,7 @@ class _EventFormState extends DurableFormState<EventForm> {
   void dispose() {
     for (final c in [
       name,
+      notes,
       zone,
       plannedStart,
       plannedEnd,
@@ -1573,6 +1580,7 @@ class _EventFormState extends DurableFormState<EventForm> {
     id: id,
     personId: owner!.id,
     name: name.text.trim(),
+    notes: notes.text,
     eventType: type,
     zoneId: zone.text.trim(),
     revision: (original?.revision ?? 0) + 1,
@@ -1618,6 +1626,10 @@ class _EventFormState extends DurableFormState<EventForm> {
       );
   Future<void> preview() async {
     final t = AppLocalizations.of(context);
+    if (notes.text.length > 8000) {
+      setState(() => error = t.featureEventsNotesLong);
+      return;
+    }
     setState(() {
       busy = true;
       error = null;
@@ -1743,10 +1755,12 @@ class _EventFormState extends DurableFormState<EventForm> {
     if (owner == null) return EntryPage(children: [Text(t.profileUnavailable)]);
     if (!initialised) {
       initialised = true;
+      detailsOpen = widget.initialDetails;
       original = current;
       if (current != null) {
         id = current.id;
         name.text = current.name;
+        notes.text = current.notes;
         zone.text = current.zoneId;
         type = current.eventType;
         completed = current.completed;
@@ -1823,36 +1837,49 @@ class _EventFormState extends DurableFormState<EventForm> {
           child: Text(t.details),
         ),
       ),
-      if (detailsOpen) ...[
-        LabelledInput(
-          label: t.eventZone,
-          controller: zone,
-          enabled: enabled,
-          error: error == t.eventZoneError ? error : null,
+      VitalReveal(
+        expanded: detailsOpen,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            LabelledInput(
+              label: t.featureEventsNotes,
+              helper: t.featureEventsNotesHelp,
+              controller: notes,
+              maxLines: 4,
+              enabled: enabled,
+            ),
+            LabelledInput(
+              label: t.eventZone,
+              controller: zone,
+              enabled: enabled,
+              error: error == t.eventZoneError ? error : null,
+            ),
+            for (final field in [
+              (t.eventPlannedEnd, plannedEnd),
+              (t.eventActualStart, actualStart),
+              (t.eventActualEnd, actualEnd),
+            ])
+              LabelledInput(
+                label: field.$1,
+                controller: field.$2,
+                helper: t.eventDateHelp,
+                enabled: enabled,
+              ),
+            SettingsToggleRow(
+              label: t.eventCompleted,
+              description: t.eventCompletedHelp,
+              value: completed,
+              enabled: enabled,
+              onChanged: (v) {
+                setState(() => completed = v);
+                changed();
+              },
+              reduceMotion: MediaQuery.disableAnimationsOf(context),
+            ),
+          ],
         ),
-        for (final field in [
-          (t.eventPlannedEnd, plannedEnd),
-          (t.eventActualStart, actualStart),
-          (t.eventActualEnd, actualEnd),
-        ])
-          LabelledInput(
-            label: field.$1,
-            controller: field.$2,
-            helper: t.eventDateHelp,
-            enabled: enabled,
-          ),
-        SettingsToggleRow(
-          label: t.eventCompleted,
-          description: t.eventCompletedHelp,
-          value: completed,
-          enabled: enabled,
-          onChanged: (v) {
-            setState(() => completed = v);
-            changed();
-          },
-          reduceMotion: MediaQuery.disableAnimationsOf(context),
-        ),
-      ],
+      ),
       const SizedBox(height: 24),
       Heading(t.eventMembers),
       Text(t.eventMemberHelp),
