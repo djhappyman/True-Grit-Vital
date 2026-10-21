@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart' show TextInputAction;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../app/device_zone.dart';
 import '../../app/storage.dart';
 import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
@@ -14,30 +17,110 @@ import '../../ui/stitch_ui.dart';
 import 'stitch_substance_card.dart';
 
 /// One page key of the bounded Substances list. The 51st row of a page only
-/// reveals the next page; search and the type filter run over the whole stored
-/// collection at the store, not over a loaded subset.
-typedef SubstancesPageQuery = ({
-  FeedScope scope,
-  String search,
-  String typeId,
-  int offset,
-});
+/// reveals the next page; search, the type filter and the status filter run
+/// over the whole stored collection at the store, not over a loaded subset.
+/// [asOf] and [zone] make the plan-status snapshot explicit; both paginated
+/// results and counts use the same values.
+final class SubstancesPageQuery {
+  const SubstancesPageQuery({
+    required this.scope,
+    required this.search,
+    required this.typeId,
+    required this.offset,
+    this.status = SubstanceStatusFilter.all,
+    this.asOf,
+    this.zone,
+  });
+  final FeedScope scope;
+  final String search;
+  final String typeId;
+  final int offset;
+  final SubstanceStatusFilter status;
+
+  /// A minute-rounded instant used for plan boundaries. Null keeps the older
+  /// store-only path used by focused page tests.
+  final DateTime? asOf;
+  final String? zone;
+
+  @override
+  bool operator ==(Object other) =>
+      other is SubstancesPageQuery &&
+      other.scope == scope &&
+      other.search == search &&
+      other.typeId == typeId &&
+      other.offset == offset &&
+      other.status == status &&
+      other.asOf == asOf &&
+      other.zone == zone;
+
+  @override
+  int get hashCode =>
+      Object.hash(scope, search, typeId, offset, status, asOf, zone);
+}
 
 final substancesPageProvider = StreamProvider.autoDispose
     .family<List<SubstanceItem>, SubstancesPageQuery>(retry: (_, _) => null, (
       ref,
       query,
     ) async* {
-      yield* (await ref.watch(recordStoreProvider.future)).watchItems(
-        scope: query.scope,
-        search: query.search,
-        typeId: query.typeId.isEmpty ? null : query.typeId,
-        limit: 51,
-        offset: query.offset,
+      final storeFuture = ref.watch(recordStoreProvider.future);
+      final asOf = query.asOf;
+      if (asOf == null) {
+        final store = await storeFuture;
+        yield* store.watchItems(
+          scope: query.scope,
+          search: query.search,
+          typeId: query.typeId.isEmpty ? null : query.typeId,
+          limit: 51,
+          offset: query.offset,
+        );
+        return;
+      }
+      final snapshotFuture = ref.watch(
+        substanceStatusSnapshotProvider((
+          scope: query.scope,
+          search: query.search,
+          typeId: query.typeId,
+          asOf: asOf,
+          zone: query.zone,
+        )).future,
       );
+      final store = await storeFuture;
+      final snapshot = await snapshotFuture;
+      final ids = snapshot
+          .itemIdsFor(query.status)
+          .skip(query.offset)
+          .take(51)
+          .toList();
+      yield* store.watchItemsByIds(ids);
     });
 
 typedef SubstancesTypeQuery = ({FeedScope scope, String search});
+
+/// Whole-collection status totals under one name, type and time snapshot.
+/// A mixed-plan item can be counted in more than one status.
+typedef SubstanceStatusQuery = ({
+  FeedScope scope,
+  String search,
+  String typeId,
+  DateTime asOf,
+  String? zone,
+});
+
+final substanceStatusSnapshotProvider = StreamProvider.autoDispose
+    .family<SubstanceStatusSnapshot, SubstanceStatusQuery>(
+      retry: (_, _) => null,
+      (ref, query) async* {
+        yield* (await ref.watch(recordStoreProvider.future))
+            .watchSubstanceStatusSnapshot(
+              scope: query.scope,
+              search: query.search,
+              typeId: query.typeId.isEmpty ? null : query.typeId,
+              now: query.asOf,
+              observedZone: query.zone,
+            );
+      },
+    );
 
 final substanceTypesProvider = StreamProvider.autoDispose
     .family<List<SubstanceTypeSummary>, SubstancesTypeQuery>(
@@ -63,10 +146,12 @@ class SubstanceCollection extends ConsumerStatefulWidget {
 class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
   final _search = TextEditingController();
   String _typeId = '';
+  SubstanceStatusFilter _status = SubstanceStatusFilter.all;
   // Fallback name while the selected type's live lookup loads. The separate
   // lookup keeps renames visible even when search-constrained counts omit it.
   String? _typeName;
   int _pages = 1;
+  Timer? _clockTimer;
 
   @override
   void initState() {
@@ -79,10 +164,17 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
         setState(() => _pages = 1);
       }
     });
+    // Plan status changes at a pause resume, a plan end or a start instant.
+    // A conservative minute refresh keeps the mounted list truthful without a
+    // per-card timer. The result page and counts share the rounded instant.
+    _clockTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
   void dispose() {
+    _clockTimer?.cancel();
     _search.dispose();
     super.dispose();
   }
@@ -92,6 +184,7 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
       _search.clear();
       _typeId = '';
       _typeName = null;
+      _status = SubstanceStatusFilter.all;
       _pages = 1;
     });
   }
@@ -102,9 +195,15 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
     _pages = 1;
   });
 
+  void _selectStatus(SubstanceStatusFilter status) => setState(() {
+    _status = status;
+    _pages = 1;
+  });
+
   void _retry() {
     ref.invalidate(substancesPageProvider);
     ref.invalidate(substanceTypesProvider);
+    ref.invalidate(substanceStatusSnapshotProvider);
     setState(() => _pages = 1);
   }
 
@@ -112,15 +211,39 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final search = _search.text.trim();
+    final now = DateTime.now().toUtc();
+    final asOf = DateTime.utc(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+      now.minute,
+    );
+    final zone = ref.watch(observedDeviceZoneProvider).value?.zoneId;
+    final statusQuery = (
+      scope: widget.scope,
+      search: search,
+      typeId: _typeId,
+      asOf: asOf,
+      zone: zone,
+    );
+    final statusSnapshot = ref.watch(
+      substanceStatusSnapshotProvider(statusQuery),
+    );
     final pages = [
       for (var page = 0; page < _pages; page++)
         ref.watch(
-          substancesPageProvider((
-            scope: widget.scope,
-            search: search,
-            typeId: _typeId,
-            offset: page * 50,
-          )),
+          substancesPageProvider(
+            SubstancesPageQuery(
+              scope: widget.scope,
+              search: search,
+              typeId: _typeId,
+              offset: page * 50,
+              status: _status,
+              asOf: asOf,
+              zone: zone,
+            ),
+          ),
         ),
     ];
     final summaries = ref.watch(
@@ -137,11 +260,22 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
     final selectedType = _typeId.isEmpty || personId == null
         ? null
         : ref.watch(itemTypeProvider((personId: personId, typeId: _typeId)));
-    final filtered = search.isNotEmpty || _typeId.isNotEmpty;
-    // Search and the active type filter stay visible while data fails, so a
-    // failure never removes the user's controls or hides why results are
-    // absent; the retry sits with the result area below the tools.
-    final failed = pages.any((p) => p.hasError) || summaries.hasError;
+    final filtered =
+        search.isNotEmpty ||
+        _typeId.isNotEmpty ||
+        _status != SubstanceStatusFilter.all;
+    final counts = statusSnapshot.value?.counts;
+    final countsKnown =
+        statusSnapshot.hasValue &&
+        !statusSnapshot.isLoading &&
+        !statusSnapshot.hasError;
+    // Search, the active type filter and the active status filter stay visible
+    // while data fails, so a failure never removes the user's controls or
+    // hides why results are absent; the retry sits with the result area below.
+    final failed =
+        pages.any((p) => p.hasError) ||
+        summaries.hasError ||
+        statusSnapshot.hasError;
     final rows = <SubstanceItem>[];
     final visited = <String>{};
     for (final page in pages) {
@@ -238,6 +372,32 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
               summaries.hasValue && !summaries.isLoading && !summaries.hasError,
           onSelected: _selectType,
         ),
+        if ((counts?.all ?? 0) > 0 ||
+            _status != SubstanceStatusFilter.all) ...[
+          const SizedBox(height: 8),
+          SubstanceStatusFilters(
+            counts: counts,
+            selected: _status,
+            countsKnown: countsKnown,
+            onSelected: _selectStatus,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            t.featureStatusMixedHelp,
+            style: StitchType.caption.copyWith(
+              color: StitchColors(context).muted,
+            ),
+          ),
+          if ((counts?.unresolved ?? 0) > 0) ...[
+            const SizedBox(height: 3),
+            Text(
+              t.featureStatusUnresolvedHelp(counts!.unresolved),
+              style: StitchType.caption.copyWith(
+                color: StitchColors(context).amber,
+              ),
+            ),
+          ],
+        ],
         const SizedBox(height: 14),
         if (failed)
           LoadFailure(message: t.designSubstancesUnavailable, onRetry: _retry)
@@ -382,6 +542,70 @@ class SubstanceTypeFilters extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Whole-collection plan-status filters plus All statuses. Counts come from
+/// the same name, type and instant snapshot as the results. Statuses can
+/// overlap, so these pills are not a single mutually exclusive item state.
+/// Unscheduled is never shown for an item whose plan could not be evaluated.
+class SubstanceStatusFilters extends StatelessWidget {
+  const SubstanceStatusFilters({
+    super.key,
+    required this.counts,
+    required this.selected,
+    required this.countsKnown,
+    required this.onSelected,
+  });
+  final SubstanceStatusCounts? counts;
+  final SubstanceStatusFilter selected;
+  final bool countsKnown;
+  final void Function(SubstanceStatusFilter status) onSelected;
+
+  String _name(AppLocalizations t, SubstanceStatusFilter status) =>
+      switch (status) {
+        SubstanceStatusFilter.all => t.featureStatusAll,
+        SubstanceStatusFilter.active => t.featureStatusActive,
+        SubstanceStatusFilter.paused => t.featureStatusPaused,
+        SubstanceStatusFilter.asNeeded => t.featureStatusAsNeeded,
+        SubstanceStatusFilter.unscheduled => t.featureStatusUnscheduled,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    return Semantics(
+      container: true,
+      label: t.featureStatusFiltersLabel,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (final status in SubstanceStatusFilter.values)
+              Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Semantics(
+                  selected: selected == status,
+                  child: StitchButton(
+                    primary: selected == status,
+                    compact: true,
+                    onPressed: () => onSelected(status),
+                    child: Text(
+                      countsKnown && counts != null
+                          ? t.stitchFilterCount(
+                              _name(t, status),
+                              counts!.count(status),
+                            )
+                          : _name(t, status),
+                      style: StitchType.small,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

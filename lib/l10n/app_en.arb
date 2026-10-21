@@ -8368,5 +8368,42 @@
   "featureWeekUtc": "Times shown in UTC.",
   "@featureWeekUtc": {
     "description": "Dashboard week navigation. Visible fallback when no device zone was observed."
+  },
+  "featureStatusFiltersLabel": "Plan status",
+  "@featureStatusFiltersLabel": {
+    "description": "Substances list. Accessible name for the row of plan-status filters."
+  },
+  "featureStatusAll": "All statuses",
+  "@featureStatusAll": {
+    "description": "Substances list. Clears the plan-status filter only. Kept distinct from the item-type All filter."
+  },
+  "featureStatusActive": "Active",
+  "@featureStatusActive": {
+    "description": "Substances list. At least one current nonpaused scheduled plan applies."
+  },
+  "featureStatusPaused": "Paused",
+  "@featureStatusPaused": {
+    "description": "Substances list. At least one current plan is paused. A paused As needed plan counts only as paused while paused."
+  },
+  "featureStatusAsNeeded": "As needed",
+  "@featureStatusAsNeeded": {
+    "description": "Substances list. At least one current nonpaused As needed plan applies."
+  },
+  "featureStatusUnscheduled": "Unscheduled",
+  "@featureStatusUnscheduled": {
+    "description": "Substances list. No plan applies now. Future-only, ended and absent plans count here."
+  },
+  "featureStatusMixedHelp": "An item with more than one plan can appear under each matching status. Future and ended plans count as unscheduled.",
+  "@featureStatusMixedHelp": {
+    "description": "Substances list. Explains that status filters may overlap and what Unscheduled means. Not an adherence statement."
+  },
+  "featureStatusUnresolvedHelp": "{count, plural, =1{1 item is only in All because its plan could not be checked.} other{{count} items are only in All because their plans could not be checked.}}",
+  "@featureStatusUnresolvedHelp": {
+    "description": "Substances list. Truthful note when a stored plan's date or time zone cannot be evaluated. No guessed status.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

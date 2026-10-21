@@ -60,6 +60,7 @@ part 'phase_store.dart';
 part 'catalogue_store.dart';
 part 'stock_store.dart';
 part 'product_store.dart';
+part 'substance_status_store.dart';
 part 'combined_store.dart';
 part 'reminder_store.dart';
 part 'event_store.dart';
