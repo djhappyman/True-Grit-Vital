@@ -28,3 +28,9 @@ The saved-amount editor has additional [light](light-dose-presets.png) and [dark
 Whole-project analysis is clean. The 66 updated design/schedule/event checks, seven focused motion checks, light/dark captures and narrow preset captures passed. The final whole-suite run was stopped at the owner’s request to publish immediately; no complete full-suite pass is claimed for this batch. Native Linux boot has passed with real Secret Service, encrypted persistence, navigation, report/export and backup/restore. Android debug APK builds and its package metadata/signature verify. Seven focused motion checks cover retained navigation, rapid interruption, nested month gestures, guarded scrim/handle/Escape/system Back, pending single-dispatch writes, reduced motion and 320 px double-text keyboard clearance.
 
 Physical Android installation, native delivery, assistive-technology acceptance and measured frame timing remain open. No physical Android device is attached. The debug prerelease does not configure production signing or close G01–G08 acceptance gates.
+
+## Published build
+
+[First development prerelease](https://github.com/djhappyman/True-Grit-Vital/releases/tag/v0.1.0-alpha.1), source `c10a62e`. The universal Android debug APK is version 0.1.0+1 (`dev.truegrit.vital`), minimum Android API 24, with arm64-v8a/armeabi-v7a/x86_64 support. Its uploaded size and server SHA-256 digest match the staged, signature-verified build.
+
+SHA-256: `4f69af4fec23a00ecaa2dd35c35d01647f7ffa83c51421a13381504c8fdd0ee8`. The APK and `SHA256SUMS` are attached to the release.

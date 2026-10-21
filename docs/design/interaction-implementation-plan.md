@@ -13,7 +13,7 @@ Owner authorised 21 October 2026: finish D06/D07/D09, verify and push; then impl
 | M04 | Calendar paging | History month and Today week PageViews change actual period queries; accessible controls, stable geometry and selected-date semantics. | Completed; see motion review |
 | M05 | Screen simplification | Migrate every screen group below to its assigned presentation; use existing shared components and retain real commands/context. | Completed; see motion review |
 | M06 | Combined verification | Full tests/analysis, native boot, light/dark captures, narrow/large text, keyboard, paging/interruption/dismissal and reduced-motion checks. | Analysis, focused tests, captures, native boot and APK passed; final full run stopped by owner for publication |
-| M07 | First development prerelease | Build debug APK, verify metadata/checksum, commit changelog bullets, push, tag and publish GitHub prerelease with APK, checksum and accurate known limits. | APK verified; publishing `v0.1.0-alpha.1` |
+| M07 | First development prerelease | Build debug APK, verify metadata/checksum, commit changelog bullets, push, tag and publish GitHub prerelease with APK, checksum and accurate known limits. | Completed: [`v0.1.0-alpha.1`](https://github.com/djhappyman/True-Grit-Vital/releases/tag/v0.1.0-alpha.1), source `c10a62e` |
 
 Use explicit evidence and commits for each completed step. Screens remain canonical; adapting presentation does not create a second mock implementation. Add no dependencies or tool upgrades for this rollout. Preserve existing record/draft/lock/operation engines.
 
