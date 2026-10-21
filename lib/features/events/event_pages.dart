@@ -4,16 +4,19 @@ import '../../ui/vital_ui.dart';
 
 import 'dart:convert';
 
+import 'package:flutter/material.dart' show showDialog;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/storage.dart';
 import '../../app/settings_toggle_row.dart';
-import '../../app/vital_app.dart' show PageContent;
 import '../../data/record_store.dart';
 import '../../domain/scheduling/iana_clock.dart';
 import '../../l10n/app_localizations.dart';
+import '../../ui/stitch_ui.dart';
+import '../plans/today_hero.dart' show todayNowProvider;
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
 
@@ -189,6 +192,156 @@ DateTime parseMembershipInstant(String raw) {
   return DateTime.parse(value.value!);
 }
 
+enum _EventFilter { all, active, upcoming, completed }
+
+enum _EventPhase { active, upcoming, completed }
+
+_EventPhase _eventPhase(EventRecord event, DateTime now) {
+  if (event.completed) return _EventPhase.completed;
+  return cycleTiming(event, now).startsIn == null
+      ? _EventPhase.active
+      : _EventPhase.upcoming;
+}
+
+bool _eventReviewDue(EventRecord event, DateTime now) {
+  if (event.completed || event.endReviewDismissed) return false;
+  try {
+    final at = event.endReviewAt(IanaClock());
+    return at != null && !now.isBefore(at);
+  } catch (_) {
+    return false;
+  }
+}
+
+/// True once the saved end boundary has passed. Elapsed day counts are then
+/// complete, so a card must not present a day beyond the inclusive total.
+bool _eventRangeEnded(EventRecord event, DateTime now) {
+  if (event.completed) return false;
+  final endDate = event.actualEnd ?? event.plannedEnd;
+  if (endDate == null) return false;
+  try {
+    final end = endDate.resolve(IanaClock(), event.zoneId, inclusiveEnd: true);
+    return end != null && !now.isBefore(end);
+  } catch (_) {
+    return false;
+  }
+}
+
+String _eventTypeLabel(AppLocalizations t, EventRecord event) =>
+    event.eventType == 'cycle'
+    ? t.eventCycle
+    : event.eventType == 'prescription'
+    ? t.eventPrescription
+    : event.eventType;
+
+/// Recorded precision is preserved. Day and month values are formatted for
+/// reading; exact boundaries keep their saved zone and offset.
+String _eventDateText(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations t,
+  EventDate? date,
+  String zone, {
+  bool open = false,
+}) {
+  if (date == null) return open ? t.eventOpen : t.eventNotRecorded;
+  switch (date.precision) {
+    case EventDatePrecision.unknown:
+      return t.useUnknown;
+    case EventDatePrecision.year:
+      return date.value!;
+    case EventDatePrecision.month:
+      final parts = date.value!.split('-');
+      return DateFormat.yMMM(
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(DateTime(int.parse(parts[0]), int.parse(parts[1])));
+    case EventDatePrecision.day:
+      final value = CivilDate.parse(date.value!);
+      return DateFormat(
+        'd MMM yyyy',
+        Localizations.localeOf(context).toLanguageTag(),
+      ).format(DateTime(value.year, value.month, value.day));
+    case EventDatePrecision.exact:
+      return displayStamp(
+        context,
+        ref,
+        DateTime.parse(date.value!),
+        zoneId: zone,
+      );
+  }
+}
+
+String _eventRangeText(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations t,
+  EventRecord event,
+) {
+  final start = _eventDateText(
+    context,
+    ref,
+    t,
+    event.actualStart ?? event.plannedStart,
+    event.zoneId,
+  );
+  final end = _eventDateText(
+    context,
+    ref,
+    t,
+    event.actualEnd ?? event.plannedEnd,
+    event.zoneId,
+    open: true,
+  );
+  final hasStart = (event.actualStart ?? event.plannedStart) != null;
+  final hasEnd = (event.actualEnd ?? event.plannedEnd) != null;
+  if (!hasStart && !hasEnd) return t.screenEventsNoDates;
+  if (!hasStart) return t.screenEventsStarts(end);
+  if (!hasEnd) return t.screenEventsStarted(start);
+  return t.screenEventsRange(start, end);
+}
+
+String _eventSpanText(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations t,
+  EventDate? start,
+  EventDate? end,
+  String zone,
+) {
+  if (start == null && end == null) return t.screenEventsNoDates;
+  return t.screenEventsRange(
+    _eventDateText(context, ref, t, start, zone),
+    _eventDateText(context, ref, t, end, zone, open: true),
+  );
+}
+
+String _eventMetaText(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations t,
+  EventRecord event,
+  DateTime now,
+) {
+  final timing = cycleTiming(event, now);
+  final ended = _eventRangeEnded(event, now);
+  final parts = [_eventRangeText(context, ref, t, event)];
+  if (event.completed) {
+    parts.add(t.eventCompleted);
+  } else if (timing.startsIn case final days?) {
+    parts.add(t.cycleStartsIn(days));
+  } else if (!ended && timing.elapsed != null && timing.remaining != null) {
+    parts.add(
+      t.screenEventsDayOf(
+        timing.elapsed! + 1,
+        timing.elapsed! + timing.remaining!,
+      ),
+    );
+  } else if (timing.elapsed case final elapsed?) {
+    parts.add(t.cycleElapsed(elapsed));
+  }
+  return parts.join(' · ');
+}
+
 class EventsPage extends ConsumerStatefulWidget {
   const EventsPage({super.key});
   @override
@@ -198,109 +351,169 @@ class EventsPage extends ConsumerStatefulWidget {
 class _EventsPageState extends ConsumerState<EventsPage> {
   final selected = <String>{};
   int offset = 0;
+  _EventFilter filter = _EventFilter.all;
+
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
+    final t = AppLocalizations.of(context), c = StitchColors(context);
     final query = (personId: meId, offset: offset);
     final result = ref.watch(eventPageProvider(query));
-    final visible = result.value;
+    final visible = result.value?.take(50).toList();
+    final complete = offset == 0 && (result.value?.length ?? 0) <= 50;
+    final now = ref.watch(todayNowProvider)();
     final picked = selected.toList();
-    return PageContent(
+    final counts = <_EventPhase, int>{
+      for (final phase in _EventPhase.values)
+        phase: visible == null
+            ? 0
+            : visible.where((e) => _eventPhase(e, now) == phase).length,
+    };
+    final shown = switch (filter) {
+      _EventFilter.all => visible ?? const <EventRecord>[],
+      _EventFilter.active =>
+        visible
+                ?.where((e) => _eventPhase(e, now) == _EventPhase.active)
+                .toList() ??
+            const <EventRecord>[],
+      _EventFilter.upcoming =>
+        visible
+                ?.where((e) => _eventPhase(e, now) == _EventPhase.upcoming)
+                .toList() ??
+            const <EventRecord>[],
+      _EventFilter.completed =>
+        visible
+                ?.where((e) => _eventPhase(e, now) == _EventPhase.completed)
+                .toList() ??
+            const <EventRecord>[],
+    };
+    return StitchScrollBody(
       children: [
-        VitalPageHeader(
-          title: t.events,
-          description: t.eventHelp,
-          icon: LucideIcons.calendarRange,
-        ),
-        const SizedBox(height: 16),
         Wrap(
-          spacing: 12,
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 16,
           runSpacing: 12,
           children: [
-            VitalButton(
+            Semantics(
+              header: true,
+              child: Text(t.events, style: StitchType.title),
+            ),
+            StitchButton(
+              primary: true,
+              icon: LucideIcons.plus,
               onPressed: () => context.push('/event-create'),
               child: Text(t.create),
             ),
           ],
         ),
-        const SizedBox(height: 20),
-        if (result.hasError)
-          LoadFailure(onRetry: () => ref.invalidate(eventPageProvider(query)))
-        else if (!result.hasValue)
-          Text(t.loadingRecords)
-        else ...[
-          if (visible!.isEmpty)
-            VitalEmptyState(
-              title: t.events,
-              description: t.eventEmpty,
-              icon: LucideIcons.calendarRange,
-            ),
-          if (visible.isNotEmpty) Text(t.eventSelectHelp),
-          for (final event in visible.take(50))
-            Padding(
-              key: ValueKey(event.id),
-              padding: const EdgeInsets.only(bottom: 16),
-              child: VitalSurface(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    VitalRecordHeader(
-                      title: event.name,
-                      icon: LucideIcons.calendarRange,
-                    ),
-                    Text(
-                      event.eventType == 'cycle'
-                          ? t.eventCycle
-                          : event.eventType == 'prescription'
-                          ? t.eventPrescription
-                          : event.eventType,
-                    ),
-                    Text(
-                      t.eventPlannedLabel(
-                        eventDateLabel(t, event.plannedStart),
-                        eventDateLabel(t, event.plannedEnd, open: true),
+        if (visible != null && visible.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: StitchBadge(
+              complete
+                  ? [
+                      t.screenEventsActiveCount(
+                        counts[_EventPhase.active] ?? 0,
                       ),
-                    ),
-                    if (event.completed) Text(t.eventCompleted),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: [
-                        Semantics(
-                          label: t.eventReviewFor(
-                            event.name,
-                            ownerLabel(ref, t, event.personId),
-                          ),
-                          child: VitalButton.secondary(
-                            onPressed: () => context.push('/event/${event.id}'),
-                            child: Text(t.review),
-                          ),
-                        ),
-                        Semantics(
-                          label: t.eventSelectFor(
-                            event.name,
-                            ownerLabel(ref, t, event.personId),
-                          ),
-                          selected: selected.contains(event.id),
-                          child: VitalButton.secondary(
-                            onPressed: () => setState(() {
-                              if (!selected.add(event.id)) {
-                                selected.remove(event.id);
-                              }
-                            }),
-                            child: Text(
-                              selected.contains(event.id)
-                                  ? t.eventSelected
-                                  : t.eventSelect,
+                      t.screenEventsUpcomingCount(
+                        counts[_EventPhase.upcoming] ?? 0,
+                      ),
+                      t.screenEventsCompletedCount(
+                        counts[_EventPhase.completed] ?? 0,
+                      ),
+                    ].join(' · ')
+                  : t.screenEventsShown(visible.length),
+              dot: true,
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+        Text(
+          t.screenEventsDescription,
+          style: StitchType.body.copyWith(color: c.muted),
+        ),
+        const SizedBox(height: 16),
+        if (visible != null && visible.isNotEmpty) ...[
+          Semantics(
+            container: true,
+            label: t.screenEventsFilterLabel,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (final choice in _EventFilter.values)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Semantics(
+                        selected: filter == choice,
+                        child: StitchButton(
+                          compact: true,
+                          onPressed: () => setState(() => filter = choice),
+                          child: Text(
+                            _filterLabel(t, choice, counts, complete),
+                            style: StitchType.small.copyWith(
+                              color: filter == choice ? c.accent : c.muted,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ],
-                ),
+                ],
               ),
             ),
+          ),
+          if (!complete) ...[
+            const SizedBox(height: 6),
+            Text(
+              t.screenEventsLoadedOnly,
+              style: StitchType.caption.copyWith(color: c.muted),
+            ),
+          ],
+          const SizedBox(height: 16),
+        ],
+        if (result.hasError)
+          LoadFailure(onRetry: () => ref.invalidate(eventPageProvider(query)))
+        else if (!result.hasValue)
+          StitchSurface(
+            radius: VitalLayout.sectionRadius,
+            child: Semantics(
+              liveRegion: true,
+              child: Text(t.loadingRecords, style: StitchType.body),
+            ),
+          )
+        else if (visible!.isEmpty)
+          VitalEmptyState(
+            title: t.events,
+            description: t.eventEmpty,
+            icon: LucideIcons.calendarRange,
+          )
+        else if (shown.isEmpty) ...[
+          VitalEmptyState(
+            title: t.screenEventsNoMatches,
+            icon: LucideIcons.calendarRange,
+            action: VitalButton.secondary(
+              onPressed: () => setState(() => filter = _EventFilter.all),
+              child: Text(t.clear),
+            ),
+          ),
+        ] else
+          for (final event in shown)
+            Padding(
+              key: ValueKey(event.id),
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _EventCard(
+                key: ValueKey('screen-events-card-${event.id}'),
+                event: event,
+                now: now,
+                selected: selected.contains(event.id),
+                onToggleSelected: () => setState(() {
+                  if (!selected.add(event.id)) selected.remove(event.id);
+                }),
+              ),
+            ),
+        if (visible != null && visible.isNotEmpty)
           Wrap(
             spacing: 12,
             runSpacing: 12,
@@ -310,25 +523,475 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                   onPressed: () => setState(() => offset -= 50),
                   child: Text(t.previous),
                 ),
-              if (result.requireValue.length > 50)
+              if ((result.value?.length ?? 0) > 50)
                 VitalButton.secondary(
                   onPressed: () => setState(() => offset += 50),
                   child: Text(t.next),
                 ),
             ],
           ),
-          if (picked.isNotEmpty) ...[
-            Heading(t.eventCombined),
-            VitalButton.secondary(
-              onPressed: () => setState(() {
-                selected.clear();
-              }),
-              child: Text(t.eventClear),
-            ),
-            EventActualList(ids: (picked..sort()).join(',')),
-          ],
+        if (picked.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          Semantics(
+            header: true,
+            child: Text(t.eventCombined, style: StitchType.heading),
+          ),
+          const SizedBox(height: 12),
+          VitalButton.secondary(
+            onPressed: () => setState(selected.clear),
+            child: Text(t.eventClear),
+          ),
+          const SizedBox(height: 12),
+          EventActualList(ids: (picked..sort()).join(',')),
+        ],
+        if (visible != null && visible.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          const _EventContextNotice(),
         ],
       ],
+    );
+  }
+
+  String _filterLabel(
+    AppLocalizations t,
+    _EventFilter choice,
+    Map<_EventPhase, int> counts,
+    bool complete,
+  ) {
+    final (label, phase) = switch (choice) {
+      _EventFilter.all => (t.screenEventsAll, null),
+      _EventFilter.active => (t.screenEventsActive, _EventPhase.active),
+      _EventFilter.upcoming => (t.screenEventsUpcoming, _EventPhase.upcoming),
+      _EventFilter.completed => (t.eventCompleted, _EventPhase.completed),
+    };
+    return complete && phase != null
+        ? t.stitchFilterCount(label, counts[phase] ?? 0)
+        : label;
+  }
+}
+
+class _EventCard extends ConsumerStatefulWidget {
+  const _EventCard({
+    super.key,
+    required this.event,
+    required this.now,
+    required this.selected,
+    required this.onToggleSelected,
+  });
+  final EventRecord event;
+  final DateTime now;
+  final bool selected;
+  final VoidCallback onToggleSelected;
+  @override
+  ConsumerState<_EventCard> createState() => _EventCardState();
+}
+
+class _EventCardState extends ConsumerState<_EventCard> {
+  bool expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context), c = StitchColors(context);
+    final event = widget.event;
+    final phase = _eventPhase(event, widget.now);
+    final reviewDue = _eventReviewDue(event, widget.now);
+    final timing = cycleTiming(event, widget.now);
+    final completed = phase == _EventPhase.completed;
+    final selected = widget.selected;
+    final hasDates =
+        event.plannedStart != null ||
+        event.plannedEnd != null ||
+        event.actualStart != null ||
+        event.actualEnd != null;
+    final datesReview =
+        !completed &&
+        hasDates &&
+        timing.startsIn == null &&
+        timing.elapsed == null &&
+        timing.remaining == null;
+    final primary = switch (phase) {
+      _ when reviewDue => (
+        label: t.review,
+        route: '/event/${event.id}/review',
+        semantics: t.screenEventsReviewFor(event.name),
+        details: false,
+      ),
+      _EventPhase.completed => (
+        label: t.eventRevisions,
+        route: '/event/${event.id}/revisions',
+        semantics: t.screenEventsRevisionsFor(event.name),
+        details: false,
+      ),
+      _EventPhase.upcoming => (
+        label: t.stitchConfigure,
+        route: '/event/${event.id}/edit',
+        semantics: t.screenEventsConfigureFor(event.name),
+        details: false,
+      ),
+      _EventPhase.active => (
+        label: t.details,
+        route: '/event/${event.id}',
+        semantics: t.screenEventsDetailsFor(event.name),
+        details: true,
+      ),
+    };
+    final progress =
+        !completed &&
+        !_eventRangeEnded(event, widget.now) &&
+        timing.startsIn == null &&
+        timing.elapsed != null &&
+        timing.remaining != null &&
+        (timing.elapsed! + timing.remaining!) > 0;
+    final total = progress ? timing.elapsed! + timing.remaining! : 0;
+    final percent = progress
+        ? (((timing.elapsed! + 1) / total) * 100).round().clamp(0, 100)
+        : 0;
+    return StitchSurface(
+      radius: VitalLayout.sectionRadius,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        StitchBadge(switch (phase) {
+                          _EventPhase.active => t.screenEventsActive,
+                          _EventPhase.upcoming => t.screenEventsUpcoming,
+                          _EventPhase.completed => t.eventCompleted,
+                        }, dot: !completed),
+                        if (reviewDue)
+                          StitchBadge(t.screenEventsReviewDue, warning: true),
+                        if (datesReview)
+                          StitchBadge(t.screenEventsDatesReview, warning: true),
+                        Text(
+                          _eventTypeLabel(t, event),
+                          style: StitchType.small.copyWith(color: c.muted),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      event.name,
+                      style: StitchType.name.copyWith(color: c.ink),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _eventMetaText(context, ref, t, event, widget.now),
+                      style: StitchType.caption.copyWith(color: c.muted),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Semantics(
+                label: t.screenEventsMoreFor(event.name),
+                button: true,
+                expanded: expanded,
+                child: StitchButton(
+                  key: ValueKey('screen-events-more-${event.id}'),
+                  quiet: true,
+                  compact: true,
+                  icon: expanded ? LucideIcons.chevronUp : LucideIcons.ellipsis,
+                  onPressed: () => setState(() => expanded = !expanded),
+                  child: const SizedBox.shrink(),
+                ),
+              ),
+            ],
+          ),
+          if (progress) ...[
+            const SizedBox(height: 12),
+            MergeSemantics(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      Text(
+                        t.screenEventsHorizon,
+                        style: StitchType.small.copyWith(color: c.muted),
+                      ),
+                      Text(
+                        t.screenEventsPercentElapsed(percent),
+                        style: StitchType.small.copyWith(
+                          color: c.accent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ExcludeSemantics(
+                    child: LinearProgressIndicator(
+                      value: percent / 100,
+                      theme: LinearProgressIndicatorTheme(
+                        color: c.accent,
+                        backgroundColor: c.dark ? c.canvas : c.inset,
+                        minHeight: 8,
+                        borderRadius: BorderRadius.circular(
+                          VitalLayout.pillRadius,
+                        ),
+                        disableAnimation: MediaQuery.disableAnimationsOf(
+                          context,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (event.memberships.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              phase == _EventPhase.upcoming
+                  ? t.screenEventsPlannedItems
+                  : t.screenEventsLinkedItems,
+              style: StitchType.small.copyWith(
+                color: c.muted,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final membership in event.memberships)
+                  _EventItemChip(itemId: membership.itemId),
+              ],
+            ),
+          ],
+          if (completed) ...[
+            const SizedBox(height: 12),
+            StitchSurface(
+              inset: true,
+              radius: VitalLayout.sectionRadius,
+              padding: const EdgeInsets.all(12),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  ExcludeSemantics(
+                    child: Icon(
+                      LucideIcons.circleCheck,
+                      size: 20,
+                      color: c.accent,
+                    ),
+                  ),
+                  Text(
+                    t.screenEventsCompletedNote,
+                    style: StitchType.small.copyWith(color: c.muted),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              Semantics(
+                selected: selected,
+                label: selected
+                    ? t.screenEventsSelectedFor(event.name)
+                    : t.screenEventsSelectFor(event.name),
+                child: StitchButton(
+                  key: ValueKey('screen-events-select-${event.id}'),
+                  icon: selected ? LucideIcons.check : null,
+                  onPressed: widget.onToggleSelected,
+                  child: Text(
+                    selected ? t.eventSelected : t.eventSelect,
+                    style: StitchType.small.copyWith(
+                      color: selected ? c.accent : c.muted,
+                    ),
+                  ),
+                ),
+              ),
+              Semantics(
+                label: primary.semantics,
+                button: true,
+                child: StitchButton(
+                  key: ValueKey('screen-events-primary-${event.id}'),
+                  primary: primary.details || reviewDue,
+                  onPressed: () => context.push(primary.route),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(primary.label),
+                      if (primary.details) ...[
+                        const SizedBox(width: 6),
+                        ExcludeSemantics(
+                          child: Icon(
+                            LucideIcons.arrowRight,
+                            size: 16,
+                            color: c.accentInk,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (expanded) ...[
+            const SizedBox(height: 8),
+            StitchSurface(
+              inset: true,
+              radius: VitalLayout.sectionRadius,
+              padding: const EdgeInsets.all(12),
+              child: Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: [
+                  if (!primary.details)
+                    _EventMoreCommand(
+                      label: t.details,
+                      semantics: t.screenEventsDetailsFor(event.name),
+                      onPressed: () => context.push('/event/${event.id}'),
+                    ),
+                  if (primary.label != t.eventRevisions)
+                    _EventMoreCommand(
+                      label: t.eventRevisions,
+                      semantics: t.screenEventsRevisionsFor(event.name),
+                      onPressed: () =>
+                          context.push('/event/${event.id}/revisions'),
+                    ),
+                  _EventMoreCommand(
+                    label: t.screenEventsNote,
+                    semantics: t.screenEventsNoteFor(event.name),
+                    onPressed: () => _showNotesPreview(context, t),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showNotesPreview(BuildContext context, AppLocalizations t) =>
+      showDialog<void>(
+        context: context,
+        builder: (context) => VitalDialog(
+          title: Text(t.screenEventsNotes),
+          content: Text(t.screenEventsNotesUnavailable),
+          actions: [
+            StitchButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(t.done),
+            ),
+          ],
+        ),
+      );
+}
+
+class _EventMoreCommand extends StatelessWidget {
+  const _EventMoreCommand({
+    required this.label,
+    required this.semantics,
+    required this.onPressed,
+  });
+  final String label, semantics;
+  final VoidCallback onPressed;
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: semantics,
+    button: true,
+    child: StitchButton(
+      quiet: true,
+      compact: true,
+      onPressed: onPressed,
+      child: Text(
+        label,
+        style: StitchType.small.copyWith(
+          color: StitchColors(context).accent,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
+  );
+}
+
+class _EventItemChip extends ConsumerWidget {
+  const _EventItemChip({required this.itemId});
+  final String itemId;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context), c = StitchColors(context);
+    final item = ref.watch(itemLookupProvider(itemId)).value;
+    return Container(
+      constraints: const BoxConstraints(minHeight: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: c.inset,
+        borderRadius: BorderRadius.circular(VitalLayout.pillRadius),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ExcludeSemantics(
+            child: Icon(LucideIcons.pill, size: 15, color: c.accent),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              item?.name ?? t.loadingRecords,
+              style: StitchType.small.copyWith(color: c.ink),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EventContextNotice extends StatelessWidget {
+  const _EventContextNotice();
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    return StitchSurface(
+      radius: VitalLayout.sectionRadius,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          StitchIcon(LucideIcons.info, size: 40),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(t.screenEventsContext, style: StitchType.name),
+                const SizedBox(height: 4),
+                Text(
+                  t.eventHelp,
+                  style: StitchType.caption.copyWith(
+                    color: StitchColors(context).muted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -465,100 +1128,249 @@ class EventDetailPage extends ConsumerWidget {
     if (!result.hasValue) return EntryPage(children: [Text(t.loadingRecords)]);
     final event = result.requireValue;
     if (event == null) return EntryPage(children: [Text(t.draftUnavailable)]);
-    final timing = cycleTiming(event, DateTime.now().toUtc());
+    final now = ref.watch(todayNowProvider)();
+    final timing = cycleTiming(event, now);
+    final phase = _eventPhase(event, now);
+    final completed = phase == _EventPhase.completed;
+    final reviewDue = _eventReviewDue(event, now);
+    final c = StitchColors(context);
+    final hasDates =
+        event.plannedStart != null ||
+        event.plannedEnd != null ||
+        event.actualStart != null ||
+        event.actualEnd != null;
+    final timingUnavailable =
+        hasDates &&
+        !completed &&
+        timing.startsIn == null &&
+        timing.elapsed == null &&
+        timing.remaining == null;
     return EntryPage(
+      panelled: false,
       children: [
         Heading(t.events),
-        Text(
-          event.name,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-        ),
-        Text(t.profileOwner(ownerLabel(ref, t, event.personId))),
-        VitalButton.secondary(
-          onPressed: () => context.push(
-            supportingLocation(
-              event.personId,
-              event: event.id,
-              back: '/event/${event.id}',
-            ),
-          ),
-          child: Text(t.supportingTitle),
-        ),
-        Text(
-          event.eventType == 'cycle'
-              ? t.eventCycle
-              : event.eventType == 'prescription'
-              ? t.eventPrescription
-              : event.eventType,
-        ),
-        const SizedBox(height: 16),
-        VitalSurface(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                t.eventPlannedLabel(
-                  eventDateLabel(t, event.plannedStart),
-                  eventDateLabel(t, event.plannedEnd, open: true),
-                ),
-              ),
-              if (event.actualStart != null || event.actualEnd != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  t.eventActualLabel(
-                    eventDateLabel(t, event.actualStart),
-                    eventDateLabel(t, event.actualEnd, open: true),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 8),
-              Text(event.zoneId),
-              Text(t.eventInclusive),
-              if (timing.startsIn case final days?) Text(t.cycleStartsIn(days)),
-              if (timing.elapsed case final days?) Text(t.cycleElapsed(days)),
-              if (timing.remaining case final days?)
-                Text(t.cycleRemaining(days)),
-              if (event.completed) Text(t.eventCompleted),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
         Wrap(
-          spacing: 12,
-          runSpacing: 12,
+          spacing: 8,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            VitalButton.secondary(
-              onPressed: () => context.push('/event/${event.id}/edit'),
-              child: Text(t.edit),
-            ),
-            VitalButton.secondary(
-              onPressed: () => context.push('/event/${event.id}/revisions'),
-              child: Text(t.eventRevisions),
-            ),
-            VitalButton.secondary(
-              onPressed: () => context.push('/event/${event.id}/review'),
-              child: Text(t.review),
+            StitchBadge(switch (phase) {
+              _EventPhase.active => t.screenEventsActive,
+              _EventPhase.upcoming => t.screenEventsUpcoming,
+              _EventPhase.completed => t.eventCompleted,
+            }, dot: !completed),
+            if (reviewDue) StitchBadge(t.screenEventsReviewDue, warning: true),
+            if (timingUnavailable)
+              StitchBadge(t.screenEventsDatesReview, warning: true),
+            Text(
+              _eventTypeLabel(t, event),
+              style: StitchType.small.copyWith(color: c.muted),
             ),
           ],
         ),
-        const SizedBox(height: 24),
-        Heading(t.eventMembers),
-        if (event.memberships.isEmpty) Text(t.eventNoMembers),
+        const SizedBox(height: 8),
+        Semantics(
+          header: true,
+          child: Text(event.name, style: VitalType.detailTitle),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          _eventMetaText(context, ref, t, event, now),
+          style: StitchType.body.copyWith(color: c.muted),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            Semantics(
+              label: t.screenEventsEditFor(event.name),
+              button: true,
+              child: StitchButton(
+                primary: true,
+                onPressed: () => context.push('/event/${event.id}/edit'),
+                child: Text(t.edit),
+              ),
+            ),
+            Semantics(
+              label: t.screenEventsRevisionsFor(event.name),
+              button: true,
+              child: StitchButton(
+                onPressed: () => context.push('/event/${event.id}/revisions'),
+                child: Text(t.eventRevisions),
+              ),
+            ),
+            if (!completed)
+              Semantics(
+                label: t.screenEventsReviewFor(event.name),
+                button: true,
+                child: StitchButton(
+                  onPressed: () => context.push('/event/${event.id}/review'),
+                  child: Text(t.review),
+                ),
+              ),
+            StitchButton(
+              onPressed: () => context.push(
+                supportingLocation(
+                  event.personId,
+                  event: event.id,
+                  back: '/event/${event.id}',
+                ),
+              ),
+              child: Text(t.supportingTitle),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        Semantics(
+          header: true,
+          child: Text(t.screenEventsDates, style: StitchType.heading),
+        ),
+        const SizedBox(height: 12),
+        StitchSurface(
+          radius: VitalLayout.sectionRadius,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _EventFact(
+                label: t.screenEventsPlanned,
+                value: _eventSpanText(
+                  context,
+                  ref,
+                  t,
+                  event.plannedStart,
+                  event.plannedEnd,
+                  event.zoneId,
+                ),
+              ),
+              if (event.actualStart != null || event.actualEnd != null) ...[
+                const SizedBox(height: 12),
+                _EventFact(
+                  label: t.screenEventsActual,
+                  value: _eventSpanText(
+                    context,
+                    ref,
+                    t,
+                    event.actualStart,
+                    event.actualEnd,
+                    event.zoneId,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
+              _EventFact(label: t.eventZone, value: event.zoneId),
+              const SizedBox(height: 10),
+              Text(
+                t.eventInclusive,
+                style: StitchType.caption.copyWith(color: c.muted),
+              ),
+              if (timing.startsIn case final days?) ...[
+                const SizedBox(height: 10),
+                _TimingRow(
+                  icon: LucideIcons.calendarClock,
+                  text: t.cycleStartsIn(days),
+                ),
+              ],
+              if (timing.elapsed case final days?) ...[
+                const SizedBox(height: 10),
+                _TimingRow(
+                  icon: LucideIcons.clock3,
+                  text: t.cycleElapsed(days),
+                ),
+              ],
+              if (timing.remaining case final days?) ...[
+                const SizedBox(height: 10),
+                _TimingRow(
+                  icon: LucideIcons.clock3,
+                  text: t.cycleRemaining(days),
+                ),
+              ],
+              if (timingUnavailable) ...[
+                const SizedBox(height: 10),
+                Text(
+                  t.eventBoundaryReview,
+                  style: StitchType.caption.copyWith(color: c.amber),
+                ),
+              ],
+              if (completed) ...[
+                const SizedBox(height: 12),
+                StitchBadge(t.eventCompleted, dot: false),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        Semantics(
+          header: true,
+          child: Text(t.eventMembers, style: StitchType.heading),
+        ),
+        const SizedBox(height: 12),
+        if (event.memberships.isEmpty)
+          Text(
+            t.eventNoMembers,
+            style: StitchType.body.copyWith(color: c.muted),
+          ),
         for (final m in event.memberships)
           Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: MembershipIdentity(
-              membership: m,
-              zoneId: event.zoneId,
-              peerIds: event.memberships.map((row) => row.itemId),
+            padding: const EdgeInsets.only(bottom: 8),
+            child: StitchSurface(
+              inset: true,
+              radius: VitalLayout.sectionRadius,
+              padding: const EdgeInsets.all(12),
+              child: MembershipIdentity(
+                membership: m,
+                zoneId: event.zoneId,
+                peerIds: event.memberships.map((row) => row.itemId),
+              ),
             ),
           ),
-        const SizedBox(height: 24),
-        Heading(t.history),
+        const SizedBox(height: 12),
+        Semantics(
+          header: true,
+          child: Text(t.history, style: StitchType.heading),
+        ),
+        const SizedBox(height: 12),
         EventActualList(ids: event.id),
       ],
     );
   }
+}
+
+class _EventFact extends StatelessWidget {
+  const _EventFact({required this.label, required this.value});
+  final String label, value;
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: StitchType.small.copyWith(
+          color: StitchColors(context).muted,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      const SizedBox(height: 4),
+      Text(value, style: StitchType.body),
+    ],
+  );
+}
+
+class _TimingRow extends StatelessWidget {
+  const _TimingRow({required this.icon, required this.text});
+  final IconData icon;
+  final String text;
+  @override
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      ExcludeSemantics(
+        child: Icon(icon, size: 16, color: StitchColors(context).accent),
+      ),
+      const SizedBox(width: 8),
+      Expanded(child: Text(text, style: StitchType.body)),
+    ],
+  );
 }
 
 class MembershipIdentity extends ConsumerWidget {

@@ -7689,5 +7689,257 @@
         "type": "String"
       }
     }
+  },
+  "screenEventsDescription": "Courses and cycles add context to your recorded use.",
+  "@screenEventsDescription": {
+    "description": "Short description under the Events page title."
+  },
+  "screenEventsActive": "Active",
+  "@screenEventsActive": {
+    "description": "Event status for an event that has started and is not marked complete."
+  },
+  "screenEventsUpcoming": "Upcoming",
+  "@screenEventsUpcoming": {
+    "description": "Event status for an event whose start date is still in the future."
+  },
+  "screenEventsAll": "All",
+  "@screenEventsAll": {
+    "description": "Filter choice that shows every loaded event."
+  },
+  "screenEventsActiveCount": "{count, plural, =1{1 active} other{{count} active}}",
+  "@screenEventsActiveCount": {
+    "description": "Loaded active event count for the Events header.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenEventsUpcomingCount": "{count, plural, =1{1 upcoming} other{{count} upcoming}}",
+  "@screenEventsUpcomingCount": {
+    "description": "Loaded upcoming event count for the Events header.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenEventsCompletedCount": "{count, plural, =1{1 completed} other{{count} completed}}",
+  "@screenEventsCompletedCount": {
+    "description": "Loaded completed event count for the Events header.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenEventsShown": "{count, plural, =1{1 shown} other{{count} shown}}",
+  "@screenEventsShown": {
+    "description": "Header count when more than one page of events exists, so the shown number is not presented as a whole-collection count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenEventsLoadedOnly": "Filters only cover the events shown.",
+  "@screenEventsLoadedOnly": {
+    "description": "Explains that status filters cover only the loaded event page, not the whole collection."
+  },
+  "screenEventsNoMatches": "No events match this filter.",
+  "@screenEventsNoMatches": {
+    "description": "Filtered empty state for the Events list."
+  },
+  "screenEventsRange": "{start} to {end}",
+  "@screenEventsRange": {
+    "description": "Event date range. Values keep their recorded precision.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "screenEventsStarted": "Started {date}",
+  "@screenEventsStarted": {
+    "description": "Event with a start date and no end date.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "screenEventsStarts": "Starts {date}",
+  "@screenEventsStarts": {
+    "description": "Future event start date.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "screenEventsNoDates": "No dates recorded",
+  "@screenEventsNoDates": {
+    "description": "Event has neither a usable start nor end date."
+  },
+  "screenEventsDayOf": "Day {day} of {total}",
+  "@screenEventsDayOf": {
+    "description": "Elapsed day position in an event whose start and end both resolve. This describes time, not adherence.",
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "screenEventsPercentElapsed": "{percent}% elapsed",
+  "@screenEventsPercentElapsed": {
+    "description": "Time elapsed in the event date range. Never an adherence percentage.",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "screenEventsHorizon": "Cycle horizon",
+  "@screenEventsHorizon": {
+    "description": "Label for elapsed time across an event's date range."
+  },
+  "screenEventsLinkedItems": "Linked items",
+  "@screenEventsLinkedItems": {
+    "description": "Items recorded as members of an active or completed event."
+  },
+  "screenEventsPlannedItems": "Planned items",
+  "@screenEventsPlannedItems": {
+    "description": "Items recorded as members of a future event."
+  },
+  "screenEventsDatesReview": "Dates need review",
+  "@screenEventsDatesReview": {
+    "description": "Short warning when an event date boundary cannot resolve, so timing and the derived status stay uncertain."
+  },
+  "screenEventsReviewDue": "End review due",
+  "@screenEventsReviewDue": {
+    "description": "The event end date has passed and its end review has not been dismissed or completed."
+  },
+  "screenEventsMoreFor": "More actions for {name}",
+  "@screenEventsMoreFor": {
+    "description": "Accessible label for the event card overflow control.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "screenEventsDetailsFor": "Details for {name}",
+  "@screenEventsDetailsFor": {
+    "description": "Accessible label for opening an event's details. It contains the visible Details command.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "screenEventsEditFor": "Edit {name}",
+  "@screenEventsEditFor": {
+    "description": "Accessible label for editing an event. It contains the visible Edit command.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "screenEventsSelectFor": "Select {name} for combined history",
+  "@screenEventsSelectFor": {
+    "description": "Accessible label for adding an event to the combined history selection.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "screenEventsSelectedFor": "Selected {name} for combined history",
+  "@screenEventsSelectedFor": {
+    "description": "Accessible label when an event is already in the combined history selection.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "screenEventsConfigureFor": "Configure {name}",
+  "@screenEventsConfigureFor": {
+    "description": "Accessible label for opening an upcoming event's configuration.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "screenEventsReviewFor": "Review the end of {name}",
+  "@screenEventsReviewFor": {
+    "description": "Accessible label for the end review action.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "screenEventsRevisionsFor": "Revisions for {name}",
+  "@screenEventsRevisionsFor": {
+    "description": "Accessible label for an event's revision history.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "screenEventsNoteFor": "Add a note for {name}",
+  "@screenEventsNoteFor": {
+    "description": "Accessible label for the unavailable event note preview.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "screenEventsNote": "Note",
+  "@screenEventsNote": {
+    "description": "One-word visible label for the event note preview."
+  },
+  "screenEventsNotes": "Event notes",
+  "@screenEventsNotes": {
+    "description": "Title for the unavailable event notes preview."
+  },
+  "screenEventsNotesUnavailable": "Saved event notes are not available in this version. Nothing is added.",
+  "@screenEventsNotesUnavailable": {
+    "description": "Truthful preview state. Does not claim saved notes exist."
+  },
+  "screenEventsCompletedNote": "Marked complete. Recorded history stays available.",
+  "@screenEventsCompletedNote": {
+    "description": "Factual completion state. Does not claim that every item was audited."
+  },
+  "screenEventsContext": "Event context",
+  "@screenEventsContext": {
+    "description": "Title for the factual notice about what events do and do not change."
+  },
+  "screenEventsDates": "Dates",
+  "@screenEventsDates": {
+    "description": "Heading for event dates and timing on the detail page."
+  },
+  "screenEventsPlanned": "Planned",
+  "@screenEventsPlanned": {
+    "description": "Label for the planned event date range."
+  },
+  "screenEventsActual": "Actual",
+  "@screenEventsActual": {
+    "description": "Label for the actual event date range."
+  },
+  "screenEventsFilterLabel": "Event status",
+  "@screenEventsFilterLabel": {
+    "description": "Accessible label for the event status filter strip."
   }
 }
