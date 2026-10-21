@@ -228,7 +228,16 @@ void main() {
           }
           if (route.key == 'substance-overview') {
             await waitForText(tester, items.first.name);
+            final tabs = find.byType(VitalSegments<int>);
+            await tester.tap(
+              find.descendant(of: tabs, matching: find.text('Schedule')),
+            );
+            await settle(tester);
             await waitForText(tester, 'Planned once a day, 1 mg each');
+            await tester.tap(
+              find.descendant(of: tabs, matching: find.text('Overview')),
+            );
+            await settle(tester);
           }
           if (route.key == 'substances') {
             await waitForText(tester, 'Magnesium Glycinate');

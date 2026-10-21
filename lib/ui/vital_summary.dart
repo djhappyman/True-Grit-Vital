@@ -281,12 +281,17 @@ class VitalProgress extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        LinearProgressIndicator(
-          value: fraction.isFinite ? fraction.clamp(0.0, 1.0) : 0.0,
-          theme: LinearProgressIndicatorTheme(
-            minHeight: 10,
-            borderRadius: BorderRadius.circular(999),
-            disableAnimation: MediaQuery.disableAnimationsOf(context),
+        TweenAnimationBuilder<double>(
+          tween: Tween(end: fraction.isFinite ? fraction.clamp(0.0, 1.0) : 0.0),
+          duration: VitalMotion.duration(context, VitalMotion.progress),
+          curve: VitalMotion.arrival,
+          builder: (_, value, _) => LinearProgressIndicator(
+            value: value,
+            theme: LinearProgressIndicatorTheme(
+              minHeight: 10,
+              borderRadius: BorderRadius.circular(999),
+              disableAnimation: true,
+            ),
           ),
         ),
       ],

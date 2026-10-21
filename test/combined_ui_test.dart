@@ -1,3 +1,5 @@
+import 'package:true_grit_vital/ui/vital_presenters.dart';
+
 import 'fixtures/single_user.dart';
 
 import 'dart:convert';
@@ -175,7 +177,13 @@ void main() {
         () => f.store.saveBrowsingScope(const FeedScope.me()),
       );
       await settle(tester);
-      expect(find.text('Person: Same complete adult name'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(VitalTaskFrame),
+          matching: find.text('Person: Same complete adult name'),
+        ),
+        findsOneWidget,
+      );
       for (final size in [
         const Size(812, 375),
         const Size(1280, 800),
@@ -299,6 +307,7 @@ void main() {
         findsNothing,
       );
       await enter(tester, 'Amount', '1');
+      await tap(tester, 'More');
       await tap(tester, 'Site');
       await enter(tester, 'Site (optional)', '  Exact personal site label  ');
       await tap(tester, 'Save');
@@ -542,7 +551,13 @@ void main() {
         () => f.store.saveBrowsingScope(const FeedScope.everyone()),
       );
       await settle(tester);
-      expect(find.text('Person: Me'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(VitalTaskFrame),
+          matching: find.text('Person: Me'),
+        ),
+        findsOneWidget,
+      );
       await tap(tester, 'Review');
       final draft = (await runIo(tester, f.store.drafts))!.single;
       final frozen = decodeCombinedUse(

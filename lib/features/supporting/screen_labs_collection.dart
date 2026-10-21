@@ -263,11 +263,84 @@ class _ScreenLabsCollectionPageState
                 reset();
               }),
             ),
-            _filterChip(
-              t.supportingFilters,
-              selected: filters,
-              icon: LucideIcons.slidersHorizontal,
-              onPressed: () => setState(() => filters = !filters),
+            VitalLocalOptions(
+              label: t.supportingFilters,
+              content: StitchSurface(
+                inset: true,
+                radius: VitalLayout.sectionRadius,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Semantics(
+                      header: true,
+                      child: Text(t.supportingFilters, style: StitchType.name),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(t.supportingDateBasis, style: StitchType.label),
+                    const SizedBox(height: 8),
+                    VitalSegments<SupportingDateBasis>(
+                      values: SupportingDateBasis.values,
+                      selected: basis,
+                      onChanged: (value) => setState(() {
+                        basis = value;
+                        reset();
+                      }),
+                      label: (value) => switch (value) {
+                        SupportingDateBasis.collection =>
+                          kind == SupportingRecordKind.observation
+                              ? t.supportingMeasured
+                              : t.supportingCollection,
+                        SupportingDateBasis.report => t.supportingReportChoice,
+                        SupportingDateBasis.entry => t.supportingEntryChoice,
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    LabelledInput(label: t.supportingFrom, controller: from),
+                    const SizedBox(height: 12),
+                    LabelledInput(
+                      label: t.supportingBefore,
+                      controller: before,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _rangeSummary(t),
+                      style: StitchType.caption.copyWith(
+                        color: StitchColors(context).muted,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SettingsToggleRow(
+                      label: t.supportingIncludeUnknown,
+                      description: t.supportingIncludeUnknownHint,
+                      value: unknown,
+                      reduceMotion: MediaQuery.disableAnimationsOf(context),
+                      onChanged: (value) => setState(() {
+                        unknown = value;
+                        reset();
+                      }),
+                    ),
+                    SettingsToggleRow(
+                      label: t.supportingIncludeVoided,
+                      description: t.supportingIncludeVoidedHint,
+                      value: voided,
+                      reduceMotion: MediaQuery.disableAnimationsOf(context),
+                      onChanged: (value) => setState(() {
+                        voided = value;
+                        reset();
+                      }),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: StitchButton(
+                        primary: true,
+                        onPressed: () => applyFilters(t),
+                        child: Text(t.supportingApply),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -279,82 +352,6 @@ class _ScreenLabsCollectionPageState
             before: appliedBefore,
             includeUnknown: unknown,
             includeVoided: voided,
-          ),
-        ],
-        if (filters) ...[
-          const SizedBox(height: 12),
-          StitchSurface(
-            inset: true,
-            radius: VitalLayout.sectionRadius,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Semantics(
-                  header: true,
-                  child: Text(t.supportingFilters, style: StitchType.name),
-                ),
-                const SizedBox(height: 12),
-                Text(t.supportingDateBasis, style: StitchType.label),
-                const SizedBox(height: 8),
-                VitalSegments<SupportingDateBasis>(
-                  values: SupportingDateBasis.values,
-                  selected: basis,
-                  onChanged: (value) => setState(() {
-                    basis = value;
-                    reset();
-                  }),
-                  label: (value) => switch (value) {
-                    SupportingDateBasis.collection =>
-                      kind == SupportingRecordKind.observation
-                          ? t.supportingMeasured
-                          : t.supportingCollection,
-                    SupportingDateBasis.report => t.supportingReportChoice,
-                    SupportingDateBasis.entry => t.supportingEntryChoice,
-                  },
-                ),
-                const SizedBox(height: 12),
-                LabelledInput(label: t.supportingFrom, controller: from),
-                const SizedBox(height: 12),
-                LabelledInput(label: t.supportingBefore, controller: before),
-                const SizedBox(height: 8),
-                Text(
-                  _rangeSummary(t),
-                  style: StitchType.caption.copyWith(
-                    color: StitchColors(context).muted,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SettingsToggleRow(
-                  label: t.supportingIncludeUnknown,
-                  description: t.supportingIncludeUnknownHint,
-                  value: unknown,
-                  reduceMotion: MediaQuery.disableAnimationsOf(context),
-                  onChanged: (value) => setState(() {
-                    unknown = value;
-                    reset();
-                  }),
-                ),
-                SettingsToggleRow(
-                  label: t.supportingIncludeVoided,
-                  description: t.supportingIncludeVoidedHint,
-                  value: voided,
-                  reduceMotion: MediaQuery.disableAnimationsOf(context),
-                  onChanged: (value) => setState(() {
-                    voided = value;
-                    reset();
-                  }),
-                ),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: StitchButton(
-                    primary: true,
-                    onPressed: () => applyFilters(t),
-                    child: Text(t.supportingApply),
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
         if (error != null) ...[

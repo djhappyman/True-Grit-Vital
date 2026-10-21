@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/material.dart' show showDialog;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -361,7 +360,7 @@ class _ObservationChip extends StatelessWidget {
 Future<void> showDashboardFavouritesDialog(
   BuildContext context,
   DashboardPlanCollection collection,
-) => showDialog<void>(
+) => showVitalDialog<void>(
   context: context,
   builder: (context) => DashboardFavouritesDialog(collection: collection),
 );

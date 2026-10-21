@@ -5,9 +5,12 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../l10n/app_localizations.dart';
 
 export 'vital_summary.dart';
+export 'vital_motion.dart';
+export 'vital_presenters.dart';
 export 'vital_foundation.dart';
 
 import 'vital_foundation.dart';
+import 'vital_motion.dart';
 
 enum VitalButtonVariant { primary, secondary, destructive }
 
@@ -940,7 +943,7 @@ class VitalSegments<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final style = theme.typography.small.merge(theme.typography.medium);
+    final style = VitalType.label.copyWith(fontWeight: FontWeight.w600);
     final scaler = MediaQuery.textScalerOf(context);
     final direction = Directionality.of(context);
     final widths = values.map((value) {
@@ -950,7 +953,7 @@ class VitalSegments<T> extends StatelessWidget {
         textScaler: scaler,
         maxLines: 1,
       )..layout();
-      final width = painter.width + 40;
+      final width = painter.width + 16;
       painter.dispose();
       return width < VitalLayout.target ? VitalLayout.target : width;
     }).toList();
@@ -979,13 +982,62 @@ class VitalSegments<T> extends StatelessWidget {
               ],
             );
           }
-          return Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: [for (final value in values) _option(value)],
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var i = 0; i < values.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 4),
+                  SizedBox(width: widths[i], child: _option(values[i])),
+                ],
+              ],
+            ),
           );
         },
       ),
     );
   }
+}
+
+/// Shared optional information, preserving input state while collapsed.
+class VitalDisclosure extends StatefulWidget {
+  const VitalDisclosure({
+    super.key,
+    required this.title,
+    required this.child,
+    this.initiallyExpanded = false,
+  });
+  final String title;
+  final Widget child;
+  final bool initiallyExpanded;
+  @override
+  State<VitalDisclosure> createState() => _VitalDisclosureState();
+}
+
+class _VitalDisclosureState extends State<VitalDisclosure> {
+  late bool _expanded = widget.initiallyExpanded;
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Semantics(
+        expanded: _expanded,
+        child: VitalButton.secondary(
+          leading: Icon(
+            _expanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+          ),
+          onPressed: () => setState(() => _expanded = !_expanded),
+          child: Text(widget.title),
+        ),
+      ),
+      VitalReveal(
+        expanded: _expanded,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: widget.child,
+        ),
+      ),
+    ],
+  );
 }

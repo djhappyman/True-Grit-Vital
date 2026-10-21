@@ -6,14 +6,14 @@ Owner authorised 21 October 2026: finish D06/D07/D09, verify and push; then impl
 
 | Step | Scope | Acceptance | Status |
 | --- | --- | --- | --- |
-| M00 | Feature baseline | Review both DeepSeek results, integrate with exact dose presets, regenerate localisation, verify combined features and push a clean checkpoint. | Verified; checkpoint publishing |
-| M01 | Shared motion and presentation | Central tokens; reusable route, sheet, disclosure, menu/popover and tab adapters; respect system/app reduced motion, focus and privacy. Existing Vital/Stitch APIs share the implementation. | Ready after M00 |
-| M02 | Root navigation | Persistent Today/Substances/Events/History PageView, dock/route synchronisation, retained per-tab state, nested gesture priority and Back/deep-link checks. | Pending |
-| M03 | Dose workflows | Record/correct/combined use actual guarded modal task sheets; concise initial content, relevant source/consequence, optional disclosure and complete dismissal handling. | Pending |
-| M04 | Calendar paging | History month and Today week PageViews change actual period queries; accessible controls, stable geometry and selected-date semantics. | Pending |
-| M05 | Screen simplification | Migrate every screen group below to its assigned presentation; use existing shared components and retain real commands/context. | Pending |
-| M06 | Combined verification | Full tests/analysis, native boot, light/dark captures, narrow/large text, keyboard, paging/interruption/dismissal and reduced-motion checks. | Pending |
-| M07 | First development prerelease | Build debug APK, verify metadata/checksum, commit changelog bullets, push, tag and publish GitHub prerelease with APK, checksum and accurate known limits. | Pending |
+| M00 | Feature baseline | Review both DeepSeek results, integrate with exact dose presets, regenerate localisation, verify combined features and push a clean checkpoint. | Completed: pushed `760eb4e` |
+| M01 | Shared motion and presentation | Central tokens; reusable route, sheet, disclosure, menu/popover and tab adapters; respect system/app reduced motion, focus and privacy. Existing Vital/Stitch APIs share the implementation. | Completed; see motion review |
+| M02 | Root navigation | Persistent Today/Substances/Events/History PageView, dock/route synchronisation, retained per-tab state, nested gesture priority and Back/deep-link checks. | Completed; see motion review |
+| M03 | Dose workflows | Record/correct/combined use actual guarded modal task sheets; concise initial content, relevant source/consequence, optional disclosure and complete dismissal handling. | Completed; see motion review |
+| M04 | Calendar paging | History month and Today week PageViews change actual period queries; accessible controls, stable geometry and selected-date semantics. | Completed; see motion review |
+| M05 | Screen simplification | Migrate every screen group below to its assigned presentation; use existing shared components and retain real commands/context. | Completed; see motion review |
+| M06 | Combined verification | Full tests/analysis, native boot, light/dark captures, narrow/large text, keyboard, paging/interruption/dismissal and reduced-motion checks. | Analysis, focused tests, captures, native boot and APK passed; final full run stopped by owner for publication |
+| M07 | First development prerelease | Build debug APK, verify metadata/checksum, commit changelog bullets, push, tag and publish GitHub prerelease with APK, checksum and accurate known limits. | APK verified; publishing `v0.1.0-alpha.1` |
 
 Use explicit evidence and commits for each completed step. Screens remain canonical; adapting presentation does not create a second mock implementation. Add no dependencies or tool upgrades for this rollout. Preserve existing record/draft/lock/operation engines.
 

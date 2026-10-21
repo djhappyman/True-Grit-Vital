@@ -128,6 +128,8 @@ void main() {
     );
     container.read(routerProvider).go('/settings');
     await waitFor(find.text('Appearance, privacy, records and help.'));
+    await tester.tap(find.text('Data').first);
+    await waitFor(find.text('Reports'));
     for (final label in ['Reports', 'Exports', 'Backup', 'Restore']) {
       expect(find.text(label), findsOneWidget);
     }

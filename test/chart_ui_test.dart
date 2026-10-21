@@ -262,6 +262,7 @@ void main() {
       await settle(tester);
       expect(find.text('Source'), findsWidgets);
       await tap(tester, 'Correct');
+      await tap(tester, 'Edit');
       final date = find.descendant(
         of: find.widgetWithText(LabelledInput, 'Actual date'),
         matching: find.byType(TextField),

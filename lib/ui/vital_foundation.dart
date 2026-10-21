@@ -1,3 +1,5 @@
+import 'vital_motion.dart';
+
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 /// One source for the geometry used by both current and compatibility widgets.
@@ -140,7 +142,9 @@ class VitalSurfaceFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = VitalColors(context);
-    return Container(
+    return AnimatedContainer(
+      duration: VitalMotion.duration(context, VitalMotion.theme),
+      curve: VitalMotion.geometry,
       decoration: BoxDecoration(
         color: inset ? c.inset : c.surface,
         borderRadius: BorderRadius.circular(radius),
@@ -160,7 +164,18 @@ class VitalSurfaceFrame extends StatelessWidget {
       padding: padding,
       child: DefaultTextStyle.merge(
         style: VitalType.body.copyWith(color: c.ink),
-        child: child,
+        child: VitalMotion.reduced(context)
+            ? child
+            : AnimatedSize(
+                duration: VitalMotion.duration(context, VitalMotion.expand),
+                reverseDuration: VitalMotion.duration(
+                  context,
+                  VitalMotion.collapse,
+                ),
+                curve: VitalMotion.geometry,
+                alignment: Alignment.topCenter,
+                child: child,
+              ),
       ),
     );
   }
@@ -199,36 +214,41 @@ class VitalControlStyle extends StatelessWidget {
         : quiet
         ? Colors.transparent
         : c.inset;
-    return ConstrainedBox(
-      constraints: const BoxConstraints(
-        minHeight: VitalLayout.target,
-        minWidth: VitalLayout.target,
-      ),
-      child: ButtonStyleOverride(
-        padding: (_, _, _) => padding,
-        decoration: (_, states, decoration) {
-          if (decoration is! BoxDecoration) return decoration;
-          final disabled = states.contains(WidgetState.disabled) && !isLoading;
-          return decoration.copyWith(
-            color: disabled ? c.inset : fill,
-            border: Border.all(color: disabled ? c.muted : Colors.transparent),
-            borderRadius: BorderRadius.circular(VitalLayout.pillRadius),
-            boxShadow: const [],
-          );
-        },
-        textStyle: (_, states, _) => VitalType.label.copyWith(
-          color: states.contains(WidgetState.disabled) && !isLoading
-              ? c.muted
-              : ink,
-          fontWeight: FontWeight.w600,
+    return VitalPress(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minHeight: VitalLayout.target,
+          minWidth: VitalLayout.target,
         ),
-        iconTheme: (_, states, theme) => theme.copyWith(
-          color: states.contains(WidgetState.disabled) && !isLoading
-              ? c.muted
-              : ink,
-          size: 18,
+        child: ButtonStyleOverride(
+          padding: (_, _, _) => padding,
+          decoration: (_, states, decoration) {
+            if (decoration is! BoxDecoration) return decoration;
+            final disabled =
+                states.contains(WidgetState.disabled) && !isLoading;
+            return decoration.copyWith(
+              color: disabled ? c.inset : fill,
+              border: Border.all(
+                color: disabled ? c.muted : Colors.transparent,
+              ),
+              borderRadius: BorderRadius.circular(VitalLayout.pillRadius),
+              boxShadow: const [],
+            );
+          },
+          textStyle: (_, states, _) => VitalType.label.copyWith(
+            color: states.contains(WidgetState.disabled) && !isLoading
+                ? c.muted
+                : ink,
+            fontWeight: FontWeight.w600,
+          ),
+          iconTheme: (_, states, theme) => theme.copyWith(
+            color: states.contains(WidgetState.disabled) && !isLoading
+                ? c.muted
+                : ink,
+            size: 18,
+          ),
+          child: child,
         ),
-        child: child,
       ),
     );
   }

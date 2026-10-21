@@ -8,7 +8,7 @@ import 'package:true_grit_vital/domain/privacy/diagnostics.dart';
 import 'package:true_grit_vital/domain/privacy/settings_capabilities.dart';
 import 'package:true_grit_vital/features/settings/settings_widgets.dart';
 
-import '../vital_app_test.dart' show appTest, launch, runIo, tap;
+import '../vital_app_test.dart' show appTest, launch, runIo, tap, settle;
 
 const _mit = 'MIT License\n\nPermission is hereby granted.';
 
@@ -32,12 +32,16 @@ void main() {
       'Privacy',
       'Appearance',
       'Reminders',
-      'Diagnostics',
       'Help',
       'Licences',
     ]) {
       expect(find.text(label), findsWidgets, reason: label);
     }
+    await tester.tap(find.text('Privacy').first);
+    await settle(tester);
+    expect(find.text('Diagnostics'), findsOneWidget);
+    await tester.tap(find.text('Data').first);
+    await settle(tester);
     for (final label in ['Reports', 'Exports', 'Backup', 'Restore']) {
       expect(find.text(label), findsOneWidget, reason: label);
     }
@@ -76,6 +80,8 @@ void main() {
       ),
     );
     await tap(tester, 'Settings');
+    await tester.tap(find.text('Data').first);
+    await settle(tester);
     for (final label in ['Reports', 'Exports', 'Backup', 'Restore']) {
       expect(find.text(label), findsOneWidget, reason: label);
     }

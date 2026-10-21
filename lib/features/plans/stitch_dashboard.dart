@@ -372,11 +372,17 @@ class _StitchDashboardState extends ConsumerState<StitchDashboard> {
             icon: management ? LucideIcons.chevronUp : LucideIcons.chevronDown,
             child: Text(t.stitchScheduleManage),
           ),
-          if (management) ...[
-            StockNotices(scope: scope),
-            TodayPrnPanel(plans: plans, scope: scope),
-            TodayPlanRows(scope: scope, next: next),
-          ],
+          VitalReveal(
+            expanded: management,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                StockNotices(scope: scope),
+                TodayPrnPanel(plans: plans, scope: scope),
+                TodayPlanRows(scope: scope, next: next),
+              ],
+            ),
+          ),
           if (!selectedIsToday) ...[
             const SizedBox(height: 16),
             DashboardDayRecorded(
@@ -454,35 +460,53 @@ class _DashboardWeekBar extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (final day in dashboardWeekDays(start))
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: _DayPill(
-                    day: day,
-                    active: day == selected,
-                    onPressed: () => onSelect(day),
-                  ),
-                ),
-              Semantics(
-                label: t.history,
-                button: true,
-                onTap: () => context.go('/history'),
-                child: ExcludeSemantics(
-                  child: StitchButton(
-                    onPressed: () => context.go('/history'),
-                    child: Icon(
-                      LucideIcons.calendarDays,
-                      color: c.muted,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+        SizedBox(
+          height: 64 * (MediaQuery.textScalerOf(context).scale(14) / 14),
+          child: VitalPager(
+            index:
+                start.calendarValue.difference(DateTime.utc(1, 1, 1)).inDays ~/
+                7,
+            itemCount:
+                DateTime.utc(
+                      9999,
+                      12,
+                      31,
+                    ).difference(DateTime.utc(1, 1, 1)).inDays ~/
+                    7 +
+                1,
+            duration: VitalMotion.calendar,
+            retainPages: false,
+            onChanged: (index) =>
+                onSelect(CivilDate(1, 1, 1).addDays(index * 7)),
+            itemBuilder: (_, index) {
+              final weekStart = CivilDate(1, 1, 1).addDays(index * 7);
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+                  final fits = constraints.maxWidth >= 7 * 48 * scale;
+                  final days = [
+                    for (final day in dashboardWeekDays(weekStart))
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 1),
+                        child: _DayPill(
+                          day: day,
+                          active: day == selected,
+                          onPressed: () => onSelect(day),
+                        ),
+                      ),
+                  ];
+                  if (fits) {
+                    return Row(
+                      children: [for (final day in days) Expanded(child: day)],
+                    );
+                  }
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(children: days),
+                  );
+                },
+              );
+            },
           ),
         ),
         if (!zoneKnown) ...[
@@ -888,56 +912,8 @@ class _ContextCards extends ConsumerWidget {
     final container = notices.value?.rows.firstOrNull?.container;
     final itemName = notices.value?.rows.firstOrNull?.itemName;
     final quantity = container?.balance.value;
+    if (container == null) return const SizedBox.shrink();
     final cards = [
-      StitchSurface(
-        radius: 16,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    t.stitchBloodPressure.toUpperCase(),
-                    style: StitchType.small.copyWith(color: c.muted),
-                  ),
-                ),
-                Container(
-                  width: 7,
-                  height: 7,
-                  decoration: BoxDecoration(
-                    color: c.accent,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              '…',
-              style: StitchType.heading.copyWith(fontWeight: FontWeight.w700),
-            ),
-            Text(
-              t.stitchPreview,
-              style: StitchType.caption.copyWith(color: c.muted),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 28,
-              width: double.infinity,
-              child: CustomPaint(
-                painter: _PlaceholderSparkline(c.accent.withValues(alpha: .4)),
-              ),
-            ),
-            StitchButton(
-              quiet: true,
-              compact: true,
-              onPressed: () => context.push('/supporting'),
-              child: Text(t.review),
-            ),
-          ],
-        ),
-      ),
       StitchSurface(
         radius: 16,
         child: Column(
@@ -957,25 +933,22 @@ class _ContextCards extends ConsumerWidget {
             const SizedBox(height: 6),
             Text(
               quantity == null
-                  ? container == null
-                        ? '…'
-                        : container.balance.limitReached
+                  ? container.balance.limitReached
                         ? t.stockLimit
                         : t.stockUnknownValue
                   : t.stockQuantity(
                       stockAmountNumber(t, quantity),
-                      container!.unit,
+                      container.unit,
                     ),
               style: StitchType.heading.copyWith(
                 color: c.amber,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            if (container != null)
-              StitchBadge(
-                container.balance.value == null ? t.stockUnknown : t.stockLow,
-                warning: true,
-              ),
+            StitchBadge(
+              container.balance.value == null ? t.stockUnknown : t.stockLow,
+              warning: true,
+            ),
             Text(
               itemName ?? t.stitchForecastPending,
               style: StitchType.caption.copyWith(color: c.muted),
@@ -999,62 +972,6 @@ class _ContextCards extends ConsumerWidget {
         ),
       ),
     ];
-    return LayoutBuilder(
-      builder: (context, constraints) =>
-          constraints.maxWidth < 300 ||
-              MediaQuery.textScalerOf(context).scale(14) > 21
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [cards[0], const SizedBox(height: 8), cards[1]],
-            )
-          : IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(child: cards[0]),
-                  const SizedBox(width: 8),
-                  Expanded(child: cards[1]),
-                ],
-              ),
-            ),
-    );
+    return cards.single;
   }
-}
-
-class _PlaceholderSparkline extends CustomPainter {
-  const _PlaceholderSparkline(this.color);
-  final Color color;
-  @override
-  void paint(Canvas canvas, Size size) {
-    final path = Path()
-      ..moveTo(0, size.height * .8)
-      ..cubicTo(
-        size.width * .3,
-        0,
-        size.width * .35,
-        size.height,
-        size.width * .6,
-        size.height * .3,
-      )
-      ..cubicTo(
-        size.width * .85,
-        -8,
-        size.width * .85,
-        size.height,
-        size.width,
-        size.height * .25,
-      );
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = color
-        ..strokeWidth = 2
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_PlaceholderSparkline oldDelegate) =>
-      color != oldDelegate.color;
 }

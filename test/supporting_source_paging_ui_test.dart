@@ -204,6 +204,7 @@ void main() {
         ),
         ['Source 49', 'Source 00'],
       );
+      await tap(tester, 'Source details');
       expect(find.text('Saved sources'), findsOneWidget);
     },
   );

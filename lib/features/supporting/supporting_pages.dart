@@ -1,6 +1,5 @@
 import '../../app/app_lock.dart';
 
-import 'package:flutter/material.dart' show showDialog;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -118,7 +117,7 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
   /// transaction removes the row on commit or idempotent replay.
   Future<void> changeVoid(SupportingRevision record, int ownerRevision) async {
     final t = AppLocalizations.of(context);
-    final accepted = await showDialog<bool>(
+    final accepted = await showVitalDialog<bool>(
       context: context,
       builder: (context) => VitalDialog(
         title: Text(record.isVoided ? t.supportingRestore : t.supportingVoid),
@@ -528,51 +527,54 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
           ],
         ),
         const SizedBox(height: 24),
-        VitalPanel(
+        VitalDisclosure(
           title: t.supportingProvenance,
-          icon: LucideIcons.flaskConical,
-          children: [
-            Text(
-              t.supportingDateLabel(
-                s.kind == SupportingRecordKind.labPanel
-                    ? t.supportingCollection
-                    : t.supportingMeasured,
-                collectionLabel,
-              ),
-            ),
-            if (collectionSource != null) Text(collectionSource),
-            if (reportLabel != null)
-              Text(t.supportingDateLabel(t.supportingReport, reportLabel)),
-            if (reportSource != null) Text(reportSource),
-            SupportingProvenanceView(provenance: s.provenance),
-            if (s.notes != null) Text(t.supportingNotes),
-            if (s.notes != null) Text(s.notes!),
-            Text(
-              t.supportingDateLabel(
-                t.supportingEntry,
-                displayStamp(
-                  context,
-                  ref,
-                  saved.enteredAt,
-                  zoneId: 'UTC',
-                  includeSeconds: true,
-                ),
-              ),
-            ),
-            if (saved.correctedAt != null)
+          child: VitalPanel(
+            title: t.supportingProvenance,
+            icon: LucideIcons.flaskConical,
+            children: [
               Text(
                 t.supportingDateLabel(
-                  t.screenPanelRevised,
+                  s.kind == SupportingRecordKind.labPanel
+                      ? t.supportingCollection
+                      : t.supportingMeasured,
+                  collectionLabel,
+                ),
+              ),
+              if (collectionSource != null) Text(collectionSource),
+              if (reportLabel != null)
+                Text(t.supportingDateLabel(t.supportingReport, reportLabel)),
+              if (reportSource != null) Text(reportSource),
+              SupportingProvenanceView(provenance: s.provenance),
+              if (s.notes != null) Text(t.supportingNotes),
+              if (s.notes != null) Text(s.notes!),
+              Text(
+                t.supportingDateLabel(
+                  t.supportingEntry,
                   displayStamp(
                     context,
                     ref,
-                    saved.revisionEnteredAt,
+                    saved.enteredAt,
                     zoneId: 'UTC',
                     includeSeconds: true,
                   ),
                 ),
               ),
-          ],
+              if (saved.correctedAt != null)
+                Text(
+                  t.supportingDateLabel(
+                    t.screenPanelRevised,
+                    displayStamp(
+                      context,
+                      ref,
+                      saved.revisionEnteredAt,
+                      zoneId: 'UTC',
+                      includeSeconds: true,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         SupportingDisclosure(

@@ -395,6 +395,7 @@ void main() {
       await _attach(tester, 'Record source.pdf');
       await _saveAndWait(tester);
       expect(find.byType(SupportingDetailPage), findsOneWidget);
+      await _tapText(tester, find.text('Source details'));
       expect(find.text('Item source.pdf'), findsOneWidget);
       expect(find.text('Record source.pdf'), findsOneWidget);
 
@@ -448,6 +449,7 @@ void main() {
 
       container.read(routerProvider).go('/supporting/$meId/${panel.id.id}');
       await settle(tester);
+      await _tapText(tester, find.text('Source details'));
       await _tapText(tester, find.text('Open'), last: true);
       expect(find.byType(SupportingSourceViewerPage), findsOneWidget);
       expect(pdf.captured, hasLength(2));

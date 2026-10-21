@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart' show showDialog;
 import 'package:flutter/material.dart'
     as material
     show MaterialLocalizations, TimeOfDay;
@@ -44,7 +43,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
 
   Future<void> _delete() async {
     final text = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showVitalDialog<bool>(
       context: context,
       builder: (dialog) => VitalDialog(
         title: Text(text.backupDeleteHeading),

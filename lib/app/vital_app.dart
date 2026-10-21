@@ -62,7 +62,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(
+      vitalRoute(
         path: '/supporting',
         builder: (_, state) => StorageGate(
           child: SupportingRecordsPage(
@@ -71,11 +71,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/reports/preview',
         builder: (_, _) => const StorageGate(child: ReportPreviewPage()),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/reports',
         builder: (_, state) => StorageGate(
           child: ReportsPage(
@@ -86,7 +86,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/supporting/:person/add-panel',
         builder: (_, state) => StorageGate(
           child: SupportingForm(
@@ -98,7 +98,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/supporting/:person/add-observation',
         builder: (_, state) => StorageGate(
           child: SupportingForm(
@@ -111,7 +111,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/supporting/:person/trends',
         builder: (_, state) => StorageGate(
           child: SupportingTrendsPage(
@@ -121,7 +121,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/supporting/:person/:id/edit',
         builder: (_, state) => StorageGate(
           child: SupportingForm(
@@ -132,7 +132,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/supporting/:person/:id',
         builder: (_, state) => StorageGate(
           child: SupportingDetailPage(
@@ -145,7 +145,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
 
-      GoRoute(
+      vitalRoute(
         path: '/charts',
         builder: (_, state) => StorageGate(
           child: ChartsPage(
@@ -154,7 +154,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/exports',
         builder: (_, state) => StorageGate(
           child: ExportPage(
@@ -163,7 +163,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/history-source/:kind/:id',
         builder: (_, state) {
           final kind = state.pathParameters['kind'];
@@ -183,7 +183,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
-      GoRoute(
+      vitalRoute(
         path: '/files/:person/:kind/:target',
         builder: (context, state) {
           final kind = AttachmentTargetKind.values
@@ -206,7 +206,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
-      GoRoute(
+      vitalRoute(
         path: '/attachment/:id/rename',
         builder: (_, state) => StorageGate(
           child: AttachmentRenameForm(
@@ -214,7 +214,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/attachment/:id',
         builder: (_, state) => StorageGate(
           child: AttachmentViewerPage(
@@ -223,7 +223,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/supporting-source/:person/:id',
         builder: (_, state) => StorageGate(
           child: SupportingSourceViewerPage(
@@ -235,28 +235,28 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/event-create',
         builder: (_, state) => const StorageGate(child: EventForm()),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/event/:id/revisions',
         builder: (_, state) => StorageGate(
           child: EventRevisionsPage(eventId: state.pathParameters['id']!),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/period-revisions/:id',
         builder: (_, state) => StorageGate(
           child: UsePeriodRevisionsPage(periodId: state.pathParameters['id']!),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/event/:id/edit',
         builder: (_, state) =>
             StorageGate(child: EventForm(eventId: state.pathParameters['id']!)),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/event/:id/decision',
         builder: (_, state) => StorageGate(
           child: EventDecisionForm(
@@ -266,7 +266,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/event/:id/review',
         builder: (_, state) => StorageGate(
           child: EventEndReviewPage(
@@ -275,13 +275,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/event/:id',
         builder: (_, state) => StorageGate(
           child: EventDetailPage(eventId: state.pathParameters['id']!),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/use/:person/:item/edit',
         builder: (_, state) => StorageGate(
           child: UsePeriodForm(
@@ -291,7 +291,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/use/:person/:item',
         builder: (_, state) => StorageGate(
           child: UseHistoryPage(
@@ -300,37 +300,50 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/reminders',
         builder: (_, _) => const StorageGate(child: RemindersPage()),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/reminders/action/:id',
         builder: (_, state) => StorageGate(
           child: ReminderActionPage(envelopeId: state.pathParameters['id']!),
         ),
       ),
-      ShellRoute(
-        builder: (context, state, child) =>
-            VitalShell(path: state.uri.path, child: child),
-        routes: [
+      StatefulShellRoute(
+        builder: (context, state, shell) => VitalShell(
+          path: Destination.values[shell.currentIndex].path,
+          onDestination: shell.goBranch,
+          child: shell,
+        ),
+        navigatorContainerBuilder: (context, shell, children) => VitalPager(
+          index: shell.currentIndex,
+          itemCount: children.length,
+          onChanged: shell.goBranch,
+          itemBuilder: (_, index) => children[index],
+        ),
+        branches: [
           for (final destination in Destination.values)
-            GoRoute(
-              path: destination.path,
-              pageBuilder: (context, state) => NoTransitionPage<void>(
-                key: state.pageKey,
-                child: StorageGate(
-                  child: destination == Destination.events
-                      ? const EventsPage()
-                      : destination == Destination.history
-                      ? HistoryPage(location: state.uri.toString())
-                      : RecordCollection(destination: destination),
+            StatefulShellBranch(
+              routes: [
+                vitalRoute(
+                  path: destination.path,
+                  pageBuilder: (context, state) => NoTransitionPage<void>(
+                    key: state.pageKey,
+                    child: StorageGate(
+                      child: destination == Destination.events
+                          ? const EventsPage()
+                          : destination == Destination.history
+                          ? HistoryPage(location: state.uri.toString())
+                          : RecordCollection(destination: destination),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
         ],
       ),
-      GoRoute(
+      vitalRoute(
         path: '/products/:person/label/:item',
         builder: (_, state) => StorageGate(
           child: ProductLabelForm(
@@ -339,7 +352,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/stock/:person/create',
         builder: (_, state) => StorageGate(
           child: StockContainerForm(
@@ -348,7 +361,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/stock/:person/adjust/:container',
         builder: (_, state) {
           // The raw container plus the route's surface key the form state: an
@@ -368,7 +381,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
-      GoRoute(
+      vitalRoute(
         path: '/stock/:person',
         builder: (_, state) => StorageGate(
           child: StockPage(
@@ -377,59 +390,59 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/profile',
         builder: (_, _) => const StorageGate(child: ProfileForm()),
       ),
       // Safe exits for bookmarks from the earlier multi-person prototype.
-      GoRoute(
+      vitalRoute(
         path: '/recorded',
         builder: (_, _) => const StorageGate(child: RecordedDosesPage()),
       ),
-      GoRoute(path: '/person-history/:id', redirect: (_, _) => '/recorded'),
-      GoRoute(path: '/people', redirect: (_, _) => '/profile'),
-      GoRoute(path: '/people/add', redirect: (_, _) => '/profile'),
-      GoRoute(path: '/people/:id', redirect: (_, _) => '/profile'),
-      GoRoute(
+      vitalRoute(path: '/person-history/:id', redirect: (_, _) => '/recorded'),
+      vitalRoute(path: '/people', redirect: (_, _) => '/profile'),
+      vitalRoute(path: '/people/add', redirect: (_, _) => '/profile'),
+      vitalRoute(path: '/people/:id', redirect: (_, _) => '/profile'),
+      vitalRoute(
         path: '/scope',
         redirect: (_, state) => state.uri.queryParameters['create'] == 'true'
             ? '/create'
             : '/today',
       ),
-      GoRoute(
+      vitalRoute(
         path: '/backup',
         builder: (_, _) => const StorageGate(child: BackupPage()),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/appearance',
         builder: (_, _) => const StorageGate(child: AppearancePage()),
       ),
-      GoRoute(path: '/restore', builder: (_, _) => const RestorePage()),
-      GoRoute(
+      vitalRoute(path: '/restore', builder: (_, _) => const RestorePage()),
+      vitalRoute(
         path: '/settings',
         builder: (_, _) => const StorageGate(child: SettingsPage()),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/settings/privacy',
         builder: (_, _) => const StorageGate(child: PrivacyPage()),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/settings/diagnostics',
         builder: (_, _) => const StorageGate(child: DiagnosticsPage()),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/settings/help',
         builder: (_, _) => const StorageGate(child: HelpPage()),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/settings/licences',
         builder: (_, _) => const StorageGate(child: LicencesPage()),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/settings/licences/app',
         builder: (_, _) => const StorageGate(child: ApplicationLicencePage()),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/settings/licences/:index',
         builder: (_, state) => StorageGate(
           child: LicenceDetailPage(
@@ -437,7 +450,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/revisions/:id',
         builder: (_, state) => StorageGate(
           child: RevisionHistory(
@@ -446,7 +459,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/types/:person/edit',
         builder: (_, state) => StorageGate(
           child: ItemTypeForm(
@@ -455,16 +468,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/types/:person',
         builder: (_, state) =>
             StorageGate(child: ItemTypesPage(personId: meId)),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/create',
         builder: (_, state) => const StorageGate(child: ItemForm()),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/site/:person/:record',
         builder: (_, state) => StorageGate(
           child: SiteForm(
@@ -473,7 +486,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/combined/:person/edit/:action',
         builder: (_, state) => StorageGate(
           child: CombinedForm(
@@ -484,7 +497,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/combined/:person',
         builder: (_, state) => StorageGate(
           child: CombinedForm(
@@ -493,12 +506,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/record/:id',
         builder: (_, state) =>
             StorageGate(child: DoseForm(itemId: state.pathParameters['id']!)),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/correct/:id',
         builder: (_, state) => StorageGate(
           child: DoseForm(
@@ -508,7 +521,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/phases/:id',
         builder: (_, state) => StorageGate(
           child: PhasePlanForm(
@@ -517,7 +530,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/pause/:id',
         builder: (_, state) => StorageGate(
           child: PausePlanForm(
@@ -526,7 +539,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/schedule/:id',
         builder: (_, state) => StorageGate(
           child: DailyPlanForm(
@@ -535,7 +548,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ),
       ),
-      GoRoute(
+      vitalRoute(
         path: '/item/:id',
         builder: (_, state) => StorageGate(
           child: ItemHistory(itemId: state.pathParameters['id']!),
@@ -543,7 +556,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       // One reachable overview per substance. The `/item/:id` route above
       // stays the preserved full-history surface.
-      GoRoute(
+      vitalRoute(
         path: '/substance/:id',
         builder: (_, state) => StorageGate(
           child: SubstanceOverviewPage(itemId: state.pathParameters['id']!),
@@ -585,25 +598,28 @@ class VitalApp extends ConsumerWidget {
                 data.disableAnimations ||
                 data.accessibleNavigation,
           ),
-          child: AnnotatedRegion<SystemUiOverlayStyle>(
-            value: Theme.of(context).brightness == Brightness.dark
-                ? SystemUiOverlayStyle.light.copyWith(
-                    statusBarColor: const Color(0x00000000),
-                    systemNavigationBarColor: const Color(0x00000000),
-                  )
-                : SystemUiOverlayStyle.dark.copyWith(
-                    statusBarColor: const Color(0x00000000),
-                    systemNavigationBarColor: const Color(0x00000000),
-                  ),
-            child: ColoredBox(
-              color: Theme.of(context).colorScheme.background,
-              child: SafeArea(
-                child: ReminderRuntime(
-                  child: BackupRuntime(
-                    child: ArtifactTransferRuntime(
-                      child: AttachmentRuntime(
-                        child: VitalComponentThemes(
-                          child: LockGate(child: ReminderHost(child: child!)),
+          child: _VitalThemeMotion(
+            mode: preferences.mode,
+            builder: (context) => AnnotatedRegion<SystemUiOverlayStyle>(
+              value: Theme.of(context).brightness == Brightness.dark
+                  ? SystemUiOverlayStyle.light.copyWith(
+                      statusBarColor: const Color(0x00000000),
+                      systemNavigationBarColor: const Color(0x00000000),
+                    )
+                  : SystemUiOverlayStyle.dark.copyWith(
+                      statusBarColor: const Color(0x00000000),
+                      systemNavigationBarColor: const Color(0x00000000),
+                    ),
+              child: ColoredBox(
+                color: Theme.of(context).colorScheme.background,
+                child: SafeArea(
+                  child: ReminderRuntime(
+                    child: BackupRuntime(
+                      child: ArtifactTransferRuntime(
+                        child: AttachmentRuntime(
+                          child: VitalComponentThemes(
+                            child: LockGate(child: ReminderHost(child: child!)),
+                          ),
                         ),
                       ),
                     ),
@@ -638,9 +654,15 @@ enum Destination {
 
 /// App chrome remains fixed while feature content scrolls.
 class VitalShell extends StatelessWidget {
-  const VitalShell({super.key, required this.path, required this.child});
+  const VitalShell({
+    super.key,
+    required this.path,
+    required this.child,
+    this.onDestination,
+  });
   final String path;
   final Widget child;
+  final ValueChanged<int>? onDestination;
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
@@ -728,7 +750,11 @@ class VitalShell extends StatelessWidget {
             top: false,
             child: SizedBox(
               width: double.infinity,
-              child: ShellNavigation(path: path, vertical: false),
+              child: ShellNavigation(
+                path: path,
+                vertical: false,
+                onDestination: onDestination,
+              ),
             ),
           ),
         ],
@@ -742,9 +768,19 @@ class ShellNavigation extends StatelessWidget {
     super.key,
     required this.path,
     required this.vertical,
+    this.onDestination,
   });
   final String path;
   final bool vertical;
+  final ValueChanged<int>? onDestination;
+  void select(BuildContext context, Destination destination) {
+    if (onDestination != null) {
+      onDestination!(destination.index);
+    } else {
+      context.go(destination.path);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
@@ -765,7 +801,7 @@ class ShellNavigation extends StatelessWidget {
                   Semantics(
                     selected: path == destination.path,
                     child: VitalButton.secondary(
-                      onPressed: () => context.go(destination.path),
+                      onPressed: () => select(context, destination),
                       child: Text(destination.label(text)),
                     ),
                   ),
@@ -798,7 +834,7 @@ class ShellNavigation extends StatelessWidget {
                 const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: Button(
               style: ButtonVariance.ghost,
-              onPressed: () => context.go(destination.path),
+              onPressed: () => select(context, destination),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: 36, minWidth: 48),
                 child: Column(
@@ -1113,6 +1149,159 @@ class SurfaceSample extends StatelessWidget {
       shape: const glass.LiquidRoundedSuperellipse(borderRadius: 20),
       settings: const glass.LiquidGlassSettings(),
       child: child,
+    );
+  }
+}
+
+/// Canonical route presenter: features keep their existing controller and URL.
+GoRoute vitalRoute({
+  required String path,
+  Widget Function(BuildContext, GoRouterState)? builder,
+  GoRouterPageBuilder? pageBuilder,
+  GoRouterRedirect? redirect,
+}) => GoRoute(
+  path: path,
+  redirect: redirect,
+  pageBuilder:
+      pageBuilder ??
+      (builder == null
+          ? null
+          : (context, state) {
+              final task = const {
+                '/record/:id',
+                '/correct/:id',
+                '/combined/:person',
+                '/combined/:person/edit/:action',
+                '/stock/:person/adjust/:container',
+                '/pause/:id',
+                '/history-source/:kind/:id',
+                '/site/:person/:record',
+                '/attachment/:id/rename',
+              }.contains(path);
+              final dialog =
+                  path == '/site/:person/:record' ||
+                  path == '/attachment/:id/rename';
+              final child = builder(context, state);
+              return CustomTransitionPage<void>(
+                key: state.pageKey,
+                opaque: !task,
+                transitionDuration: VitalMotion.duration(
+                  context,
+                  task
+                      ? (dialog ? VitalMotion.dialog : VitalMotion.sheet)
+                      : VitalMotion.detail,
+                ),
+                reverseTransitionDuration: VitalMotion.duration(
+                  context,
+                  task
+                      ? (dialog
+                            ? VitalMotion.dialogClose
+                            : VitalMotion.sheetClose)
+                      : VitalMotion.returning,
+                ),
+                child: task ? VitalTaskScope(child: child) : child,
+                transitionsBuilder: (context, animation, secondary, child) {
+                  final reduced = VitalMotion.reduced(context);
+                  final curve = animation.drive(
+                    CurveTween(
+                      curve: animation.status == AnimationStatus.reverse
+                          ? VitalMotion.departure
+                          : VitalMotion.arrival,
+                    ),
+                  );
+                  if (!task) {
+                    if (reduced) return child;
+                    return FadeTransition(
+                      opacity: curve,
+                      child: AnimatedBuilder(
+                        animation: curve,
+                        child: child,
+                        builder: (_, child) => Transform.translate(
+                          offset: Offset(18 * (1 - curve.value), 0),
+                          child: child,
+                        ),
+                      ),
+                    );
+                  }
+                  final frame = VitalTaskFrame(dialog: dialog, child: child);
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (ModalRoute.of(context)?.isFirst ?? false)
+                        const ExcludeFocus(
+                          child: ExcludeSemantics(
+                            child: StorageGate(
+                              child: VitalShell(
+                                path: '/today',
+                                child: RecordCollection(
+                                  destination: Destination.today,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      FadeTransition(
+                        opacity: reduced
+                            ? const AlwaysStoppedAnimation(1)
+                            : curve,
+                        child: GestureDetector(
+                          key: const ValueKey('task-scrim'),
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => requestVitalTaskDismiss(context),
+                          child: const ColoredBox(color: Color(0x99000000)),
+                        ),
+                      ),
+                      if (reduced)
+                        frame
+                      else if (dialog)
+                        FadeTransition(
+                          opacity: curve,
+                          child: ScaleTransition(
+                            scale: curve.drive(Tween(begin: .96, end: 1)),
+                            child: frame,
+                          ),
+                        )
+                      else
+                        SlideTransition(
+                          position: curve.drive(
+                            Tween(begin: const Offset(0, 1), end: Offset.zero),
+                          ),
+                          child: frame,
+                        ),
+                    ],
+                  );
+                },
+              );
+            }),
+);
+
+/// Own the theme timing rather than the pinned package's fixed default tween.
+class _VitalThemeMotion extends StatelessWidget {
+  const _VitalThemeMotion({required this.mode, required this.builder});
+  final ThemeMode mode;
+  final WidgetBuilder builder;
+  @override
+  Widget build(BuildContext context) {
+    final brightness = mode == ThemeMode.system
+        ? MediaQuery.platformBrightnessOf(context)
+        : mode == ThemeMode.dark
+        ? Brightness.dark
+        : Brightness.light;
+    return ShadcnAnimatedTheme(
+      data: vitalTheme(brightness),
+      duration: VitalMotion.duration(context, VitalMotion.theme),
+      curve: VitalMotion.geometry,
+      child: Builder(
+        builder: (context) => DefaultTextStyle.merge(
+          style: TextStyle(color: Theme.of(context).colorScheme.foreground),
+          child: IconTheme.merge(
+            data: IconThemeData(
+              color: Theme.of(context).colorScheme.foreground,
+            ),
+            child: builder(context),
+          ),
+        ),
+      ),
     );
   }
 }

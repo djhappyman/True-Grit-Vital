@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart' show showDialog;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -676,7 +675,7 @@ class _AttachmentViewerPageState extends ConsumerState<AttachmentViewerPage> {
 
   Future<void> remove(AttachmentRecord record, int ownerRevision) async {
     final t = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showVitalDialog<bool>(
       context: context,
       builder: (dialog) => VitalDialog(
         title: Text(t.attachmentDelete),
@@ -755,7 +754,7 @@ class _AttachmentViewerPageState extends ConsumerState<AttachmentViewerPage> {
 
   Future<void> handoff(AttachmentRecord record, {required bool save}) async {
     final t = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showVitalDialog<bool>(
       context: context,
       builder: (dialog) => VitalDialog(
         title: Text(save ? t.attachmentSaveHeading : t.attachmentShareHeading),

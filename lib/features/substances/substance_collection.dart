@@ -356,18 +356,42 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
               ),
             ),
             const SizedBox(width: 6),
-            Semantics(
+            VitalLocalOptions(
               label: t.stitchFilter,
-              button: true,
-              child: StitchButton(
-                compact: true,
-                onPressed: () =>
-                    context.push('/types/${widget.scope.personId ?? meId}'),
-                child: Icon(
-                  LucideIcons.slidersHorizontal,
-                  size: 20,
-                  color: StitchColors(context).muted,
-                ),
+              content: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(t.stitchFilter, style: VitalType.section),
+                  const SizedBox(height: 12),
+                  SubstanceTypeFilters(
+                    summaries: summaries.value ?? const [],
+                    selectedTypeId: _typeId,
+                    selectedTypeName: selectedType?.value?.name ?? _typeName,
+                    countsKnown:
+                        summaries.hasValue &&
+                        !summaries.isLoading &&
+                        !summaries.hasError,
+                    onSelected: _selectType,
+                  ),
+                  const SizedBox(height: 12),
+                  SubstanceStatusFilters(
+                    counts: counts,
+                    selected: _status,
+                    countsKnown: countsKnown,
+                    onSelected: _selectStatus,
+                  ),
+                  const SizedBox(height: 12),
+                  VitalButton.secondary(
+                    onPressed: _clearFilters,
+                    child: Text(t.clear),
+                  ),
+                  const SizedBox(height: 8),
+                  VitalButton.secondary(
+                    onPressed: () =>
+                        context.push('/types/${widget.scope.personId ?? meId}'),
+                    child: Text(t.itemTypes),
+                  ),
+                ],
               ),
             ),
           ],
@@ -388,13 +412,6 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
             selected: _status,
             countsKnown: countsKnown,
             onSelected: _selectStatus,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            t.featureStatusMixedHelp,
-            style: StitchType.caption.copyWith(
-              color: StitchColors(context).muted,
-            ),
           ),
           if ((counts?.unresolved ?? 0) > 0) ...[
             const SizedBox(height: 3),

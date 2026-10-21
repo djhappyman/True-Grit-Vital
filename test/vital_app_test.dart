@@ -1,3 +1,5 @@
+import 'package:true_grit_vital/features/settings/settings_pages.dart';
+import 'package:true_grit_vital/features/settings/settings_widgets.dart';
 import 'package:true_grit_vital/ui/stitch_ui.dart';
 import 'package:true_grit_vital/app/artifact_transfer.dart';
 import 'package:true_grit_vital/platform/artifact_transfer.dart';
@@ -187,6 +189,26 @@ Future<void> waitForText(WidgetTester tester, String text) async {
 }
 
 Future<void> tap(WidgetTester tester, String text) async {
+  if (find.byType(SettingsPage).evaluate().isNotEmpty &&
+      find.widgetWithText(SettingsNavigationRow, text).evaluate().isEmpty) {
+    final group = switch (text) {
+      'Privacy' || 'Diagnostics' => 'Privacy',
+      'Reports' || 'Exports' || 'Backup' || 'Restore' => 'Data',
+      _ => null,
+    };
+    if (group != null) {
+      await tester.tap(
+        find
+            .descendant(
+              of: find.byType(SettingsPage),
+              matching: find.text(group),
+            )
+            .first,
+      );
+      await settle(tester);
+    }
+  }
+
   FocusManager.instance.primaryFocus?.unfocus();
   await settle(tester);
   final iconLabel = find.byWidgetPredicate(
@@ -397,7 +419,7 @@ void main() {
         tester.widget<TextField>(find.byType(TextField).first).controller!.text,
         '51',
       );
-      await tap(tester, 'Back');
+      await tap(tester, 'Cancel');
       expect(find.byType(HistorySourcePage), findsOneWidget);
       await tap(tester, 'Back');
       expect(find.byType(HistoryEntryCard), findsNWidgets(51));

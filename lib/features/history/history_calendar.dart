@@ -17,18 +17,19 @@ class HistoryDayCounts {
   final int recorded, skipped, voided;
 }
 
-List<CivilDate> historyCalendarDates(CivilDate month, int firstDayOfWeek) {
+List<CivilDate?> historyCalendarCells(CivilDate month, int firstDayOfWeek) {
   final first = DateTime.utc(month.year, month.month, 1);
   final padding = (first.weekday % 7 - firstDayOfWeek + 7) % 7;
-  final count =
-      ((padding + DateTime.utc(month.year, month.month + 1, 0).day) / 7)
-          .ceil() *
-      7;
-  return List.generate(count, (i) {
+  return List.generate(42, (i) {
     final date = first.add(Duration(days: i - padding));
-    return CivilDate(date.year, date.month, date.day);
+    return date.year < 1 || date.year > 9999
+        ? null
+        : CivilDate(date.year, date.month, date.day);
   });
 }
+
+List<CivilDate> historyCalendarDates(CivilDate month, int firstDayOfWeek) =>
+    historyCalendarCells(month, firstDayOfWeek).whereType<CivilDate>().toList();
 
 class HistoryMonthGrid extends StatelessWidget {
   const HistoryMonthGrid({
@@ -59,7 +60,7 @@ class HistoryMonthGrid extends StatelessWidget {
         )!,
         t = AppLocalizations.of(context),
         c = StitchColors(context);
-    final dates = historyCalendarDates(month, locale.firstDayOfWeekIndex);
+    final dates = historyCalendarCells(month, locale.firstDayOfWeekIndex);
     final scale = MediaQuery.textScalerOf(context).scale(16) / 16;
     final cell = math.max(48.0, 48.0 * scale);
     void move(int delta) {
@@ -171,10 +172,11 @@ class HistoryMonthGrid extends StatelessWidget {
                           Expanded(
                             child: Builder(
                               builder: (context) {
-                                final date = dates[row * 7 + col],
-                                    marker =
-                                        counts[dates[row * 7 + col]] ??
-                                        const HistoryDayCounts();
+                                final date = dates[row * 7 + col];
+                                if (date == null) return SizedBox(height: cell);
+                                final marker =
+                                    counts[dates[row * 7 + col]] ??
+                                    const HistoryDayCounts();
                                 final isSelected = date == selected;
                                 return Semantics(
                                   key: ValueKey('history-day-$date'),

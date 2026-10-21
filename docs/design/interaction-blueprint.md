@@ -9,7 +9,7 @@ Use this blueprint with the [shared components](components.md), [design referenc
 | User intent | Presentation | Contract |
 | --- | --- | --- |
 | Visit a main destination | Persistent root page | Today, Substances, Events and History share a PageView and fixed dock. Preserve each page's state. |
-| Browse peer sections | Tabs and PageView | Use for substance Overview/Schedule/Stock/History and Settings General/Privacy/Data. One canonical screen, with distinct content per tab. |
+| Browse peer sections | Tabs and PageView | Use for substance Overview/Schedule/Stock/History and Settings General/Privacy/Data. One canonical screen, with distinct content per tab. Keep the tab strip on one row; scroll it when large text cannot fit. |
 | Browse adjacent periods | Calendar PageView | History months and Today weeks follow horizontal dragging. Buttons provide the same navigation. |
 | Complete one contextual task | Modal bottom sheet | Record/correct doses, choose sources and make stock adjustments without losing the originating context. |
 | Make a short decision/edit | Dialog | Confirm destructive consequences, keep/discard unfinished work, rename, and edit a small isolated value. |
@@ -70,6 +70,8 @@ Curves: arrival `Cubic(0.22, 1, 0.36, 1)`, geometry `Cubic(0.65, 0, 0.35, 1)`, d
 
 Execute commands immediately when invoked; animation does not delay dispatch. Retarget/reverse interrupted motion. Keep full-sized readable text stable during geometric transitions. Display exact new quantities directly, rather than counting through invented intermediate doses or balances. Animate surrounding progress only when its denominator/state is known. Show saved state after commit; Undo reverses the confirmed change.
 
+Pinned shadcn controls retain their internal thumb/focus microinteractions where their API exposes no timing hook. Keep their native semantics and behaviour; do not copy a control merely to retime it. This exception is limited to internal control feedback. Vital owns the surrounding press, route, paging, sheet, dialog, disclosure, progress and theme motion.
+
 Apply the app and system reduced-motion preferences centrally: direct state changes, stable geometry and usable status feedback. Keep scrolling user-controlled. Stop decorative animation while hidden/locked. Privacy coverage happens immediately. Keep blur strength fixed during transitions; glass still requires its existing measured-device gate.
 
 ## Screen creation recipe
@@ -84,3 +86,11 @@ Apply the app and system reduced-motion preferences centrally: direct state chan
 ## Implementation evidence
 
 Before claiming a migration complete, demonstrate that controls use the intended overlay, paging changes real content, Back/dismissal preserves guarded work, exact values remain correct and motion can be interrupted/reduced. Run the relevant regressions and whole-project analysis; the release batch additionally runs the full suite, native boot and Android debug build. Profile frame timing on representative hardware before claiming measured performance. A GitHub debug prerelease is labelled a development build and does not close production signing, native delivery or device acceptance gates.
+
+## Shared implementation
+
+- `lib/ui/vital_motion.dart`: semantic timings, curves, fixed-hitbox press feedback, retained section/root paging and reduced-motion reveals.
+- `lib/ui/vital_presenters.dart`: guarded task framing, adaptive live options, shadcn overflow menus and short decision routes.
+- `VitalSurfaceFrame`, `VitalControlStyle`, `VitalProgress` and `VitalDisclosure` apply the standard to existing containers and controls.
+- `vitalRoute` in `lib/app/vital_app.dart` selects the canonical route presentation. `EntryPage` reuses the current form engine inside task routes; modal presentation does not create another editor.
+- `test/motion_standards_test.dart` exercises navigation retention, nested paging, scrim/Escape protection, pending writes, reduced motion and keyboard clearance.

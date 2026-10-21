@@ -1,7 +1,6 @@
 import '../../app/display_preferences.dart';
 import '../../ui/vital_ui.dart';
 
-import 'package:flutter/material.dart' show showDialog;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -28,7 +27,7 @@ Future<bool> showIntervalReview(
 }) async {
   if (reviews.isEmpty) return true;
   final t = AppLocalizations.of(context);
-  return await showDialog<bool>(
+  return await showVitalDialog<bool>(
         context: context,
         builder: (context) => VitalDialog(
           title: Text(t.intervalReview),
@@ -389,7 +388,7 @@ class _IntervalClockRecoveryState extends ConsumerState<IntervalClockRecovery> {
       if (command == null) {
         final item = await store.itemById(p.itemId);
         if (!mounted) return;
-        final approved = await showDialog<bool>(
+        final approved = await showVitalDialog<bool>(
           context: context,
           builder: (context) => VitalDialog(
             title: Text(t.intervalClockHeading),

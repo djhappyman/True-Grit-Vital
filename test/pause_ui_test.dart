@@ -15,7 +15,7 @@ import 'package:true_grit_vital/l10n/app_localizations.dart';
 import 'calendar_ui_test.dart' show fill;
 import 'daily_plan_ui_test.dart' show launchPlan, tap;
 import 'reminders/reminder_ui_test.dart' show UiGateway;
-import 'vital_app_test.dart' show appTest, runIo, settle;
+import 'vital_app_test.dart' show appTest, runIo, settle, waitForText;
 
 class PauseGateway extends UiGateway {
   bool available = true;
@@ -164,6 +164,7 @@ void main() {
           .read(routerProvider)
           .push('/pause/${f.item.id}?plan=${saved.plan.planId}');
       await settle(tester);
+      await waitForText(tester, 'Person: Other Adult');
       expect(find.textContaining('Other Adult'), findsWidgets);
       await tap(tester, 'Preview');
       expect(find.textContaining('First affected boundary:'), findsOneWidget);

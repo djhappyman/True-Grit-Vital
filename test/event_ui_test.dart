@@ -30,6 +30,7 @@ Future<void> enter(WidgetTester tester, String label, String value) async {
       find.text('Details').evaluate().isNotEmpty) {
     await tap(tester, 'Details');
   }
+  await waitForText(tester, label);
   await tester.ensureVisible(field(label));
   await tester.enterText(field(label), value);
   await settle(tester);

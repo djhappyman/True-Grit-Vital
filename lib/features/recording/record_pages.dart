@@ -19,7 +19,7 @@ import '../substances/substance_collection.dart';
 import '../../app/settings_toggle_row.dart';
 
 import 'package:flutter/services.dart' show TextInputAction;
-import 'package:flutter/material.dart' show MaterialLocalizations, showDialog;
+import 'package:flutter/material.dart' show MaterialLocalizations;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -226,6 +226,39 @@ class EntryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+    if (VitalTaskScope.contains(context)) {
+      final footer = children
+          .whereType<VitalTaskContent>()
+          .firstOrNull
+          ?.taskFooter;
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: VitalTaskBody(
+              children: [
+                if (onBack == null)
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: VitalButton.secondary(
+                      leading: const Icon(LucideIcons.arrowLeft),
+                      onPressed: () => requestVitalTaskDismiss(context),
+                      child: Text(t.back),
+                    ),
+                  ),
+                for (final child in children)
+                  if (child is! VitalTaskActions) child,
+              ],
+            ),
+          ),
+          if (footer != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: footer,
+            ),
+        ],
+      );
+    }
     final titleIndex = children.indexWhere((child) => child is Heading);
     return VitalPage(
       title: titleIndex < 0 ? null : (children[titleIndex] as Heading).text,
@@ -1112,14 +1145,25 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
     });
   }
 
+  bool _leaving = false;
   Future<void> leave() async {
+    if (_leaving || ModalRoute.of(context)?.isCurrent == false) return;
+    _leaving = true;
+    try {
+      await _leaveSafely();
+    } finally {
+      _leaving = false;
+    }
+  }
+
+  Future<void> _leaveSafely() async {
     if (busy || uncertain && !conflict) {
       setState(() => error = AppLocalizations.of(context).pendingBody);
       return;
     }
     if (dirty) {
       final t = AppLocalizations.of(context);
-      final discard = await showDialog<bool>(
+      final discard = await showVitalDialog<bool>(
         context: context,
         builder: (context) => VitalDialog(
           title: Text(t.unsavedHeading),
@@ -1240,7 +1284,8 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
       }
     });
     return PopScope(
-      canPop: !dirty && !busy && !uncertain,
+      canPop:
+          !VitalTaskScope.contains(context) && !dirty && !busy && !uncertain,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) leave();
       },
@@ -2038,7 +2083,7 @@ class _DoseFormState extends DurableFormState<DoseForm> {
     );
   }
 
-  bool siteOpen = false;
+  bool siteOpen = false, _timeExpanded = false;
   final site = TextEditingController();
   final amount = TextEditingController(),
       date = TextEditingController(),
@@ -2140,15 +2185,19 @@ class _DoseFormState extends DurableFormState<DoseForm> {
   }
 
   void _editTime() {
-    final target = _timeSection.currentContext;
-    if (target == null) return;
-    Scrollable.ensureVisible(
-      target,
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero
-          : const Duration(milliseconds: 200),
-      alignment: .1,
-    );
+    setState(() => _timeExpanded = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final target = _timeSection.currentContext;
+      if (target != null) {
+        Scrollable.ensureVisible(
+          target,
+          duration: VitalMotion.duration(context, VitalMotion.expand),
+          curve: VitalMotion.arrival,
+          alignment: .1,
+        );
+      }
+    });
   }
 
   DateTime? actual() {
@@ -2532,6 +2581,34 @@ class _DoseFormState extends DurableFormState<DoseForm> {
           );
     return wrap([
       DoseSheet(
+        taskFooter: Row(
+          children: [
+            Expanded(
+              child: StitchButton(
+                quiet: true,
+                onPressed: busy ? null : leave,
+                child: Text(t.cancel),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StitchButton(
+                primary: true,
+                icon: LucideIcons.check,
+                onPressed: busy || conflict || (!ownerValid && !uncertain)
+                    ? null
+                    : save,
+                child: Text(
+                  busy
+                      ? t.saving
+                      : uncertain
+                      ? t.retry
+                      : t.save,
+                ),
+              ),
+            ),
+          ],
+        ),
         children: [
           DoseSheetHeader(
             title: r == null ? t.recordHeading : t.correctHeading,
@@ -2547,25 +2624,6 @@ class _DoseFormState extends DurableFormState<DoseForm> {
               child: Text(t.profile),
             ),
           ],
-          Text(
-            r == null
-                ? t.recordContext(ownerLabel(ref, t, owner!.id), name, unit)
-                : t.correctionContext(
-                    ownerLabel(ref, t, owner!.id),
-                    name,
-                    unit,
-                  ),
-            style: StitchType.caption.copyWith(
-              color: StitchColors(context).muted,
-            ),
-          ),
-          if (owner!.id != meId)
-            Text(
-              t.recordingOnBehalf(ownerLabel(ref, t, owner!.id)),
-              style: StitchType.caption.copyWith(
-                color: StitchColors(context).muted,
-              ),
-            ),
           const SizedBox(height: 16),
           DoseProductCard(
             name: name,
@@ -2792,158 +2850,125 @@ class _DoseFormState extends DurableFormState<DoseForm> {
                 ),
           ],
           const SizedBox(height: 20),
-          DosePreviewPanel(
-            title: t.screenRecordContext,
-            description: t.screenRecordContextHelp,
-          ),
-          const SizedBox(height: 12),
-          DosePreviewPanel(
-            title: t.screenRecordVitals,
-            description: t.screenRecordVitalsHelp,
-            action: Align(
-              alignment: Alignment.centerLeft,
-              child: StitchButton(
-                compact: true,
-                icon: LucideIcons.activity,
-                onPressed: () {
-                  final location = Uri.parse(
-                    supportingLocation(
-                      owner!.id,
-                      item: item!.id,
-                      back: widget.returnLocation ?? '/recorded',
-                    ),
-                  );
-                  context.push(
-                    location
-                        .replace(
-                          queryParameters: {
-                            ...location.queryParameters,
-                            'kind': 'observation',
-                          },
-                        )
-                        .toString(),
-                  );
-                },
-                child: Text(t.screenRecordObservations),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          if (r == null) ...[
-            VitalButton.secondary(
-              onPressed: !busy && !uncertain && ownerValid
-                  ? () => setState(() {
-                      siteOpen = !siteOpen;
-                      entryChanged();
-                    })
-                  : null,
-              child: Text(t.combinedSiteAction),
-            ),
-            if (siteOpen)
-              LabelledInput(
-                label: t.combinedSite,
-                helper: t.combinedSiteHelp,
-                controller: site,
-                enabled: !busy && !uncertain && ownerValid,
-              ),
-            Text(t.intervalExtraHelp),
-          ],
-          const SizedBox(height: 20),
-          Container(
-            key: _timeSection,
+          VitalDisclosure(
+            title: t.more,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                DoseSectionHeading(t.screenRecordWhen),
-                const SizedBox(height: 6),
-                LabelledInput(
-                  label: t.actualDateLabel,
-                  controller: date,
-                  helper: t.dateExample,
-                  error: error == t.timeInvalid ? error : null,
-                  enabled: !busy && !uncertain && ownerValid,
-                  keyboardType: TextInputType.datetime,
+                if (r == null) ...[
+                  VitalButton.secondary(
+                    onPressed: !busy && !uncertain && ownerValid
+                        ? () => setState(() {
+                            siteOpen = !siteOpen;
+                            entryChanged();
+                          })
+                        : null,
+                    child: Text(t.combinedSiteAction),
+                  ),
+                  VitalReveal(
+                    expanded: siteOpen,
+                    child: LabelledInput(
+                      label: t.combinedSite,
+                      helper: t.combinedSiteHelp,
+                      controller: site,
+                      enabled: !busy && !uncertain && ownerValid,
+                    ),
+                  ),
+                ],
+                VitalButton.secondary(
+                  leading: const Icon(LucideIcons.activity),
+                  onPressed: () {
+                    final destination = Uri.parse(
+                      supportingLocation(
+                        owner!.id,
+                        item: item!.id,
+                        back: widget.returnLocation ?? '/recorded',
+                      ),
+                    );
+                    context.push(
+                      destination
+                          .replace(
+                            queryParameters: {
+                              ...destination.queryParameters,
+                              'kind': 'observation',
+                            },
+                          )
+                          .toString(),
+                    );
+                  },
+                  child: Text(t.screenRecordObservations),
                 ),
-                LabelledInput(
-                  label: t.actualTimeLabel,
-                  controller: time,
-                  helper: t.timeExample,
-                  enabled: !busy && !uncertain && ownerValid,
-                  keyboardType: TextInputType.datetime,
-                ),
-                if (clockChoices.length > 1) ...[
-                  Text(t.ambiguousTime),
-                  const SizedBox(height: 8),
-                  for (var i = 0; i < clockChoices.length; i++)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            t.offsetChoice(
-                              i == 0 ? t.earlier : t.later,
-                              utcOffset(
-                                clockChoices[i].toLocal().timeZoneOffset,
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          VitalReveal(
+            expanded:
+                _timeExpanded ||
+                clockChoices.length > 1 ||
+                error == t.timeInvalid,
+            child: Container(
+              key: _timeSection,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  DoseSectionHeading(t.screenRecordWhen),
+                  const SizedBox(height: 6),
+                  LabelledInput(
+                    label: t.actualDateLabel,
+                    controller: date,
+                    helper: t.dateExample,
+                    error: error == t.timeInvalid ? error : null,
+                    enabled: !busy && !uncertain && ownerValid,
+                    keyboardType: TextInputType.datetime,
+                  ),
+                  LabelledInput(
+                    label: t.actualTimeLabel,
+                    controller: time,
+                    helper: t.timeExample,
+                    enabled: !busy && !uncertain && ownerValid,
+                    keyboardType: TextInputType.datetime,
+                  ),
+                  if (clockChoices.length > 1) ...[
+                    Text(t.ambiguousTime),
+                    const SizedBox(height: 8),
+                    for (var i = 0; i < clockChoices.length; i++)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              t.offsetChoice(
+                                i == 0 ? t.earlier : t.later,
+                                utcOffset(
+                                  clockChoices[i].toLocal().timeZoneOffset,
+                                ),
                               ),
                             ),
-                          ),
-                          Semantics(
-                            selected: chosenInstant == clockChoices[i],
-                            child: StitchButton(
-                              primary: chosenInstant == clockChoices[i],
-                              onPressed: busy || uncertain || !ownerValid
-                                  ? null
-                                  : () => setState(() {
-                                      chosenInstant = clockChoices[i];
-                                      entryChanged();
-                                    }),
-                              child: Text(i == 0 ? t.earlier : t.later),
+                            Semantics(
+                              selected: chosenInstant == clockChoices[i],
+                              child: StitchButton(
+                                primary: chosenInstant == clockChoices[i],
+                                onPressed: busy || uncertain || !ownerValid
+                                    ? null
+                                    : () => setState(() {
+                                        chosenInstant = clockChoices[i];
+                                        entryChanged();
+                                      }),
+                                child: Text(i == 0 ? t.earlier : t.later),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
           ?failure(),
           const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: StitchButton(
-              primary: true,
-              icon: LucideIcons.check,
-              onPressed: busy || conflict || (!ownerValid && !uncertain)
-                  ? null
-                  : save,
-              child: Text(
-                busy
-                    ? t.saving
-                    : uncertain
-                    ? t.retry
-                    : t.save,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: StitchButton(
-              quiet: true,
-              onPressed: busy ? null : leave,
-              child: Text(t.cancel),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            t.screenRecordSkipNote,
-            textAlign: TextAlign.center,
-            style: StitchType.caption.copyWith(
-              color: StitchColors(context).muted,
-            ),
-          ),
         ],
       ),
     ]);

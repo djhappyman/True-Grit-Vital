@@ -15,7 +15,6 @@ import 'package:true_grit_vital/features/substances/substance_overview.dart';
 import 'package:true_grit_vital/platform/device_zone.dart'
     show DeviceZoneObservation;
 import 'package:true_grit_vital/ui/vital_ui.dart';
-import 'package:true_grit_vital/ui/stitch_ui.dart';
 
 import 'private_drafts_ui_test.dart' show FakeAuth;
 import 'vital_app_test.dart'
@@ -117,7 +116,7 @@ Future<({RecordStore store, ProviderContainer container})> launchOverview(
   );
   addTearDown(() async {
     container.dispose();
-    await store.close();
+    await runIo(tester, store.close);
     await dir.delete(recursive: true);
   });
   await tester.pumpWidget(
@@ -125,6 +124,17 @@ Future<({RecordStore store, ProviderContainer container})> launchOverview(
   );
   await settle(tester);
   return (store: store, container: container);
+}
+
+Future<void> section(WidgetTester tester, String label) async {
+  await waitForText(tester, 'Record');
+  await settle(tester);
+  final target = find.descendant(
+    of: find.byType(VitalSegments<int>),
+    matching: find.text(label),
+  );
+  await tester.tap(target.first);
+  await settle(tester);
 }
 
 void main() {
@@ -147,25 +157,11 @@ void main() {
     router.go('/substance/${item.id}');
     await settle(tester);
     await waitForText(tester, 'Section jump item');
-    final historyJump = find.widgetWithText(StitchButton, 'History');
-    await tester.ensureVisible(historyJump);
-    await settle(tester);
-    final position = tester
-        .state<ScrollableState>(find.byType(Scrollable).first)
-        .position;
-    final before = position.pixels;
-    await tester.tap(historyJump);
-    await settle(tester);
-    expect(position.pixels, greaterThan(before));
-    final historyOffset = position.pixels;
+    await section(tester, 'History');
     expect(router.routerDelegate.state.uri.path, '/substance/${item.id}');
-    final overviewJump = find.widgetWithText(StitchButton, 'Overview');
-    await tester.ensureVisible(overviewJump);
-    await settle(tester);
-    await tester.tap(overviewJump);
-    await settle(tester);
-    expect(position.pixels, lessThan(historyOffset));
     expect(find.byType(SubstanceOverviewPage), findsOneWidget);
+    await section(tester, 'Overview');
+    expect(find.text('Section jump item'), findsOneWidget);
   });
 
   appTest(
@@ -243,13 +239,16 @@ void main() {
       expect(find.textContaining('Tablet'), findsWidgets);
       expect(find.text('Record'), findsOneWidget);
       // The schedule study emits through this overview's own store stream.
+      await section(tester, 'Schedule');
       await waitForTextContaining(tester, 'Chosen time');
       expect(find.textContaining('Chosen time'), findsOneWidget);
       await waitForTextContaining(tester, 'Starts');
       expect(find.textContaining('Starts'), findsOneWidget);
+      await section(tester, 'Stock');
       await waitForText(tester, 'Synthetic original container');
       expect(find.text('12 mg'), findsOneWidget);
       expect(find.text('Synthetic original container'), findsOneWidget);
+      await section(tester, 'History');
       expect(find.text('1 mg'), findsOneWidget);
       expect(find.text('2 mg'), findsOneWidget);
       expect(find.textContaining('Actual:'), findsAtLeastNWidgets(2));
@@ -336,6 +335,8 @@ void main() {
     }))!;
     f.container.read(routerProvider).push('/substance/${item.id}');
     await settle(tester);
+    await section(tester, 'Schedule');
+    await settle(tester);
     await waitForText(tester, 'Paused');
     expect(find.text('Paused'), findsOneWidget);
     expect(find.textContaining('No next planned date'), findsNothing);
@@ -367,6 +368,8 @@ void main() {
       return created;
     }))!;
     f.container.read(routerProvider).push('/substance/${item.id}');
+    await settle(tester);
+    await section(tester, 'History');
     await settle(tester);
     await waitForText(tester, 'Older records stay in the full history.');
     expect(find.textContaining('Actual:'), findsNWidgets(20));
@@ -504,6 +507,8 @@ void main() {
       return created;
     }))!;
     f.container.read(routerProvider).push('/substance/${item.id}');
+    await settle(tester);
+    await section(tester, 'Schedule');
     await waitForTextContaining(tester, 'Observed zone:');
     expect(find.text('Observed zone: Unknown'), findsOneWidget);
     // The observed-wording change must not hide the plan's own content.
@@ -551,6 +556,8 @@ void main() {
       return created;
     }))!;
     f.container.read(routerProvider).push('/substance/${item.id}');
+    await settle(tester);
+    await section(tester, 'Schedule');
     await waitForText(tester, 'Observed zone: Europe/London');
     // An explicitly stored home zone keeps its own stored name.
     expect(find.textContaining('Observed zone'), findsOneWidget);
@@ -592,6 +599,7 @@ void main() {
         return created;
       }))!;
       f.container.read(routerProvider).push('/substance/${item.id}');
+      await section(tester, 'Schedule');
       await waitForText(tester, 'Observed zone: Europe/London');
       expect(find.text('Observed zone: Unknown'), findsNothing);
       expect(tester.takeException(), isNull);
@@ -634,6 +642,8 @@ void main() {
       ),
     ))!;
     f.container.read(routerProvider).push('/substance/${item.id}');
+    await settle(tester);
+    await section(tester, 'Schedule');
     await waitForText(
       tester,
       'This summary shows the first plans. Open Schedule to review the rest.',
@@ -696,6 +706,8 @@ void main() {
       return created;
     }))!;
     f.container.read(routerProvider).push('/substance/${item.id}');
+    await settle(tester);
+    await section(tester, 'Schedule');
     await waitForTextContaining(tester, 'Chosen time');
     await waitForTextContaining(tester, 'Starts');
     final edit = tester.widget<VitalButton>(
@@ -752,6 +764,7 @@ void main() {
         return created;
       }))!;
       f.container.read(routerProvider).push('/substance/${item.id}');
+      await section(tester, 'Schedule');
       await waitForText(
         tester,
         'This plan is not in the bounded next-dose summary. Open Schedule to review it.',
@@ -874,6 +887,8 @@ void main() {
       return created;
     }))!;
     f.container.read(routerProvider).push('/substance/${item.id}');
+    await settle(tester);
+    await section(tester, 'Schedule');
     await waitForTextContaining(tester, 'Planned once a day');
     expect(find.text('Paused'), findsNothing);
     // A plain store mutation, with no provider invalidation from the page.
@@ -929,9 +944,9 @@ void main() {
     f.container.read(routerProvider).push('/substance/${item.id}');
     await waitForText(tester, item.name);
     await waitForText(tester, 'Record');
-    await tester.ensureVisible(find.byKey(const ValueKey('overview-combine')));
+    await tap(tester, 'More');
     await settle(tester);
-    await tester.tap(find.byKey(const ValueKey('overview-combine')));
+    await tap(tester, 'Combine');
     await settle(tester);
     var config = f.container
         .read(routerProvider)
@@ -945,9 +960,9 @@ void main() {
     f.container.read(routerProvider).pop();
     await waitForText(tester, item.name);
     await waitForText(tester, 'Record');
-    await tester.ensureVisible(find.byKey(const ValueKey('overview-stock')));
+    await tap(tester, 'More');
     await settle(tester);
-    await tester.tap(find.byKey(const ValueKey('overview-stock')));
+    await tap(tester, 'Stock');
     await settle(tester);
     config = f.container
         .read(routerProvider)
@@ -1040,26 +1055,16 @@ void main() {
       tester,
       'Synthetic responsive substance with a complete name',
     );
-    final combine = find.byKey(const ValueKey('overview-combine'));
-    final stock = find.byKey(const ValueKey('overview-stock'));
-    await tester.ensureVisible(combine);
-    await settle(tester);
-    expect(
-      tester.getTopLeft(stock).dy,
-      greaterThan(tester.getTopLeft(combine).dy),
-    );
-    expect(find.text('Overview'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-
-    tester.platformDispatcher.textScaleFactorTestValue = 1;
-    tester.view.physicalSize = const Size(430, 900);
-    await settle(tester);
-    await tester.ensureVisible(combine);
-    await settle(tester);
-    expect(
-      (tester.getTopLeft(stock).dy - tester.getTopLeft(combine).dy).abs(),
-      lessThan(1),
-    );
-    expect(tester.takeException(), isNull);
+    for (final width in [320.0, 430.0]) {
+      tester.view.physicalSize = Size(width, 740);
+      await settle(tester);
+      expect(find.text('Overview'), findsOneWidget);
+      await tap(tester, 'More');
+      expect(find.text('Combine'), findsOneWidget);
+      expect(find.text('Stock').hitTestable(), findsOneWidget);
+      await tester.tapAt(const Offset(2, 2));
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+    }
   });
 }

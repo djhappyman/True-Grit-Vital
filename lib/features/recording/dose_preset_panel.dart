@@ -81,10 +81,11 @@ class _DosePresetPanelState extends ConsumerState<DosePresetPanel> {
               ),
             ],
           ),
-          Text(
-            t.featurePresetHelp,
-            style: StitchType.caption.copyWith(color: c.muted),
-          ),
+          if (configure)
+            Text(
+              t.featurePresetHelp,
+              style: StitchType.caption.copyWith(color: c.muted),
+            ),
           if (state.loading || plans.isLoading)
             Text(t.loadingRecords, style: StitchType.caption),
           if (state.failed) ...[

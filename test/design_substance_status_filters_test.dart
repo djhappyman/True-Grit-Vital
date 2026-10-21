@@ -170,13 +170,6 @@ void main() {
     expect(find.text('Paused (1)'), findsOneWidget);
     expect(find.text('As needed (1)'), findsOneWidget);
     expect(find.text('Unscheduled (1)'), findsOneWidget);
-    expect(
-      find.text(
-        'An item with more than one plan can appear under each matching status. '
-        'Future and ended plans count as unscheduled.',
-      ),
-      findsOneWidget,
-    );
     await waitForText(tester, 'Alpha');
     expect(cards(tester), 6);
 

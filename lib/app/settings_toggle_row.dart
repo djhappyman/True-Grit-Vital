@@ -62,7 +62,11 @@ class _SettingsToggleRowState extends State<SettingsToggleRow> {
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: widget.enabled ? _toggle : null,
-            child: Container(
+            child: AnimatedContainer(
+              duration: widget.reduceMotion
+                  ? Duration.zero
+                  : VitalMotion.choice,
+              curve: VitalMotion.geometry,
               constraints: const BoxConstraints(minHeight: 72),
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
               decoration: BoxDecoration(

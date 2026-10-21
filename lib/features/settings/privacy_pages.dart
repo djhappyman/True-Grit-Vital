@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart' show showDialog;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -39,7 +38,7 @@ class _PrivacyPageState extends ConsumerState<PrivacyPage> {
   Future<bool> _confirm() async {
     final t = AppLocalizations.of(context);
     final title = t.deleteRecords, body = t.deleteMeBody, command = t.delete;
-    final yes = await showDialog<bool>(
+    final yes = await showVitalDialog<bool>(
       context: context,
       builder: (context) => VitalDialog(
         title: Text(title),

@@ -1749,7 +1749,7 @@ abstract class AppLocalizations {
   /// Stock tracking copy. Preserve owner, original quantities, units and physical consequences.
   ///
   /// In en, this message translates to:
-  /// **'Record without stock, or choose this person’s container.'**
+  /// **'Record without stock, or choose a container.'**
   String get stockOptional;
 
   /// Stock tracking copy. Preserve owner, original quantities, units and physical consequences.

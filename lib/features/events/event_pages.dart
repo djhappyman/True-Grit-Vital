@@ -5,7 +5,6 @@ import '../../ui/vital_ui.dart';
 import 'dart:convert';
 import 'dart:async';
 
-import 'package:flutter/material.dart' show showDialog;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -906,7 +905,7 @@ class _EventCardState extends ConsumerState<_EventCard> {
   }
 
   Future<void> _showNotesPreview(BuildContext context, AppLocalizations t) =>
-      showDialog<void>(
+      showVitalDialog<void>(
         context: context,
         builder: (context) => VitalDialog(
           title: Text(t.screenEventsNotes),

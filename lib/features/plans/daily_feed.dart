@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/material.dart' show showDialog;
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -424,7 +423,7 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
                   child: DailySnoozeButton(
                     row: row,
                     stitch: true,
-                    onUnavailable: () => showDialog<void>(
+                    onUnavailable: () => showVitalDialog<void>(
                       context: context,
                       builder: (context) => VitalDialog(
                         title: Text(t.snooze),

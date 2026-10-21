@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart' show showDialog;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../l10n/app_localizations.dart';
@@ -208,7 +207,7 @@ class StitchButton extends StatelessWidget {
 
 Future<void> showStitchPlaceholder(BuildContext context, String feature) {
   final t = AppLocalizations.of(context);
-  return showDialog<void>(
+  return showVitalDialog<void>(
     context: context,
     builder: (context) => VitalDialog(
       title: Text(feature),

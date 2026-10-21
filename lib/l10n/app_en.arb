@@ -1212,7 +1212,7 @@
   "@stockEmpty": {
     "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
   },
-  "stockOptional": "Record without stock, or choose this person’s container.",
+  "stockOptional": "Record without stock, or choose a container.",
   "@stockOptional": {
     "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
   },

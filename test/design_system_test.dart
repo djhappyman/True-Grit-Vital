@@ -240,7 +240,7 @@ void main() {
     semantics.dispose();
   });
 
-  testWidgets('segments wrap safely on a small phone with large text', (
+  testWidgets('segments scroll on one row on a small phone with large text', (
     tester,
   ) async {
     await tester.binding.setSurfaceSize(const Size(375, 667));
@@ -262,9 +262,12 @@ void main() {
       ),
     );
     expect(
-      tester.getRect(find.text('Calendar')).top,
-      greaterThan(tester.getRect(find.text('List')).bottom),
+      tester.getRect(find.text('Calendar')).center.dy,
+      tester.getRect(find.text('List')).center.dy,
     );
+    await tester.ensureVisible(find.text('Calendar'));
+    await tester.pumpAndSettle();
+    expect(find.text('Calendar').hitTestable(), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

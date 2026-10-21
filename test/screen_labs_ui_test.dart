@@ -1,3 +1,4 @@
+import 'package:true_grit_vital/ui/vital_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -295,7 +296,7 @@ void main() {
       greaterThanOrEqualTo(48),
     );
     expect(
-      tester.getSize(find.widgetWithText(StitchButton, 'Filters').first).height,
+      tester.getSize(find.byType(VitalLocalOptions).first).height,
       greaterThanOrEqualTo(48),
     );
     expect(

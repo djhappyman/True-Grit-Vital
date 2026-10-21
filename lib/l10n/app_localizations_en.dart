@@ -988,8 +988,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Containers are optional. Add one to track its supply.';
 
   @override
-  String get stockOptional =>
-      'Record without stock, or choose this person’s container.';
+  String get stockOptional => 'Record without stock, or choose a container.';
 
   @override
   String get stockNone => 'No container';

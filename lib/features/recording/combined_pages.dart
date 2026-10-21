@@ -693,25 +693,27 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
                 },
           child: Text(t.cancel),
         ),
-      VitalButton(
-        onPressed:
-            busy ||
-                preparing ||
-                conflict ||
-                _pendingAdds.isNotEmpty ||
-                (!valid && !uncertain)
-            ? null
-            : reviewing || uncertain
-            ? save
-            : review,
-        child: Text(
-          busy || preparing
-              ? t.saving
-              : uncertain
-              ? t.retry
-              : reviewing
-              ? t.save
-              : t.review,
+      VitalTaskActions(
+        child: VitalButton(
+          onPressed:
+              busy ||
+                  preparing ||
+                  conflict ||
+                  _pendingAdds.isNotEmpty ||
+                  (!valid && !uncertain)
+              ? null
+              : reviewing || uncertain
+              ? save
+              : review,
+          child: Text(
+            busy || preparing
+                ? t.saving
+                : uncertain
+                ? t.retry
+                : reviewing
+                ? t.save
+                : t.review,
+          ),
         ),
       ),
     ]);

@@ -17,6 +17,10 @@ Finder field(String label) => find.descendant(
   matching: find.byType(TextField),
 );
 Future<void> enter(WidgetTester tester, String label, String value) async {
+  if ((label == 'Actual time' || label == 'Actual date') &&
+      find.widgetWithText(LabelledInput, label).evaluate().isEmpty) {
+    await tap(tester, 'Edit');
+  }
   await tester.ensureVisible(field(label));
   await tester.enterText(field(label), value);
   await settle(tester);
@@ -347,7 +351,8 @@ void main() {
     await enter(tester, 'Amount', '0');
     await enter(tester, 'Reason (optional)', 'Measured empty');
     await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    FocusManager.instance.primaryFocus?.unfocus();
+    tester.testTextInput.hide();
     await tap(tester, 'Save');
     await waitForText(tester, 'Remaining: 0 ml');
     expect(await runIo(tester, () => f.store.records()), isEmpty);

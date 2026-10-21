@@ -229,6 +229,7 @@ void main() {
     );
     f.container.read(routerProvider).go('/supporting/$meId/panel');
     await settle(tester);
+    await tap(tester, 'Source details');
     expect(find.text(file.name), findsOneWidget);
     await tap(tester, 'Open');
     expect(find.byType(SupportingSourceViewerPage), findsOneWidget);

@@ -7,8 +7,6 @@ import '../../app/display_preferences.dart';
 import '../../app/privacy.dart';
 import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
-import '../recording/record_pages.dart' show EntryPage;
-import '../restore/restore_recovery_banner.dart';
 import 'settings_widgets.dart';
 
 /// The three factual groups of the Settings hub.
@@ -34,7 +32,7 @@ class SettingsPage extends ConsumerStatefulWidget {
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   /// `null` shows every group, so the hub hides no destination by default.
-  SettingsHubGroup? _group;
+  SettingsHubGroup _group = SettingsHubGroup.general;
 
   @override
   Widget build(BuildContext context) {
@@ -46,139 +44,149 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final displayFailed =
         ref.watch(appearanceErrorProvider) ||
         ref.watch(displayPreferencesProvider).failed;
-    bool shows(SettingsHubGroup group) => _group == null || _group == group;
-    return EntryPage(
-      panelled: false,
-      children: [
-        const RestoreRecoveryBanner(),
-        _SettingsGroupFilter(
-          group: _group,
-          onChanged: (group) => setState(() => _group = group),
-        ),
-        const SizedBox(height: 20),
-        const _SettingsHero(),
-        if (displayFailed) ...[
-          const SizedBox(height: 16),
-          SettingsNotice(
-            message: t.settingsDisplayUnsaved,
-            isError: true,
-            action: VitalButton.secondary(
-              onPressed: () => context.push('/appearance'),
-              child: Text(t.appearance),
+    final sections = <Widget>[
+      SettingsSection(
+        title: t.screenSettingsGroupGeneral,
+        icon: LucideIcons.slidersHorizontal,
+        description: t.screenSettingsGeneralBody,
+        children: [
+          SettingsNavigationRow(
+            icon: LucideIcons.userRound,
+            label: t.profile,
+            description: t.settingsProfileBody,
+            onPressed: () => context.push('/profile'),
+          ),
+          SettingsNavigationRow(
+            icon: LucideIcons.sunMoon,
+            label: t.appearance,
+            description: t.settingsAppearanceBody,
+            onPressed: () => context.push('/appearance'),
+          ),
+          SettingsNavigationRow(
+            icon: LucideIcons.bell,
+            label: t.reminders,
+            description: t.settingsRemindersBody,
+            onPressed: () => context.push('/reminders'),
+          ),
+          SettingsNavigationRow(
+            icon: LucideIcons.circleHelp,
+            label: t.help,
+            description: t.settingsHelpBody,
+            onPressed: () => context.push('/settings/help'),
+          ),
+          SettingsNavigationRow(
+            icon: LucideIcons.scrollText,
+            label: t.licences,
+            description: t.settingsLicencesBody,
+            onPressed: () => context.push('/settings/licences'),
+          ),
+        ],
+      ),
+      SettingsSection(
+        title: t.privacy,
+        icon: LucideIcons.shieldCheck,
+        description: t.privacyBody,
+        children: [
+          SettingsNavigationRow(
+            icon: LucideIcons.archive,
+            label: t.privacy,
+            description: t.settingsPrivacyBody,
+            onPressed: () => context.push('/settings/privacy'),
+          ),
+          SettingsNavigationRow(
+            icon: LucideIcons.activity,
+            label: t.diagnostics,
+            description: t.settingsDiagnosticsBody,
+            onPressed: () => context.push('/settings/diagnostics'),
+          ),
+        ],
+      ),
+      SettingsSection(
+        title: t.data,
+        icon: LucideIcons.database,
+        description: t.screenSettingsDataBody,
+        children: [
+          if (capabilities.hasReports)
+            SettingsNavigationRow(
+              icon: LucideIcons.fileText,
+              label: t.reports,
+              description: t.settingsReportsBody,
+              onPressed: () => context.push(capabilities.reportsPath!),
+            ),
+          if (capabilities.hasExports)
+            SettingsNavigationRow(
+              icon: LucideIcons.download,
+              label: t.exports,
+              description: t.settingsExportsBody,
+              onPressed: () => context.push(capabilities.exportsPath!),
+            ),
+          if (capabilities.hasBackup)
+            SettingsNavigationRow(
+              icon: LucideIcons.lockKeyhole,
+              label: t.backup,
+              description: t.settingsBackupBody,
+              onPressed: () => context.push(capabilities.backupPath!),
+            ),
+          if (capabilities.hasRestore)
+            SettingsNavigationRow(
+              icon: LucideIcons.upload,
+              label: t.restore,
+              description: t.settingsRestoreBody,
+              onPressed: () => context.push(capabilities.restorePath!),
+            ),
+        ],
+      ),
+    ];
+    return SafeArea(
+      child: Scaffold(
+        headers: [
+          VitalPageBody(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: VitalButton.secondary(
+                    onPressed: () =>
+                        context.canPop() ? context.pop() : context.go('/today'),
+                    leading: const Icon(LucideIcons.arrowLeft),
+                    child: Text(t.back),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _SettingsGroupFilter(
+                  group: _group,
+                  onChanged: (group) => setState(() => _group = group!),
+                ),
+              ],
             ),
           ),
         ],
-        const SizedBox(height: 20),
-        if (shows(SettingsHubGroup.general)) ...[
-          SettingsSection(
-            title: t.screenSettingsGroupGeneral,
-            icon: LucideIcons.slidersHorizontal,
-            description: t.screenSettingsGeneralBody,
+        child: VitalPager(
+          index: _group.index,
+          itemCount: 3,
+          onChanged: (index) =>
+              setState(() => _group = SettingsHubGroup.values[index]),
+          itemBuilder: (_, index) => VitalScrollBody(
             children: [
-              SettingsNavigationRow(
-                icon: LucideIcons.userRound,
-                label: t.profile,
-                description: t.settingsProfileBody,
-                onPressed: () => context.push('/profile'),
-              ),
-              SettingsNavigationRow(
-                icon: LucideIcons.sunMoon,
-                label: t.appearance,
-                description: t.settingsAppearanceBody,
-                onPressed: () => context.push('/appearance'),
-              ),
-              SettingsNavigationRow(
-                icon: LucideIcons.bell,
-                label: t.reminders,
-                description: t.settingsRemindersBody,
-                onPressed: () => context.push('/reminders'),
-              ),
-              SettingsNavigationRow(
-                icon: LucideIcons.circleHelp,
-                label: t.help,
-                description: t.settingsHelpBody,
-                onPressed: () => context.push('/settings/help'),
-              ),
-              SettingsNavigationRow(
-                icon: LucideIcons.scrollText,
-                label: t.licences,
-                description: t.settingsLicencesBody,
-                onPressed: () => context.push('/settings/licences'),
-              ),
+              if (index == 0) ...[
+                const _SettingsHero(),
+                const SizedBox(height: 16),
+              ],
+              if (displayFailed)
+                SettingsNotice(
+                  message: t.settingsDisplayUnsaved,
+                  isError: true,
+                  action: VitalButton.secondary(
+                    onPressed: () => context.push('/appearance'),
+                    child: Text(t.appearance),
+                  ),
+                ),
+              sections[index],
             ],
           ),
-          const SizedBox(height: 20),
-        ],
-        if (shows(SettingsHubGroup.privacy)) ...[
-          SettingsSection(
-            title: t.privacy,
-            icon: LucideIcons.shieldCheck,
-            description: t.privacyBody,
-            children: [
-              SettingsNavigationRow(
-                icon: LucideIcons.archive,
-                label: t.privacy,
-                description: t.settingsPrivacyBody,
-                onPressed: () => context.push('/settings/privacy'),
-              ),
-              SettingsNavigationRow(
-                icon: LucideIcons.activity,
-                label: t.diagnostics,
-                description: t.settingsDiagnosticsBody,
-                onPressed: () => context.push('/settings/diagnostics'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-        ],
-        if (shows(SettingsHubGroup.data))
-          SettingsSection(
-            title: t.data,
-            icon: LucideIcons.database,
-            description: t.screenSettingsDataBody,
-            children: [
-              const _SettingsStorageNote(),
-              if (capabilities.hasReports)
-                SettingsNavigationRow(
-                  icon: LucideIcons.fileText,
-                  label: t.reports,
-                  description: t.settingsReportsBody,
-                  onPressed: () => context.push(capabilities.reportsPath!),
-                ),
-              if (capabilities.hasExports)
-                SettingsNavigationRow(
-                  icon: LucideIcons.download,
-                  label: t.exports,
-                  description: t.settingsExportsBody,
-                  onPressed: () => context.push(capabilities.exportsPath!),
-                ),
-              if (capabilities.hasBackup)
-                SettingsNavigationRow(
-                  icon: LucideIcons.lockKeyhole,
-                  label: t.backup,
-                  description: t.settingsBackupBody,
-                  onPressed: () => context.push(capabilities.backupPath!),
-                ),
-              if (capabilities.hasRestore)
-                SettingsNavigationRow(
-                  icon: LucideIcons.upload,
-                  label: t.restore,
-                  description: t.settingsRestoreBody,
-                  onPressed: () => context.push(capabilities.restorePath!),
-                ),
-              SettingsPreviewRow(
-                icon: LucideIcons.hardDrive,
-                label: t.screenSettingsAutoBackup,
-                description: t.screenSettingsAutoBackupBody,
-              ),
-              SettingsPreviewRow(
-                icon: LucideIcons.fileUp,
-                label: t.screenSettingsFhir,
-                description: t.screenSettingsFhirBody,
-              ),
-            ],
-          ),
-      ],
+        ),
+      ),
     );
   }
 }
@@ -239,7 +247,6 @@ class _SettingsGroupFilter extends StatelessWidget {
     final t = AppLocalizations.of(context);
     return VitalSegments<SettingsHubGroup?>(
       values: const [
-        null,
         SettingsHubGroup.general,
         SettingsHubGroup.privacy,
         SettingsHubGroup.data,
@@ -252,42 +259,6 @@ class _SettingsGroupFilter extends StatelessWidget {
         SettingsHubGroup.privacy => t.privacy,
         SettingsHubGroup.data => t.data,
       },
-    );
-  }
-}
-
-/// What the hub can truthfully say about storage today.
-///
-/// The size and record totals belong to the vault-overview work and are not
-/// measured here, so the note says so instead of showing example numbers.
-class _SettingsStorageNote extends StatelessWidget {
-  const _SettingsStorageNote();
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    final colours = Theme.of(context).colorScheme;
-    return VitalPanel(
-      inset: true,
-      gap: 10,
-      children: [
-        Row(
-          children: [
-            VitalIconTile(LucideIcons.database, size: 36),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                t.screenSettingsStorageTitle,
-                style: VitalType.record,
-              ),
-            ),
-          ],
-        ),
-        Text(
-          t.screenSettingsStorageBody,
-          style: VitalType.metadata.copyWith(color: colours.mutedForeground),
-        ),
-      ],
     );
   }
 }

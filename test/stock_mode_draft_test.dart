@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:true_grit_vital/ui/vital_ui.dart' show VitalTaskFrame;
 import 'package:shadcn_flutter/shadcn_flutter.dart' show TextField;
 import 'package:true_grit_vital/app/vital_app.dart' show routerProvider;
 import 'package:true_grit_vital/data/record_store.dart';
@@ -89,7 +90,13 @@ void main() {
     // The quantity surface never restores the stored threshold.
     f.container.read(routerProvider).go('/stock/$meId/adjust/${c.id}');
     await settle(tester);
-    expect(find.text('Adjust stock'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(VitalTaskFrame),
+        matching: find.text('Adjust stock'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Stock notices'), findsNothing);
     await tap(tester, 'Restock');
     await _enter(tester, 'Amount', '4');
@@ -159,7 +166,13 @@ void main() {
     expect(find.text('Resume'), findsOneWidget);
     await tap(tester, 'Resume');
     expect(find.text('Stock notices'), findsOneWidget);
-    expect(find.text('Adjust stock'), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byType(VitalTaskFrame),
+        matching: find.text('Adjust stock'),
+      ),
+      findsNothing,
+    );
     expect(
       tester.widget<TextField>(_field('Low-stock threshold')).controller!.text,
       '0.25',
@@ -292,7 +305,13 @@ void main() {
     await settle(tester);
     f.container.read(routerProvider).go('/stock/$meId/adjust/${c.id}');
     await settle(tester);
-    expect(find.text('Adjust stock'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(VitalTaskFrame),
+        matching: find.text('Adjust stock'),
+      ),
+      findsOneWidget,
+    );
     expect(tester.widget<TextField>(_field('Amount')).controller!.text, '4');
     expect(
       tester.widget<TextField>(_field('Reason (optional)')).controller!.text,
@@ -349,7 +368,13 @@ void main() {
     await settle(tester);
     // No legacy content leaks into the quantity editor: the legacy key is
     // already freed and holds nothing here.
-    expect(find.text('Adjust stock'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(VitalTaskFrame),
+        matching: find.text('Adjust stock'),
+      ),
+      findsOneWidget,
+    );
     expect(
       await runIo(
         tester,

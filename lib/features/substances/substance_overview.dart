@@ -124,61 +124,74 @@ class _LoadedOverview extends ConsumerStatefulWidget {
 }
 
 class _LoadedOverviewState extends ConsumerState<_LoadedOverview> {
-  final _overviewKey = GlobalKey();
-  final _scheduleKey = GlobalKey();
-  final _stockKey = GlobalKey();
-  final _historyKey = GlobalKey();
-
-  void _jumpTo(GlobalKey key) {
-    final target = key.currentContext;
-    if (target == null) return;
-    Scrollable.ensureVisible(
-      target,
-      alignment: .05,
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero
-          : const Duration(milliseconds: 220),
-    );
-  }
-
+  int _section = 0;
   @override
   Widget build(BuildContext context) {
-    final item = widget.item;
-    return VitalPage(
-      children: [
-        const _BackRow(),
-        const SizedBox(height: 16),
-        KeyedSubtree(
-          key: _overviewKey,
-          child: _SubstanceHero(item: item),
+    final item = widget.item, t = AppLocalizations.of(context);
+    final labels = [
+      t.screenOverviewSectionOverview,
+      t.schedule,
+      t.stock,
+      t.history,
+    ];
+    return SafeArea(
+      child: Scaffold(
+        headers: [
+          VitalPageBody(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const _BackRow(),
+                const SizedBox(height: 12),
+                if (_section != 0) Text(item.name, style: VitalType.record),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: VitalButton(
+                        onPressed: () => context.push('/record/${item.id}'),
+                        child: Text(t.record),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _HeroSecondaryActions(item: item),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                VitalSegments<int>(
+                  values: const [0, 1, 2, 3],
+                  selected: _section,
+                  onChanged: (index) => setState(() => _section = index),
+                  label: (index) => labels[index],
+                ),
+              ],
+            ),
+          ),
+        ],
+        child: VitalPager(
+          index: _section,
+          itemCount: 4,
+          onChanged: (index) => setState(() => _section = index),
+          itemBuilder: (_, index) => VitalScrollBody(
+            children: switch (index) {
+              0 => [
+                _SubstanceHero(item: item),
+                const SizedBox(height: 16),
+                _OverviewStockAlert(item: item),
+                const SizedBox(height: 16),
+                _OverviewContext(item: item),
+              ],
+              1 => [_OverviewSchedule(item: item)],
+              2 => [
+                _OverviewStockAlert(item: item),
+                const SizedBox(height: 16),
+                _OverviewStock(item: item),
+              ],
+              _ => [_OverviewHistory(item: item)],
+            },
+          ),
         ),
-        const SizedBox(height: 16),
-        _OverviewStockAlert(item: item),
-        const SizedBox(height: 16),
-        _OverviewJumpBar(
-          onOverview: () => _jumpTo(_overviewKey),
-          onSchedule: () => _jumpTo(_scheduleKey),
-          onStock: () => _jumpTo(_stockKey),
-          onHistory: () => _jumpTo(_historyKey),
-        ),
-        const SizedBox(height: 24),
-        KeyedSubtree(
-          key: _scheduleKey,
-          child: _OverviewSchedule(item: item),
-        ),
-        const SizedBox(height: 24),
-        KeyedSubtree(
-          key: _stockKey,
-          child: _OverviewStock(item: item),
-        ),
-        const SizedBox(height: 24),
-        KeyedSubtree(
-          key: _historyKey,
-          child: _OverviewHistory(item: item),
-        ),
-        const SizedBox(height: 24),
-        _OverviewContext(item: item),
-      ],
+      ),
     );
   }
 }
@@ -228,15 +241,6 @@ class _SubstanceHero extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          VitalButton(
-            expand: true,
-            leading: const Icon(LucideIcons.check),
-            onPressed: () => context.push('/record/${item.id}'),
-            child: Text(t.record),
-          ),
-          const SizedBox(height: 8),
-          _HeroSecondaryActions(item: item),
         ],
       ),
     );
@@ -253,40 +257,22 @@ class _HeroSecondaryActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final combine = VitalButton.secondary(
-      key: const ValueKey('overview-combine'),
-      expand: true,
-      leading: const Icon(LucideIcons.packagePlus),
-      onPressed: () =>
-          context.push('/combined/${item.personId}?item=${item.id}'),
-      child: Text(t.combinedAction),
-    );
-    final stock = VitalButton.secondary(
-      key: const ValueKey('overview-stock'),
-      expand: true,
-      leading: const Icon(LucideIcons.boxes),
-      onPressed: () => context.push('/stock/${item.personId}?item=${item.id}'),
-      child: Text(t.stock),
-    );
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final stack =
-            constraints.maxWidth < 260 ||
-            MediaQuery.textScalerOf(context).scale(13) > 20;
-        if (stack) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [combine, const SizedBox(height: 8), stock],
-          );
-        }
-        return Row(
-          children: [
-            Expanded(child: combine),
-            const SizedBox(width: 8),
-            Expanded(child: stock),
-          ],
-        );
-      },
+    return VitalOverflow(
+      label: t.more,
+      actions: [
+        VitalMenuAction(
+          label: t.combinedAction,
+          icon: LucideIcons.packagePlus,
+          onPressed: () =>
+              context.push('/combined/${item.personId}?item=${item.id}'),
+        ),
+        VitalMenuAction(
+          label: t.stock,
+          icon: LucideIcons.boxes,
+          onPressed: () =>
+              context.push('/stock/${item.personId}?item=${item.id}'),
+        ),
+      ],
     );
   }
 }
@@ -344,50 +330,6 @@ class _OverviewStockAlert extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(t.designSubstancesContainerEntry(container.label, balance)),
         ],
-      ),
-    );
-  }
-}
-
-/// Section jumps inside this one page. It never creates a second screen, a
-/// fifth dock destination or a hidden duplicate timeline.
-class _OverviewJumpBar extends StatelessWidget {
-  const _OverviewJumpBar({
-    required this.onOverview,
-    required this.onSchedule,
-    required this.onStock,
-    required this.onHistory,
-  });
-
-  final VoidCallback onOverview, onSchedule, onStock, onHistory;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    final items = <({String label, VoidCallback onPressed})>[
-      (label: t.screenOverviewSectionOverview, onPressed: onOverview),
-      (label: t.schedule, onPressed: onSchedule),
-      (label: t.stock, onPressed: onStock),
-      (label: t.history, onPressed: onHistory),
-    ];
-    Widget item(({String label, VoidCallback onPressed}) value) => StitchButton(
-      compact: true,
-      quiet: true,
-      onPressed: value.onPressed,
-      child: Text(value.label),
-    );
-    return StitchSurface(
-      inset: true,
-      radius: VitalLayout.pillRadius,
-      padding: const EdgeInsets.all(4),
-      // Natural pill widths spread evenly when they fit; the same wrap turns
-      // into a deliberate two-row stack at narrow widths or large text rather
-      // than breaking a label like "Overview" mid-word.
-      child: Wrap(
-        alignment: WrapAlignment.spaceBetween,
-        spacing: 4,
-        runSpacing: 4,
-        children: [for (final value in items) item(value)],
       ),
     );
   }

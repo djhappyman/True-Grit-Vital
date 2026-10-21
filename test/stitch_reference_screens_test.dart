@@ -1,3 +1,5 @@
+import 'package:true_grit_vital/features/plans/dashboard_favourites.dart';
+
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -246,7 +248,7 @@ void main() {
   }
 
   appTest(
-    'Stitch hero and timeline retain durable Taken and Undo, and placeholders save nothing',
+    'Stitch hero and timeline retain durable Taken and Undo, and configuring favourites saves no doses',
     (tester) async {
       final f = await launch(tester, todayClock: referenceNow);
       await seedReference(tester, f.store);
@@ -315,8 +317,8 @@ void main() {
       );
       expect(undone.id, taken.id);
       await tap(tester, 'Configure');
-      expect(find.text('This feature is not available yet.'), findsOneWidget);
-      await tap(tester, 'Done');
+      expect(find.byType(DashboardFavouritesDialog), findsOneWidget);
+      await tap(tester, 'Cancel');
       expect(
         (await runIo(
           tester,

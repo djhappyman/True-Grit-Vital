@@ -3,19 +3,28 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../domain/stock/stored_stock.dart';
 import '../../l10n/app_localizations.dart';
 import '../../ui/stitch_ui.dart';
+import '../../ui/vital_presenters.dart';
 import '../stock/stock_providers.dart' show sameStockStrength, stockDecimal;
 import '../stock/stock_widgets.dart' show stockAmountText;
 
 /// The reference sheet geometry, composed on top of the shared Stitch surface.
 ///
-/// This is deliberately a page composition, not another modal: the canonical
-/// form route keeps its Back, draft, lock and navigation behaviour.
-class DoseSheet extends StatelessWidget {
-  const DoseSheet({super.key, required this.children});
+/// The canonical route supplies modal geometry. The compatibility page uses
+/// the same composition while retaining its draft, lock and Back behaviour.
+class DoseSheet extends StatelessWidget implements VitalTaskContent {
+  const DoseSheet({super.key, required this.children, this.taskFooter});
   final List<Widget> children;
+  @override
+  final Widget? taskFooter;
   @override
   Widget build(BuildContext context) {
     final c = StitchColors(context);
+    if (VitalTaskScope.contains(context)) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
+      );
+    }
     return LayoutBuilder(
       builder: (context, constraints) => StitchSurface(
         radius: VitalLayout.sheetRadius,
@@ -40,6 +49,7 @@ class DoseSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             ...children,
+            ?taskFooter,
           ],
         ),
       ),

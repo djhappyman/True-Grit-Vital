@@ -9,7 +9,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:true_grit_vital/app/appearance.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
-import 'package:true_grit_vital/features/settings/settings_pages.dart';
 import 'package:true_grit_vital/features/settings/settings_widgets.dart';
 
 import 'vital_app_test.dart' show appTest, launch, settle, tap, waitForText;
@@ -43,200 +42,123 @@ Future<String> pathOf(WidgetTester tester, ProviderContainer container) async =>
 void main() {
   setUpAll(loadFonts);
 
-  appTest('settings hub keeps every real destination reachable by default', (
-    tester,
-  ) async {
+  appTest('settings sections expose every real destination', (tester) async {
     await launch(tester);
     await tap(tester, 'Settings');
     await waitForText(tester, 'On this device');
-    expect(find.byType(SettingsPage), findsOneWidget);
-    expect(find.text('Settings'), findsOneWidget);
-    expect(find.text('Appearance, privacy, records and help.'), findsOneWidget);
-    for (final label in [
+    for (final name in [
       'Profile',
       'Appearance',
       'Reminders',
       'Help',
       'Licences',
-      'Privacy',
-      'Diagnostics',
-      'Reports',
-      'Exports',
-      'Backup',
-      'Restore',
     ]) {
-      expect(find.text(label), findsWidgets, reason: label);
+      expect(find.text(name), findsWidgets);
     }
-    expect(find.text('Local storage'), findsOneWidget);
-    expect(find.byType(SettingsPreviewRow), findsNWidgets(2));
-    expect(tester.takeException(), isNull);
-  });
-
-  appTest('settings hub invents no cipher, size or version claim', (
-    tester,
-  ) async {
-    await launch(tester);
-    await tap(tester, 'Settings');
-    await waitForText(tester, 'On this device');
-    for (final claim in [
-      'AES',
-      'GCM',
-      '4.2 MB',
-      '2.4.1',
-      '8904',
-      'SQLite Ledger',
-      'Zero cloud telemetry',
-      'Bypass',
-      'Person:',
-    ]) {
-      expect(find.textContaining(claim), findsNothing, reason: claim);
-    }
-    expect(
-      find.text('Database size and record totals are not available yet.'),
-      findsOneWidget,
-    );
-    expect(
-      find.text('Not available yet. Create a backup when you need one.'),
-      findsOneWidget,
-    );
-    expect(
-      find.text('Not available yet. Use Exports for structured data.'),
-      findsOneWidget,
-    );
-  });
-
-  appTest('settings hub filter shows one group and restores every group', (
-    tester,
-  ) async {
-    await launch(tester);
-    await tap(tester, 'Settings');
-    await waitForText(tester, 'On this device');
-
     await tester.tap(segment('Privacy'));
     await settle(tester);
-    expect(find.text('Archive, delete or review copies.'), findsOneWidget);
-    expect(find.text('Recent local error codes.'), findsOneWidget);
+    expect(find.text('Diagnostics'), findsOneWidget);
     expect(find.text('Your name and report details.'), findsNothing);
-    expect(find.text('Review your substance reports.'), findsNothing);
+    await tester.tap(segment('Data'));
+    await settle(tester);
+    for (final name in ['Reports', 'Exports', 'Backup', 'Restore']) {
+      expect(find.text(name), findsOneWidget);
+    }
+    expect(find.byType(SettingsPreviewRow), findsNothing);
+  });
 
+  appTest('settings invents no metrics and advertises no unfinished feature', (
+    tester,
+  ) async {
+    await launch(tester);
+    await tap(tester, 'Settings');
+    for (final group in ['General', 'Privacy', 'Data']) {
+      await tester.tap(segment(group));
+      await settle(tester);
+      for (final claim in [
+        'AES',
+        'GCM',
+        '4.2 MB',
+        '2.4.1',
+        '8904',
+        'SQLite Ledger',
+        'Zero cloud telemetry',
+        'Bypass',
+        'Person:',
+        'Automatic backups',
+        'FHIR export',
+      ]) {
+        expect(find.textContaining(claim), findsNothing, reason: claim);
+      }
+      expect(find.byType(SettingsPreviewRow), findsNothing);
+    }
+  });
+
+  appTest('settings pages preserve one group with swipe and tab alternatives', (
+    tester,
+  ) async {
+    await launch(tester);
+    await tap(tester, 'Settings');
+    await tester.tap(segment('Privacy'));
+    await settle(tester);
+    expect(find.text('Recent local error codes.'), findsOneWidget);
     await tester.tap(segment('Data'));
     await settle(tester);
     expect(find.text('Review your substance reports.'), findsOneWidget);
-    expect(find.text('Local storage'), findsOneWidget);
     expect(find.text('Recent local error codes.'), findsNothing);
-
     await tester.tap(segment('General'));
     await settle(tester);
     expect(find.text('Your name and report details.'), findsOneWidget);
     expect(find.text('Review your substance reports.'), findsNothing);
-
-    await tester.tap(segment('All'));
-    await settle(tester);
-    for (final label in [
-      'Your name and report details.',
-      'Archive, delete or review copies.',
-      'Review your substance reports.',
-    ]) {
-      expect(find.text(label), findsOneWidget, reason: label);
-    }
-    expect(tester.takeException(), isNull);
-  });
-
-  appTest('settings previews are labelled, not switches or commands', (
-    tester,
-  ) async {
-    final f = await launch(tester);
-    await tap(tester, 'Settings');
-    await waitForText(tester, 'On this device');
-    expect(find.byType(Switch), findsNothing);
-    for (final label in ['Automatic backups', 'FHIR export']) {
-      final row = find.ancestor(
-        of: find.text(label),
-        matching: find.byType(SettingsPreviewRow),
-      );
-      expect(row, findsOneWidget, reason: label);
-      expect(
-        find.descendant(of: row, matching: find.byType(Switch)),
-        findsNothing,
-        reason: label,
-      );
-      expect(
-        find.descendant(of: row, matching: find.byType(Button)),
-        findsNothing,
-        reason: label,
-      );
-      expect(
-        find.descendant(of: row, matching: find.text('Preview')),
-        findsOneWidget,
-        reason: label,
-      );
-    }
-    final before = await pathOf(tester, f.container);
-    await tester.ensureVisible(find.text('Automatic backups'));
-    await settle(tester);
-    await tester.tap(find.text('Automatic backups'));
-    await settle(tester);
-    expect(await pathOf(tester, f.container), before);
-    expect(find.byType(SettingsPage), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    expect(find.text('All'), findsNothing);
   });
 
   appTest('settings rows still open their real capability routes', (
     tester,
   ) async {
     final f = await launch(tester);
-    await tap(tester, 'Settings');
-    await waitForText(tester, 'On this device');
-    for (final (label, path) in [
-      ('Profile', '/profile'),
-      ('Privacy', '/settings/privacy'),
-      ('Diagnostics', '/settings/diagnostics'),
-      ('Help', '/settings/help'),
-      ('Licences', '/settings/licences'),
-      ('Reports', '/reports'),
-      ('Exports', '/exports'),
-      ('Backup', '/backup'),
-      ('Restore', '/restore'),
-      ('Reminders', '/reminders'),
-      ('Appearance', '/appearance'),
+    for (final (group, label, path) in [
+      ('General', 'Profile', '/profile'),
+      ('Privacy', 'Privacy', '/settings/privacy'),
+      ('Privacy', 'Diagnostics', '/settings/diagnostics'),
+      ('General', 'Help', '/settings/help'),
+      ('General', 'Licences', '/settings/licences'),
+      ('Data', 'Reports', '/reports'),
+      ('Data', 'Exports', '/exports'),
+      ('Data', 'Backup', '/backup'),
+      ('Data', 'Restore', '/restore'),
+      ('General', 'Reminders', '/reminders'),
+      ('General', 'Appearance', '/appearance'),
     ]) {
-      await tap(tester, label);
-      expect(
-        await pathOf(tester, f.container),
-        path,
-        reason: '$label should open $path',
-      );
       f.container.read(routerProvider).go('/settings');
       await settle(tester);
-      await waitForText(tester, 'On this device');
+      await tester.tap(segment(group));
+      await settle(tester);
+      final row = find.widgetWithText(SettingsNavigationRow, label);
+      await tester.ensureVisible(row);
+      await settle(tester);
+      await tester.tap(
+        find.descendant(of: row, matching: find.byType(Button)).last,
+      );
+      await settle(tester);
+      expect(await pathOf(tester, f.container), path, reason: label);
     }
-    expect(tester.takeException(), isNull);
   });
 
-  appTest('settings hub grows without clipping at narrow widths and 2x text', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(320, 740);
+  appTest('settings peer pages fit narrow double text', (tester) async {
     tester.view.devicePixelRatio = 1;
     tester.platformDispatcher.textScaleFactorTestValue = 2;
     addTearDown(tester.view.reset);
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     await launch(tester);
     await tap(tester, 'Settings');
-    await waitForText(tester, 'On this device');
     for (final width in [320.0, 390.0, 430.0]) {
       tester.view.physicalSize = Size(width, 740);
-      await settle(tester);
-      expect(tester.takeException(), isNull, reason: '$width at double text');
-      expect(find.text('On this device'), findsOneWidget);
-      expect(find.text('Local storage'), findsOneWidget);
-      await tester.scrollUntilVisible(find.text('FHIR export'), 300);
-      await settle(tester);
-      expect(tester.takeException(), isNull, reason: '$width at double text');
-      expect(find.text('FHIR export').hitTestable(), findsOneWidget);
-      await tester.scrollUntilVisible(find.text('Settings'), -300);
-      await settle(tester);
-      expect(tester.takeException(), isNull, reason: '$width at double text');
+      for (final group in ['General', 'Privacy', 'Data']) {
+        await tester.tap(segment(group));
+        await settle(tester);
+        expect(tester.takeException(), isNull);
+      }
     }
   });
 

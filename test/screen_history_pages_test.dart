@@ -20,7 +20,8 @@ import 'package:true_grit_vital/ui/stitch_ui.dart';
 import 'package:true_grit_vital/features/reports/reports_page.dart';
 
 import 'history_mobile_ui_test.dart' show historyItem, historyRecord, today;
-import 'vital_app_test.dart' show appTest, launch, runIo, settle, tap;
+import 'vital_app_test.dart'
+    show appTest, launch, runIo, settle, tap, waitForText;
 
 void main() {
   appTest(
@@ -116,8 +117,7 @@ void main() {
     final f = await launch(tester);
     f.container.read(routerProvider).go('/history');
     await settle(tester);
-    await tester.tap(find.byKey(const ValueKey('history-filters-toggle')));
-    await settle(tester);
+    await tap(tester, 'More');
     await tap(tester, 'Export');
     final export = GoRouterState.of(tester.element(find.byType(ExportPage)))
         .uri;
@@ -128,6 +128,7 @@ void main() {
     expect(Uri.parse(export.queryParameters['return']!).path, '/history');
     f.container.read(routerProvider).pop();
     await settle(tester);
+    await tap(tester, 'More');
     await tap(tester, 'Reports');
     final reports = GoRouterState.of(tester.element(find.byType(ReportsPage)))
         .uri;
@@ -160,9 +161,12 @@ void main() {
     if (find.widgetWithText(LabelledInput, 'From').evaluate().isEmpty) {
       final toggle = find.byKey(const ValueKey('history-filters-toggle'));
       await tester.ensureVisible(toggle);
-      await tester.tap(toggle);
+      await tester.tap(
+        find.descendant(of: toggle, matching: find.byType(Button)).first,
+      );
       await settle(tester);
     }
+    await waitForText(tester, 'From');
     final field = find.descendant(
       of: find.widgetWithText(LabelledInput, 'From'),
       matching: find.byType(TextField),
@@ -170,7 +174,10 @@ void main() {
     await tester.ensureVisible(field);
     await tester.enterText(field, '1999-01-01');
     await settle(tester);
+    await tester.tapAt(const Offset(2, 2));
+    await settle(tester);
     for (final action in ['Export', 'Reports']) {
+      await tap(tester, 'More');
       await tap(tester, action);
       final uri = GoRouterState.of(
         tester.element(

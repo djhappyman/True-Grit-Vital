@@ -77,6 +77,12 @@ Future<void> openChoices(WidgetTester tester, String kind) async {
 }
 
 Future<void> toggleFilters(WidgetTester tester) async {
+  final done = find.text('Done').hitTestable();
+  if (done.evaluate().isNotEmpty) {
+    await tester.tap(done);
+    await settle(tester);
+    return;
+  }
   final target = find.byKey(const ValueKey('history-filters-toggle'));
   await tester.ensureVisible(target);
   await settle(tester);
@@ -167,7 +173,7 @@ void main() {
       ).toString();
       f.container.read(routerProvider).go(location);
       await settle(tester);
-      await toggleFilters(tester);
+      await tap(tester, 'More');
       await tap(tester, 'Charts');
       expect(find.byType(ChartsPage), findsOneWidget);
       final uri = GoRouterState.of(tester.element(find.byType(ChartsPage))).uri;
@@ -553,11 +559,17 @@ void main() {
         ),
       );
       await settle(tester);
-      await tap(tester, 'Back');
+      await tester.binding.handlePopRoute();
+      await settle(tester);
       expect(
         f.container.read(historyControllerProvider('/history')).query!.identity,
         query.identity,
       );
+      final feedback = Stopwatch()..start();
+      while (find.textContaining('This entry moved to').evaluate().isEmpty &&
+          feedback.elapsed.inSeconds < 30) {
+        await settle(tester);
+      }
       expect(find.textContaining('This entry moved to'), findsOneWidget);
       expect(find.text('Filtered'), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -619,7 +631,8 @@ void main() {
       expect(offset, greaterThan(0));
       await tester.tap(view);
       await settle(tester);
-      await tap(tester, 'Back');
+      await tester.binding.handlePopRoute();
+      await settle(tester);
       final restoredList = tester.widget<ListView>(
         find
             .descendant(
@@ -636,6 +649,7 @@ void main() {
       );
       await inspectTarget();
       await tap(tester, 'Correct');
+      await tap(tester, 'Edit');
       await enter(tester, 'Actual date', today().addDays(-1).toString());
       await tap(tester, 'Save');
       final location = f.container

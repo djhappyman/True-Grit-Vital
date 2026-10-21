@@ -351,18 +351,107 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         events.isNotEmpty ||
         appliedFrom != null ||
         appliedBefore != null;
-    final filtersToggle = MergeSemantics(
-      child: Semantics(
-        key: const ValueKey('history-filters-toggle'),
-        label: t.historyFilters,
-        expanded: filtersOpen,
-        child: StitchButton(
-          quiet: true,
-          compact: true,
-          onPressed: () => setState(() => filtersOpen = !filtersOpen),
-          child: const ExcludeSemantics(
-            child: Icon(LucideIcons.slidersHorizontal, size: 20),
-          ),
+    final filtersToggle = VitalLocalOptions(
+      key: const ValueKey('history-filters-toggle'),
+      label: t.historyFilters,
+      content: StitchSurface(
+        radius: VitalLayout.sectionRadius,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              t.historyFilters,
+              style: StitchType.name.copyWith(color: c.ink),
+            ),
+            const SizedBox(height: 12),
+            _HistoryStatusChips(
+              status: status,
+              onChanged: (value) => setState(() => status = value),
+            ),
+            const SizedBox(height: 12),
+            VitalSegments<bool>(
+              values: const [true, false],
+              selected: calendar,
+              label: (value) => value ? t.historyCalendar : t.historyTimeline,
+              onChanged: (value) => setState(() => calendar = value),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              t.shownInZone(display.resolveZone(zone).zoneId),
+              style: StitchType.caption,
+            ),
+            const SizedBox(height: 12),
+            LabelledInput(
+              label: t.historyFrom,
+              controller: from,
+              error: dateError,
+            ),
+            LabelledInput(label: t.historyThrough, controller: through),
+            Text(
+              t.historyDateHelp,
+              style: StitchType.caption.copyWith(color: c.muted),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                VitalButton.secondary(
+                  onPressed: () {
+                    final a = parseDate(from.text), b = parseDate(through.text);
+                    setState(() {
+                      dateError =
+                          (from.text.isNotEmpty && a == null) ||
+                              (through.text.isNotEmpty && b == null) ||
+                              (a != null && b != null && a.compareTo(b) > 0)
+                          ? t.historyDateError
+                          : null;
+                      if (dateError == null) {
+                        appliedFrom = a == null
+                            ? null
+                            : display.dayBounds(a, zone).start;
+                        appliedBefore = b == null
+                            ? null
+                            : display.dayBounds(b, zone).endExclusive;
+                      }
+                      selected = null;
+                    });
+                  },
+                  child: Text(t.apply),
+                ),
+                VitalButton.secondary(
+                  onPressed: () => setState(() {
+                    from.clear();
+                    through.clear();
+                    appliedFrom = null;
+                    appliedBefore = null;
+                    types.clear();
+                    events.clear();
+                    status = TimelineStatus.all;
+                    selected = null;
+                    dateError = null;
+                  }),
+                  child: Text(t.clear),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            HistoryFilterChoices(
+              scope: scope,
+              kind: 'type',
+              selected: types,
+              labels: labels,
+              onChanged: (values) => setState(() => types = values),
+            ),
+            const SizedBox(height: 12),
+            HistoryFilterChoices(
+              scope: scope,
+              kind: 'event',
+              selected: events,
+              labels: labels,
+              onChanged: (values) => setState(() => events = values),
+            ),
+          ],
         ),
       ),
     );
@@ -397,110 +486,6 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       if (calendar) const SizedBox(height: 16),
       if (!calendar)
         Align(alignment: AlignmentDirectional.centerEnd, child: filtersToggle),
-      if (filtersOpen) ...[
-        const SizedBox(height: 12),
-        StitchSurface(
-          radius: VitalLayout.sectionRadius,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                t.historyFilters,
-                style: StitchType.name.copyWith(color: c.ink),
-              ),
-              const SizedBox(height: 12),
-              _HistoryStatusChips(
-                status: status,
-                onChanged: (value) => setState(() => status = value),
-              ),
-              const SizedBox(height: 12),
-              VitalSegments<bool>(
-                values: const [true, false],
-                selected: calendar,
-                label: (value) => value ? t.historyCalendar : t.historyTimeline,
-                onChanged: (value) => setState(() => calendar = value),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                t.shownInZone(display.resolveZone(zone).zoneId),
-                style: StitchType.caption,
-              ),
-              const SizedBox(height: 12),
-              LabelledInput(
-                label: t.historyFrom,
-                controller: from,
-                error: dateError,
-              ),
-              LabelledInput(label: t.historyThrough, controller: through),
-              Text(
-                t.historyDateHelp,
-                style: StitchType.caption.copyWith(color: c.muted),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  VitalButton.secondary(
-                    onPressed: () {
-                      final a = parseDate(from.text),
-                          b = parseDate(through.text);
-                      setState(() {
-                        dateError =
-                            (from.text.isNotEmpty && a == null) ||
-                                (through.text.isNotEmpty && b == null) ||
-                                (a != null && b != null && a.compareTo(b) > 0)
-                            ? t.historyDateError
-                            : null;
-                        if (dateError == null) {
-                          appliedFrom = a == null
-                              ? null
-                              : display.dayBounds(a, zone).start;
-                          appliedBefore = b == null
-                              ? null
-                              : display.dayBounds(b, zone).endExclusive;
-                        }
-                        selected = null;
-                      });
-                    },
-                    child: Text(t.apply),
-                  ),
-                  VitalButton.secondary(
-                    onPressed: () => setState(() {
-                      from.clear();
-                      through.clear();
-                      appliedFrom = null;
-                      appliedBefore = null;
-                      types.clear();
-                      events.clear();
-                      status = TimelineStatus.all;
-                      selected = null;
-                      dateError = null;
-                    }),
-                    child: Text(t.clear),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              HistoryFilterChoices(
-                scope: scope,
-                kind: 'type',
-                selected: types,
-                labels: labels,
-                onChanged: (values) => setState(() => types = values),
-              ),
-              const SizedBox(height: 12),
-              HistoryFilterChoices(
-                scope: scope,
-                kind: 'event',
-                selected: events,
-                labels: labels,
-                onChanged: (values) => setState(() => events = values),
-              ),
-            ],
-          ),
-        ),
-      ],
       if (!filtersOpen &&
           (status != TimelineStatus.all ||
               types.isNotEmpty ||
@@ -708,39 +693,57 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           child: Text(t.substances),
         ),
       ),
-      if (filtersOpen) ...[
-        const SizedBox(height: 16),
-        VitalButton.secondary(
-          onPressed: () =>
-              context.push(artifactLocation('/exports', personId, today, zone)),
-          child: Text(t.exportTitle),
-        ),
-        const SizedBox(height: 24),
-        _HistoryReportsPanel(
-          onReports: () =>
-              context.push(artifactLocation('/reports', personId, today, zone)),
-          onCharts: () => context.push(
-            Uri(
-              path: '/charts',
-              queryParameters: {
-                'scope': personId,
-                if (seed['item'] != null) 'item': seed['item']!,
-                if (appliedFrom != null) 'from': appliedFrom!.toIso8601String(),
-                if (appliedBefore != null)
-                  'before': appliedBefore!.toIso8601String(),
-                'return': viewLocation(personId),
-              },
-            ).toString(),
-          ),
-          onSupporting: () => context.push(
-            supportingLocation(
-              personId,
-              item: seed['item'],
-              back: viewLocation(personId),
+      Align(
+        alignment: AlignmentDirectional.centerEnd,
+        child: VitalOverflow(
+          label: t.more,
+          actions: [
+            VitalMenuAction(
+              label: t.reportsTitle,
+              icon: LucideIcons.fileText,
+              onPressed: () => context.push(
+                artifactLocation('/reports', personId, today, zone),
+              ),
             ),
-          ),
+            VitalMenuAction(
+              label: t.exportTitle,
+              icon: LucideIcons.download,
+              onPressed: () => context.push(
+                artifactLocation('/exports', personId, today, zone),
+              ),
+            ),
+            VitalMenuAction(
+              label: t.chartsTitle,
+              icon: LucideIcons.chartLine,
+              onPressed: () => context.push(
+                Uri(
+                  path: '/charts',
+                  queryParameters: {
+                    'scope': personId,
+                    if (seed['item'] != null) 'item': seed['item']!,
+                    if (appliedFrom != null)
+                      'from': appliedFrom!.toIso8601String(),
+                    if (appliedBefore != null)
+                      'before': appliedBefore!.toIso8601String(),
+                    'return': viewLocation(personId),
+                  },
+                ).toString(),
+              ),
+            ),
+            VitalMenuAction(
+              label: t.supportingTitle,
+              icon: LucideIcons.activity,
+              onPressed: () => context.push(
+                supportingLocation(
+                  personId,
+                  item: seed['item'],
+                  back: viewLocation(personId),
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     ];
     return ListView(
       controller: scroll,
@@ -1374,69 +1377,6 @@ class HistoryEntryCard extends ConsumerWidget {
   }
 }
 
-class _HistoryReportsPanel extends StatelessWidget {
-  const _HistoryReportsPanel({
-    required this.onReports,
-    required this.onCharts,
-    required this.onSupporting,
-  });
-  final VoidCallback onReports, onCharts, onSupporting;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context), c = StitchColors(context);
-    return StitchSurface(
-      radius: VitalLayout.sectionRadius,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              StitchIcon(LucideIcons.notebookPen, size: 40),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  t.reportsTitle,
-                  style: StitchType.name.copyWith(color: c.ink),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            t.screenHistoryReportsHelp,
-            style: StitchType.caption.copyWith(color: c.muted),
-          ),
-          const SizedBox(height: 12),
-          VitalButton(
-            expand: true,
-            leading: const Icon(LucideIcons.notebookPen),
-            onPressed: onReports,
-            child: Text(t.reportsTitle),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              VitalButton.secondary(
-                leading: const Icon(LucideIcons.activity),
-                onPressed: onCharts,
-                child: Text(t.chartsTitle),
-              ),
-              VitalButton.secondary(
-                leading: const Icon(LucideIcons.flaskConical),
-                onPressed: onSupporting,
-                child: Text(t.supportingTitle),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class CalendarRequest {
   CalendarRequest(this.query, this.dates);
   final TimelineQuery query;
@@ -1460,9 +1400,55 @@ final historyCalendarProvider = FutureProvider.autoDispose
           .calendar(request.query, dates: request.dates);
     });
 
-class HistoryCalendarSection extends ConsumerWidget {
+class HistoryCalendarSection extends StatelessWidget {
   const HistoryCalendarSection({
     super.key,
+    required this.query,
+    required this.month,
+    required this.selected,
+    required this.onMonth,
+    required this.onSelect,
+    this.tools,
+  });
+  final TimelineQuery query;
+  final CivilDate month;
+  final CivilDate? selected;
+  final ValueChanged<CivilDate> onMonth, onSelect;
+  final Widget? tools;
+  @override
+  Widget build(BuildContext context) {
+    final scale = MediaQuery.textScalerOf(context).scale(16) / 16;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (tools != null)
+          Align(alignment: AlignmentDirectional.centerEnd, child: tools!),
+        SizedBox(
+          height: (260 + 6 * 48) * scale,
+          child: VitalPager(
+            index: (month.year - 1) * 12 + month.month - 1,
+            itemCount: 9999 * 12,
+            duration: VitalMotion.calendar,
+            retainPages: false,
+            onChanged: (index) =>
+                onMonth(CivilDate(index ~/ 12 + 1, index % 12 + 1, 1)),
+            itemBuilder: (_, index) => _HistoryMonthPage(
+              query: query,
+              month: CivilDate(index ~/ 12 + 1, index % 12 + 1, 1),
+              selected: selected,
+              onMonth: onMonth,
+              onSelect: onSelect,
+              tools: null,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HistoryMonthPage extends ConsumerWidget {
+  const _HistoryMonthPage({
     required this.query,
     required this.month,
     required this.selected,

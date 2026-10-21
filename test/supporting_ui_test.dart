@@ -277,6 +277,7 @@ void main() {
     await enter(tester, 'Notes', 'Noted after reviewing the source.');
     await tap(tester, 'Save');
     expect(find.byType(SupportingDetailPage), findsOneWidget);
+    await tap(tester, 'Source details');
     expect(find.text('Noted after reviewing the source.'), findsOneWidget);
     final saved = (await runIo(
       tester,
@@ -314,6 +315,7 @@ void main() {
     expect(find.text('Attached'), findsOneWidget);
     await tap(tester, 'Save');
     expect(find.byType(SupportingDetailPage), findsOneWidget);
+    await tap(tester, 'Source details');
     expect(find.text('Saved sources'), findsOneWidget);
     final saved = (await runIo(
       tester,
@@ -872,7 +874,10 @@ void main() {
         '/history?scope=${adult.id}&status=voided&mode=calendar&day=2026-10-19';
     f.container.read(routerProvider).go(location);
     await settle(tester);
-    await tester.tap(find.byKey(const ValueKey('history-filters-toggle')));
+    final menu = find.byType(VitalOverflow);
+    await tester.ensureVisible(menu);
+    await settle(tester);
+    await tester.tap(menu);
     await settle(tester);
     await tap(tester, 'Supporting');
     // One local adult: the collection does not repeat a person label.

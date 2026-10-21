@@ -94,8 +94,8 @@ void main() {
     expect(find.text('Telmisartan 40mg complete product name'), findsOneWidget);
     expect(find.text('Prescription · Oral tablet'), findsOneWidget);
     expect(find.text('QUANTITY'), findsOneWidget);
-    expect(find.text('CONTEXT & CONDITIONS'), findsOneWidget);
-    expect(find.text('VITALS & OBSERVATIONS'), findsOneWidget);
+    expect(find.text('CONTEXT & CONDITIONS'), findsNothing);
+    expect(find.text('VITALS & OBSERVATIONS'), findsNothing);
     expect(find.text('PRN'), findsNothing);
     expect(find.text('Skip'), findsNothing);
 
@@ -191,6 +191,7 @@ void main() {
     final item = (await runIo(tester, () => createItem(f.store)))!;
     f.container.read(routerProvider).go('/record/${item.id}');
     await settle(tester);
+    await tap(tester, 'More');
     await tap(tester, 'Observations');
     expect(find.byType(SupportingRecordsPage), findsOneWidget);
     final page = tester.widget<SupportingRecordsPage>(
@@ -211,6 +212,7 @@ void main() {
       of: find.widgetWithText(LabelledInput, label),
       matching: find.byType(TextField),
     );
+    await tap(tester, 'Edit');
     final time = field('Actual time');
     await tester.ensureVisible(time);
     await tester.enterText(time, '20:15');

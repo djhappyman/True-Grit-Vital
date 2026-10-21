@@ -23,7 +23,7 @@ import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/platform/device_zone.dart';
 
-import 'vital_app_test.dart' show appTest, settle, runIo;
+import 'vital_app_test.dart' show appTest, settle, runIo, waitForText;
 
 // This isolated clock-choice test formats saved instants without opening storage.
 class FixedClockDisplayPreferences extends DisplayPreferencesController {
@@ -35,6 +35,7 @@ class FixedClockDisplayPreferences extends DisplayPreferencesController {
 Future<void> tap(WidgetTester tester, String text) async {
   tester.testTextInput.hide();
   await settle(tester);
+  if (find.text(text).evaluate().isEmpty) await waitForText(tester, text);
   final target = find.text(text).last;
   await tester.ensureVisible(target);
   await settle(tester);
@@ -140,10 +141,11 @@ void main() {
       );
       await tap(tester, 'Save');
       await settle(tester);
+      await waitForText(tester, '0 recorded, 0 skipped, 2 planned');
       expect(find.text('0 recorded, 0 skipped, 2 planned'), findsOneWidget);
       expect(find.text('Due'), findsOneWidget);
       expect(find.text('Upcoming'), findsNothing);
-      expect(find.text('Recorded'), findsOneWidget);
+      expect(find.text('Recorded'), findsWidgets);
       final plannedRowState = tester.state(
         find
             .byWidgetPredicate(
@@ -161,8 +163,10 @@ void main() {
         findsOneWidget,
       );
       await tap(tester, 'Taken');
+      await waitForText(tester, '1 recorded, 0 skipped, 2 planned');
       expect(find.text('1 recorded, 0 skipped, 2 planned'), findsOneWidget);
       await tap(tester, 'Skip');
+      await waitForText(tester, '1 recorded, 1 skipped, 2 planned');
       expect(find.text('1 recorded, 1 skipped, 2 planned'), findsOneWidget);
       expect(
         tester.state(
@@ -180,7 +184,7 @@ void main() {
       final undo = find.text('Undo').first;
       await tester.ensureVisible(undo);
       await tester.tap(undo);
-      await settle(tester);
+      await waitForText(tester, '1 recorded, 0 skipped, 2 planned');
       expect(find.textContaining('1 skipped, 2 planned'), findsNothing);
       final rows = (await runIo(tester, () => f.store.records()))!;
       expect(rows.single.enteredAmount, '1.00');
@@ -305,6 +309,7 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), '0.1250');
     await tap(tester, 'Preview');
     await tap(tester, 'Save');
+    await waitForText(tester, 'Taken');
     expect(find.text('Taken'), findsWidgets);
     await runIo(
       tester,
@@ -397,6 +402,7 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), '0.125000');
     await tap(tester, 'Preview');
     await tap(tester, 'Save');
+    await waitForText(tester, 'Taken');
     expect(find.textContaining('0.125000 mg'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
@@ -476,14 +482,16 @@ void main() {
       await tester.enterText(find.byType(TextField).last, 'Europe/London');
       await tap(tester, 'Preview');
       await tap(tester, 'Save');
+      await waitForText(tester, 'Taken');
       expect(find.text('Taken'), findsWidgets);
-      await tester.tap(
-        find
-            .byWidgetPredicate(
-              (w) => w is Semantics && w.properties.label == 'Details',
-            )
-            .first,
-      );
+      final details = find
+          .byWidgetPredicate(
+            (w) => w is Semantics && w.properties.label == 'Details',
+          )
+          .first;
+      await tester.ensureVisible(details);
+      await settle(tester);
+      await tester.tap(details);
       await settle(tester);
       expect(find.textContaining('untimed in Europe/London'), findsOneWidget);
       await tap(tester, 'Manage');

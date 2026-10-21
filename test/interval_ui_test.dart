@@ -398,6 +398,7 @@ void main() {
         .read(routerProvider)
         .push('/correct/${r.id}?person=${r.personId}');
     await settle(tester);
+    await tap(tester, 'Edit');
     final changed = r.actualAt.toLocal().subtract(const Duration(minutes: 10));
     final timeField = find.descendant(
       of: find.byWidgetPredicate(

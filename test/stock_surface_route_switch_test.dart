@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:true_grit_vital/ui/vital_ui.dart' show VitalTaskFrame;
 import 'package:shadcn_flutter/shadcn_flutter.dart' show TextField;
 import 'package:true_grit_vital/app/vital_app.dart' show routerProvider;
 import 'package:true_grit_vital/data/record_store.dart';
@@ -74,7 +75,13 @@ void main() {
       // In-place switch to the quantity surface on the same route pattern.
       f.container.read(routerProvider).go(quantityPath);
       await settle(tester);
-      expect(find.text('Adjust stock'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(VitalTaskFrame),
+          matching: find.text('Adjust stock'),
+        ),
+        findsOneWidget,
+      );
       expect(find.text('Stock notices'), findsNothing);
       await tap(tester, 'Restock');
       await tester.enterText(_field('Amount'), '4');
