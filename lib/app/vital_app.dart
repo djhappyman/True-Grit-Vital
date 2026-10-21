@@ -39,6 +39,7 @@ import '../features/lock/lock_gate.dart';
 import '../features/profiles/profile_pages.dart';
 import '../features/recording/record_pages.dart';
 import '../features/recording/combined_pages.dart';
+import '../features/substances/substance_overview.dart';
 import '../features/settings/diagnostic_pages.dart';
 import '../features/settings/help_pages.dart';
 import '../features/settings/privacy_pages.dart';
@@ -537,6 +538,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/item/:id',
         builder: (_, state) => StorageGate(
           child: ItemHistory(itemId: state.pathParameters['id']!),
+        ),
+      ),
+      // One reachable overview per substance. The `/item/:id` route above
+      // stays the preserved full-history surface.
+      GoRoute(
+        path: '/substance/:id',
+        builder: (_, state) => StorageGate(
+          child: SubstanceOverviewPage(itemId: state.pathParameters['id']!),
         ),
       ),
     ],

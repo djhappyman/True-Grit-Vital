@@ -6626,5 +6626,104 @@
   "designSubstancesSummaryUnavailable": "The substance summary could not be loaded.",
   "@designSubstancesSummaryUnavailable": {
     "description": "Design-batch substance summary failure. A factual scoped message: these live summary reads failed; the Retry action re-requests them. Never describes history or implies data loss."
+  },
+  "designOverviewContext": "Context",
+  "@designOverviewContext": {
+    "description": "Substance overview section heading for linked supporting, file and use-history records."
+  },
+  "designOverviewNoPlan": "No plan yet",
+  "@designOverviewNoPlan": {
+    "description": "Substance overview schedule empty state; recording stays available."
+  },
+  "designOverviewNoPlanHelp": "Add a schedule to see planned doses. Recording stays available without one.",
+  "@designOverviewNoPlanHelp": {
+    "description": "Substance overview schedule empty state; recording stays available."
+  },
+  "designOverviewPlansBound": "This summary shows the first plans. Open Schedule to review the rest.",
+  "@designOverviewPlansBound": {
+    "description": "Substance overview bounded saved-plan list; the working schedule editor stays reachable for every plan."
+  },
+  "designOverviewNextMissing": "This plan is not in the bounded next-dose summary. Open Schedule to review it.",
+  "@designOverviewNextMissing": {
+    "description": "Reported when a shown plan has no row in the bounded next-dose calculation; this cannot state or deny a next planned date."
+  },
+  "designOverviewStart": "Starts {date}",
+  "@designOverviewStart": {
+    "description": "Substance overview schedule start date; preserve the full date value.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "designOverviewWeekdays": "On {weekdays}",
+  "@designOverviewWeekdays": {
+    "description": "Substance overview selected-weekday dates; the weekday names are separate translated words.",
+    "placeholders": {
+      "weekdays": {
+        "type": "String"
+      }
+    }
+  },
+  "designOverviewEveryDays": "Every {count} days",
+  "@designOverviewEveryDays": {
+    "description": "Substance overview day interval; the anchor date is visible in the schedule editor.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "designOverviewEveryWeeks": "Every {count} weeks",
+  "@designOverviewEveryWeeks": {
+    "description": "Substance overview week interval; the anchor and chosen days appear beside it.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "designOverviewEveryMonths": "Every {count} months",
+  "@designOverviewEveryMonths": {
+    "description": "Substance overview month interval; the anchor and month rule appear beside it.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "designOverviewStockEmpty": "No stock recorded",
+  "@designOverviewStockEmpty": {
+    "description": "Substance overview stock empty state; balances remain optional."
+  },
+  "designOverviewStockHelp": "Stock is optional. Add a container to track the remaining amount.",
+  "@designOverviewStockHelp": {
+    "description": "Substance overview stock empty state; balances remain optional."
+  },
+  "designOverviewHistoryHint": "Older records stay in the full history.",
+  "@designOverviewHistoryHint": {
+    "description": "Substance overview bounded recent-record list; the full history route stays available."
+  },
+  "designOverviewStockReview": "Review the stock for {name}",
+  "@designOverviewStockReview": {
+    "description": "Accessible name for the bounded stock review link in a substance overview.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "designOverviewHistoryReview": "Review the full history for {name}",
+  "@designOverviewHistoryReview": {
+    "description": "Accessible name for the bounded history review link in a substance overview.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "designOverviewEventsHint": "This summary shows the first events. Open Events to review them all.",
+  "@designOverviewEventsHint": {
+    "description": "Substance overview bounded event list; the Events destination stays available."
   }
 }

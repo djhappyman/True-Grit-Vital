@@ -5792,4 +5792,72 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get designSubstancesSummaryUnavailable =>
       'The substance summary could not be loaded.';
+
+  @override
+  String get designOverviewContext => 'Context';
+
+  @override
+  String get designOverviewNoPlan => 'No plan yet';
+
+  @override
+  String get designOverviewNoPlanHelp =>
+      'Add a schedule to see planned doses. Recording stays available without one.';
+
+  @override
+  String get designOverviewPlansBound =>
+      'This summary shows the first plans. Open Schedule to review the rest.';
+
+  @override
+  String get designOverviewNextMissing =>
+      'This plan is not in the bounded next-dose summary. Open Schedule to review it.';
+
+  @override
+  String designOverviewStart(String date) {
+    return 'Starts $date';
+  }
+
+  @override
+  String designOverviewWeekdays(String weekdays) {
+    return 'On $weekdays';
+  }
+
+  @override
+  String designOverviewEveryDays(int count) {
+    return 'Every $count days';
+  }
+
+  @override
+  String designOverviewEveryWeeks(int count) {
+    return 'Every $count weeks';
+  }
+
+  @override
+  String designOverviewEveryMonths(int count) {
+    return 'Every $count months';
+  }
+
+  @override
+  String get designOverviewStockEmpty => 'No stock recorded';
+
+  @override
+  String get designOverviewStockHelp =>
+      'Stock is optional. Add a container to track the remaining amount.';
+
+  @override
+  String get designOverviewHistoryHint =>
+      'Older records stay in the full history.';
+
+  @override
+  String designOverviewStockReview(String name) {
+    return 'Review the stock for $name';
+  }
+
+  @override
+  String designOverviewHistoryReview(String name) {
+    return 'Review the full history for $name';
+  }
+
+  @override
+  String get designOverviewEventsHint =>
+      'This summary shows the first events. Open Events to review them all.';
 }

@@ -9162,6 +9162,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The substance summary could not be loaded.'**
   String get designSubstancesSummaryUnavailable;
+
+  /// Substance overview section heading for linked supporting, file and use-history records.
+  ///
+  /// In en, this message translates to:
+  /// **'Context'**
+  String get designOverviewContext;
+
+  /// Substance overview schedule empty state; recording stays available.
+  ///
+  /// In en, this message translates to:
+  /// **'No plan yet'**
+  String get designOverviewNoPlan;
+
+  /// Substance overview schedule empty state; recording stays available.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a schedule to see planned doses. Recording stays available without one.'**
+  String get designOverviewNoPlanHelp;
+
+  /// Substance overview bounded saved-plan list; the working schedule editor stays reachable for every plan.
+  ///
+  /// In en, this message translates to:
+  /// **'This summary shows the first plans. Open Schedule to review the rest.'**
+  String get designOverviewPlansBound;
+
+  /// Reported when a shown plan has no row in the bounded next-dose calculation; this cannot state or deny a next planned date.
+  ///
+  /// In en, this message translates to:
+  /// **'This plan is not in the bounded next-dose summary. Open Schedule to review it.'**
+  String get designOverviewNextMissing;
+
+  /// Substance overview schedule start date; preserve the full date value.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts {date}'**
+  String designOverviewStart(String date);
+
+  /// Substance overview selected-weekday dates; the weekday names are separate translated words.
+  ///
+  /// In en, this message translates to:
+  /// **'On {weekdays}'**
+  String designOverviewWeekdays(String weekdays);
+
+  /// Substance overview day interval; the anchor date is visible in the schedule editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {count} days'**
+  String designOverviewEveryDays(int count);
+
+  /// Substance overview week interval; the anchor and chosen days appear beside it.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {count} weeks'**
+  String designOverviewEveryWeeks(int count);
+
+  /// Substance overview month interval; the anchor and month rule appear beside it.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {count} months'**
+  String designOverviewEveryMonths(int count);
+
+  /// Substance overview stock empty state; balances remain optional.
+  ///
+  /// In en, this message translates to:
+  /// **'No stock recorded'**
+  String get designOverviewStockEmpty;
+
+  /// Substance overview stock empty state; balances remain optional.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock is optional. Add a container to track the remaining amount.'**
+  String get designOverviewStockHelp;
+
+  /// Substance overview bounded recent-record list; the full history route stays available.
+  ///
+  /// In en, this message translates to:
+  /// **'Older records stay in the full history.'**
+  String get designOverviewHistoryHint;
+
+  /// Accessible name for the bounded stock review link in a substance overview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the stock for {name}'**
+  String designOverviewStockReview(String name);
+
+  /// Accessible name for the bounded history review link in a substance overview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review the full history for {name}'**
+  String designOverviewHistoryReview(String name);
+
+  /// Substance overview bounded event list; the Events destination stays available.
+  ///
+  /// In en, this message translates to:
+  /// **'This summary shows the first events. Open Events to review them all.'**
+  String get designOverviewEventsHint;
 }
 
 class _AppLocalizationsDelegate
