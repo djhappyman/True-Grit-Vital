@@ -1,5 +1,4 @@
-import 'package:flutter/services.dart'
-    show LogicalKeyboardKey, TextInputAction;
+import 'package:flutter/services.dart' show LogicalKeyboardKey, TextInputAction;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,22 +13,26 @@ import '../../ui/vital_ui.dart';
 /// One page key of the bounded Substances list. The 51st row of a page only
 /// reveals the next page; search and the type filter run over the whole stored
 /// collection at the store, not over a loaded subset.
-typedef SubstancesPageQuery
-    = ({FeedScope scope, String search, String typeId, int offset});
+typedef SubstancesPageQuery = ({
+  FeedScope scope,
+  String search,
+  String typeId,
+  int offset,
+});
 
 final substancesPageProvider = StreamProvider.autoDispose
-    .family<List<SubstanceItem>, SubstancesPageQuery>(
-      retry: (_, _) => null,
-      (ref, query) async* {
-        yield* (await ref.watch(recordStoreProvider.future)).watchItems(
-          scope: query.scope,
-          search: query.search,
-          typeId: query.typeId.isEmpty ? null : query.typeId,
-          limit: 51,
-          offset: query.offset,
-        );
-      },
-    );
+    .family<List<SubstanceItem>, SubstancesPageQuery>(retry: (_, _) => null, (
+      ref,
+      query,
+    ) async* {
+      yield* (await ref.watch(recordStoreProvider.future)).watchItems(
+        scope: query.scope,
+        search: query.search,
+        typeId: query.typeId.isEmpty ? null : query.typeId,
+        limit: 51,
+        offset: query.offset,
+      );
+    });
 
 typedef SubstancesTypeQuery = ({FeedScope scope, String search});
 
@@ -57,6 +60,11 @@ class SubstanceCollection extends ConsumerStatefulWidget {
 class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
   final _search = TextEditingController();
   String _typeId = '';
+  // Last known display name of the selected item type. Counts constrained by
+  // the current search omit a selected type whose items match nothing, and
+  // the active filter must stay visible and labelled until the user removes
+  // it; live summaries take over again as soon as the type reappears.
+  String? _typeName;
   int _pages = 1;
 
   @override
@@ -82,8 +90,21 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
     setState(() {
       _search.clear();
       _typeId = '';
+      _typeName = null;
       _pages = 1;
     });
+  }
+
+  void _selectType(String typeId, String typeName) => setState(() {
+    _typeId = typeId;
+    _typeName = typeId.isEmpty ? null : typeName;
+    _pages = 1;
+  });
+
+  void _retry() {
+    ref.invalidate(substancesPageProvider);
+    ref.invalidate(substanceTypesProvider);
+    setState(() => _pages = 1);
   }
 
   @override
@@ -105,14 +126,10 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
       substanceTypesProvider((scope: widget.scope, search: search)),
     );
     final filtered = search.isNotEmpty || _typeId.isNotEmpty;
-    if (pages.any((p) => p.hasError) || summaries.hasError) {
-      return LoadFailure(
-        onRetry: () {
-          ref.invalidate(substancesPageProvider);
-          ref.invalidate(substanceTypesProvider);
-        },
-      );
-    }
+    // Search and the active type filter stay visible while data fails, so a
+    // failure never removes the user's controls or hides why results are
+    // absent; the retry sits with the result area below the tools.
+    final failed = pages.any((p) => p.hasError) || summaries.hasError;
     final rows = <SubstanceItem>[];
     final visited = <String>{};
     for (final page in pages) {
@@ -136,13 +153,14 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
         SubstanceTypeFilters(
           summaries: summaries.value ?? const [],
           selectedTypeId: _typeId,
-          onSelected: (typeId) => setState(() {
-            _typeId = typeId;
-            _pages = 1;
-          }),
+          selectedTypeName: _typeName,
+          onSelected: _selectType,
         ),
         const SizedBox(height: 16),
-        if (pages.every((p) => !p.hasValue)) Text(t.loadingRecords)
+        if (failed)
+          LoadFailure(message: t.designSubstancesUnavailable, onRetry: _retry)
+        else if (pages.every((p) => !p.hasValue))
+          Text(t.loadingRecords)
         else if (rows.isEmpty && !filtered)
           VitalEmptyState(
             title: t.substances,
@@ -189,36 +207,53 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
 
 /// Actual item-type filters plus All. Values come from the stored types
 /// present in the scoped collection under the current search, each with its
-/// item count, so a pill never promises results it cannot show.
+/// item count, so a pill never promises results it cannot show. The selected
+/// type keeps its own pill, with a truthful zero count and its last known
+/// name, when the current search hides every item of that type; the pill is
+/// then still selected, still reversible through All and shows the refreshed
+/// live count as soon as the type reappears in the summaries.
 class SubstanceTypeFilters extends StatelessWidget {
   const SubstanceTypeFilters({
     super.key,
     required this.summaries,
     required this.selectedTypeId,
+    required this.selectedTypeName,
     required this.onSelected,
   });
   final List<SubstanceTypeSummary> summaries;
   final String selectedTypeId;
-  final ValueChanged<String> onSelected;
+  final String? selectedTypeName;
+  final void Function(String typeId, String typeName) onSelected;
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final reachable = summaries
-        .where((s) => s.typeId != null && (s.count > 0 || s.typeId == selectedTypeId))
-        .toList();
-    if (reachable.isEmpty) return const SizedBox.shrink();
-    final total = summaries.fold<int>(0, (sum, s) => sum + s.count);
-  String label(String typeId) => typeId.isEmpty
-      ? '${t.designSubstancesAllFilter} (${t.designSubstancesItemCount(total)})'
-      : '${reachable.firstWhere((s) => s.typeId == typeId).typeName} '
-          '(${t.designSubstancesItemCount(
-        reachable.firstWhere((s) => s.typeId == typeId).count,
-      )})';
+    final pills = [
+      for (final summary in summaries)
+        if (summary.typeId != null && summary.count > 0) summary,
+    ];
+    if (selectedTypeId.isNotEmpty &&
+        selectedTypeName != null &&
+        !pills.any((pill) => pill.typeId == selectedTypeId)) {
+      pills.add(
+        SubstanceTypeSummary(
+          typeId: selectedTypeId,
+          typeName: selectedTypeName!,
+          count: 0,
+        ),
+      );
+    }
+    if (pills.isEmpty) return const SizedBox.shrink();
+    final names = {for (final pill in pills) pill.typeId!: pill.typeName};
+    final total = summaries.fold<int>(0, (sum, summary) => sum + summary.count);
+    String label(String typeId) => typeId.isEmpty
+        ? '${t.designSubstancesAllFilter} (${t.designSubstancesItemCount(total)})'
+        : '${names[typeId]!} (${t.designSubstancesItemCount(pills.firstWhere((pill) => pill.typeId == typeId).count)})';
     return VitalSegments<String>(
-      values: ['', ...reachable.map((s) => s.typeId!)],
+      values: ['', ...pills.map((pill) => pill.typeId!)],
       selected: selectedTypeId,
-      onChanged: onSelected,
+      onChanged: (typeId) =>
+          onSelected(typeId, typeId.isEmpty ? '' : names[typeId]!),
       label: label,
     );
   }
@@ -262,22 +297,34 @@ class SubstanceIdentityCard extends StatelessWidget {
                       },
                     ),
                   },
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => _open(context),
-                    child: Container(
-                      constraints: const BoxConstraints(minHeight: 48),
-                      alignment: AlignmentDirectional.centerStart,
-                      child: VitalRecordHeader(
-                        title: item.name,
-                        subtitle: t.itemDetails(
-                          item.form,
-                          item.type,
-                          item.unit,
+                  child: Builder(
+                    builder: (context) {
+                      // The shared focus ring marks the keyboard focus on the
+                      // identity row; it appears only for keyboard focus and
+                      // keeps the tap and activation behaviour unchanged.
+                      final focused = Focus.of(context).hasFocus;
+                      return FocusOutline(
+                        focused: focused,
+                        borderRadius: BorderRadius.circular(12),
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _open(context),
+                          child: Container(
+                            constraints: const BoxConstraints(minHeight: 48),
+                            alignment: AlignmentDirectional.centerStart,
+                            child: VitalRecordHeader(
+                              title: item.name,
+                              subtitle: t.itemDetails(
+                                item.form,
+                                item.type,
+                                item.unit,
+                              ),
+                              trailing: const Icon(LucideIcons.chevronRight),
+                            ),
+                          ),
                         ),
-                        trailing: const Icon(LucideIcons.chevronRight),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -296,8 +343,9 @@ class SubstanceIdentityCard extends StatelessWidget {
                   child: Text(t.record),
                 ),
                 VitalButton.secondary(
-                  onPressed: () =>
-                      context.push('/combined/${item.personId}?item=${item.id}'),
+                  onPressed: () => context.push(
+                    '/combined/${item.personId}?item=${item.id}',
+                  ),
                   child: Text(t.combinedAction),
                 ),
                 VitalButton.secondary(
@@ -305,9 +353,8 @@ class SubstanceIdentityCard extends StatelessWidget {
                   child: Text(t.schedule),
                 ),
                 VitalButton.secondary(
-                  onPressed: () => context.push(
-                    '/stock/${item.personId}?item=${item.id}',
-                  ),
+                  onPressed: () =>
+                      context.push('/stock/${item.personId}?item=${item.id}'),
                   child: Text(t.stock),
                 ),
                 VitalButton.secondary(

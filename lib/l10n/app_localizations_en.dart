@@ -5585,4 +5585,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String designSubstancesOpenItem(String name) {
     return 'Open $name';
   }
+
+  @override
+  String get designSubstancesUnavailable =>
+      'The substance list is unavailable right now.';
 }

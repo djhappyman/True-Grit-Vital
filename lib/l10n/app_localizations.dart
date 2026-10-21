@@ -8948,6 +8948,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open {name}'**
   String designSubstancesOpenItem(String name);
+
+  /// Failure message for the stored substance list, shown while search and filters stay reachable; a Retry command sits with it.
+  ///
+  /// In en, this message translates to:
+  /// **'The substance list is unavailable right now.'**
+  String get designSubstancesUnavailable;
 }
 
 class _AppLocalizationsDelegate
