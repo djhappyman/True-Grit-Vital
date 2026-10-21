@@ -4,6 +4,8 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../l10n/app_localizations.dart';
 
+export 'vital_summary.dart';
+
 /// Shared geometry for the adopted mobile layout on every platform.
 abstract final class VitalLayout {
   static const double contentWidth = 640;

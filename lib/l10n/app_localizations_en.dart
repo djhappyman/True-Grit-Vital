@@ -5589,4 +5589,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get designSubstancesUnavailable =>
       'The substance list is unavailable right now.';
+
+  @override
+  String get designComponentsUnknown => 'Unknown';
 }

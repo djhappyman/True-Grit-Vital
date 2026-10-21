@@ -8954,6 +8954,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The substance list is unavailable right now.'**
   String get designSubstancesUnavailable;
+
+  /// Factual replacement shown by summary components for a value that is genuinely unknown; not zero or an estimate.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get designComponentsUnknown;
 }
 
 class _AppLocalizationsDelegate
