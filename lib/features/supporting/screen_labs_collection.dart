@@ -204,6 +204,8 @@ class _ScreenLabsCollectionPageState
         page != null &&
         page.entries.isEmpty &&
         latestCount == 0 &&
+        latest.hasValue &&
+        !latest.hasError &&
         !latestPending;
     return EntryPage(
       panelled: false,
@@ -605,6 +607,15 @@ class _ScreenLabsCollectionPageState
             color: StitchColors(context).muted,
           ),
         ),
+        if (appliedFrom != null ||
+            appliedBefore != null ||
+            basis != SupportingDateBasis.collection)
+          Text(
+            t.screenLabsLatestDateScope,
+            style: StitchType.caption.copyWith(
+              color: StitchColors(context).muted,
+            ),
+          ),
         Text(
           t.screenLabsLatestExcluded,
           style: StitchType.caption.copyWith(

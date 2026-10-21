@@ -7311,6 +7311,219 @@ abstract class AppLocalizations {
   /// **'Add a value or a note before saving this observation.'**
   String get supportingObservationRequired;
 
+  /// Authored heading for the canonical supporting labs collection.
+  ///
+  /// In en, this message translates to:
+  /// **'Biomarkers & Labs'**
+  String get screenLabsHeading;
+
+  /// One-sentence introduction to the saved labs collection. No clinical claim.
+  ///
+  /// In en, this message translates to:
+  /// **'Review saved lab panels and observations in their original units.'**
+  String get screenLabsSubtitle;
+
+  /// Filter choice that keeps both lab panels and observations.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get screenLabsAllRecords;
+
+  /// Section label for the bounded latest-value projection.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest results'**
+  String get screenLabsLatestEyebrow;
+
+  /// Factual count of markers in the latest-value projection.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 marker} other{{count} markers}}'**
+  String screenLabsLatestCount(int count);
+
+  /// States the bounded window used for latest values.
+  ///
+  /// In en, this message translates to:
+  /// **'From the {count, plural, =1{most recent dated record} other{{count} most recent dated records}}, newest first.'**
+  String screenLabsLatestWindow(int count);
+
+  /// Limits of the latest-value projection.
+  ///
+  /// In en, this message translates to:
+  /// **'Records without a complete date, and voided records, are not included.'**
+  String get screenLabsLatestExcluded;
+
+  /// Shown when the bounded latest window does not reach the oldest record.
+  ///
+  /// In en, this message translates to:
+  /// **'Older dated records are not included.'**
+  String get screenLabsLatestOlder;
+
+  /// Shown when more markers exist than the bounded projection keeps.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the {count} most recently measured markers are shown.'**
+  String screenLabsLatestMarkerLimit(int count);
+
+  /// Accessible summary for one latest-value card, including its exact date, record and laboratory.
+  ///
+  /// In en, this message translates to:
+  /// **'{marker}. Value: {value} {unit}. Source range: {range}. {date}. From {record}. Laboratory: {laboratory}. Source flag: {flag}.'**
+  String screenLabsLatestSemantics(
+    String marker,
+    String value,
+    String unit,
+    String range,
+    String date,
+    String record,
+    String laboratory,
+    String flag,
+  );
+
+  /// Latest-value state when all saved records have unknown dates.
+  ///
+  /// In en, this message translates to:
+  /// **'No dated results'**
+  String get screenLabsNoLatestTitle;
+
+  /// Explains how a dated latest value is produced.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a panel with a collection date to see a latest value.'**
+  String get screenLabsNoLatestBody;
+
+  /// A comparable earlier value with its original unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous value: {value}'**
+  String screenLabsPreviousValue(String value);
+
+  /// Exact arithmetic change between comparable saved values.
+  ///
+  /// In en, this message translates to:
+  /// **'Change: {value}'**
+  String screenLabsChange(String value);
+
+  /// Names the saved record that supplied a latest value.
+  ///
+  /// In en, this message translates to:
+  /// **'From {record}.'**
+  String screenLabsFromRecord(String record);
+
+  /// A saved item or event linked as context, not as a cause.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked: {name}'**
+  String screenLabsLinked(String name);
+
+  /// Section label for the paged saved supporting records.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent records'**
+  String get screenLabsRecordsEyebrow;
+
+  /// States the collection ordering without claiming completeness.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest first'**
+  String get screenLabsNewestFirst;
+
+  /// Factual count of the saved records on the current page.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No records on this page} =1{1 record on this page} other{{count} records on this page}}'**
+  String screenLabsRecordsCount(int count);
+
+  /// Factual saved result count for one supporting record.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No results} =1{1 result} other{{count} results}}'**
+  String screenLabsResultsCount(int count);
+
+  /// A saved source reference that points to a protected attachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Source file saved'**
+  String get screenLabsSourceFile;
+
+  /// Filtered-empty heading for the labs collection.
+  ///
+  /// In en, this message translates to:
+  /// **'No records in this view'**
+  String get screenLabsNoMatchTitle;
+
+  /// Filtered-empty recovery without inventing a network or sync state.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the filters or add a record.'**
+  String get screenLabsNoMatchBody;
+
+  /// Genuine first-use empty heading for the labs collection.
+  ///
+  /// In en, this message translates to:
+  /// **'No lab records'**
+  String get screenLabsEmptyTitle;
+
+  /// Genuine first-use empty explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a panel to keep results and their source dates.'**
+  String get screenLabsEmptyBody;
+
+  /// Factual local-storage notice heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored on this device'**
+  String get screenLabsPrivacyTitle;
+
+  /// Factual local-only storage statement; no cryptographic or sync claim.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab records are stored on this device. Vital does not upload them.'**
+  String get screenLabsPrivacyBody;
+
+  /// Active filter summary when browsing by report date.
+  ///
+  /// In en, this message translates to:
+  /// **'By report date'**
+  String get screenLabsBasisReport;
+
+  /// Active filter summary when browsing by entry date.
+  ///
+  /// In en, this message translates to:
+  /// **'By entry date'**
+  String get screenLabsBasisEntry;
+
+  /// One-sided inclusive date filter summary.
+  ///
+  /// In en, this message translates to:
+  /// **'From {date}'**
+  String screenLabsRangeFrom(String date);
+
+  /// One-sided exclusive date filter summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Before {date}'**
+  String screenLabsRangeBefore(String date);
+
+  /// Active filter summary when undated records are hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown dates excluded'**
+  String get screenLabsUnknownExcluded;
+
+  /// Active filter summary when voided records are shown.
+  ///
+  /// In en, this message translates to:
+  /// **'Voided included'**
+  String get screenLabsVoidedIncluded;
+
+  /// One-word action that collapses the expanded latest-value list.
+  ///
+  /// In en, this message translates to:
+  /// **'Less'**
+  String get screenLabsLess;
+
   /// No description provided for @reminderLimits.
   ///
   /// In en, this message translates to:
@@ -10025,6 +10238,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{date}. {state}'**
   String screenHistoryDayUnavailable(String date, String state);
+
+  /// Accessible name for the one-word Open action beside a complete linked item or event name.
+  ///
+  /// In en, this message translates to:
+  /// **'Open linked record {name}'**
+  String screenLabsOpenLinked(String name);
+
+  /// Clarifies that date filters affect the paged records, while the bounded latest-value summary always uses collection or measured dates.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest results use collection or measured dates across all dates. Date filters apply to the records below.'**
+  String get screenLabsLatestDateScope;
 }
 
 class _AppLocalizationsDelegate

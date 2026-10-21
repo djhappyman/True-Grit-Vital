@@ -41,4 +41,12 @@ Native Flutter captures from the remaining-screen rollout. Designs come only fro
 - Lead verification: 52 regression checks, nine focused checks after the singular-copy correction, five visual/safe-area checks and clean project analysis. Tests include unapplied date edits, semantic activation, unknown/error counts and 320/430 px double text.
 - Undo remains on the existing `/recorded` compatibility flow; no new inline History Undo is claimed. Audit/adherence measures are labelled previews. Physical-device screen-reader and performance evidence stays open.
 
+## Labs
+
+- [Light](light-screen-labs.png), [dark](dark-screen-labs.png), [full light](light-screen-labs-full.png) and [full dark](dark-screen-labs-full.png) show the canonical supporting-records collection with synthetic panels and observations.
+- Latest values use a live window of up to 75 dated records and 60 markers. Original values, units, dates, source ranges and flags remain visible; comparisons require matching units, laboratory, method and specimen. No clinical classifications or invented charts are added.
+- Kind/date/unknown/voided filters and record paging remain connected. The latest summary states its separate date scope when date filters are selected. Add, detail, trends, linked records, files and reports use the existing routes. This secondary screen retains Back navigation.
+- Lead review kept linked names beside one-word Open actions, included source flags in accessible summaries and prevented a failed latest read from being hidden by an empty-state message.
+- Lead verification: 64 regression checks, seven final UI checks, five framework/safe-area checks, two loaded capture checks and clean project analysis. Width checks include 320 px at double text and 430 px. Physical-device screen-reader and performance evidence remains open.
+
 Run logs are local under `output/stitch-screen-rollout-2026-10-21/`. The [roadmap](../../roadmap.md) tracks the remaining screens and capability gaps.

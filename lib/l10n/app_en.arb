@@ -5035,7 +5035,7 @@
   "@screenLabsSubtitle": {
     "description": "One-sentence introduction to the saved labs collection. No clinical claim."
   },
-  "screenLabsAllRecords": "All records",
+  "screenLabsAllRecords": "All",
   "@screenLabsAllRecords": {
     "description": "Filter choice that keeps both lab panels and observations."
   },
@@ -5078,7 +5078,7 @@
       }
     }
   },
-  "screenLabsLatestSemantics": "{marker}. Value: {value} {unit}. Source range: {range}. {date}. From {record}. Laboratory: {laboratory}.",
+  "screenLabsLatestSemantics": "{marker}. Value: {value} {unit}. Source range: {range}. {date}. From {record}. Laboratory: {laboratory}. Source flag: {flag}.",
   "@screenLabsLatestSemantics": {
     "description": "Accessible summary for one latest-value card, including its exact date, record and laboratory.",
     "placeholders": {
@@ -5102,10 +5102,13 @@
       },
       "laboratory": {
         "type": "String"
+      },
+      "flag": {
+        "type": "String"
       }
     }
   },
-    "screenLabsNoLatestTitle": "No dated results",
+  "screenLabsNoLatestTitle": "No dated results",
   "@screenLabsNoLatestTitle": {
     "description": "Latest-value state when all saved records have unknown dates."
   },
@@ -7635,5 +7638,18 @@
         "type": "String"
       }
     }
+  },
+  "screenLabsOpenLinked": "Open linked record {name}",
+  "@screenLabsOpenLinked": {
+    "description": "Accessible name for the one-word Open action beside a complete linked item or event name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "screenLabsLatestDateScope": "Latest results use collection or measured dates across all dates. Date filters apply to the records below.",
+  "@screenLabsLatestDateScope": {
+    "description": "Clarifies that date filters affect the paged records, while the bounded latest-value summary always uses collection or measured dates."
   }
 }

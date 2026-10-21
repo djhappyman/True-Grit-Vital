@@ -5,6 +5,11 @@ import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/reports/reports_page.dart';
 import 'package:true_grit_vital/features/supporting/screen_labs_widgets.dart';
+import 'package:true_grit_vital/features/supporting/screen_labs_collection.dart';
+import 'package:true_grit_vital/features/supporting/screen_labs_latest.dart';
+
+import 'design_system_test.dart' show host;
+
 import 'package:true_grit_vital/features/supporting/supporting_form.dart';
 import 'package:true_grit_vital/features/supporting/supporting_pages.dart';
 import 'package:true_grit_vital/features/supporting/supporting_trends.dart';
@@ -197,6 +202,37 @@ _seed(WidgetTester tester) async {
 }
 
 void main() {
+  appTest('an empty list does not hide a failed latest-value read', (
+    tester,
+  ) async {
+    final fixture = await launch(tester);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: fixture.container,
+        child: ProviderScope(
+          overrides: [
+            screenLabsLatestProvider.overrideWith(
+              (ref, request) =>
+                  Stream<ScreenLabsLatest>.error(StateError('unavailable')),
+            ),
+          ],
+          child: host(const ScreenLabsCollectionPage(location: '/supporting')),
+        ),
+      ),
+    );
+    await settle(tester);
+    await waitForText(
+      tester,
+      'Unable to load supporting records. Retry this view.',
+    );
+    expect(
+      find.text('Unable to load supporting records. Retry this view.'),
+      findsOneWidget,
+    );
+    expect(find.text('No lab records'), findsNothing);
+    expect(find.text('Retry'), findsOneWidget);
+  });
+
   appTest('labs collection keeps exact values, units, dates and sources', (
     tester,
   ) async {
@@ -271,9 +307,13 @@ void main() {
     expect(
       find.bySemanticsLabel(
         RegExp(
-          r'Vitamin D \(25-OH\).*Value: 58.4 ng/mL.*Source range: 40 to 70.*Collection date: .*From Complete panel.*Laboratory: Source laboratory',
+          r'Vitamin D \(25-OH\).*Value: 58.4 ng/mL.*Source range: 40 to 70.*Collection date: .*From Complete panel.*Laboratory: Source laboratory.*Source flag: H',
         ),
       ),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel(RegExp('Open linked record Telmisartan 40 mg')),
       findsOneWidget,
     );
     semantics.dispose();

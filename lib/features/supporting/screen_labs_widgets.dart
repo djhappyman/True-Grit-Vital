@@ -108,6 +108,7 @@ class ScreenLabsLatestCard extends ConsumerWidget {
               provenance.laboratoryName ??
                   provenance.laboratoryId ??
                   t.supportingUnknown,
+              result.sourceFlag ?? t.supportingUnknown,
             ),
             child: ExcludeSemantics(
               child: Column(
@@ -274,18 +275,25 @@ class ScreenLabsLatestCard extends ConsumerWidget {
           ],
           for (final link in value.links) ...[
             const SizedBox(height: 4),
+            Text(
+              t.screenLabsLinked(link.name),
+              style: StitchType.caption.copyWith(color: colors.muted),
+            ),
             Align(
               alignment: AlignmentDirectional.centerStart,
-              child: StitchButton(
-                quiet: true,
-                compact: true,
-                icon: LucideIcons.tags,
-                onPressed: () => context.push(
-                  link.kind == SupportingContextKind.item
-                      ? '/item/${link.id}'
-                      : '/event/${link.id}',
+              child: Semantics(
+                label: t.screenLabsOpenLinked(link.name),
+                child: StitchButton(
+                  quiet: true,
+                  compact: true,
+                  icon: LucideIcons.tags,
+                  onPressed: () => context.push(
+                    link.kind == SupportingContextKind.item
+                        ? '/item/${link.id}'
+                        : '/event/${link.id}',
+                  ),
+                  child: Text(t.supportingOpen),
                 ),
-                child: Text(t.screenLabsLinked(link.name)),
               ),
             ),
           ],

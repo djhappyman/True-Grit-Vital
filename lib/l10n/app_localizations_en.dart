@@ -4562,6 +4562,172 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add a value or a note before saving this observation.';
 
   @override
+  String get screenLabsHeading => 'Biomarkers & Labs';
+
+  @override
+  String get screenLabsSubtitle =>
+      'Review saved lab panels and observations in their original units.';
+
+  @override
+  String get screenLabsAllRecords => 'All';
+
+  @override
+  String get screenLabsLatestEyebrow => 'Latest results';
+
+  @override
+  String screenLabsLatestCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count markers',
+      one: '1 marker',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String screenLabsLatestWindow(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count most recent dated records',
+      one: 'most recent dated record',
+    );
+    return 'From the $_temp0, newest first.';
+  }
+
+  @override
+  String get screenLabsLatestExcluded =>
+      'Records without a complete date, and voided records, are not included.';
+
+  @override
+  String get screenLabsLatestOlder => 'Older dated records are not included.';
+
+  @override
+  String screenLabsLatestMarkerLimit(int count) {
+    return 'Only the $count most recently measured markers are shown.';
+  }
+
+  @override
+  String screenLabsLatestSemantics(
+    String marker,
+    String value,
+    String unit,
+    String range,
+    String date,
+    String record,
+    String laboratory,
+    String flag,
+  ) {
+    return '$marker. Value: $value $unit. Source range: $range. $date. From $record. Laboratory: $laboratory. Source flag: $flag.';
+  }
+
+  @override
+  String get screenLabsNoLatestTitle => 'No dated results';
+
+  @override
+  String get screenLabsNoLatestBody =>
+      'Add a panel with a collection date to see a latest value.';
+
+  @override
+  String screenLabsPreviousValue(String value) {
+    return 'Previous value: $value';
+  }
+
+  @override
+  String screenLabsChange(String value) {
+    return 'Change: $value';
+  }
+
+  @override
+  String screenLabsFromRecord(String record) {
+    return 'From $record.';
+  }
+
+  @override
+  String screenLabsLinked(String name) {
+    return 'Linked: $name';
+  }
+
+  @override
+  String get screenLabsRecordsEyebrow => 'Recent records';
+
+  @override
+  String get screenLabsNewestFirst => 'Newest first';
+
+  @override
+  String screenLabsRecordsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count records on this page',
+      one: '1 record on this page',
+      zero: 'No records on this page',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String screenLabsResultsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count results',
+      one: '1 result',
+      zero: 'No results',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get screenLabsSourceFile => 'Source file saved';
+
+  @override
+  String get screenLabsNoMatchTitle => 'No records in this view';
+
+  @override
+  String get screenLabsNoMatchBody => 'Change the filters or add a record.';
+
+  @override
+  String get screenLabsEmptyTitle => 'No lab records';
+
+  @override
+  String get screenLabsEmptyBody =>
+      'Add a panel to keep results and their source dates.';
+
+  @override
+  String get screenLabsPrivacyTitle => 'Stored on this device';
+
+  @override
+  String get screenLabsPrivacyBody =>
+      'Lab records are stored on this device. Vital does not upload them.';
+
+  @override
+  String get screenLabsBasisReport => 'By report date';
+
+  @override
+  String get screenLabsBasisEntry => 'By entry date';
+
+  @override
+  String screenLabsRangeFrom(String date) {
+    return 'From $date';
+  }
+
+  @override
+  String screenLabsRangeBefore(String date) {
+    return 'Before $date';
+  }
+
+  @override
+  String get screenLabsUnknownExcluded => 'Unknown dates excluded';
+
+  @override
+  String get screenLabsVoidedIncluded => 'Voided included';
+
+  @override
+  String get screenLabsLess => 'Less';
+
+  @override
   String get reminderLimits => 'Limits';
 
   @override
@@ -6421,4 +6587,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String screenHistoryDayUnavailable(String date, String state) {
     return '$date. $state';
   }
+
+  @override
+  String screenLabsOpenLinked(String name) {
+    return 'Open linked record $name';
+  }
+
+  @override
+  String get screenLabsLatestDateScope =>
+      'Latest results use collection or measured dates across all dates. Date filters apply to the records below.';
 }
