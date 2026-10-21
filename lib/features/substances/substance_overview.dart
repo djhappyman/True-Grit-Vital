@@ -18,9 +18,9 @@ import '../products/product_pages.dart' show ProductLabelPanel;
 import '../profiles/profile_pages.dart' show ownerLabel;
 import '../recording/record_pages.dart' show LoadFailure, pagedRecordsProvider;
 import '../stock/stock_providers.dart' show stockContainersProvider;
-import '../stock/stock_widgets.dart'
-    show StockBalanceText, stockRecordAmountNumber;
+import '../stock/stock_widgets.dart' show stockRecordAmountNumber;
 import '../supporting/supporting_pages.dart' show supportingLocation;
+import 'substance_summary.dart' show SubstanceContainerSummary;
 
 /// This overview's own schedule stream. A scoped watch on the store keeps the
 /// schedule section live while the page is mounted: paused, resumed, revised
@@ -119,8 +119,9 @@ class _LoadedOverview extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              VitalRecordHeader(
+              VitalCompactRow(
                 title: item.name,
+                icon: LucideIcons.pill,
                 subtitle: t.itemDetails(item.form, item.type, item.unit),
               ),
               Text(t.profileOwner(ownerLabel(ref, t, item.personId))),
@@ -303,9 +304,10 @@ class _PlanRows extends ConsumerWidget {
     // A locally following plan shows the actually observed device zone. When
     // no zone has been observed yet, saying so beats implying a UTC plan; an
     // explicitly stored home zone stays what it is.
+    final observedZone = ref.watch(observedDeviceZoneProvider).value?.zoneId;
     final shownZone = switch (plan.zoneBasis) {
       FixedHome home => home.zoneId,
-      FollowingLocal() => ref.watch(observedDeviceZoneProvider).value?.zoneId,
+      FollowingLocal() => observedZone,
     };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -318,7 +320,16 @@ class _PlanRows extends ConsumerWidget {
             if (paused) VitalBadge(t.pauseState),
           ],
         ),
-        ...phaseTimingSummary(context, ref, t, plan),
+        if (plan.timing case DailyCount(:final count, :final amount))
+          Text(
+            t.designSubstancesScheduleCount(
+              count,
+              amount.enteredText,
+              amount.unit,
+            ),
+          )
+        else
+          ...phaseTimingSummary(context, ref, t, plan),
         Text(t.designOverviewStart(plan.start.toString())),
         if (plan.endExclusive != null)
           Text(t.planEnds(plan.endExclusive!.addDays(-1).toString())),
@@ -454,21 +465,9 @@ class _OverviewStock extends ConsumerWidget {
                     padding: const EdgeInsets.only(bottom: 16),
                     child: VitalSurface(
                       padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(container.label, style: VitalType.label),
-                          const SizedBox(height: 4),
-                          Text(
-                            t.stockStrengthValue(container.strength.label),
-                            style: VitalType.metadata.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .mutedForeground,
-                            ),
-                          ),
-                          StockBalanceText(container: container),
-                        ],
+                      child: SubstanceContainerSummary(
+                        container: container,
+                        detailed: true,
                       ),
                     ),
                   ),

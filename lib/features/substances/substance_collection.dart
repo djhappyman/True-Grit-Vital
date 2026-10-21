@@ -275,14 +275,13 @@ class SubstanceTypeFilters extends StatelessWidget {
 }
 
 /// Compact identity card. The whole identity row opens the substance's
-/// existing detail/history URL, the current primary destination; lead
-/// integration repoints it to /substance/:id when the D04 overview returns.
-/// Record, combined, schedule, stock and history actions stay reachable.
+/// unified overview. Recording stays directly available; schedule, stock,
+/// combined logging and full history remain reachable from that overview.
 class SubstanceIdentityCard extends StatelessWidget {
   const SubstanceIdentityCard({super.key, required this.item});
   final SubstanceItem item;
 
-  void _open(BuildContext context) => context.push('/item/${item.id}');
+  void _open(BuildContext context) => context.push('/substance/${item.id}');
 
   @override
   Widget build(BuildContext context) {
@@ -310,25 +309,6 @@ class SubstanceIdentityCard extends StatelessWidget {
                 VitalButton(
                   onPressed: () => context.push('/record/${item.id}'),
                   child: Text(t.record),
-                ),
-                VitalButton.secondary(
-                  onPressed: () => context.push(
-                    '/combined/${item.personId}?item=${item.id}',
-                  ),
-                  child: Text(t.combinedAction),
-                ),
-                VitalButton.secondary(
-                  onPressed: () => context.push('/schedule/${item.id}'),
-                  child: Text(t.schedule),
-                ),
-                VitalButton.secondary(
-                  onPressed: () =>
-                      context.push('/stock/${item.personId}?item=${item.id}'),
-                  child: Text(t.stock),
-                ),
-                VitalButton.secondary(
-                  onPressed: () => context.push('/item/${item.id}'),
-                  child: Text(t.history),
                 ),
               ],
             ),

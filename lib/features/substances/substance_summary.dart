@@ -524,7 +524,10 @@ class _PlanLine extends ConsumerWidget {
   }
 }
 
-/// One tracked container keeps its own labelled strength, unit and balance.
+/// A tracked container with its own labelled strength, unit and balance.
+///
+/// Reused by list summaries and the substance overview without combining
+/// incompatible containers or duplicating their surrounding sections.
 class _Containers extends ConsumerWidget {
   const _Containers({required this.containers, required this.detailed});
 
@@ -552,7 +555,7 @@ class _Containers extends ConsumerWidget {
           Text(t.designSubstancesNoStock)
         else ...[
           for (final container in all.take(shown))
-            _ContainerRow(
+            SubstanceContainerSummary(
               key: ValueKey('summary-stock-${container.id}'),
               container: container,
               detailed: detailed,
@@ -568,8 +571,8 @@ class _Containers extends ConsumerWidget {
   }
 }
 
-class _ContainerRow extends StatelessWidget {
-  const _ContainerRow({
+class SubstanceContainerSummary extends StatelessWidget {
+  const SubstanceContainerSummary({
     super.key,
     required this.container,
     required this.detailed,

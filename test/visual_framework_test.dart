@@ -131,6 +131,7 @@ void main() {
           'licences': '/settings/licences',
           'recorded': '/recorded',
           'item-history': '/item/${items.first.id}',
+          'substance-overview': '/substance/${items.first.id}',
         };
         final selectedRoutes = snapshotRoutes.isEmpty
             ? routes.keys.toSet()
@@ -142,6 +143,10 @@ void main() {
           debugPrint('Visual check: ${mode.name} ${route.key}');
           router.go(route.value);
           await settle(tester);
+          if (route.key == 'substance-overview') {
+            await waitForText(tester, items.first.name);
+            await waitForText(tester, 'Planned once a day, 1 mg each');
+          }
           if (route.key == 'substances') {
             await waitForText(tester, 'Magnesium Glycinate');
             await waitForText(tester, 'No stock recorded.');

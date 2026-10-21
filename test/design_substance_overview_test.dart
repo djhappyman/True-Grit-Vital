@@ -207,7 +207,7 @@ void main() {
       await waitForTextContaining(tester, 'Starts');
       expect(find.textContaining('Starts'), findsOneWidget);
       await waitForText(tester, 'Synthetic original container');
-      expect(find.textContaining('Remaining'), findsOneWidget);
+      expect(find.text('12 mg'), findsOneWidget);
       expect(find.text('Synthetic original container'), findsOneWidget);
       expect(find.text('1 mg'), findsOneWidget);
       expect(find.text('2 mg'), findsOneWidget);
@@ -298,7 +298,7 @@ void main() {
     await waitForText(tester, 'Paused');
     expect(find.text('Paused'), findsOneWidget);
     expect(find.textContaining('No next planned date'), findsNothing);
-    expect(find.textContaining('doses each planned day'), findsOneWidget);
+    expect(find.textContaining('Planned once a day'), findsOneWidget);
   });
 
   appTest('recent records stay bounded and name the full history', (
@@ -833,7 +833,7 @@ void main() {
       return created;
     }))!;
     f.container.read(routerProvider).push('/substance/${item.id}');
-    await waitForTextContaining(tester, 'doses each planned day');
+    await waitForTextContaining(tester, 'Planned once a day');
     expect(find.text('Paused'), findsNothing);
     // A plain store mutation, with no provider invalidation from the page.
     final revision = await runIo(tester, () async {

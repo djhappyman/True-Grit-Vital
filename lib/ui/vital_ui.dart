@@ -441,8 +441,9 @@ class VitalPageHeader extends StatelessWidget {
   final IconData? icon;
   final List<Widget> actions;
 
-  /// Places short actions beside the heading when they fit, wrapping below
-  /// at narrow widths or larger text sizes.
+  /// Whether short actions sit beside the heading when they fit.
+  ///
+  /// Actions wrap below at narrow widths or larger text sizes.
   final bool inlineActions;
 
   @override
