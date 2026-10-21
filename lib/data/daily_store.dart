@@ -1292,13 +1292,20 @@ extension DailyRecordStore on RecordStore {
     if (requireCurrentVersion && e.identity.intervalSegmentId != null) {
       await _validateIntervalExpectation(e);
     }
+    // An elapsed identity keeps the UTC calendar date of its instant, while the
+    // row is shown and expanded on the local date of that instant. Resolve the
+    // display date so a legitimate occurrence that crosses UTC midnight is not
+    // compared against an expansion window that cannot contain it.
+    final date = e.identity.intervalSegmentId == null
+        ? e.identity.originalDate
+        : DailyResolver().clock.dateAt(e.instant!, e.zoneId);
     if (requireCurrentVersion) {
       final current = await _rows(
         "SELECT snapshot FROM daily_version WHERE plan=? AND start<=? AND (end IS NULL OR end>?) AND (json_extract(snapshot,'\$.effectiveFrom') IS NULL OR json_extract(snapshot,'\$.effectiveFrom')<=?) AND (json_extract(snapshot,'\$.effectiveUntil') IS NULL OR json_extract(snapshot,'\$.effectiveUntil')>?) ORDER BY start DESC,rowid DESC LIMIT 1",
         [
           e.identity.planId,
-          e.identity.originalDate.toString(),
-          e.identity.originalDate.toString(),
+          date.toString(),
+          date.toString(),
           (e.originalInstant ?? e.instant ?? DateTime.now().toUtc())
               .microsecondsSinceEpoch,
           (e.originalInstant ?? e.instant ?? DateTime.now().toUtc())
@@ -1317,8 +1324,7 @@ extension DailyRecordStore on RecordStore {
       )) {
         throw const CommandConflict('plan_paused');
       }
-      if (plan.onOff != null &&
-          !plan.onOff!.includes(e.identity.originalDate)) {
+      if (plan.onOff != null && !plan.onOff!.includes(date)) {
         throw const CommandConflict('plan_break');
       }
     }
@@ -1331,21 +1337,12 @@ extension DailyRecordStore on RecordStore {
     if (!requireCurrentVersion) return;
     final versions = await _rows(
       'SELECT snapshot FROM daily_version WHERE id=? AND plan=? AND start<=? AND (end IS NULL OR end>?)',
-      [
-        e.versionId,
-        e.identity.planId,
-        e.identity.originalDate.toString(),
-        e.identity.originalDate.toString(),
-      ],
+      [e.versionId, e.identity.planId, date.toString(), date.toString()],
     );
     if (versions.isEmpty) throw const CommandConflict('plan_version');
     final choices = await _rows(
       'SELECT snapshot FROM daily_clock WHERE plan=? AND date>=? AND date<=?',
-      [
-        e.identity.planId,
-        e.identity.originalDate.toString(),
-        e.identity.originalDate.addDays(1).toString(),
-      ],
+      [e.identity.planId, date.toString(), date.addDays(1).toString()],
     );
     final plan = decodeDailyPlan(
       dailyObject(versions.single['snapshot'] as String),
@@ -1363,7 +1360,7 @@ extension DailyRecordStore on RecordStore {
     );
     final expected = DailyResolver().resolveDate(
       plan,
-      e.identity.originalDate,
+      date,
       intervalSources: sources,
       now: _intervalReferenceNow(sources, DateTime.now().toUtc()),
       observedZone: e.zoneId,
