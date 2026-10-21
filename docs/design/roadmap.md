@@ -103,3 +103,13 @@ Acceptance for every screen: loaded light/dark captures; white light canvas and 
 
 
 All S00–S10 screen integrations completed on 21 October 2026. Final host verification passed 1,855 Flutter tests with one existing opt-in skip, clean analysis, the 34-route light/dark sweep, real Secret Service Linux boot, Linux debug build and Android debug APK build. The [rollout review](reviews/2026-10-21-screen-rollout/README.md) contains committed screenshots and per-screen evidence. Android release signing and physical-device accessibility, delivery and measured-performance gates remain open. Partial D08/D09/D16–D20 entries above identify features that screen styling did not implement.
+
+## Next feature batch
+
+Owner authorised three feature implementations, two by DeepSeek and one by the lead. The dependency-ready batch is D06, D07 and D09; D08’s larger combined setup/notes work remains open.
+
+- D06, DeepSeek: real week/day navigation and factual planned/recorded/skipped summaries; durable configurable PRN favourites; existing recorded section and Undo remain reachable. Past/future browsing does not silently record a current dose against another date.
+- D07, DeepSeek: whole-collection status filters/counts composed with name/type search and paging; paused, as-needed, mixed and unscheduled cases are explicit. Plan status is distinct from substance type.
+- D09, lead: exact amount presets drawn from saved plans or user-entered quantities; preserve full units, stock/strength previews, manual entry and durable form safeguards. Presets never imply dose advice or save without review.
+
+All three are in progress. Each requires regression checks, light/dark and narrow/large-text verification, shared controls and accurate incomplete/error states before integration.
