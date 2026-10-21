@@ -1,5 +1,7 @@
 # Design references
 
+**App standard:** the [interaction blueprint](interaction-blueprint.md) defines presentation, information density, paging, overlays and motion for all screens. The [implementation plan](interaction-implementation-plan.md) maps every existing screen group and tracks the authorised app-wide migration.
+
 The owner selected the strongest parts of the Stitch designs as Vital's shared visual language. Use the saved PNGs and HTML together with the [implemented component framework](components.md) when building or reviewing the Flutter interface. Reuse the framework across existing features rather than copying generated capabilities.
 
 **Current snapshot:** [20 October 2026](stitch/2026-10-20/README.md), including full-resolution screen images, unchanged HTML exports, generated design tokens and supporting assets. The snapshot separates visible screens from hidden earlier variants.

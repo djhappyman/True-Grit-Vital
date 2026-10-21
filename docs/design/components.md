@@ -1,5 +1,7 @@
 # Building Vital screens
 
+For every existing or new screen, follow the [interaction blueprint](interaction-blueprint.md) before choosing navigation, sheets, dialogs, popovers or motion. Its [rollout plan](interaction-implementation-plan.md) records current migration status; the component catalogue below describes the existing shared entry points.
+
 Use `lib/ui/vital_ui.dart` for existing forms and secondary pages. Dashboard and Substances use the closer reference components in `lib/ui/stitch_ui.dart`. It composes shadcn controls; feature code retains its existing Riverpod state, commands and navigation.
 
 The owner selected the strongest components from the [Stitch references](stitch/2026-10-20/README.md) as a visual vocabulary. Reuse that vocabulary across the implemented features. The light canvas is pure white; dark mode uses the reference's green-black canvas and mint accents. The navigation dock stays fixed at the bottom. Device safe areas apply to every screen.

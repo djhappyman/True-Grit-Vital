@@ -76,6 +76,8 @@ linux/flutter/ephemeral/
 !/docs/design/components.md
 !/docs/design/roadmap.md
 !/docs/design/implementation-contract.md
+!/docs/design/interaction-blueprint.md
+!/docs/design/interaction-implementation-plan.md
 !/docs/design/stitch/
 !/docs/design/reviews/
 !/docs/design/references/
