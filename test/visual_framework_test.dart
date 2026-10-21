@@ -150,6 +150,11 @@ void main() {
           debugPrint('Visual check: ${mode.name} ${route.key}');
           router.go(route.value);
           await settle(tester);
+          if (route.key == 'create') {
+            // Draft restoration uses real asynchronous storage. Capture the
+            // loaded form rather than its transient opening-records state.
+            await waitForText(tester, 'New substance');
+          }
           if (route.key == 'today') {
             final loaded = Stopwatch()..start();
             while (find.byType(DailyRowCard).evaluate().length < items.length) {
