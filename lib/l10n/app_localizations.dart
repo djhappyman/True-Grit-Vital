@@ -8960,6 +8960,208 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown'**
   String get designComponentsUnknown;
+
+  /// Substance summary section heading. The collection below describes stored plans without treatment advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedules'**
+  String get designSubstancesSchedulesHeading;
+
+  /// Substance summary factual empty state. Distinct from paused, as-needed and ended schedules.
+  ///
+  /// In en, this message translates to:
+  /// **'No schedule recorded.'**
+  String get designSubstancesNoSchedule;
+
+  /// Stock tracking is optional. Never invents a balance or dose equivalence.
+  ///
+  /// In en, this message translates to:
+  /// **'No stock recorded.'**
+  String get designSubstancesNoStock;
+
+  /// A plan whose start date is after the current plan-zone date.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started.'**
+  String get designSubstancesNotStarted;
+
+  /// The last included date has passed. Does not imply recording stopped.
+  ///
+  /// In en, this message translates to:
+  /// **'This schedule has ended.'**
+  String get designSubstancesEnded;
+
+  /// Untimed daily count plan. The count counts planned slots, not recorded doses.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Planned once a day, {amount} {unit} each} other{Planned {count} times a day, {amount} {unit} each}}'**
+  String designSubstancesScheduleCount(int count, String amount, String unit);
+
+  /// A plan with explicitly chosen times. Each time keeps its entered amount and unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned times: {times}'**
+  String designSubstancesScheduleSlots(String times);
+
+  /// One chosen slot joined into the slots list; amounts stay exact.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} {amount} {unit}'**
+  String designSubstancesScheduleSlot(String time, String amount, String unit);
+
+  /// A plan with date windows. Windows use the expectation's real bounds and amounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned windows: {windows}'**
+  String designSubstancesScheduleWindows(String windows);
+
+  /// One window joined into the windows list.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}: {amount} {unit}'**
+  String designSubstancesScheduleWindow(
+    String start,
+    String end,
+    String amount,
+    String unit,
+  );
+
+  /// An untimed count with explicitly chosen slots. Slot counts stay distinct from recorded doses.
+  ///
+  /// In en, this message translates to:
+  /// **'{slots}, plus {count, plural, =1{1 untimed slot} other{{count} untimed slots}} ({amount} {unit} each)'**
+  String designSubstancesMixedSchedule(
+    String slots,
+    int count,
+    String amount,
+    String unit,
+  );
+
+  /// Elapsed-interval plan. Hours repeat the stored exact value; occurrence truth stays with the resolver.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {hours} h, {amount} {unit} each'**
+  String designSubstancesIntervalSchedule(
+    String hours,
+    String amount,
+    String unit,
+  );
+
+  /// Restates the stored weekday selection; occurrence truth stays with the resolver.
+  ///
+  /// In en, this message translates to:
+  /// **'Days of week: {days}'**
+  String designSubstancesCalendarWeekdays(String days);
+
+  /// Restates the stored date anchor and interval.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {interval, plural, =1{1 day} other{{interval} days}} from {date}'**
+  String designSubstancesCalendarDays(int interval, String date);
+
+  /// Restates the stored week anchor and interval.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {interval, plural, =1{1 week} other{{interval} weeks}} from {date}'**
+  String designSubstancesCalendarWeeks(int interval, String date);
+
+  /// Restates the stored month anchor and interval without an invented precise recurrence claim.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {interval, plural, =1{1 month} other{{interval} months}} {selector} from {date}'**
+  String designSubstancesCalendarMonths(
+    int interval,
+    String selector,
+    String date,
+  );
+
+  /// Stored day-of-month selector.
+  ///
+  /// In en, this message translates to:
+  /// **'on day {day}'**
+  String designSubstancesMonthDay(int day);
+
+  /// Stored weekday/month selector stated without false precision.
+  ///
+  /// In en, this message translates to:
+  /// **'on a selected weekday'**
+  String get designSubstancesMonthWeekday;
+
+  /// Effective plan bounds. The end is the exclusive bound, not a stop promise.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String designSubstancesPlanBounds(String start, String end);
+
+  /// A plan with no end bound.
+  ///
+  /// In en, this message translates to:
+  /// **'From {start}'**
+  String designSubstancesPlanStart(String start);
+
+  /// Names the plan's real zone basis; never an invented local conversion.
+  ///
+  /// In en, this message translates to:
+  /// **'Time zone: {zone}'**
+  String designSubstancesZone(String zone);
+
+  /// The resolver's next expectation with its real zone. An expectation is not proof of actual use.
+  ///
+  /// In en, this message translates to:
+  /// **'Next planned dose: {amount} {unit} at {time} ({zone})'**
+  String designSubstancesNextDose(
+    String amount,
+    String unit,
+    String time,
+    String zone,
+  );
+
+  /// Untimed expectations have no invented exact times.
+  ///
+  /// In en, this message translates to:
+  /// **'Next planned dose: {amount} {unit} on {date}, untimed ({zone})'**
+  String designSubstancesNextUntimed(
+    String amount,
+    String unit,
+    String date,
+    String zone,
+  );
+
+  /// A stored expectation whose local time needs an explicit clock choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock review: {date} {time} ({zone})'**
+  String designSubstancesReviewClock(String date, String time, String zone);
+
+  /// One stock container's own balance in its own unit; separate containers are never added together.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} · {balance}'**
+  String designSubstancesContainerEntry(String label, String balance);
+
+  /// Recorded stock is below zero; recorded use remains saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Deficit'**
+  String get designSubstancesDeficit;
+
+  /// The summary shows the first few containers; the overflow stays factual and bounded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 more container.} other{{count} more containers.}}'**
+  String designSubstancesMoreStock(int count);
+
+  /// The summary bounds its slot list; every stored slot stays in the schedule pages.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 more slot.} other{{count} more slots.}}'**
+  String designSubstancesMoreSlots(int count);
+
+  /// Design-batch substance summary failure. A factual scoped message: these live summary reads failed; the Retry action re-requests them. Never describes history or implies data loss.
+  ///
+  /// In en, this message translates to:
+  /// **'The substance summary could not be loaded.'**
+  String get designSubstancesSummaryUnavailable;
 }
 
 class _AppLocalizationsDelegate

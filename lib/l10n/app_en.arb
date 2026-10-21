@@ -6327,5 +6327,304 @@
   "designComponentsUnknown": "Unknown",
   "@designComponentsUnknown": {
     "description": "Factual replacement shown by summary components for a value that is genuinely unknown; not zero or an estimate."
+  },
+  "designSubstancesSchedulesHeading": "Schedules",
+  "@designSubstancesSchedulesHeading": {
+    "description": "Substance summary section heading. The collection below describes stored plans without treatment advice."
+  },
+  "designSubstancesNoSchedule": "No schedule recorded.",
+  "@designSubstancesNoSchedule": {
+    "description": "Substance summary factual empty state. Distinct from paused, as-needed and ended schedules."
+  },
+  "designSubstancesNoStock": "No stock recorded.",
+  "@designSubstancesNoStock": {
+    "description": "Stock tracking is optional. Never invents a balance or dose equivalence."
+  },
+  "designSubstancesNotStarted": "Not started.",
+  "@designSubstancesNotStarted": {
+    "description": "A plan whose start date is after the current plan-zone date."
+  },
+  "designSubstancesEnded": "This schedule has ended.",
+  "@designSubstancesEnded": {
+    "description": "The last included date has passed. Does not imply recording stopped."
+  },
+  "designSubstancesScheduleCount": "{count, plural, one{Planned once a day, {amount} {unit} each} other{Planned {count} times a day, {amount} {unit} each}}",
+  "@designSubstancesScheduleCount": {
+    "description": "Untimed daily count plan. The count counts planned slots, not recorded doses.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesScheduleSlots": "Planned times: {times}",
+  "@designSubstancesScheduleSlots": {
+    "description": "A plan with explicitly chosen times. Each time keeps its entered amount and unit.",
+    "placeholders": {
+      "times": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesScheduleSlot": "{time} {amount} {unit}",
+  "@designSubstancesScheduleSlot": {
+    "description": "One chosen slot joined into the slots list; amounts stay exact.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesScheduleWindows": "Planned windows: {windows}",
+  "@designSubstancesScheduleWindows": {
+    "description": "A plan with date windows. Windows use the expectation's real bounds and amounts.",
+    "placeholders": {
+      "windows": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesScheduleWindow": "{start} to {end}: {amount} {unit}",
+  "@designSubstancesScheduleWindow": {
+    "description": "One window joined into the windows list.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesMixedSchedule": "{slots}, plus {count, plural, =1{1 untimed slot} other{{count} untimed slots}} ({amount} {unit} each)",
+  "@designSubstancesMixedSchedule": {
+    "description": "An untimed count with explicitly chosen slots. Slot counts stay distinct from recorded doses.",
+    "placeholders": {
+      "slots": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesIntervalSchedule": "Every {hours} h, {amount} {unit} each",
+  "@designSubstancesIntervalSchedule": {
+    "description": "Elapsed-interval plan. Hours repeat the stored exact value; occurrence truth stays with the resolver.",
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesCalendarWeekdays": "Days of week: {days}",
+  "@designSubstancesCalendarWeekdays": {
+    "description": "Restates the stored weekday selection; occurrence truth stays with the resolver.",
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesCalendarDays": "Every {interval, plural, =1{1 day} other{{interval} days}} from {date}",
+  "@designSubstancesCalendarDays": {
+    "description": "Restates the stored date anchor and interval.",
+    "placeholders": {
+      "interval": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesCalendarWeeks": "Every {interval, plural, =1{1 week} other{{interval} weeks}} from {date}",
+  "@designSubstancesCalendarWeeks": {
+    "description": "Restates the stored week anchor and interval.",
+    "placeholders": {
+      "interval": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesCalendarMonths": "Every {interval, plural, =1{1 month} other{{interval} months}} {selector} from {date}",
+  "@designSubstancesCalendarMonths": {
+    "description": "Restates the stored month anchor and interval without an invented precise recurrence claim.",
+    "placeholders": {
+      "interval": {
+        "type": "int"
+      },
+      "selector": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesMonthDay": "on day {day}",
+  "@designSubstancesMonthDay": {
+    "description": "Stored day-of-month selector.",
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "designSubstancesMonthWeekday": "on a selected weekday",
+  "@designSubstancesMonthWeekday": {
+    "description": "Stored weekday/month selector stated without false precision."
+  },
+  "designSubstancesPlanBounds": "{start} to {end}",
+  "@designSubstancesPlanBounds": {
+    "description": "Effective plan bounds. The end is the exclusive bound, not a stop promise.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesPlanStart": "From {start}",
+  "@designSubstancesPlanStart": {
+    "description": "A plan with no end bound.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesZone": "Time zone: {zone}",
+  "@designSubstancesZone": {
+    "description": "Names the plan's real zone basis; never an invented local conversion.",
+    "placeholders": {
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesNextDose": "Next planned dose: {amount} {unit} at {time} ({zone})",
+  "@designSubstancesNextDose": {
+    "description": "The resolver's next expectation with its real zone. An expectation is not proof of actual use.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesNextUntimed": "Next planned dose: {amount} {unit} on {date}, untimed ({zone})",
+  "@designSubstancesNextUntimed": {
+    "description": "Untimed expectations have no invented exact times.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesReviewClock": "Clock review: {date} {time} ({zone})",
+  "@designSubstancesReviewClock": {
+    "description": "A stored expectation whose local time needs an explicit clock choice.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesContainerEntry": "{label} · {balance}",
+  "@designSubstancesContainerEntry": {
+    "description": "One stock container's own balance in its own unit; separate containers are never added together.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "balance": {
+        "type": "String"
+      }
+    }
+  },
+  "designSubstancesDeficit": "Deficit",
+  "@designSubstancesDeficit": {
+    "description": "Recorded stock is below zero; recorded use remains saved."
+  },
+  "designSubstancesMoreStock": "{count, plural, =1{1 more container.} other{{count} more containers.}}",
+  "@designSubstancesMoreStock": {
+    "description": "The summary shows the first few containers; the overflow stays factual and bounded.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "designSubstancesMoreSlots": "{count, plural, =1{1 more slot.} other{{count} more slots.}}",
+  "@designSubstancesMoreSlots": {
+    "description": "The summary bounds its slot list; every stored slot stays in the schedule pages.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "designSubstancesSummaryUnavailable": "The substance summary could not be loaded.",
+  "@designSubstancesSummaryUnavailable": {
+    "description": "Design-batch substance summary failure. A factual scoped message: these live summary reads failed; the Retry action re-requests them. Never describes history or implies data loss."
   }
 }

@@ -5592,4 +5592,204 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get designComponentsUnknown => 'Unknown';
+
+  @override
+  String get designSubstancesSchedulesHeading => 'Schedules';
+
+  @override
+  String get designSubstancesNoSchedule => 'No schedule recorded.';
+
+  @override
+  String get designSubstancesNoStock => 'No stock recorded.';
+
+  @override
+  String get designSubstancesNotStarted => 'Not started.';
+
+  @override
+  String get designSubstancesEnded => 'This schedule has ended.';
+
+  @override
+  String designSubstancesScheduleCount(int count, String amount, String unit) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Planned $count times a day, $amount $unit each',
+      one: 'Planned once a day, $amount $unit each',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String designSubstancesScheduleSlots(String times) {
+    return 'Planned times: $times';
+  }
+
+  @override
+  String designSubstancesScheduleSlot(String time, String amount, String unit) {
+    return '$time $amount $unit';
+  }
+
+  @override
+  String designSubstancesScheduleWindows(String windows) {
+    return 'Planned windows: $windows';
+  }
+
+  @override
+  String designSubstancesScheduleWindow(
+    String start,
+    String end,
+    String amount,
+    String unit,
+  ) {
+    return '$start to $end: $amount $unit';
+  }
+
+  @override
+  String designSubstancesMixedSchedule(
+    String slots,
+    int count,
+    String amount,
+    String unit,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count untimed slots',
+      one: '1 untimed slot',
+    );
+    return '$slots, plus $_temp0 ($amount $unit each)';
+  }
+
+  @override
+  String designSubstancesIntervalSchedule(
+    String hours,
+    String amount,
+    String unit,
+  ) {
+    return 'Every $hours h, $amount $unit each';
+  }
+
+  @override
+  String designSubstancesCalendarWeekdays(String days) {
+    return 'Days of week: $days';
+  }
+
+  @override
+  String designSubstancesCalendarDays(int interval, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      interval,
+      locale: localeName,
+      other: '$interval days',
+      one: '1 day',
+    );
+    return 'Every $_temp0 from $date';
+  }
+
+  @override
+  String designSubstancesCalendarWeeks(int interval, String date) {
+    String _temp0 = intl.Intl.pluralLogic(
+      interval,
+      locale: localeName,
+      other: '$interval weeks',
+      one: '1 week',
+    );
+    return 'Every $_temp0 from $date';
+  }
+
+  @override
+  String designSubstancesCalendarMonths(
+    int interval,
+    String selector,
+    String date,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      interval,
+      locale: localeName,
+      other: '$interval months',
+      one: '1 month',
+    );
+    return 'Every $_temp0 $selector from $date';
+  }
+
+  @override
+  String designSubstancesMonthDay(int day) {
+    return 'on day $day';
+  }
+
+  @override
+  String get designSubstancesMonthWeekday => 'on a selected weekday';
+
+  @override
+  String designSubstancesPlanBounds(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String designSubstancesPlanStart(String start) {
+    return 'From $start';
+  }
+
+  @override
+  String designSubstancesZone(String zone) {
+    return 'Time zone: $zone';
+  }
+
+  @override
+  String designSubstancesNextDose(
+    String amount,
+    String unit,
+    String time,
+    String zone,
+  ) {
+    return 'Next planned dose: $amount $unit at $time ($zone)';
+  }
+
+  @override
+  String designSubstancesNextUntimed(
+    String amount,
+    String unit,
+    String date,
+    String zone,
+  ) {
+    return 'Next planned dose: $amount $unit on $date, untimed ($zone)';
+  }
+
+  @override
+  String designSubstancesReviewClock(String date, String time, String zone) {
+    return 'Clock review: $date $time ($zone)';
+  }
+
+  @override
+  String designSubstancesContainerEntry(String label, String balance) {
+    return '$label · $balance';
+  }
+
+  @override
+  String get designSubstancesDeficit => 'Deficit';
+
+  @override
+  String designSubstancesMoreStock(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count more containers.',
+      one: '1 more container.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String designSubstancesMoreSlots(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count more slots.',
+      one: '1 more slot.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get designSubstancesSummaryUnavailable =>
+      'The substance summary could not be loaded.';
 }
