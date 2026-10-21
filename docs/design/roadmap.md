@@ -10,11 +10,27 @@ All five packages start from the same baseline and [contract](implementation-con
 
 | ID | Package | Acceptance | Status |
 | --- | --- | --- | --- |
-| D01 | Today dashboard and compact schedule | Real next-dose timing, truthful daily completion, compact time groups and PRN entry points; retain source/strength checks, taken/skip/snooze/extra/edit/Undo and incomplete calculation warnings. | Review repair in progress |
-| D02 | Substance search and filters | Search the whole local collection, not only loaded cards; type filters, clear/reset, bounded paging and preserved browsing state. Compact cards open the substance overview. | Integrated; final batch checks pending |
-| D03 | Substance summaries | Reusable live schedule, labelled strength, stock and next-dose summary from existing records; explicit partial/unknown states and compatible units; no guessed doses or dates. Mount in the list and share per-container presentation with the overview, avoiding duplicate schedule/stock sections. | Integrated; final batch checks pending |
-| D04 | Substance overview | One reachable overview with identity, recording, schedule, stock, recent history and existing context links. Preserve existing detail/history URLs and all editing routes. Missing/deleted/locked records recover truthfully. | Integrated; final batch checks pending |
-| D05 | Shared summary components | Reusable compact row, factual metric and progress components using current tokens/shadcn; safe growth for long names and large text, keyboard/semantics, light/dark and reduced effects. Adopt in D01/D03/D04 during integration. | Rows/metrics adopted; Today integration pending |
+| D01 | Today dashboard and compact schedule | Real next-dose timing, truthful daily completion, compact time groups and PRN entry points; retain source/strength checks, taken/skip/snooze/extra/edit/Undo and incomplete calculation warnings. | Integrated; host verified |
+| D02 | Substance search and filters | Search the whole local collection, not only loaded cards; type filters, clear/reset, bounded paging and preserved browsing state. Compact cards open the substance overview. | Integrated; host verified |
+| D03 | Substance summaries | Reusable live schedule, labelled strength, stock and next-dose summary from existing records; explicit partial/unknown states and compatible units; no guessed doses or dates. Mount in the list and share per-container presentation with the overview, avoiding duplicate schedule/stock sections. | Integrated; host verified |
+| D04 | Substance overview | One reachable overview with identity, recording, schedule, stock, recent history and existing context links. Preserve existing detail/history URLs and all editing routes. Missing/deleted/locked records recover truthfully. | Integrated; host verified |
+| D05 | Shared summary components | Reusable compact row, factual metric and progress components using current tokens/shadcn; safe growth for long names and large text, keyboard/semantics, light/dark and reduced effects. Adopt in D01/D03/D04 during integration. | Adopted in Today, list and overview; host verified |
+
+## Batch verification
+
+D01–D05 were integrated and reviewed on 21 October 2026. The full Flutter suite
+passed **1,750 tests**, with one existing opt-in skip; project analysis was clean.
+The real Secret Service Linux boot test passed encrypted persistence, navigation
+and export, followed by a successful normal Linux debug build. The 28 Today
+checks cover timing boundaries, partial totals, future doses and compact actions.
+
+[Light/dark Flutter screenshots](reviews/2026-10-21/README.md) are committed for
+Today, Substances and the overview. The full-suite visual harness also checked
+all 34 listed routes in both themes, fixed navigation and device safe areas.
+Physical-device accessibility, native delivery and measured glass/performance
+gates remain open. Review also fixed the widget fixture's database-close deadlock
+and an older report-attachment lease that incorrectly expired from the report's
+captured timestamp instead of the live file-operation clock.
 
 ## Remaining audit gaps
 

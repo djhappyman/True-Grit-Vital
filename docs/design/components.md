@@ -80,3 +80,5 @@ The screenshots contain generated example data and some invented capabilities. I
 Run `./tool/flutterw test --no-pub test/visual_framework_test.dart test/design_system_test.dart` for the shared framework checks. To capture synthetic screen previews, add `--dart-define=VITAL_UI_SNAPSHOTS=output/ui-review` to that command. Native device accessibility and performance require separate verification.
 
 For a focused capture, add `--dart-define=VITAL_UI_ROUTES=substances` (or comma-separated route keys from the visual test). Omitting it checks every listed route; unknown keys fail instead of silently skipping the check.
+
+Today uses `VitalProgress` for measured dose totals and its no-total variant when calculation or action history is incomplete. `VitalCompactRow` keeps the substance identity and exact expectation visible; available Taken, Skip, Source and Undo actions remain direct, while Details reveals Extra, Edit and optional help. Preserve the stock, interval, stale-data and clock-review guards around those actions.

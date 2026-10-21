@@ -6725,5 +6725,136 @@
   "designOverviewEventsHint": "This summary shows the first events. Open Events to review them all.",
   "@designOverviewEventsHint": {
     "description": "Substance overview bounded event list; the Events destination stays available."
+  },
+  "designTodayHeading": "Daily schedule",
+  "@designTodayHeading": {
+    "description": "Today hero heading for the day's expected doses."
+  },
+  "designTodayRemaining": "{count, plural, =1{1 remaining} other{{count} remaining}}",
+  "@designTodayRemaining": {
+    "description": "Count of planned doses still awaiting a decision after recording and skips.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "designTodayRecorded": "{taken} of {planned} doses recorded, {skipped} skipped.",
+  "@designTodayRecorded": {
+    "description": "Truthful day summary recorded, skipped and planned are separate counts.",
+    "placeholders": {
+      "taken": {
+        "type": "int"
+      },
+      "planned": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "designTodayNothingPlanned": "No doses are planned today.",
+  "@designTodayNothingPlanned": {
+    "description": "Day with zero planned doses; never shown as full completion."
+  },
+  "designTodayNext": "Next dose",
+  "@designTodayNext": {
+    "description": "Heading above the next expected dose block."
+  },
+  "designTodayNextInMinutes": "{minutes, plural, =1{Next dose in 1 minute.} other{Next dose in {minutes} minutes.}}",
+  "@designTodayNextInMinutes": {
+    "description": "Minute countdown once the next dose is within an hour.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "designTodayNextDue": "Next dose is due now.",
+  "@designTodayNextDue": {
+    "description": "The expected start passed and the dose has no recorded decision yet."
+  },
+  "designTodayNextUntimed": "The next dose has no expected time.",
+  "@designTodayNextUntimed": {
+    "description": "Pending untimed expectation; no countdown can be claimed."
+  },
+  "designTodayRecordedSoFar": "{taken, plural, =1{1 dose recorded} other{{taken} doses recorded}}, {skipped, plural, =1{1 skipped} other{{skipped} skipped}} so far.",
+  "@designTodayRecordedSoFar": {
+    "description": "Partial-day counts over the rows shown so far. The day is not fully calculated or some action history is still loading, so no whole-day total or ratio is claimed.",
+    "placeholders": {
+      "taken": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "designTodayUtcDate": "{date} (UTC)",
+  "@designTodayUtcDate": {
+    "description": "Shown hero date when the device time zone is not observed. Labels the explicit UTC fallback instead of implying a known local date.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "designTodayProgressLabel": "Recorded doses",
+  "@designTodayProgressLabel": {
+    "description": "Hero summary label naming what the day summary measures: recorded doses against planned doses."
+  },
+  "designTodayRecordedCount": "{count, plural, =1{1 recorded} other{{count} recorded}}",
+  "@designTodayRecordedCount": {
+    "description": "Recorded share of the day summary when the row set and action history are complete."
+  },
+  "designTodayPlannedTotal": "of {count, plural, =1{1 dose} other{{count} doses}}",
+  "@designTodayPlannedTotal": {
+    "description": "Denominator of the measured day summary. Stated in doses, never proof of use."
+  },
+  "designTodaySkippedCount": "{count, plural, =1{1 skipped} other{{count} skipped}}",
+  "@designTodaySkippedCount": {
+    "description": "Skipped decisions shown beside the day summary. Skips stay distinct from recorded doses."
+  },
+  "designTodayActionsIncomplete": "Some dose actions are still loading. Counts may change.",
+  "@designTodayActionsIncomplete": {
+    "description": "A shown row's action history is incomplete, so its recorded and skipped counts may still change."
+  },
+  "designTodayNextPlanNamed": "Next planned dose: {name}, {amount} {unit}, {when}.",
+  "@designTodayNextPlanNamed": {
+    "description": "Next expectation from today's shown rows or a future plan, with its substance, exact planned amount and shown time.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "designTodayNextPlanUnnamed": "Next planned dose: {amount} {unit}, {when}.",
+  "@designTodayNextPlanUnnamed": {
+    "description": "Future expectation whose substance name is not currently available. No name is invented.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "designTodayUnderMinute": "Next dose in under a minute.",
+  "@designTodayUnderMinute": {
+    "description": "Less than one minute remains before the expected start. The dose is not due yet."
   }
 }

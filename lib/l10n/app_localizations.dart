@@ -9258,6 +9258,119 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This summary shows the first events. Open Events to review them all.'**
   String get designOverviewEventsHint;
+
+  /// Today hero heading for the day's expected doses.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily schedule'**
+  String get designTodayHeading;
+
+  /// Count of planned doses still awaiting a decision after recording and skips.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 remaining} other{{count} remaining}}'**
+  String designTodayRemaining(int count);
+
+  /// Truthful day summary recorded, skipped and planned are separate counts.
+  ///
+  /// In en, this message translates to:
+  /// **'{taken} of {planned} doses recorded, {skipped} skipped.'**
+  String designTodayRecorded(int taken, int planned, int skipped);
+
+  /// Day with zero planned doses; never shown as full completion.
+  ///
+  /// In en, this message translates to:
+  /// **'No doses are planned today.'**
+  String get designTodayNothingPlanned;
+
+  /// Heading above the next expected dose block.
+  ///
+  /// In en, this message translates to:
+  /// **'Next dose'**
+  String get designTodayNext;
+
+  /// Minute countdown once the next dose is within an hour.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =1{Next dose in 1 minute.} other{Next dose in {minutes} minutes.}}'**
+  String designTodayNextInMinutes(int minutes);
+
+  /// The expected start passed and the dose has no recorded decision yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Next dose is due now.'**
+  String get designTodayNextDue;
+
+  /// Pending untimed expectation; no countdown can be claimed.
+  ///
+  /// In en, this message translates to:
+  /// **'The next dose has no expected time.'**
+  String get designTodayNextUntimed;
+
+  /// Partial-day counts over the rows shown so far. The day is not fully calculated or some action history is still loading, so no whole-day total or ratio is claimed.
+  ///
+  /// In en, this message translates to:
+  /// **'{taken, plural, =1{1 dose recorded} other{{taken} doses recorded}}, {skipped, plural, =1{1 skipped} other{{skipped} skipped}} so far.'**
+  String designTodayRecordedSoFar(int taken, int skipped);
+
+  /// Shown hero date when the device time zone is not observed. Labels the explicit UTC fallback instead of implying a known local date.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} (UTC)'**
+  String designTodayUtcDate(String date);
+
+  /// Hero summary label naming what the day summary measures: recorded doses against planned doses.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded doses'**
+  String get designTodayProgressLabel;
+
+  /// Recorded share of the day summary when the row set and action history are complete.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 recorded} other{{count} recorded}}'**
+  String designTodayRecordedCount(num count);
+
+  /// Denominator of the measured day summary. Stated in doses, never proof of use.
+  ///
+  /// In en, this message translates to:
+  /// **'of {count, plural, =1{1 dose} other{{count} doses}}'**
+  String designTodayPlannedTotal(num count);
+
+  /// Skipped decisions shown beside the day summary. Skips stay distinct from recorded doses.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 skipped} other{{count} skipped}}'**
+  String designTodaySkippedCount(num count);
+
+  /// A shown row's action history is incomplete, so its recorded and skipped counts may still change.
+  ///
+  /// In en, this message translates to:
+  /// **'Some dose actions are still loading. Counts may change.'**
+  String get designTodayActionsIncomplete;
+
+  /// Next expectation from today's shown rows or a future plan, with its substance, exact planned amount and shown time.
+  ///
+  /// In en, this message translates to:
+  /// **'Next planned dose: {name}, {amount} {unit}, {when}.'**
+  String designTodayNextPlanNamed(
+    String name,
+    String amount,
+    String unit,
+    String when,
+  );
+
+  /// Future expectation whose substance name is not currently available. No name is invented.
+  ///
+  /// In en, this message translates to:
+  /// **'Next planned dose: {amount} {unit}, {when}.'**
+  String designTodayNextPlanUnnamed(String amount, String unit, String when);
+
+  /// Less than one minute remains before the expected start. The dose is not due yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Next dose in under a minute.'**
+  String get designTodayUnderMinute;
 }
 
 class _AppLocalizationsDelegate

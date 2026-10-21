@@ -9,6 +9,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:true_grit_vital/app/appearance.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
+import 'package:true_grit_vital/features/plans/daily_feed.dart';
 import 'package:true_grit_vital/ui/vital_ui.dart';
 
 import 'vital_app_test.dart' show appTest, launch, runIo, settle, waitForText;
@@ -143,6 +144,19 @@ void main() {
           debugPrint('Visual check: ${mode.name} ${route.key}');
           router.go(route.value);
           await settle(tester);
+          if (route.key == 'today') {
+            final loaded = Stopwatch()..start();
+            while (find.byType(DailyRowCard).evaluate().length < items.length) {
+              if (loaded.elapsed > const Duration(seconds: 10)) {
+                throw TestFailure('Today rows did not finish loading.');
+              }
+              await runIo(
+                tester,
+                () => Future<void>.delayed(const Duration(milliseconds: 5)),
+              );
+              await tester.pumpAndSettle();
+            }
+          }
           if (route.key == 'substance-overview') {
             await waitForText(tester, items.first.name);
             await waitForText(tester, 'Planned once a day, 1 mg each');

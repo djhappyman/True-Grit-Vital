@@ -5860,4 +5860,126 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get designOverviewEventsHint =>
       'This summary shows the first events. Open Events to review them all.';
+
+  @override
+  String get designTodayHeading => 'Daily schedule';
+
+  @override
+  String designTodayRemaining(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count remaining',
+      one: '1 remaining',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String designTodayRecorded(int taken, int planned, int skipped) {
+    return '$taken of $planned doses recorded, $skipped skipped.';
+  }
+
+  @override
+  String get designTodayNothingPlanned => 'No doses are planned today.';
+
+  @override
+  String get designTodayNext => 'Next dose';
+
+  @override
+  String designTodayNextInMinutes(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'Next dose in $minutes minutes.',
+      one: 'Next dose in 1 minute.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get designTodayNextDue => 'Next dose is due now.';
+
+  @override
+  String get designTodayNextUntimed => 'The next dose has no expected time.';
+
+  @override
+  String designTodayRecordedSoFar(int taken, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      taken,
+      locale: localeName,
+      other: '$taken doses recorded',
+      one: '1 dose recorded',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other: '$skipped skipped',
+      one: '1 skipped',
+    );
+    return '$_temp0, $_temp1 so far.';
+  }
+
+  @override
+  String designTodayUtcDate(String date) {
+    return '$date (UTC)';
+  }
+
+  @override
+  String get designTodayProgressLabel => 'Recorded doses';
+
+  @override
+  String designTodayRecordedCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count recorded',
+      one: '1 recorded',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String designTodayPlannedTotal(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count doses',
+      one: '1 dose',
+    );
+    return 'of $_temp0';
+  }
+
+  @override
+  String designTodaySkippedCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count skipped',
+      one: '1 skipped',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get designTodayActionsIncomplete =>
+      'Some dose actions are still loading. Counts may change.';
+
+  @override
+  String designTodayNextPlanNamed(
+    String name,
+    String amount,
+    String unit,
+    String when,
+  ) {
+    return 'Next planned dose: $name, $amount $unit, $when.';
+  }
+
+  @override
+  String designTodayNextPlanUnnamed(String amount, String unit, String when) {
+    return 'Next planned dose: $amount $unit, $when.';
+  }
+
+  @override
+  String get designTodayUnderMinute => 'Next dose in under a minute.';
 }

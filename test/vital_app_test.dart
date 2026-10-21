@@ -156,7 +156,8 @@ launch(
   );
   addTearDown(() async {
     container.dispose();
-    await store.close();
+    // Closing watched reads also needs the widget clock to keep moving.
+    await runIo(tester, store.close);
     await directory.delete(recursive: true);
   });
   await tester.pumpWidget(

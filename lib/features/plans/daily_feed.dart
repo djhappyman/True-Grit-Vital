@@ -1,23 +1,25 @@
-import '../../app/display_preferences.dart';
-import '../../ui/vital_ui.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/device_zone.dart';
+import '../../app/display_preferences.dart';
 import '../../app/storage.dart';
 import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
+import '../../ui/vital_ui.dart';
 import '../recording/record_pages.dart';
 import '../stock/stock_widgets.dart';
 import '../products/product_widgets.dart';
 import '../profiles/profile_pages.dart';
 import 'plan_form.dart';
 import 'interval_review.dart';
-import 'interval_editor.dart';
 import 'interval_clock.dart';
 import 'plan_providers.dart';
+import 'today_hero.dart';
+import 'today_model.dart';
+import 'today_plan_rows.dart';
+import 'today_prn.dart';
 import '../reminders/reminder_pages.dart';
 
 class DailyFeed extends ConsumerStatefulWidget {
@@ -28,20 +30,14 @@ class DailyFeed extends ConsumerStatefulWidget {
 }
 
 class _DailyFeedState extends ConsumerState<DailyFeed> {
-  final _upcoming = <DailyIdentity, bool>{};
-
-  @override
-  void didUpdateWidget(DailyFeed oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.scope != widget.scope) _upcoming.clear();
-  }
-
   @override
   Widget build(BuildContext context) {
     final scope = widget.scope;
     final t = AppLocalizations.of(context);
     final zone = ref.watch(observedDeviceZoneProvider);
     final rows = ref.watch(dailyFeedProvider(scope));
+    final plans = ref.watch(scopePlansProvider(scope));
+    final next = ref.watch(nextDailyPlansProvider(scope));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -54,49 +50,39 @@ class _DailyFeedState extends ConsumerState<DailyFeed> {
         ],
         rows.when(
           data: (result) {
-            final now = DateTime.now().toUtc();
-            final due = <DailyRow>[], upcoming = <DailyRow>[];
-            for (final row in result.rows) {
-              final id = row.expectation.identity;
-              final starts =
-                  row.expectation.windowStart ?? row.expectation.instant;
-              final isUpcoming = row.isResolved
-                  ? _upcoming[id] ?? (starts?.isAfter(now) ?? false)
-                  : starts?.isAfter(now) ?? false;
-              // Keep a just-recorded row in place so its Undo stays under the finger.
-              _upcoming[id] = isUpcoming;
-              (isUpcoming ? upcoming : due).add(row);
-            }
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                TodayHero(
+                  result: result,
+                  next: next,
+                  observedZone: zone.value?.zoneId,
+                  onRollover: () => ref.invalidate(dailyFeedProvider(scope)),
+                ),
+                // Compact groups, ordered by each expectation's own start.
+                // Untimed doses stay in their own group and rows keep stable
+                // keys, so an action never moves an Undo under another card.
+                for (final group in groupTodayRows(
+                  result.rows,
+                  timeLabel: (row, start) =>
+                      _rowTimeLabel(context, ref, row, start),
+                  untimedTitle: t.todayDue,
+                ))
+                  VitalSection(
+                    title: Text(group.title),
+                    children: [
+                      for (final row in group.rows)
+                        DailyRowCard(
+                          key: ValueKey(row.expectation.identity),
+                          row: row,
+                        ),
+                    ],
+                  ),
                 if (result.rows.isEmpty && result.complete)
                   VitalEmptyState(
                     title: t.today,
                     description: t.planNothingToday,
                     icon: LucideIcons.calendarCheck,
-                  ),
-                if (due.isNotEmpty)
-                  VitalSection(
-                    title: Text(t.todayDue),
-                    children: [
-                      for (final row in due)
-                        DailyRowCard(
-                          key: ValueKey(row.expectation.identity),
-                          row: row,
-                        ),
-                    ],
-                  ),
-                if (upcoming.isNotEmpty)
-                  VitalSection(
-                    title: Text(t.todayUpcoming),
-                    children: [
-                      for (final row in upcoming)
-                        DailyRowCard(
-                          key: ValueKey(row.expectation.identity),
-                          row: row,
-                        ),
-                    ],
                   ),
                 if (!result.complete)
                   Text(
@@ -115,194 +101,28 @@ class _DailyFeedState extends ConsumerState<DailyFeed> {
           ),
           loading: () => Text(t.loadingRecords),
         ),
-        ref
-            .watch(scopePlansProvider(scope))
-            .when(
-              data: (plans) => Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final saved
-                      in plans
-                          .take(100)
-                          .where((p) => p.plan.timing is AsNeeded))
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(t.planAsNeeded),
-                          Text(t.planPrnHelp),
-                          if (saved.plan.pauses.any(
-                            (p) => p.contains(DateTime.now().toUtc()),
-                          ))
-                            Text(t.pauseState),
-                          VitalButton.secondary(
-                            onPressed: () => context.push(
-                              '/pause/${saved.plan.itemId}?plan=${saved.plan.planId}',
-                            ),
-                            child: Text(
-                              saved.plan.pauses.any((p) => p.resume == null)
-                                  ? t.resume
-                                  : t.pauseAction,
-                            ),
-                          ),
-                          PlanItemContext(plan: saved.plan),
-                          VitalButton.secondary(
-                            onPressed: () => context.push(
-                              '/phases/${saved.plan.itemId}?plan=${saved.plan.planId}',
-                            ),
-                            child: Text(t.phaseHeading),
-                          ),
-                          VitalButton.secondary(
-                            onPressed: () =>
-                                context.push('/record/${saved.plan.itemId}'),
-                            child: Text(t.record),
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (plans.length > 100) Text(t.planIncomplete),
-                ],
-              ),
-              error: (_, _) => LoadFailure(
-                onRetry: () => ref.invalidate(scopePlansProvider(scope)),
-              ),
-              loading: () => const SizedBox.shrink(),
-            ),
-        ref
-            .watch(nextDailyPlansProvider(scope))
-            .when(
-              data: (plans) => Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final summary in plans.rows.where(
-                    (p) => p.result.next != null || p.plan.timing is! AsNeeded,
-                  ))
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          PlanItemContext(plan: summary.plan),
-                          if (summary.plan.pauses.any(
-                            (p) => p.contains(DateTime.now().toUtc()),
-                          )) ...[
-                            Text(t.pauseState),
-                            Text(t.pauseRecordHelp),
-                            VitalButton.secondary(
-                              onPressed: () => context.push(
-                                '/record/${summary.plan.itemId}',
-                              ),
-                              child: Text(t.record),
-                            ),
-                          ],
-                          if (summary.plan.timing is ElapsedInterval)
-                            (zone.value?.zoneId == null &&
-                                    summary.plan.zoneBasis is! FixedHome
-                                ? Text(t.planZoneUnavailable)
-                                : IntervalPlanPreview(
-                                    plan: summary.plan,
-                                    observedZone:
-                                        summary.plan.zoneBasis is FixedHome
-                                        ? (summary.plan.zoneBasis as FixedHome)
-                                              .zoneId
-                                        : zone.value!.zoneId!,
-                                  ))
-                          else if (!(summary.plan.timing is DailyCount &&
-                              summary.plan.pauses.any(
-                                (pause) =>
-                                    pause.contains(DateTime.now().toUtc()),
-                              )))
-                            Text(
-                              !summary.result.complete
-                                  ? t.planNextReview
-                                  : summary.result.next == null
-                                  ? t.planNoNext
-                                  : t.planNext(
-                                      summary.result.next!.identity.originalDate
-                                          .toString(),
-                                    ),
-                            ),
-                          if (!summary.result.complete &&
-                              summary.result.calendarDate != null)
-                            Text(
-                              t.calendarKnownDate(
-                                summary.result.calendarDate.toString(),
-                              ),
-                            ),
-                          for (final review in summary.result.needsReview)
-                            Text(expectationLabel(context, ref, t, review)),
-                          if (ref
-                                  .watch(scopePlansProvider(scope))
-                                  .value
-                                  ?.where(
-                                    (s) => s.plan.planId == summary.plan.planId,
-                                  )
-                                  .firstOrNull
-                              case final SavedDailyPlan saved)
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                PlanReminderControl(saved: saved),
-                                VitalButton.secondary(
-                                  onPressed: () => context.push(
-                                    '/pause/${saved.plan.itemId}?plan=${saved.plan.planId}',
-                                  ),
-                                  child: Text(
-                                    saved.plan.pauses.any(
-                                          (p) => p.resume == null,
-                                        )
-                                        ? t.resume
-                                        : t.pauseAction,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          Text(t.phaseSavedHelp),
-                          VitalButton.secondary(
-                            onPressed: () => context.push(
-                              '/phases/${summary.plan.itemId}?plan=${summary.plan.planId}',
-                            ),
-                            child: Text(t.phaseHeading),
-                          ),
-                          VitalButton.secondary(
-                            onPressed: () => context.push(
-                              '/schedule/${summary.plan.itemId}?plan=${summary.plan.planId}',
-                            ),
-                            child: Text(t.edit),
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (!plans.complete) Text(t.planIncomplete),
-                ],
-              ),
-              error: (_, _) => LoadFailure(
-                onRetry: () => ref.invalidate(nextDailyPlansProvider(scope)),
-              ),
-              loading: () => const SizedBox.shrink(),
-            ),
+        TodayPrnPanel(plans: plans, scope: scope),
+        TodayPlanRows(scope: scope, next: next),
         const SizedBox(height: 20),
       ],
     );
   }
 }
 
-class PlanItemContext extends ConsumerWidget {
-  const PlanItemContext({super.key, required this.plan});
-  final DailyPlanVersion plan;
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final t = AppLocalizations.of(context),
-        item = ref.watch(itemLookupProvider(plan.itemId)).value;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(t.profileOwner(ownerLabel(ref, t, plan.personId))),
-        if (item != null) Text(item.name),
-      ],
-    );
-  }
+TodayTimeLabel _rowTimeLabel(
+  BuildContext context,
+  WidgetRef ref,
+  DailyRow row,
+  DateTime start,
+) {
+  final instant = DisplayTime().instant(start, row.expectation.zoneId);
+  return TodayTimeLabel(
+    key: '${row.expectation.zoneId}|${instant.time24}',
+    title: displayFormatter(
+      context,
+      ref.watch(displayPreferencesProvider).timeFormat,
+    ).wallTime(instant.hour, instant.minute),
+  );
 }
 
 class DailyRowCard extends ConsumerStatefulWidget {
@@ -331,6 +151,7 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
   Future<void> Function()? pending;
   StoredStockContainer? stockSource;
   bool showSources = false;
+  bool showDetails = false;
   Future<void> run(Future<void> Function() operation) async {
     if (busy) return;
     pending ??= operation;
@@ -559,7 +380,10 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            VitalRecordHeader(
+            // Compact reference row: identity, planned amount and time facts
+            // stay visible; the progress counts and errors stay below as
+            // critical context, and advanced management sits behind Details.
+            VitalCompactRow(
               title: r.itemName,
               subtitle: expectationLabel(context, ref, t, e),
               icon: resolved ? LucideIcons.circleCheck : LucideIcons.pill,
@@ -666,7 +490,7 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
                   child: Text(t.record),
                 ),
               ],
-              if (!widget.historyMode && !currentlyPaused)
+              if (!widget.historyMode && !currentlyPaused && showDetails) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Text(
@@ -676,8 +500,9 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
                     ),
                   ),
                 ),
-              if (!widget.historyMode && e.identity.sourceActualId != null)
-                Text(t.intervalTakenHelp),
+                if (e.identity.sourceActualId != null)
+                  Text(t.intervalTakenHelp),
+              ],
               if (!widget.historyMode &&
                   !resolved &&
                   !currentlyPaused &&
@@ -770,13 +595,21 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
                     if (!widget.historyMode)
                       PlanCommand(
                         row: r,
+                        label: t.details,
+                        primary: false,
+                        onPressed: busy
+                            ? null
+                            : () => setState(() => showDetails = !showDetails),
+                      ),
+                    if (!widget.historyMode && showDetails) ...[
+                      PlanCommand(
+                        row: r,
                         label: t.extra,
                         primary: false,
                         onPressed: busy
                             ? null
                             : () => context.push('/record/${e.itemId}'),
                       ),
-                    if (!widget.historyMode)
                       PlanCommand(
                         row: r,
                         label: t.edit,
@@ -787,6 +620,7 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
                                 '/schedule/${e.itemId}?plan=${e.identity.planId}',
                               ),
                       ),
+                    ],
                   ],
                 ],
               ),

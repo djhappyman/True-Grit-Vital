@@ -6,6 +6,8 @@ The owner selected the strongest parts of the Stitch designs as Vital's shared v
 
 **Implementation roadmap:** the owner authorised closing the design and feature gaps on 21 October 2026. Track the complete audit and the first five GLM Flash work packages in [the design roadmap](roadmap.md). Agents use [the implementation contract](implementation-contract.md); generated clinical/security claims retain their explicit decision status.
 
+**Flutter review:** [21 October 2026](reviews/2026-10-21/README.md) records the first integrated batch in both themes using loaded synthetic records.
+
 ## Contribution workflow
 
 1. Find the relevant current screen in the snapshot index. Read its PNG, HTML and metadata together; canvas labels and generated export titles sometimes differ.
