@@ -745,7 +745,7 @@ void main() {
     );
     expect(
       vitalTheme(Brightness.dark).colorScheme.secondary,
-      const Color(0xFF101B17),
+      const Color(0xFF141E1B),
     );
   });
 }

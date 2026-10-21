@@ -5,52 +5,9 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../l10n/app_localizations.dart';
 
 export 'vital_summary.dart';
+export 'vital_foundation.dart';
 
-/// Shared geometry for the adopted mobile layout on every platform.
-abstract final class VitalLayout {
-  static const double contentWidth = 640;
-  static const double gutter = 16;
-  static const double target = 48;
-  static const double surfaceRadius = 24;
-  static const double sheetRadius = 32;
-  static const double gap = 12;
-  static const double sectionGap = 24;
-  static const double panelPadding = 20;
-}
-
-/// Semantic text roles shared by screens and contributor-built features.
-abstract final class VitalType {
-  static const title = TextStyle(
-    fontSize: 30,
-    fontWeight: FontWeight.w700,
-    height: 1.2,
-    letterSpacing: -0.8,
-  );
-  static const section = TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.w700,
-    height: 1.3,
-    letterSpacing: -0.3,
-  );
-  static const record = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.w600,
-    height: 1.35,
-  );
-  static const label = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    height: 1.4,
-  );
-  static const body = TextStyle(fontSize: 16, height: 1.5);
-  static const metadata = TextStyle(fontSize: 14, height: 1.45);
-  static const quantity = TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.w600,
-    height: 1.3,
-    fontFeatures: [FontFeature.tabularFigures()],
-  );
-}
+import 'vital_foundation.dart';
 
 enum VitalButtonVariant { primary, secondary, destructive }
 
@@ -118,11 +75,6 @@ class VitalButton extends StatelessWidget {
       VitalButtonVariant.secondary => colors.secondaryForeground,
       VitalButtonVariant.destructive => Colors.white,
     };
-    final fill = switch (variant) {
-      VitalButtonVariant.primary => colors.primary,
-      VitalButtonVariant.secondary => colors.secondary,
-      VitalButtonVariant.destructive => colors.destructive,
-    };
     final effectiveAlignment = multiline
         ? AlignmentDirectional.centerStart
         : alignment;
@@ -134,11 +86,12 @@ class VitalButton extends StatelessWidget {
     var horizontalPadding = 20.0;
     if (!multiline && constraints.hasBoundedWidth && child is Text) {
       final text = child as Text;
-      final typography = Theme.of(context).typography;
       final painter = TextPainter(
         text: TextSpan(
           text: text.data,
-          style: typography.small.merge(typography.medium).merge(text.style),
+          style: VitalType.label
+              .copyWith(fontWeight: FontWeight.w600)
+              .merge(text.style),
         ),
         textDirection: Directionality.of(context),
         textScaler: MediaQuery.textScalerOf(context),
@@ -190,40 +143,17 @@ class VitalButton extends StatelessWidget {
         ],
       ],
     );
-    final button = ButtonStyleOverride(
-      decoration: (context, states, decoration) {
-        if (decoration is! BoxDecoration) return decoration;
-        final disabled = states.contains(WidgetState.disabled);
-        return decoration.copyWith(
-          borderRadius: BorderRadius.circular(999),
-          color: isLoading
-              ? fill
-              : disabled
-              ? colors.secondary
-              : variant == VitalButtonVariant.destructive
-              ? (decoration.color ?? fill).withValues(alpha: 1)
-              : decoration.color,
-          border: disabled && !isLoading
-              ? Border.all(color: colors.mutedForeground)
-              : decoration.border,
-        );
+    final button = VitalControlStyle(
+      tone: switch (variant) {
+        VitalButtonVariant.primary => VitalControlTone.primary,
+        VitalButtonVariant.secondary => VitalControlTone.secondary,
+        VitalButtonVariant.destructive => VitalControlTone.destructive,
       },
-      textStyle: (context, states, textStyle) => textStyle.copyWith(
-        color: isLoading
-            ? foreground
-            : states.contains(WidgetState.disabled)
-            ? colors.mutedForeground
-            : textStyle.color,
+      isLoading: isLoading,
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding,
+        vertical: 12,
       ),
-      iconTheme: (context, states, iconTheme) => iconTheme.copyWith(
-        color: isLoading
-            ? foreground
-            : states.contains(WidgetState.disabled)
-            ? colors.mutedForeground
-            : iconTheme.color,
-      ),
-      padding: (context, states, padding) =>
-          EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 12),
       child: Button(
         style: switch (variant) {
           VitalButtonVariant.primary => ButtonVariance.primary,
@@ -280,31 +210,15 @@ class VitalSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
+    return VitalSurfaceFrame(
       padding: padding,
-      decoration: BoxDecoration(
-        color: role == VitalSurfaceRole.inset ? colors.secondary : colors.card,
-        borderRadius: BorderRadius.circular(
-          role == VitalSurfaceRole.sheet
-              ? VitalLayout.sheetRadius
-              : VitalLayout.surfaceRadius,
-        ),
-        border: Border.all(
-          color: colors.border.withValues(alpha: dark ? 0.65 : 0.85),
-        ),
-        boxShadow: role == VitalSurfaceRole.sheet
-            ? [
-                BoxShadow(
-                  color: const Color(0xFF000000)
-                      .withValues(alpha: dark ? 0.2 : 0.04),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ]
-            : null,
-      ),
+      radius: role == VitalSurfaceRole.sheet
+          ? VitalLayout.sheetRadius
+          : role == VitalSurfaceRole.section
+          ? VitalLayout.sectionRadius
+          : VitalLayout.surfaceRadius,
+      inset: role == VitalSurfaceRole.inset,
+      sheet: role == VitalSurfaceRole.sheet,
       child: child,
     );
   }
@@ -347,17 +261,23 @@ class VitalSection extends StatelessWidget {
 
 /// Width and gutters only; the caller retains ownership of scrolling/insets.
 class VitalPageBody extends StatelessWidget {
-  const VitalPageBody({super.key, required this.child, this.padding});
+  const VitalPageBody({
+    super.key,
+    required this.child,
+    this.padding,
+    this.maxWidth = VitalLayout.contentWidth,
+  });
 
   final Widget child;
   final EdgeInsetsGeometry? padding;
+  final double maxWidth;
 
   @override
   Widget build(BuildContext context) => Align(
     alignment: Alignment.topCenter,
     heightFactor: 1,
     child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: VitalLayout.contentWidth),
+      constraints: BoxConstraints(maxWidth: maxWidth),
       child: Padding(
         padding: padding ?? const EdgeInsets.all(VitalLayout.gutter),
         child: DefaultTextStyle.merge(style: VitalType.body, child: child),
@@ -408,16 +328,27 @@ class VitalPage extends StatelessWidget {
 
 /// Bounded content, keyboard-aware scrolling and device insets in one place.
 class VitalScrollBody extends StatelessWidget {
-  const VitalScrollBody({super.key, required this.children});
+  const VitalScrollBody({
+    super.key,
+    required this.children,
+    this.maxWidth = VitalLayout.contentWidth,
+    this.contentKey,
+    this.padding = const EdgeInsets.fromLTRB(16, 16, 16, 24),
+  });
   final List<Widget> children;
+  final double maxWidth;
+  final Key? contentKey;
+  final EdgeInsetsGeometry padding;
   @override
   Widget build(BuildContext context) => SafeArea(
     top: false,
     child: SingleChildScrollView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       child: VitalPageBody(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+        padding: padding,
+        maxWidth: maxWidth,
         child: Column(
+          key: contentKey,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: children,
         ),
@@ -575,22 +506,31 @@ class VitalPanel extends StatelessWidget {
 
 /// An icon is always accompanied by an authored label in its parent.
 class VitalIconTile extends StatelessWidget {
-  const VitalIconTile(this.icon, {super.key, this.size = 44});
+  const VitalIconTile(
+    this.icon, {
+    super.key,
+    this.size = 44,
+    this.selected = true,
+    this.circular = false,
+  });
   final IconData icon;
   final double size;
+  final bool selected, circular;
   @override
   Widget build(BuildContext context) => ExcludeSemantics(
     child: Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.accent,
-        borderRadius: BorderRadius.circular(size * 0.4),
+        color: selected
+            ? Theme.of(context).colorScheme.accent
+            : Theme.of(context).colorScheme.secondary,
+        borderRadius: BorderRadius.circular(circular ? size / 2 : size * 0.4),
       ),
       alignment: Alignment.center,
       child: Icon(
         icon,
-        size: size * 0.48,
+        size: size * .5,
         color: Theme.of(context).colorScheme.accentForeground,
       ),
     ),
@@ -655,28 +595,62 @@ class VitalActions extends StatelessWidget {
 enum VitalTone { neutral, positive, warning, danger }
 
 class VitalBadge extends StatelessWidget {
-  const VitalBadge(this.label, {super.key, this.tone = VitalTone.neutral});
+  const VitalBadge(
+    this.label, {
+    super.key,
+    this.tone = VitalTone.neutral,
+    this.dot = false,
+    this.compact = false,
+  });
   final String label;
   final VitalTone tone;
+  final bool dot, compact;
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final dark = Theme.of(context).brightness == Brightness.dark;
+    final colors = VitalColors(context);
     final foreground = switch (tone) {
-      VitalTone.neutral => colors.mutedForeground,
-      VitalTone.positive => colors.accentForeground,
-      VitalTone.warning => Color(dark ? 0xFFE9CB85 : 0xFF765000),
-      VitalTone.danger => colors.destructive,
+      VitalTone.neutral => colors.muted,
+      VitalTone.positive => colors.accent,
+      VitalTone.warning => colors.amber,
+      VitalTone.danger => colors.danger,
     };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 10 : 12,
+        vertical: compact ? 3 : 5,
+      ),
       decoration: BoxDecoration(
         color: tone == VitalTone.neutral
-            ? colors.secondary
-            : foreground.withValues(alpha: dark ? 0.12 : 0.09),
-        borderRadius: BorderRadius.circular(999),
+            ? colors.inset
+            : tone == VitalTone.positive
+            ? colors.accentSurface
+            : foreground.withValues(alpha: .14),
+        borderRadius: BorderRadius.circular(VitalLayout.pillRadius),
       ),
-      child: Text(label, style: VitalType.label.copyWith(color: foreground)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (dot) ...[
+            Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                color: foreground,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 6),
+          ],
+          Flexible(
+            child: Text(
+              label,
+              style: (compact ? VitalType.micro : VitalType.label).copyWith(
+                color: foreground,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
