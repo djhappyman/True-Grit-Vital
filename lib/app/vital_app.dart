@@ -348,13 +348,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/stock/:person/adjust/:container',
-        builder: (_, state) => StorageGate(
-          child: StockAdjustmentForm(
-            personId: meId,
-            containerId: state.pathParameters['container']!,
-            notices: state.uri.queryParameters['notices'] == 'true',
-          ),
-        ),
+        builder: (_, state) {
+          // The raw container plus the route's surface key the form state: an
+          // in-place switch between the adjustment and notices route must not
+          // reuse the other surface's editor state.
+          final containerId = state.pathParameters['container']!;
+          final notices = state.uri.queryParameters['notices'] == 'true';
+          return StorageGate(
+            child: StockAdjustmentForm(
+              key: ValueKey(
+                'stockAdjust:$containerId:${notices ? 'notices' : 'quantity'}',
+              ),
+              personId: meId,
+              containerId: containerId,
+              notices: notices,
+            ),
+          );
+        },
       ),
       GoRoute(
         path: '/stock/:person',

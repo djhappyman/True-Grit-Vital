@@ -583,7 +583,15 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
       unknown = f['unknown'] == 'true';
       return;
     }
-    noticesMode = false;
+    // The route decides the surface. A stored command from the other surface
+    // arriving at this draft key is not restorable here and must keep its
+    // own operation: the form stops on a truthful conflict instead of
+    // silently rewriting that draft or capturing on top of it.
+    if (noticesMode) {
+      conflict = true;
+      error = conflictMessage;
+      return;
+    }
     kind = StockMovementKind.values
         .where((v) => v.name == f['kind'])
         .firstOrNull;

@@ -397,10 +397,12 @@ extension StockRecordStore on RecordStore {
   }) async {
     _requireWritable();
     OrdinaryDraft? adopted;
+    String? legacyOperationId;
     await _db.transaction(() async {
       await _db.customStatement('UPDATE dataset SET generation=generation');
-      if ((await _rows('SELECT generation FROM dataset'))
-              .single['generation'] !=
+      if ((await _rows(
+            'SELECT generation FROM dataset',
+          )).single['generation'] !=
           generation) {
         throw const CommandConflict('generation');
       }
@@ -437,6 +439,7 @@ extension StockRecordStore on RecordStore {
         [destinationId, legacyId, generation],
       );
       _capturedDraftOperations.remove(legacyId);
+      legacyOperationId = legacy.operationId;
       adopted = OrdinaryDraft.decode(
         (await _rows('SELECT * FROM ordinary_draft WHERE id=?', [
           destinationId,
@@ -444,6 +447,10 @@ extension StockRecordStore on RecordStore {
       );
     });
     if (adopted != null) {
+      // Only a committed move fences the identity, so a refused or rolled
+      // back migration never leaves a false fence: the legacy key keeps
+      // working for captures of its own rows.
+      _fenceMigratedDraftIdentity(legacyId, legacyOperationId!, destinationId);
       _draftChanges.add(null);
       _changes.add(null);
     }

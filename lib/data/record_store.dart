@@ -307,10 +307,29 @@ final class RecordStore {
   bool _closed = false;
   bool _writesSuspended = false;
   final _capturedDraftOperations = <String, Set<String>>{};
+
+  /// Draft identities adopted by an atomic migration: legacy draft key -> the
+  /// stored operation that now belongs to the adopted row at another key. A
+  /// late capture or discard for that identity must not register a tombstone
+  /// alias under the legacy key or silently rewrite the adopted row, while the
+  /// legacy key itself stays free for fresh drafts with their own operations.
+  final _migratedDraftIds =
+      <String, ({String operationId, String destinationId})>{};
   bool get writesSuspended => _writesSuspended;
   void suspendWrites(bool value) => _writesSuspended = value;
   void _requireWritable() {
     if (_closed || _writesSuspended) throw const CommandConflict('app_locked');
+  }
+
+  void _fenceMigratedDraftIdentity(
+    String legacyId,
+    String operationId,
+    String destinationId,
+  ) {
+    _migratedDraftIds[legacyId] = (
+      operationId: operationId,
+      destinationId: destinationId,
+    );
   }
 
   final _watchReads = <Future<void>>{};
@@ -1629,6 +1648,16 @@ final class RecordStore {
 
   DraftCheckpoint captureDraftCheckpoint(OrdinaryDraft draft) {
     _requireWritable();
+    final migrated = _migratedDraftIds[draft.id];
+    if (migrated != null && migrated.operationId == draft.operationId) {
+      // A late callback for an adopted identity is rejected truthfully when
+      // it persists, and never registers under the legacy key: an entry there
+      // would let a legacy discard tombstone the adopted operation and a
+      // legacy write silently rewrite the adopted row.
+      return DraftCheckpoint._(
+        () async => throw const CommandConflict('draft_identity'),
+      );
+    }
     (_capturedDraftOperations[draft.id] ??= {}).add(draft.operationId);
     return DraftCheckpoint._(() => _saveCapturedDraft(draft));
   }
@@ -1653,6 +1682,13 @@ final class RecordStore {
 
   Future<void> _persistCapturedDraft(OrdinaryDraft draft) async {
     if (_closed) throw const CommandConflict('deleted_context');
+    // A capture taken before the adoption may only persist before the move:
+    // once the identity is fenced the late write refuses instead of touching
+    // either row, leaving no stale alias behind.
+    final migrated = _migratedDraftIds[draft.id];
+    if (migrated != null && migrated.operationId == draft.operationId) {
+      throw const CommandConflict('draft_identity');
+    }
     await _db.transaction(() async {
       await _db.customStatement('UPDATE dataset SET generation=generation');
       if (_closed) throw const CommandConflict('deleted_context');
@@ -1732,8 +1768,13 @@ final class RecordStore {
         'SELECT operation FROM ordinary_draft WHERE id=? AND generation=?',
         [id, generation],
       );
+      // The adopted identity keeps its operation alive even when a stale
+      // captured callback left it under the legacy key.
+      final migrated = _migratedDraftIds[id];
       final operations = {
-        ...?_capturedDraftOperations[id],
+        ...?_capturedDraftOperations[id]?.where(
+          (op) => op != migrated?.operationId,
+        ),
         for (final row in rows) row['operation'] as String,
       };
       for (final operation in operations) {
