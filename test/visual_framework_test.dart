@@ -154,6 +154,8 @@ void main() {
             // Draft restoration uses real asynchronous storage. Capture the
             // loaded form rather than its transient opening-records state.
             await waitForText(tester, 'New substance');
+            // Personal type choices have their own asynchronous query.
+            await waitForText(tester, 'Supplement');
           }
           if (route.key == 'today') {
             final loaded = Stopwatch()..start();
