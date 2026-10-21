@@ -429,6 +429,7 @@ final class ExportPreview {
       notesIncluded = document.selection.includeNotes,
       doseRecords = document.doseRecords,
       doseRevisions = document.doses.length,
+      skippedActions = document.skippedActions,
       supportingRecords = document.supportingRecords,
       supportingResults = document.supportingResults,
       byteCount = bytes.length,
@@ -442,6 +443,7 @@ final class ExportPreview {
   final bool notesIncluded;
   final int doseRecords,
       doseRevisions,
+      skippedActions,
       supportingRecords,
       supportingResults,
       byteCount;

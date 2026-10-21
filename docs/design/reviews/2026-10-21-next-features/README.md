@@ -1,6 +1,6 @@
 # Next feature batch
 
-D08 and D10 use OpenCode’s `opencode/deepseek-v4.1-flash-free` in isolated worktrees. The lead owns D20 and integration review. D08 and D20 are host verified; D10 remains under review and repair.
+D08 and D10 use OpenCode’s `opencode/deepseek-v4.1-flash-free` in isolated worktrees. The lead owns D20 and integration review. All three packages are host integrated and verified after lead review.
 
 ## D08: Substance setup
 
@@ -18,9 +18,18 @@ The final setup group passed 22 store, migration, restore, UI and visual checks.
 
 D08’s initial task activity confirms reads of all ten requested skill files before edits, including Flutter expert, graph, architecture, unit/widget tests, responsive layout, UI guidance, analysis, better writing and the repository copy skill. The worker’s final summary had lost this evidence; the lead checked the durable activity rather than treating the summary as the access record.
 
-## D10: Review repairs
+## D10: Dose context
 
-The initial implementation is merged locally for combined verification: optional notes/tags under More, revision/draft persistence, optional secondary skip reasons, action/source history and privacy-gated dose notes in reports/exports. It is **not accepted as complete**. The same free DeepSeek model owns a new bounded repair round for skip reasons in structured exports and reports, full encrypted metadata restore coverage, legacy empty-context command replay and old correction-draft recovery. There was no lead agreement to omit skip reasons from outputs. No new release is part of this batch.
+- Optional notes and neutral context tags live behind More. Empty context remains valid, quick Taken is unchanged, and no label or schedule generates instructions. Saved revisions retain context; an explicit clear creates the intended new revision. Old correction drafts without context fields preserve existing text instead of erasing it.
+- Skip reasons use a compact secondary disclosure. Skip and Undo preserve the saved action identity and never create a dose or stock movement. Source/action history retains the reason.
+- Structured JSON exports contain a separate `skipped` collection. CSV uses `record_type=skip` and appended skip columns, with no dose quantity or revision invented for the action. Skips share the existing doses content selection, are counted separately in Preview and fail truthfully at the explicit 5,000-action bound. Current undone skips are excluded from the current timeline export; the full encrypted archive retains the stored records.
+- Private substance instructions, notes, dose notes and skip reasons remain excluded unless notes are deliberately selected. Review corrected the old supporting-only toggle descriptions in reports and exports. Neutral dose tags remain structured metadata. R02 detailed history carries skip reasons in text and PDF; R03 keeps its existing event counts rather than adding a second detailed ledger.
+- Lead integration verified the real production sequence: password-encrypted archive creation, validation, database preparation, activation, reopening and private/shared export. Both dose revisions, notes, tags and the saved skip reason survive. The test initially assumed one exported dose row; review corrected it to assert both saved revisions. The parent’s shared schema fix resolves the worker checkout’s archive-version rejection.
+- Empty-context record commands retain the legacy payload shape, so a committed command from an older database replays instead of conflicting. Changed context still fails command-payload reuse.
+
+The final combined D10 run passed **89 focused checks**, including store/export bounds and CSV alignment, report text/PDF, record and correction UI, encrypted restore, archive activation and export preview/privacy. Static analysis is clean. The expanded More fields also receive the 320/390/430 px check at normal and double text. No whole-suite run, new platform build, native performance measurement or new release is claimed.
+
+The repair worker reports actual reads of Flutter expert and its Riverpod/widget references; graph, architecture, unit/widget testing, responsive layout, UI guidance, static analysis and better-writing skills; and the root repository copy skill. It kept the parent-owned backup fix separate and reported its blocked restore test honestly instead of bypassing validation.
 
 ## D20: Settings data
 

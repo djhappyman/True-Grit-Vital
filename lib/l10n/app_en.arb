@@ -4697,7 +4697,7 @@
   "@exportDoses": {
     "description": "Toggle label for recorded dose revisions."
   },
-  "exportDosesHelp": "Recorded doses with every saved correction and the units used at entry.",
+  "exportDosesHelp": "Recorded doses with corrections and original units, plus explicit skips.",
   "@exportDosesHelp": {
     "description": "Explains that dose corrections and original units are included."
   },
@@ -4719,9 +4719,9 @@
   },
   "exportNotes": "Notes",
   "@exportNotes": {
-    "description": "Toggle label for including supporting notes."
+    "description": "Toggle label for optional private text in the selected content."
   },
-  "exportNotesHelp": "Include supporting notes in the file. Source files are never included.",
+  "exportNotesHelp": "Include substance instructions, notes and skip reasons. Files stay excluded.",
   "@exportNotesHelp": {
     "description": "Explains the notes toggle and that attachments are excluded."
   },
@@ -4809,13 +4809,13 @@
       }
     }
   },
-  "exportNotesIncluded": "Supporting notes included.",
+  "exportNotesIncluded": "Private text included.",
   "@exportNotesIncluded": {
-    "description": "Review state when supporting notes are included."
+    "description": "Review state when optional private text is included."
   },
-  "exportNotesExcluded": "Supporting notes excluded.",
+  "exportNotesExcluded": "Private text excluded.",
   "@exportNotesExcluded": {
-    "description": "Review state when supporting notes are excluded."
+    "description": "Review state when optional private text is excluded."
   },
   "exportDoseCount": "{count, plural, =0{No dose records} =1{1 dose record} other{{count} dose records}}",
   "@exportDoseCount": {
@@ -5656,7 +5656,7 @@
   "@reportNotes": {
     "description": "Toggle label for private notes."
   },
-  "reportNotesHelp": "Include saved notes for selected supporting records.",
+  "reportNotesHelp": "Include substance instructions and notes. Detailed history also includes skip reasons.",
   "@reportNotesHelp": {
     "description": "Explains private note inclusion."
   },
@@ -8646,6 +8646,15 @@
     "placeholders": {
       "reason": {
         "type": "String"
+      }
+    }
+  },
+  "featureContextExportSkipCount": "{count, plural, =0{No skipped actions} =1{1 skipped action} other{{count} skipped actions}}",
+  "@featureContextExportSkipCount": {
+    "description": "Count of explicit skip actions in the reviewed export, separate from dose records and revisions.",
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   }

@@ -31,6 +31,36 @@ Future<ExportDocument> _capture(
   ExportCancellation? cancellation,
 }) async => _emptyDocument(selection);
 
+Future<ExportDocument> _skipCapture(
+  ExportSelection selection, {
+  ExportCancellation? cancellation,
+}) async => ExportDocument(
+  selection: selection,
+  generatedAt: DateTime.utc(2026, 10, 21, 12),
+  personName: 'Alex',
+  doses: const [],
+  supporting: const [],
+  skipped: [
+    ExportSkippedAction(
+      actionId: 'saved-skip-action',
+      itemId: 'item',
+      itemName: 'Synthetic substance',
+      itemForm: 'tablet',
+      itemType: 'medicine',
+      occurredAt: DateTime.utc(
+        selection.fromDay.year,
+        selection.fromDay.month,
+        selection.fromDay.day,
+      ),
+      recordedAt: DateTime.utc(2026, 10, 21, 8),
+      dateOnly: true,
+      timeNeedsReview: false,
+      savedDate: selection.fromDay,
+      planZone: 'UTC',
+    ),
+  ],
+);
+
 Future<ExportDocument> _undatedCapture(
   ExportSelection selection, {
   ExportCancellation? cancellation,
@@ -156,6 +186,30 @@ Future<ProviderContainer> _launch(
 }
 
 void main() {
+  appTest('export review counts skips separately from doses', (tester) async {
+    final handoff = FakeHandoff();
+    await _launch(tester, capture: _skipCapture, handoff: handoff);
+    await waitForText(tester, 'Export');
+    expect(
+      find.text(
+        'Include substance instructions, notes and skip reasons. Files stay excluded.',
+      ),
+      findsOneWidget,
+    );
+    await tap(tester, 'Preview');
+    await waitForText(tester, 'Review');
+    expect(find.text('No dose records'), findsOneWidget);
+    expect(find.text('1 skipped action'), findsOneWidget);
+    expect(find.text('Private text excluded.'), findsOneWidget);
+    await tap(tester, 'Save');
+    await waitForText(tester, 'Saved.');
+    expect(handoff.received!.preview.skippedActions, 1);
+    expect(
+      handoff.received!.document.skipped.single.actionId,
+      'saved-skip-action',
+    );
+  });
+
   appTest('export reviews and saves the exact artifact', (tester) async {
     final handoff = FakeHandoff();
     await _launch(tester, handoff: handoff);
@@ -168,7 +222,7 @@ void main() {
     await tap(tester, 'Preview');
     await waitForText(tester, 'Review');
     expect(find.text('No dose records'), findsOneWidget);
-    expect(find.text('Supporting notes excluded.'), findsOneWidget);
+    expect(find.text('Private text excluded.'), findsOneWidget);
     expect(
       find.textContaining('left out of this file'),
       findsNothing,

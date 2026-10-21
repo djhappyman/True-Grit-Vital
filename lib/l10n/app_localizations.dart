@@ -6930,7 +6930,7 @@ abstract class AppLocalizations {
   /// Explains that dose corrections and original units are included.
   ///
   /// In en, this message translates to:
-  /// **'Recorded doses with every saved correction and the units used at entry.'**
+  /// **'Recorded doses with corrections and original units, plus explicit skips.'**
   String get exportDosesHelp;
 
   /// Toggle label for observations and lab panels.
@@ -6957,7 +6957,7 @@ abstract class AppLocalizations {
   /// **'Privacy'**
   String get exportPrivacy;
 
-  /// Toggle label for including supporting notes.
+  /// Toggle label for optional private text in the selected content.
   ///
   /// In en, this message translates to:
   /// **'Notes'**
@@ -6966,7 +6966,7 @@ abstract class AppLocalizations {
   /// Explains the notes toggle and that attachments are excluded.
   ///
   /// In en, this message translates to:
-  /// **'Include supporting notes in the file. Source files are never included.'**
+  /// **'Include substance instructions, notes and skip reasons. Files stay excluded.'**
   String get exportNotesHelp;
 
   /// Confirms the one adult included in the export.
@@ -7053,16 +7053,16 @@ abstract class AppLocalizations {
   /// **'Content: {content}'**
   String exportContentLabel(String content);
 
-  /// Review state when supporting notes are included.
+  /// Review state when optional private text is included.
   ///
   /// In en, this message translates to:
-  /// **'Supporting notes included.'**
+  /// **'Private text included.'**
   String get exportNotesIncluded;
 
-  /// Review state when supporting notes are excluded.
+  /// Review state when optional private text is excluded.
   ///
   /// In en, this message translates to:
-  /// **'Supporting notes excluded.'**
+  /// **'Private text excluded.'**
   String get exportNotesExcluded;
 
   /// Number of dose records in the reviewed export.
@@ -8091,7 +8091,7 @@ abstract class AppLocalizations {
   /// Explains private note inclusion.
   ///
   /// In en, this message translates to:
-  /// **'Include saved notes for selected supporting records.'**
+  /// **'Include substance instructions and notes. Detailed history also includes skip reasons.'**
   String get reportNotesHelp;
 
   /// Toggle label for source files.
@@ -11438,6 +11438,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reason: {reason}.'**
   String featureContextSkipReasonValue(String reason);
+
+  /// Count of explicit skip actions in the reviewed export, separate from dose records and revisions.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No skipped actions} =1{1 skipped action} other{{count} skipped actions}}'**
+  String featureContextExportSkipCount(int count);
 }
 
 class _AppLocalizationsDelegate

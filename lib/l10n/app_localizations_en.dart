@@ -4278,7 +4278,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportDosesHelp =>
-      'Recorded doses with every saved correction and the units used at entry.';
+      'Recorded doses with corrections and original units, plus explicit skips.';
 
   @override
   String get exportSupporting => 'Supporting';
@@ -4299,7 +4299,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportNotesHelp =>
-      'Include supporting notes in the file. Source files are never included.';
+      'Include substance instructions, notes and skip reasons. Files stay excluded.';
 
   @override
   String exportSinglePerson(String name) {
@@ -4354,10 +4354,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get exportNotesIncluded => 'Supporting notes included.';
+  String get exportNotesIncluded => 'Private text included.';
 
   @override
-  String get exportNotesExcluded => 'Supporting notes excluded.';
+  String get exportNotesExcluded => 'Private text excluded.';
 
   @override
   String exportDoseCount(int count) {
@@ -5050,7 +5050,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportNotesHelp =>
-      'Include saved notes for selected supporting records.';
+      'Include substance instructions and notes. Detailed history also includes skip reasons.';
 
   @override
   String get reportSources => 'Source files';
@@ -7375,5 +7375,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String featureContextSkipReasonValue(String reason) {
     return 'Reason: $reason.';
+  }
+
+  @override
+  String featureContextExportSkipCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count skipped actions',
+      one: '1 skipped action',
+      zero: 'No skipped actions',
+    );
+    return '$_temp0';
   }
 }

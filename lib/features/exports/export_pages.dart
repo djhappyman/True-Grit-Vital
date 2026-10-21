@@ -298,6 +298,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
             ),
             Text(t.exportDoseCount(preview.doseRecords)),
             Text(t.exportRevisionCount(preview.doseRevisions)),
+            Text(t.featureContextExportSkipCount(preview.skippedActions)),
             Text(t.exportSupportingCount(preview.supportingRecords)),
             Text(t.exportSupportingResultCount(preview.supportingResults)),
             if (undatedMessage != null) Text(undatedMessage),

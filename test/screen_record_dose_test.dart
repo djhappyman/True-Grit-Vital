@@ -423,6 +423,20 @@ void main() {
         await settle(tester);
         await enterAmount(tester, '0.5');
         await selectSource(tester, container.id);
+        if (find.text('DOSE CONTEXT').evaluate().isEmpty) {
+          await tap(tester, 'More');
+        }
+        final contextField = find.descendant(
+          of: find.widgetWithText(LabelledInput, 'Tags (optional)'),
+          matching: find.byType(TextField),
+        );
+        await tester.ensureVisible(contextField);
+        await settle(tester);
+        expect(
+          contextField.hitTestable(),
+          findsOneWidget,
+          reason: '$size at ${scale}x',
+        );
         await tester.ensureVisible(find.widgetWithText(StitchButton, 'Save'));
         await settle(tester);
         expect(

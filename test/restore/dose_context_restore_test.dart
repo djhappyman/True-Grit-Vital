@@ -46,9 +46,6 @@ void main() {
     'encrypted restore keeps dose context, revisions and skip reasons',
     () async {
       // Real production container path: create, validate, prepare and activate.
-      // The shared schemaVersionCurrent constant is owned by the root branch;
-      // until it matches the production schema this test reports that rejection
-      // rather than bypassing the archive-version check.
       final item = await live.createItem(
         commandId: 'item',
         expectedPersonRevision: 2,
@@ -179,8 +176,13 @@ void main() {
       final private = await live.captureExport(export(includeNotes: false));
       expect(private.skipped.single.actionId, skipped.id);
       expect(private.skipped.single.reason, isNull);
-      expect(private.doses.single.contextTags, ['Morning', 'With food']);
-      expect(private.doses.single.notes, isNull);
+      expect(private.doses, hasLength(2));
+      expect(private.doses.map((r) => r.revision), [1, 2]);
+      expect(
+        private.doses.map((r) => r.contextTags),
+        everyElement(orderedEquals(['Morning', 'With food'])),
+      );
+      expect(private.doses.map((r) => r.notes), everyElement(isNull));
       final privateText = utf8.decode(ExportArtifact.build(private).bytes);
       expect(privateText, isNot(contains('Saved dose note.')));
       expect(privateText, isNot(contains('Felt unwell')));
@@ -188,7 +190,10 @@ void main() {
 
       final shared = await live.captureExport(export(includeNotes: true));
       expect(shared.skipped.single.reason, 'Felt unwell');
-      expect(shared.doses.single.notes, 'Saved dose note.');
+      expect(
+        shared.doses.map((r) => r.notes),
+        everyElement('Saved dose note.'),
+      );
     },
   );
 }
