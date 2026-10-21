@@ -295,7 +295,8 @@ class _RecordCollectionState extends ConsumerState<RecordCollection> {
       children: [
         VitalPageHeader(
           title: destination.label(t),
-          icon: destination.icon,
+          icon: destination == Destination.substances ? null : destination.icon,
+          inlineActions: destination == Destination.substances,
           actions: destination == Destination.substances
               ? [
                   VitalButton(

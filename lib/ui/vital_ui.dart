@@ -434,11 +434,16 @@ class VitalPageHeader extends StatelessWidget {
     this.description,
     this.icon,
     this.actions = const [],
+    this.inlineActions = false,
   });
   final String title;
   final String? description;
   final IconData? icon;
   final List<Widget> actions;
+
+  /// Places short actions beside the heading when they fit, wrapping below
+  /// at narrow widths or larger text sizes.
+  final bool inlineActions;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -446,21 +451,47 @@ class VitalPageHeader extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (icon != null) ...[
-              VitalIconTile(icon!),
-              const SizedBox(width: 12),
-            ],
-            Expanded(
-              child: Semantics(
-                header: true,
-                child: Text(title, style: VitalType.title),
+        if (inlineActions)
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 16,
+            runSpacing: 12,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    VitalIconTile(icon!),
+                    const SizedBox(width: 12),
+                  ],
+                  Flexible(
+                    child: Semantics(
+                      header: true,
+                      child: Text(title, style: VitalType.title),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
+              if (actions.isNotEmpty) VitalActions(children: actions),
+            ],
+          )
+        else
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (icon != null) ...[
+                VitalIconTile(icon!),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: Text(title, style: VitalType.title),
+                ),
+              ),
+            ],
+          ),
         if (description != null) ...[
           const SizedBox(height: 8),
           Text(
@@ -470,7 +501,7 @@ class VitalPageHeader extends StatelessWidget {
             ),
           ),
         ],
-        if (actions.isNotEmpty) ...[
+        if (actions.isNotEmpty && !inlineActions) ...[
           const SizedBox(height: 16),
           VitalActions(children: actions),
         ],
