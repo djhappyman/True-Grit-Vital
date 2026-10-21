@@ -10532,6 +10532,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Substance unavailable'**
   String get screenEventsItemUnavailable;
+
+  /// Settings hub filter that shows every group. Keeping it as the default hides no destination.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get screenSettingsGroupAll;
+
+  /// Settings hub group holding profile, appearance, reminders and support links.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get screenSettingsGroupGeneral;
+
+  /// Helper for the General group. Names the real destinations it holds.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile, appearance, reminders and help.'**
+  String get screenSettingsGeneralBody;
+
+  /// Helper for the Data group. Names the real destinations it holds.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports, exports, backups and restore.'**
+  String get screenSettingsDataBody;
+
+  /// Factual storage badge. Does not claim a cipher, version or remote custody.
+  ///
+  /// In en, this message translates to:
+  /// **'On this device'**
+  String get screenSettingsVaultBadge;
+
+  /// Title of the factual storage summary. No size, count or cipher is invented.
+  ///
+  /// In en, this message translates to:
+  /// **'Local storage'**
+  String get screenSettingsStorageTitle;
+
+  /// Explicit limitation for the storage summary. Never shows a fabricated size or count.
+  ///
+  /// In en, this message translates to:
+  /// **'Database size and record totals are not available yet.'**
+  String get screenSettingsStorageBody;
+
+  /// Badge marking a capability that is not available yet. Never a working switch or command.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get screenSettingsPreviewBadge;
+
+  /// Labelled preview for unattended backups, which are not implemented.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backups'**
+  String get screenSettingsAutoBackup;
+
+  /// Points to the real manual backup instead of promising unattended backups.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available yet. Create a backup when you need one.'**
+  String get screenSettingsAutoBackupBody;
+
+  /// Labelled preview for a clinical export format, which is not implemented.
+  ///
+  /// In en, this message translates to:
+  /// **'FHIR export'**
+  String get screenSettingsFhir;
+
+  /// Points to the real structured export instead of implying FHIR or HL7 support.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available yet. Use Exports for structured data.'**
+  String get screenSettingsFhirBody;
 }
 
 class _AppLocalizationsDelegate

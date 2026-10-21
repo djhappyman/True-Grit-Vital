@@ -56,4 +56,11 @@ Native Flutter captures from the remaining-screen rollout. Designs use the saved
 - Lead review kept linked names beside one-word Open actions, included source flags in accessible summaries and prevented a failed latest read from being hidden by an empty-state message.
 - Lead verification: 64 regression checks, seven final UI checks, five framework/safe-area checks, two loaded capture checks and clean project analysis. Width checks include 320 px at double text and 430 px. Physical-device screen-reader and performance evidence remains open.
 
+## Settings
+
+- [Light](light-settings.png), [dark](dark-settings.png), [full light](light-settings-full.png), [full dark](dark-settings-full.png), [narrow light](light-settings-narrow.png) and [narrow dark](dark-settings-narrow.png) show the single hub with group choices above its overview card.
+- All/General/Privacy/Data filters retain real capability-gated destinations. Existing appearance, profile, reminders, diagnostics, help, licences, reports, exports, backup, restore and privacy forms remain canonical. Automatic backups and FHIR are non-interactive previews; storage totals are explicitly unavailable.
+- Lead integration replaced the inherited custom gesture/focus rows with shared shadcn controls and shared surface geometry. Keyboard and accessible activation remain one command per row. Preview badges stack at narrow widths/large text.
+- Lead verification: 74 regression checks, eight hub/capture checks, five framework/safe-area checks and clean analysis. Includes 320/390/430 px double text, route capability guards, keyboard activation, lock/draft and appearance recovery. Physical-device screen-reader/performance gates remain open.
+
 Run logs are local under `output/stitch-screen-rollout-2026-10-21/`. The [roadmap](../../roadmap.md) tracks the remaining screens and capability gaps.

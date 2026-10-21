@@ -51,6 +51,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       panelled: false,
       children: [
         const RestoreRecoveryBanner(),
+        _SettingsGroupFilter(
+          group: _group,
+          onChanged: (group) => setState(() => _group = group),
+        ),
+        const SizedBox(height: 20),
         const _SettingsHero(),
         if (displayFailed) ...[
           const SizedBox(height: 16),
@@ -63,11 +68,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ),
           ),
         ],
-        const SizedBox(height: 24),
-        _SettingsGroupFilter(
-          group: _group,
-          onChanged: (group) => setState(() => _group = group),
-        ),
         const SizedBox(height: 20),
         if (shows(SettingsHubGroup.general)) ...[
           SettingsSection(

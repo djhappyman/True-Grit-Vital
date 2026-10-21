@@ -6822,4 +6822,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get screenEventsItemUnavailable => 'Substance unavailable';
+
+  @override
+  String get screenSettingsGroupAll => 'All';
+
+  @override
+  String get screenSettingsGroupGeneral => 'General';
+
+  @override
+  String get screenSettingsGeneralBody =>
+      'Profile, appearance, reminders and help.';
+
+  @override
+  String get screenSettingsDataBody => 'Reports, exports, backups and restore.';
+
+  @override
+  String get screenSettingsVaultBadge => 'On this device';
+
+  @override
+  String get screenSettingsStorageTitle => 'Local storage';
+
+  @override
+  String get screenSettingsStorageBody =>
+      'Database size and record totals are not available yet.';
+
+  @override
+  String get screenSettingsPreviewBadge => 'Preview';
+
+  @override
+  String get screenSettingsAutoBackup => 'Automatic backups';
+
+  @override
+  String get screenSettingsAutoBackupBody =>
+      'Not available yet. Create a backup when you need one.';
+
+  @override
+  String get screenSettingsFhir => 'FHIR export';
+
+  @override
+  String get screenSettingsFhirBody =>
+      'Not available yet. Use Exports for structured data.';
 }
