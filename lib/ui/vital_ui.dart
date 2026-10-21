@@ -773,7 +773,10 @@ class VitalComponentThemes extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ComponentTheme<TextFieldTheme>(
     data: TextFieldTheme(
-      borderRadius: const BorderRadius.all(Radius.circular(16)),
+      filled: true,
+      borderRadius: const BorderRadius.all(
+        Radius.circular(VitalLayout.sectionRadius),
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: Border.all(color: Theme.of(context).colorScheme.input),
     ),
