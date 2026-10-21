@@ -7079,5 +7079,91 @@
   "screenCreateUnavailable": "Unavailable",
   "@screenCreateUnavailable": {
     "description": "Create substance screen. Badge for a feature this version does not record."
+  },
+  "screenScheduleSubtitle": "Set the days, times and amounts for this plan. Preview before saving.",
+  "@screenScheduleSubtitle": {
+    "description": "Schedule editor subline. Describes the task without clinical claims."
+  },
+  "screenScheduleNew": "New plan",
+  "@screenScheduleNew": {
+    "description": "Status badge for a schedule that has no saved version yet."
+  },
+  "screenScheduleRecurrence": "Recurrence",
+  "@screenScheduleRecurrence": {
+    "description": "Section heading for the six real cadence choices."
+  },
+  "screenScheduleDates": "Plan dates",
+  "@screenScheduleDates": {
+    "description": "Section heading for the effective start and optional end."
+  },
+  "screenScheduleDoseWindows": "Dose windows",
+  "@screenScheduleDoseWindows": {
+    "description": "Section heading for the explicitly chosen planned times."
+  },
+  "screenScheduleChosenTimes": "Chosen times",
+  "@screenScheduleChosenTimes": {
+    "description": "Section heading for explicitly entered times within a partly timed plan."
+  },
+  "screenScheduleSlotCount": "{count, plural, =1{1 time} other{{count} times}}",
+  "@screenScheduleSlotCount": {
+    "description": "The number of entered planned times, not recorded doses.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenScheduleWindowCount": "{count, plural, =1{1 window} other{{count} windows}}",
+  "@screenScheduleWindowCount": {
+    "description": "The number of entered time windows.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenScheduleTolerancePreview": "Timing tolerance is not available yet. This plan saves only the chosen time.",
+  "@screenScheduleTolerancePreview": {
+    "description": "Labelled preview inside a time slot. No tolerance rule is stored or promised."
+  },
+  "screenScheduleRequirements": "Requirements",
+  "@screenScheduleRequirements": {
+    "description": "Section heading for the unavailable food and timing requirements."
+  },
+  "screenScheduleRequirementsBody": "Food and timing requirements are not available yet. Nothing from this preview is saved.",
+  "@screenScheduleRequirementsBody": {
+    "description": "Explicit preview state. Does not offer clinical advice or save example requirements."
+  },
+  "screenScheduleSaveFirst": "Save this plan before using pause or reminders.",
+  "@screenScheduleSaveFirst": {
+    "description": "Explains why pause and reminder actions are unavailable on a new plan."
+  },
+  "screenScheduleAlerts": "Reminders",
+  "@screenScheduleAlerts": {
+    "description": "Section heading for plan reminder controls."
+  },
+  "screenScheduleAlertsMeta": "Device support applies.",
+  "@screenScheduleAlertsMeta": {
+    "description": "Short caveat beside the reminder section. Does not promise delivery."
+  },
+  "screenScheduleRemindersAfterSave": "Save this plan to set reminders. Alerts also depend on device support.",
+  "@screenScheduleRemindersAfterSave": {
+    "description": "Reminder placeholder before a plan has a saved revision."
+  },
+  "screenScheduleFollowUp": "Follow-up",
+  "@screenScheduleFollowUp": {
+    "description": "Label for the unavailable follow-up reminder preview row."
+  },
+  "screenScheduleFollowUpBody": "Follow-up alerts are not available yet.",
+  "@screenScheduleFollowUpBody": {
+    "description": "Truthful preview state for a capability that is not implemented."
+  },
+  "screenSchedulePreviewHelp": "Preview checks the next planned doses before saving.",
+  "@screenSchedulePreviewHelp": {
+    "description": "Explains the required preview step before saving a schedule."
+  },
+  "screenSchedulePreviewResult": "Planned doses",
+  "@screenSchedulePreviewResult": {
+    "description": "Heading for the preview result, distinct from the Preview action."
   }
 }

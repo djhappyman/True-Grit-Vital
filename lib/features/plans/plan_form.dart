@@ -1,22 +1,28 @@
 import '../../app/display_preferences.dart';
+import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../app/app_lock.dart';
 import '../../app/device_zone.dart';
+import '../../app/settings_toggle_row.dart';
 import '../../app/storage.dart';
 import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
+import '../reminders/reminder_pages.dart';
 import 'plan_providers.dart';
 import 'pause_editor.dart';
 import 'calendar_editor.dart';
 import 'interval_editor.dart';
 import 'interval_clock.dart';
+import 'schedule_screen.dart';
 
 class PlanSlotEntry {
   PlanSlotEntry({
@@ -69,6 +75,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
   DailyPlanVersion? preview;
   String? previewZone;
   ReminderClockSample? intervalClockSample;
+  String? _resumePath;
 
   @override
   DraftKind get entryKind => DraftKind.dailyPlan;
@@ -343,6 +350,12 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       ref.invalidate(itemPlansProvider);
       ref.invalidate(scopePlansProvider);
     }, successPath: '/today');
+    // commit keeps the completed path while locked writes are suspended. Mirror
+    // that resume point for this screen's own chrome.
+    if (mounted && !dirty && error == null) {
+      final store = await ref.read(recordStoreProvider.future);
+      if (store.writesSuspended) _resumePath = '/today';
+    }
   }
 
   void loadPlan(SavedDailyPlan saved) {
@@ -483,17 +496,72 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
           p.revision == capturedPersonRevision,
     );
     final enabled = valid && !busy && !uncertain && !conflict;
+    final paused =
+        original?.plan.pauses.any((pause) => pause.resume == null) == true;
+    final strength = item!.catalogueSnapshot?.product.strength.trim() ?? '';
+    final modeLabel = switch (mode) {
+      'count' => t.planCount,
+      'slots' => t.planTimes,
+      'prn' => t.planAsNeeded,
+      'interval' => t.intervalPattern,
+      'mixed' => t.phaseMixed,
+      _ => t.phaseWindows,
+    };
+    String slotMeta() => switch (mode) {
+      'windows' => t.screenScheduleWindowCount(slots.length),
+      _ => t.screenScheduleSlotCount(slots.length),
+    };
+    final c = StitchColors(context);
+    final caption = StitchType.caption.copyWith(color: c.muted);
+
     return wrap([
-      Heading(t.schedule),
-      Text(t.profileOwner(ownerLabel(ref, t, owner!.id))),
-      Text(item!.name),
-      if (!valid) Text(t.profileChanged),
-      if (original != null) Text(t.planEditHelp),
-      if (original?.plan.timing is ElapsedInterval) Text(t.intervalEditHelp),
-      Text(t.planPattern),
+      ScheduleTitleBlock(title: t.schedule, subtitle: t.screenScheduleSubtitle),
+      ScheduleIdentityCard(
+        name: item!.name,
+        detail: '${item!.form} · ${item!.unit}',
+        badge: Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            StitchBadge(item!.type),
+            if (strength.isNotEmpty) StitchBadge(strength),
+          ],
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Text(
+          t.profileOwner(ownerLabel(ref, t, owner!.id)),
+          style: caption,
+        ),
+      ),
+      if (!valid)
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: StitchSurface(
+            inset: true,
+            padding: const EdgeInsets.all(12),
+            child: Semantics(
+              liveRegion: true,
+              child: Text(t.profileChanged, style: caption),
+            ),
+          ),
+        ),
+      if (original != null)
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: Text(t.planEditHelp, style: caption),
+        ),
+      if (original?.plan.timing is ElapsedInterval)
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(t.intervalEditHelp, style: caption),
+        ),
+      const SizedBox(height: 20),
+      ScheduleSectionHeader(title: t.screenScheduleRecurrence, meta: modeLabel),
       Wrap(
-        spacing: 12,
-        runSpacing: 12,
+        spacing: 8,
+        runSpacing: 8,
         children: [
           for (final (value, label) in [
             ('count', t.planCount),
@@ -503,159 +571,258 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
             ('mixed', t.phaseMixed),
             ('windows', t.phaseWindows),
           ])
-            Semantics(
+            ScheduleChoiceChip(
+              label: label,
               selected: mode == value,
-              child: VitalButton.secondary(
-                multiline: true,
-                onPressed: enabled
-                    ? () => setState(() {
-                        mode = value;
-                        changed();
-                      })
-                    : null,
-                child: Text(label),
-              ),
+              onPressed: enabled
+                  ? () => setState(() {
+                      mode = value;
+                      changed();
+                    })
+                  : null,
             ),
         ],
       ),
-      const SizedBox(height: 20),
-      if (mode == 'interval') ...[
-        IntervalEditor(fields: interval, enabled: enabled, onChanged: changed),
-        LabelledInput(
-          label: t.amountLabel,
-          controller: amount,
-          helper: item!.unit,
-          enabled: enabled,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      const SizedBox(height: 16),
+      if (mode == 'interval')
+        StitchSurface(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              IntervalEditor(
+                fields: interval,
+                enabled: enabled,
+                onChanged: changed,
+              ),
+              LabelledInput(
+                label: t.amountLabel,
+                semanticLabel: '${t.amountLabel}, ${item!.unit}',
+                controller: amount,
+                helper: item!.unit,
+                enabled: enabled,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+              ),
+            ],
+          ),
         ),
-      ],
-      if (mode == 'count' || mode == 'mixed') ...[
-        LabelledInput(
-          label: t.planCount,
-          controller: count,
-          enabled: enabled,
-          keyboardType: TextInputType.number,
+      if (mode == 'count' || mode == 'mixed')
+        StitchSurface(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              LabelledInput(
+                label: t.planCount,
+                controller: count,
+                enabled: enabled,
+                keyboardType: TextInputType.number,
+              ),
+              LabelledInput(
+                label: t.amountLabel,
+                semanticLabel: '${t.amountLabel}, ${item!.unit}',
+                controller: amount,
+                helper: item!.unit,
+                enabled: enabled,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+              ),
+              Text(
+                mode == 'mixed' ? t.phaseMixedHelp : t.planCountHelp,
+                style: caption,
+              ),
+            ],
+          ),
         ),
-        LabelledInput(
-          label: t.amountLabel,
-          controller: amount,
-          helper: item!.unit,
-          enabled: enabled,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      if (mode == 'prn')
+        SchedulePreviewNote(
+          body: t.planPrnHelp,
+          icon: LucideIcons.calendarClock,
         ),
-        Text(t.planCountHelp),
-      ],
-      if (mode == 'mixed') Text(t.phaseMixedHelp),
-      if (mode == 'windows') Text(t.phaseWindowHelp),
       if (mode == 'slots' || mode == 'mixed' || mode == 'windows') ...[
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: ScheduleSectionHeader(
+            title: switch (mode) {
+              'windows' => t.phaseWindows,
+              'mixed' => t.screenScheduleChosenTimes,
+              _ => t.screenScheduleDoseWindows,
+            },
+            meta: slotMeta(),
+          ),
+        ),
+        if (mode == 'windows')
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(t.phaseWindowHelp, style: caption),
+          ),
         for (final s in slots)
           Padding(
             key: ValueKey(s.id),
-            padding: const EdgeInsets.only(bottom: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                LabelledInput(
-                  label: mode == 'windows' ? t.phaseWindowStart : t.planTime,
-                  controller: s.time,
-                  helper: t.timeExample,
-                  enabled: enabled,
-                  keyboardType: TextInputType.datetime,
-                ),
-                if (mode == 'windows') ...[
-                  LabelledInput(
-                    label: t.phaseWindowEnd,
-                    controller: s.end,
-                    helper: t.phaseWindowEndHelp,
-                    enabled: enabled,
-                    keyboardType: TextInputType.datetime,
+            padding: const EdgeInsets.only(bottom: 12),
+            child: StitchSurface(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: StitchIcon(LucideIcons.clock3, size: 40),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: LabelledInput(
+                          label: mode == 'windows'
+                              ? t.phaseWindowStart
+                              : t.planTime,
+                          controller: s.time,
+                          helper: t.timeExample,
+                          enabled: enabled,
+                          keyboardType: TextInputType.datetime,
+                        ),
+                      ),
+                    ],
                   ),
+                  if (mode == 'windows') ...[
+                    LabelledInput(
+                      label: t.phaseWindowEnd,
+                      controller: s.end,
+                      helper: t.phaseWindowEndHelp,
+                      enabled: enabled,
+                      keyboardType: TextInputType.datetime,
+                    ),
+                    LabelledInput(
+                      label: t.phaseWindowAnchor,
+                      controller: s.anchor,
+                      helper: t.phaseWindowAnchorHelp,
+                      enabled: enabled,
+                      keyboardType: TextInputType.datetime,
+                    ),
+                  ],
                   LabelledInput(
-                    label: t.phaseWindowAnchor,
-                    controller: s.anchor,
-                    helper: t.phaseWindowAnchorHelp,
+                    label: t.amountLabel,
+                    semanticLabel: '${t.amountLabel}, ${item!.unit}',
+                    controller: s.amount,
+                    helper: item!.unit,
                     enabled: enabled,
-                    keyboardType: TextInputType.datetime,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                   ),
+                  SchedulePreviewNote(
+                    body: t.screenScheduleTolerancePreview,
+                    label: t.preview,
+                    icon: LucideIcons.slidersHorizontal,
+                  ),
+                  if (slots.length > 1)
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: StitchButton(
+                        destructive: true,
+                        icon: LucideIcons.trash2,
+                        onPressed: enabled
+                            ? () => setState(() {
+                                slots.remove(s);
+                                s.dispose();
+                                changed();
+                              })
+                            : null,
+                        child: Text(t.remove),
+                      ),
+                    ),
                 ],
-                LabelledInput(
-                  label: t.amountLabel,
-                  controller: s.amount,
-                  helper: item!.unit,
-                  enabled: enabled,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                ),
-                if (slots.length > 1)
-                  VitalButton.secondary(
-                    onPressed: enabled
-                        ? () => setState(() {
-                            slots.remove(s);
-                            s.dispose();
-                            changed();
-                          })
-                        : null,
-                    child: Text(t.remove),
-                  ),
-              ],
+              ),
             ),
           ),
-        VitalButton.secondary(
-          onPressed: enabled
-              ? () => setState(() {
-                  addSlot();
-                  changed();
-                })
-              : null,
-          child: Text(t.add),
+        SizedBox(
+          width: double.infinity,
+          child: StitchButton(
+            icon: LucideIcons.plus,
+            onPressed: enabled
+                ? () => setState(() {
+                    addSlot();
+                    changed();
+                  })
+                : null,
+            child: Text(t.add),
+          ),
         ),
       ],
-      if (mode == 'prn') Text(t.planPrnHelp),
       const SizedBox(height: 20),
-      LabelledInput(
-        label: original == null ? t.planStart : t.planEffective,
-        controller: start,
-        helper: t.dateExample,
-        enabled: enabled,
-        keyboardType: TextInputType.datetime,
+      ScheduleSectionHeader(
+        title: t.screenScheduleDates,
+        meta: original == null ? t.screenScheduleNew : t.saved,
       ),
-      LabelledInput(
-        label: t.planEnd,
-        controller: end,
-        helper: t.planEndHelp,
-        enabled: enabled,
-        keyboardType: TextInputType.datetime,
+      StitchSurface(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            LabelledInput(
+              label: original == null ? t.planStart : t.planEffective,
+              controller: start,
+              helper: t.dateExample,
+              enabled: enabled,
+              keyboardType: TextInputType.datetime,
+            ),
+            LabelledInput(
+              label: t.planEnd,
+              controller: end,
+              helper: t.planEndHelp,
+              enabled: enabled,
+              keyboardType: TextInputType.datetime,
+            ),
+          ],
+        ),
       ),
-      if (mode != 'prn' && mode != 'interval')
-        CalendarEditor(fields: calendar, enabled: enabled, onChanged: changed),
-      if (mode != 'prn')
-        OnOffEditor(fields: blocks, enabled: enabled, onChanged: changed),
-      Text(t.planZone),
+      if (mode != 'prn' && mode != 'interval') ...[
+        const SizedBox(height: 12),
+        StitchSurface(
+          child: CalendarEditor(
+            fields: calendar,
+            enabled: enabled,
+            onChanged: changed,
+          ),
+        ),
+      ],
+      if (mode != 'prn') ...[
+        const SizedBox(height: 12),
+        StitchSurface(
+          child: OnOffEditor(
+            fields: blocks,
+            enabled: enabled,
+            onChanged: changed,
+          ),
+        ),
+      ],
+      const SizedBox(height: 20),
+      ScheduleSectionHeader(
+        title: t.planZone,
+        meta: basis == 'local' ? t.planLocal : t.planHome,
+      ),
       Wrap(
-        spacing: 12,
-        runSpacing: 12,
+        spacing: 8,
+        runSpacing: 8,
         children: [
           for (final (value, label) in [
             ('local', t.planLocal),
             ('home', t.planHome),
           ])
-            Semantics(
+            ScheduleChoiceChip(
+              label: label,
               selected: basis == value,
-              child: VitalButton.secondary(
-                multiline: true,
-                onPressed: enabled
-                    ? () => setState(() {
-                        basis = value;
-                        changed();
-                      })
-                    : null,
-                child: Text(label),
-              ),
+              onPressed: enabled
+                  ? () => setState(() {
+                      basis = value;
+                      changed();
+                    })
+                  : null,
             ),
         ],
       ),
-      const SizedBox(height: 16),
+      const SizedBox(height: 12),
       if (basis == 'home')
         LabelledInput(
           label: t.planHomeZone,
@@ -664,24 +831,142 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
           enabled: enabled,
         )
       else
-        Text(
-          t.planObserved(
-            ref.watch(observedDeviceZoneProvider).value?.zoneId ??
-                t.planZoneUnknown,
+        StitchSurface(
+          inset: true,
+          padding: const EdgeInsets.all(12),
+          child: Text(
+            t.planObserved(
+              ref.watch(observedDeviceZoneProvider).value?.zoneId ??
+                  t.planZoneUnknown,
+            ),
+            style: caption,
           ),
         ),
-      ?failure(),
       const SizedBox(height: 20),
+      ScheduleSectionHeader(
+        title: t.screenScheduleRequirements,
+        meta: t.preview,
+      ),
+      SchedulePreviewNote(body: t.screenScheduleRequirementsBody),
+      const SizedBox(height: 20),
+      StitchSurface(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                StitchIcon(LucideIcons.circlePause, size: 40),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        paused ? t.pauseResume : t.pauseHeading,
+                        style: StitchType.heading.copyWith(color: c.ink),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        t.pauseConsequence,
+                        style: StitchType.body.copyWith(color: c.muted),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                StitchButton(
+                  icon: paused ? LucideIcons.play : LucideIcons.pause,
+                  onPressed: enabled && original != null
+                      ? () => context.push(
+                          '/pause/${item!.id}?plan=${original!.plan.planId}',
+                        )
+                      : null,
+                  child: Text(paused ? t.resume : t.pauseAction),
+                ),
+                StitchButton(
+                  icon: LucideIcons.calendarRange,
+                  onPressed: enabled && original != null
+                      ? () => context.push(
+                          '/phases/${item!.id}?plan=${original!.plan.planId}',
+                        )
+                      : null,
+                  child: Text(t.phaseHeading),
+                ),
+              ],
+            ),
+            if (original == null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(t.screenScheduleSaveFirst, style: caption),
+              ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 20),
+      ScheduleSectionHeader(
+        title: t.screenScheduleAlerts,
+        meta: t.screenScheduleAlertsMeta,
+      ),
+      if (valid && original != null)
+        StitchSurface(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              PlanReminderControl(saved: original!),
+              const SizedBox(height: 12),
+              SettingsToggleRow(
+                label: t.screenScheduleFollowUp,
+                description: t.screenScheduleFollowUpBody,
+                value: false,
+                enabled: false,
+                onChanged: (_) {},
+                reduceMotion: MediaQuery.disableAnimationsOf(context),
+              ),
+            ],
+          ),
+        )
+      else
+        SchedulePreviewNote(
+          body: t.screenScheduleRemindersAfterSave,
+          label: t.preview,
+          icon: LucideIcons.bell,
+        ),
+      const SizedBox(height: 20),
+      ?failure(),
       VitalButton.secondary(
+        expand: true,
+        leading: const Icon(LucideIcons.eye),
         onPressed: enabled ? makePreview : null,
         child: Text(t.planPreview),
       ),
-      if (preview != null)
-        preview!.timing is ElapsedInterval
-            ? IntervalPlanPreview(plan: preview!, observedZone: previewZone!)
-            : PlanPreview(plan: preview!, observedZone: previewZone!),
-      const SizedBox(height: 20),
+      if (preview == null)
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(t.screenSchedulePreviewHelp, style: caption),
+        )
+      else
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: StitchSurface(
+            inset: true,
+            child: preview!.timing is ElapsedInterval
+                ? IntervalPlanPreview(
+                    plan: preview!,
+                    observedZone: previewZone!,
+                  )
+                : PlanPreview(plan: preview!, observedZone: previewZone!),
+          ),
+        ),
+      const SizedBox(height: 12),
       VitalButton(
+        expand: true,
         onPressed:
             busy ||
                 conflict ||
@@ -697,9 +982,81 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
               : t.save,
         ),
       ),
-      SizedBox(height: MediaQuery.viewInsetsOf(context).bottom),
+      const SizedBox(height: 8),
+      VitalButton.secondary(
+        expand: true,
+        onPressed: busy ? null : leave,
+        child: Text(t.discard),
+      ),
     ]);
   }
+
+  /// Keeps the durable draft, lock and generation guards from the base form
+  /// while replacing the generic panelled page with the schedule composition.
+  @override
+  Widget wrap(List<Widget> children) {
+    final t = AppLocalizations.of(context);
+    final operation = commandId == null
+        ? null
+        : ref.watch(draftOperationStatusProvider(commandId!)).value;
+    if (operation == DraftOperationStatus.invalidated) {
+      dirty = false;
+      conflict = true;
+      return _scheduleUnavailable(draftUnavailableMessage);
+    }
+    final currentGeneration = ref.watch(recordStoreProvider).value?.generation;
+    if (capturedGeneration != null &&
+        currentGeneration != null &&
+        currentGeneration != capturedGeneration) {
+      dirty = false;
+      conflict = true;
+      return _scheduleUnavailable(draftUnavailableMessage);
+    }
+    ref.listen(appLockProvider, (previous, next) {
+      if (!next.locked && _resumePath != null) {
+        final path = _resumePath!;
+        _resumePath = null;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) context.go(path);
+        });
+      }
+    });
+    return PopScope(
+      canPop: !dirty && !busy && !uncertain,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) leave();
+      },
+      child: SchedulePageScaffold(
+        onBack: leave,
+        badge: StitchBadge(
+          original == null ? t.screenScheduleNew : t.saved,
+          dot: original != null,
+        ),
+        children: [
+          if (draftFailed)
+            Semantics(
+              liveRegion: true,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(draftFailureMessage),
+              ),
+            ),
+          if (draftFailed)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: VitalButton.secondary(
+                onPressed: busy ? null : persistEntry,
+                child: Text(t.retry),
+              ),
+            ),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _scheduleUnavailable(String message) =>
+      SchedulePageScaffold(onBack: leave, children: [Text(message)]);
 }
 
 String wallLabel(WallTime time) =>
@@ -800,7 +1157,18 @@ class _PlanPreviewState extends ConsumerState<PlanPreview> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 20),
-        Heading(t.planPreview),
+        Semantics(
+          header: true,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 12),
+            child: Text(
+              t.screenSchedulePreviewResult,
+              style: StitchType.heading.copyWith(
+                color: StitchColors(context).ink,
+              ),
+            ),
+          ),
+        ),
         Text(t.planPreviewRange(from.toString(), from.addDays(6).toString())),
         if (plan.timing is AsNeeded)
           Text(t.planPrnHelp)
