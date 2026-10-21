@@ -102,7 +102,7 @@ void main() {
       find.text('Unable to load supporting records. Retry this view.'),
       findsNothing,
     );
-    expect(find.text('Supporting records'), findsOneWidget);
+    expect(find.text('Biomarkers & Labs'), findsOneWidget);
   });
 
   appTest(

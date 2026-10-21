@@ -150,8 +150,9 @@ void main() {
     final page = tester.widget<EntryPage>(find.byType(EntryPage));
     page.onBack!();
     await settle(tester);
-    expect(find.text('Supporting records'), findsOneWidget);
-    expect(find.text('Person: Morgan'), findsOneWidget);
+    expect(find.text('Biomarkers & Labs'), findsOneWidget);
+    // The single-user collection does not repeat a person label.
+    expect(find.text('Person: Morgan'), findsNothing);
   });
 
   test(

@@ -873,7 +873,8 @@ void main() {
     f.container.read(routerProvider).go(location);
     await settle(tester);
     await tap(tester, 'Supporting');
-    expect(find.text('Person: Named adult'), findsOneWidget);
+    // One local adult: the collection does not repeat a person label.
+    expect(find.text('Person: Named adult'), findsNothing);
     expect(find.byType(SupportingRecordsPage), findsOneWidget);
     await tap(tester, 'Back');
     expect(

@@ -5027,6 +5027,220 @@
   "@supportingObservationRequired": {
     "description": "Observation empty-state validation with a concrete next action."
   },
+  "screenLabsHeading": "Biomarkers & Labs",
+  "@screenLabsHeading": {
+    "description": "Authored heading for the canonical supporting labs collection."
+  },
+  "screenLabsSubtitle": "Review saved lab panels and observations in their original units.",
+  "@screenLabsSubtitle": {
+    "description": "One-sentence introduction to the saved labs collection. No clinical claim."
+  },
+  "screenLabsAllRecords": "All records",
+  "@screenLabsAllRecords": {
+    "description": "Filter choice that keeps both lab panels and observations."
+  },
+  "screenLabsLatestEyebrow": "Latest results",
+  "@screenLabsLatestEyebrow": {
+    "description": "Section label for the bounded latest-value projection."
+  },
+  "screenLabsLatestCount": "{count, plural, =1{1 marker} other{{count} markers}}",
+  "@screenLabsLatestCount": {
+    "description": "Factual count of markers in the latest-value projection.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenLabsLatestWindow": "From the {count, plural, =1{most recent dated record} other{{count} most recent dated records}}, newest first.",
+  "@screenLabsLatestWindow": {
+    "description": "States the bounded window used for latest values.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenLabsLatestExcluded": "Records without a complete date, and voided records, are not included.",
+  "@screenLabsLatestExcluded": {
+    "description": "Limits of the latest-value projection."
+  },
+  "screenLabsLatestOlder": "Older dated records are not included.",
+  "@screenLabsLatestOlder": {
+    "description": "Shown when the bounded latest window does not reach the oldest record."
+  },
+  "screenLabsLatestMarkerLimit": "Only the {count} most recently measured markers are shown.",
+  "@screenLabsLatestMarkerLimit": {
+    "description": "Shown when more markers exist than the bounded projection keeps.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenLabsLatestSemantics": "{marker}. Value: {value} {unit}. Source range: {range}. {date}. From {record}. Laboratory: {laboratory}.",
+  "@screenLabsLatestSemantics": {
+    "description": "Accessible summary for one latest-value card, including its exact date, record and laboratory.",
+    "placeholders": {
+      "marker": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "record": {
+        "type": "String"
+      },
+      "laboratory": {
+        "type": "String"
+      }
+    }
+  },
+    "screenLabsNoLatestTitle": "No dated results",
+  "@screenLabsNoLatestTitle": {
+    "description": "Latest-value state when all saved records have unknown dates."
+  },
+  "screenLabsNoLatestBody": "Add a panel with a collection date to see a latest value.",
+  "@screenLabsNoLatestBody": {
+    "description": "Explains how a dated latest value is produced."
+  },
+  "screenLabsPreviousValue": "Previous value: {value}",
+  "@screenLabsPreviousValue": {
+    "description": "A comparable earlier value with its original unit.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "screenLabsChange": "Change: {value}",
+  "@screenLabsChange": {
+    "description": "Exact arithmetic change between comparable saved values.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "screenLabsFromRecord": "From {record}.",
+  "@screenLabsFromRecord": {
+    "description": "Names the saved record that supplied a latest value.",
+    "placeholders": {
+      "record": {
+        "type": "String"
+      }
+    }
+  },
+  "screenLabsLinked": "Linked: {name}",
+  "@screenLabsLinked": {
+    "description": "A saved item or event linked as context, not as a cause.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "screenLabsRecordsEyebrow": "Recent records",
+  "@screenLabsRecordsEyebrow": {
+    "description": "Section label for the paged saved supporting records."
+  },
+  "screenLabsNewestFirst": "Newest first",
+  "@screenLabsNewestFirst": {
+    "description": "States the collection ordering without claiming completeness."
+  },
+  "screenLabsRecordsCount": "{count, plural, =0{No records on this page} =1{1 record on this page} other{{count} records on this page}}",
+  "@screenLabsRecordsCount": {
+    "description": "Factual count of the saved records on the current page.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenLabsResultsCount": "{count, plural, =0{No results} =1{1 result} other{{count} results}}",
+  "@screenLabsResultsCount": {
+    "description": "Factual saved result count for one supporting record.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenLabsSourceFile": "Source file saved",
+  "@screenLabsSourceFile": {
+    "description": "A saved source reference that points to a protected attachment."
+  },
+  "screenLabsNoMatchTitle": "No records in this view",
+  "@screenLabsNoMatchTitle": {
+    "description": "Filtered-empty heading for the labs collection."
+  },
+  "screenLabsNoMatchBody": "Change the filters or add a record.",
+  "@screenLabsNoMatchBody": {
+    "description": "Filtered-empty recovery without inventing a network or sync state."
+  },
+  "screenLabsEmptyTitle": "No lab records",
+  "@screenLabsEmptyTitle": {
+    "description": "Genuine first-use empty heading for the labs collection."
+  },
+  "screenLabsEmptyBody": "Add a panel to keep results and their source dates.",
+  "@screenLabsEmptyBody": {
+    "description": "Genuine first-use empty explanation."
+  },
+  "screenLabsPrivacyTitle": "Stored on this device",
+  "@screenLabsPrivacyTitle": {
+    "description": "Factual local-storage notice heading."
+  },
+  "screenLabsPrivacyBody": "Lab records are stored on this device. Vital does not upload them.",
+  "@screenLabsPrivacyBody": {
+    "description": "Factual local-only storage statement; no cryptographic or sync claim."
+  },
+  "screenLabsBasisReport": "By report date",
+  "@screenLabsBasisReport": {
+    "description": "Active filter summary when browsing by report date."
+  },
+  "screenLabsBasisEntry": "By entry date",
+  "@screenLabsBasisEntry": {
+    "description": "Active filter summary when browsing by entry date."
+  },
+  "screenLabsRangeFrom": "From {date}",
+  "@screenLabsRangeFrom": {
+    "description": "One-sided inclusive date filter summary.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "screenLabsRangeBefore": "Before {date}",
+  "@screenLabsRangeBefore": {
+    "description": "One-sided exclusive date filter summary.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "screenLabsUnknownExcluded": "Unknown dates excluded",
+  "@screenLabsUnknownExcluded": {
+    "description": "Active filter summary when undated records are hidden."
+  },
+  "screenLabsVoidedIncluded": "Voided included",
+  "@screenLabsVoidedIncluded": {
+    "description": "Active filter summary when voided records are shown."
+  },
+  "screenLabsLess": "Less",
+  "@screenLabsLess": {
+    "description": "One-word action that collapses the expanded latest-value list."
+  },
   "reminderLimits": "Limits",
   "reminderLimitsBody": "Android may delay or drop alerts after a force stop, battery limit or long gap. Reopen Vital to prepare more.",
   "settings": "Settings",

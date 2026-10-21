@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/display_preferences.dart';
-import '../../app/settings_toggle_row.dart';
 import '../../app/storage.dart';
 import '../../app/supporting.dart';
 import '../../data/record_store.dart';
@@ -14,19 +13,19 @@ import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
+import 'screen_labs_collection.dart';
 import 'supporting_widgets.dart';
 
 /// Runs one durably saved supporting void or restore intent. Overridable in
 /// widget tests so a commit failure or a lost reply can be exercised without a
 /// second command engine.
-typedef SupportingVoidRun = Future<SupportingRevision> Function(
-  OrdinaryDraft draft,
-);
+typedef SupportingVoidRun =
+    Future<SupportingRevision> Function(OrdinaryDraft draft);
 final supportingVoidWriterProvider = Provider<SupportingVoidRun>(
   (ref) =>
-      (draft) async =>
-          (await ref.read(recordStoreProvider.future))
-              .resumeSupportingVoidDraft(draft),
+      (draft) async => (await ref.read(
+        recordStoreProvider.future,
+      )).resumeSupportingVoidDraft(draft),
 );
 
 String supportingLocation(
@@ -44,287 +43,14 @@ String supportingLocation(
   },
 ).toString();
 
-class SupportingRecordsPage extends ConsumerStatefulWidget {
+/// The canonical `/supporting` collection. Its labs composition lives in the
+/// screen-specific file; the panel detail below keeps its own existing chrome.
+class SupportingRecordsPage extends StatelessWidget {
   const SupportingRecordsPage({super.key, required this.location});
   final String location;
   @override
-  ConsumerState<SupportingRecordsPage> createState() => _SupportingPageState();
-}
-
-class _SupportingPageState extends ConsumerState<SupportingRecordsPage> {
-  late final seed = Uri.parse(widget.location).queryParameters;
-  String get person => meId;
-  late SupportingRecordKind kind = seed['kind'] == 'observation'
-      ? SupportingRecordKind.observation
-      : SupportingRecordKind.labPanel;
-  late SupportingDateBasis basis =
-      SupportingDateBasis.values
-          .where((v) => v.name == seed['basis'])
-          .firstOrNull ??
-      SupportingDateBasis.collection;
-  bool filters = false;
-  late bool unknown = seed['unknown'] != 'false',
-      voided = seed['voided'] == 'true';
-  late final from = TextEditingController(text: seed['from'] ?? ''),
-      before = TextEditingController(text: seed['before'] ?? '');
-  late CivilDate? appliedFrom = _date(seed['from']),
-      appliedBefore = _date(seed['before']);
-  CivilDate? _date(String? value) {
-    try {
-      return value == null ? null : CivilDate.parse(value);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  String viewLocation() => Uri(
-    path: '/supporting',
-    queryParameters: {
-      ...seed,
-      'kind': kind.name,
-      'basis': basis.name,
-      'unknown': unknown.toString(),
-      'voided': voided.toString(),
-      'from': appliedFrom?.toString(),
-      'before': appliedBefore?.toString(),
-    },
-  ).toString();
-  String? error;
-  final cursors = <SupportingCursor?>[null];
-  @override
-  void dispose() {
-    from.dispose();
-    before.dispose();
-    super.dispose();
-  }
-
-  void reset() => cursors
-    ..clear()
-    ..add(null);
-  @override
-  Widget build(BuildContext context) {
-    if (ref.watch(appLockProvider.select((s) => s.locked))) {
-      return EntryPage(
-        children: [Text(AppLocalizations.of(context).supportingLocked)],
-      );
-    }
-    final t = AppLocalizations.of(context);
-    final query = SupportingQuery(
-      personId: person,
-      kind: kind,
-      dateBasis: basis,
-      fromDate: appliedFrom,
-      beforeDate: appliedBefore,
-      includeUnknownDates: unknown,
-      includeVoided: voided,
-      itemId: seed['item'],
-      eventId: seed['event'],
-      displayZone: ref.watch(displayZoneProvider),
-    );
-    final request = SupportingPageRequest(query, cursor: cursors.last);
-    final records = ref.watch(supportingPageProvider(request));
-    final page = records.value;
-    return EntryPage(
-      onBack: () {
-        if (context.canPop()) {
-          context.pop();
-        } else {
-          context.go(seed['return'] ?? '/history');
-        }
-      },
-      children: [
-        Heading(t.supportingRecordsHeading),
-        Text(t.profileOwner(ownerLabel(ref, t, person))),
-        VitalSegments<SupportingRecordKind>(
-          values: SupportingRecordKind.values,
-          selected: kind,
-          onChanged: (v) => setState(() {
-            kind = v;
-            reset();
-          }),
-          label: (v) => v == SupportingRecordKind.labPanel
-              ? t.supportingPanels
-              : t.supportingObservations,
-        ),
-        VitalButton(
-          onPressed: () => context.push(
-            Uri(
-              path:
-                  '/supporting/$person/${kind == SupportingRecordKind.labPanel ? 'add-panel' : 'add-observation'}',
-              queryParameters: {
-                'return': viewLocation(),
-                if (seed['item'] != null) 'item': seed['item']!,
-                if (seed['event'] != null) 'event': seed['event']!,
-              },
-            ).toString(),
-          ),
-          child: Text(t.supportingAdd),
-        ),
-        SupportingDisclosure(
-          label: t.supportingFilters,
-          open: filters,
-          onPressed: () => setState(() => filters = !filters),
-        ),
-        if (filters)
-          VitalSurface(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(t.supportingDateBasis),
-                VitalSegments<SupportingDateBasis>(
-                  values: SupportingDateBasis.values,
-                  selected: basis,
-                  onChanged: (v) => setState(() {
-                    basis = v;
-                    reset();
-                  }),
-                  label: (v) => switch (v) {
-                    SupportingDateBasis.collection =>
-                      kind == SupportingRecordKind.observation
-                          ? t.supportingMeasured
-                          : t.supportingCollection,
-                    SupportingDateBasis.report => t.supportingReportChoice,
-                    SupportingDateBasis.entry => t.supportingEntryChoice,
-                  },
-                ),
-                LabelledInput(label: t.supportingFrom, controller: from),
-                LabelledInput(label: t.supportingBefore, controller: before),
-                Text(
-                  appliedFrom == null && appliedBefore == null
-                      ? t.supportingAllDates
-                      : t.chartRangeSummary(
-                          appliedFrom?.toString() ?? '',
-                          appliedBefore?.toString() ?? '',
-                        ),
-                ),
-                SettingsToggleRow(
-                  label: t.supportingIncludeUnknown,
-                  description: t.supportingIncludeUnknownHint,
-                  value: unknown,
-                  reduceMotion: MediaQuery.disableAnimationsOf(context),
-                  onChanged: (v) => setState(() {
-                    unknown = v;
-                    reset();
-                  }),
-                ),
-                SettingsToggleRow(
-                  label: t.supportingIncludeVoided,
-                  description: t.supportingIncludeVoidedHint,
-                  value: voided,
-                  reduceMotion: MediaQuery.disableAnimationsOf(context),
-                  onChanged: (v) => setState(() {
-                    voided = v;
-                    reset();
-                  }),
-                ),
-                VitalButton.secondary(
-                  onPressed: () {
-                    try {
-                      final start = from.text.isEmpty
-                              ? null
-                              : CivilDate.parse(from.text),
-                          end = before.text.isEmpty
-                              ? null
-                              : CivilDate.parse(before.text);
-                      if (start != null &&
-                          end != null &&
-                          end.compareTo(start) <= 0) {
-                        throw const FormatException();
-                      }
-                      setState(() {
-                        appliedFrom = start;
-                        appliedBefore = end;
-                        error = null;
-                        reset();
-                      });
-                    } catch (_) {
-                      setState(() => error = t.supportingFilterInvalid);
-                    }
-                  },
-                  child: Text(t.supportingApply),
-                ),
-              ],
-            ),
-          ),
-        if (error != null) Semantics(liveRegion: true, child: Text(error!)),
-        if (records.hasError)
-          LoadFailure(
-            message: t.supportingLoadFailure,
-            onRetry: () {
-              reset();
-              ref.invalidate(supportingPageProvider);
-              setState(() {});
-            },
-          ),
-        if (records.isLoading) Text(t.loadingRecords),
-        if (page != null && page.entries.isEmpty) Text(t.supportingEmpty),
-        if (page != null)
-          for (final record in page.entries)
-            VitalSurface(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    record.snapshot.title,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    t.supportingDateLabel(
-                      kind == SupportingRecordKind.observation
-                          ? t.supportingMeasured
-                          : t.supportingCollection,
-                      supportingDateLabel(
-                        context,
-                        ref,
-                        record.snapshot.collectionDate,
-                      ),
-                    ),
-                  ),
-                  if (kind == SupportingRecordKind.labPanel)
-                    Text(
-                      t.supportingDateLabel(
-                        t.supportingReport,
-                        supportingDateLabel(
-                          context,
-                          ref,
-                          record.snapshot.reportDate,
-                        ),
-                      ),
-                    ),
-                  if (record.isVoided) Text(t.supportingVoided),
-                  VitalButton.secondary(
-                    onPressed: () => context.push(
-                      Uri(
-                        path: '/supporting/$person/${record.id.id}',
-                        queryParameters: {'return': viewLocation()},
-                      ).toString(),
-                    ),
-                    child: Text(t.supportingOpen),
-                  ),
-                ],
-              ),
-            ),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            VitalButton.secondary(
-              onPressed: cursors.length > 1
-                  ? () => setState(() => cursors.removeLast())
-                  : null,
-              child: Text(t.supportingPrevious),
-            ),
-            VitalButton.secondary(
-              onPressed: page?.next == null
-                  ? null
-                  : () => setState(() => cursors.add(page!.next)),
-              child: Text(t.supportingNext),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) =>
+      ScreenLabsCollectionPage(location: location);
 }
 
 class SupportingDetailPage extends ConsumerStatefulWidget {
