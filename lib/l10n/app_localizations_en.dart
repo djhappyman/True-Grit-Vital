@@ -7306,4 +7306,74 @@ class AppLocalizationsEn extends AppLocalizations {
   String featureVaultRange(String from, String through) {
     return '$from to $through';
   }
+
+  @override
+  String get featureContextHeading => 'Dose context';
+
+  @override
+  String get featureContextHelp =>
+      'Optional. Add only the context you choose. It is saved with this dose.';
+
+  @override
+  String get featureContextNotes => 'Note (optional)';
+
+  @override
+  String get featureContextNotesHelp =>
+      'Stays private in exports and reports unless you choose to include notes.';
+
+  @override
+  String get featureContextNoteInvalid =>
+      'Use a note of 2000 characters or fewer.';
+
+  @override
+  String get featureContextTags => 'Tags (optional)';
+
+  @override
+  String get featureContextTagsHelp =>
+      'Separate tags with commas. Tags describe this dose and are not instructions.';
+
+  @override
+  String get featureContextTagsInvalid =>
+      'Use up to 12 tags of 40 characters or fewer.';
+
+  @override
+  String get featureContextTagWithFood => 'With food';
+
+  @override
+  String get featureContextTagEmptyStomach => 'Empty stomach';
+
+  @override
+  String get featureContextTagMorning => 'Morning';
+
+  @override
+  String get featureContextTagEvening => 'Evening';
+
+  @override
+  String featureContextTagsValue(String tags) {
+    return 'Tags: $tags.';
+  }
+
+  @override
+  String featureContextNoteValue(String note) {
+    return 'Note: $note.';
+  }
+
+  @override
+  String get featureContextSkipReasonAction => 'Reason';
+
+  @override
+  String get featureContextSkipReason => 'Skip reason (optional)';
+
+  @override
+  String get featureContextSkipReasonHelp =>
+      'Saved only with this skip. It does not change the planned dose.';
+
+  @override
+  String get featureContextSkipReasonInvalid =>
+      'Use a skip reason of 500 characters or fewer.';
+
+  @override
+  String featureContextSkipReasonValue(String reason) {
+    return 'Reason: $reason.';
+  }
 }

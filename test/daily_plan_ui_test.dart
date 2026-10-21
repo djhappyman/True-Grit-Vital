@@ -5,6 +5,7 @@ import 'package:true_grit_vital/ui/vital_ui.dart';
 import 'dart:async';
 
 import 'package:true_grit_vital/features/plans/daily_feed.dart';
+import 'package:true_grit_vital/features/recording/record_pages.dart';
 import 'package:true_grit_vital/l10n/app_localizations.dart';
 import 'package:true_grit_vital/app/app_lock.dart';
 
@@ -192,6 +193,38 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  appTest('optional skip reason stays attached to one-tap Skip', (
+    tester,
+  ) async {
+    final f = await launchPlan(tester);
+    await tester.enterText(find.byType(TextField).at(0), '1');
+    await tester.enterText(find.byType(TextField).at(1), '1.00');
+    await tap(tester, 'Preview');
+    await tap(tester, 'Save');
+    await waitForText(tester, '0 of 1 doses recorded, 0 skipped.');
+    final details = find
+        .byWidgetPredicate(
+          (w) => w is Semantics && w.properties.label == 'Details',
+        )
+        .first;
+    await tester.ensureVisible(details);
+    await settle(tester);
+    await tester.tap(details);
+    await settle(tester);
+    await tap(tester, 'Reason');
+    await tester.enterText(
+      find.descendant(
+        of: find.widgetWithText(LabelledInput, 'Skip reason (optional)'),
+        matching: find.byType(TextField),
+      ),
+      'Felt unwell',
+    );
+    await tap(tester, 'Skip');
+    await waitForText(tester, '0 of 1 doses recorded, 1 skipped.');
+    final rows = (await runIo(tester, f.store.capturedDailyRows))!;
+    expect(rows.rows.single.actions.single.reason, 'Felt unwell');
+    expect(tester.takeException(), isNull);
+  });
   appTest(
     'several stable slots preserve independently entered amounts through version edits',
     (tester) async {

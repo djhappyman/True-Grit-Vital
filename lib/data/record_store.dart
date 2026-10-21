@@ -86,7 +86,7 @@ final class _Database extends drift.GeneratedDatabase {
   _Database(super.executor, this.initialGeneration);
   final String initialGeneration;
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 23;
   @override
   Iterable<drift.TableInfo<drift.Table, Object?>> get allTables => const [];
   @override
@@ -144,9 +144,10 @@ final class _Database extends drift.GeneratedDatabase {
       await _migrateSupportingV20(this);
       await _migrateSupportingVoidV21(this);
       await _migrateItemDetailV22(this);
+      await _migrateDoseContextV23(this);
     }),
     onUpgrade: (_, from, to) => transaction(() async {
-      if (from < 1 || from > 21 || to != 22) {
+      if (from < 1 || from > 22 || to != 23) {
         throw StateError('unsupported_schema');
       }
       if (from == 1) {
@@ -224,6 +225,7 @@ final class _Database extends drift.GeneratedDatabase {
       if (from < 20) await _migrateSupportingV20(this);
       if (from < 21) await _migrateSupportingVoidV21(this);
       if (from < 22) await _migrateItemDetailV22(this);
+      if (from < 23) await _migrateDoseContextV23(this);
     }),
   );
   Future<void> _addProfiles() async {
@@ -246,6 +248,17 @@ final class _Database extends drift.GeneratedDatabase {
       'CREATE INDEX administration_item_feed ON administration(person,item,actual DESC,id)',
     );
   }
+}
+
+/// Schema 23 adds optional dose context and an optional skip reason. Every
+/// column is additive with a valid empty default, so existing rows stay
+/// readable and version 22 can be inserted ahead of this step when it lands.
+Future<void> _migrateDoseContextV23(_Database db) async {
+  await db.customStatement('ALTER TABLE revision ADD COLUMN notes TEXT');
+  await db.customStatement(
+    "ALTER TABLE revision ADD COLUMN context_tags TEXT NOT NULL DEFAULT '[]'",
+  );
+  await db.customStatement('ALTER TABLE daily_action ADD COLUMN reason TEXT');
 }
 
 const profileSchemaV4 = [
@@ -1060,11 +1073,13 @@ final class RecordStore {
     StockUseInput? stockUse,
     ProductUseInput? productUse,
     String? siteLabel,
+    DoseContext context = DoseContext.empty,
     bool failBeforeCommit = false,
     Future<void> Function()? beforeCommit,
   }) async {
     ExactQuantity.parse(amount);
     _validateSite(siteLabel);
+    final normalisedContext = normaliseDoseContext(context);
     return _record(
       await _command(
         commandId,
@@ -1078,6 +1093,7 @@ final class RecordStore {
           if (stockUse != null) _stockUsePayload(stockUse),
           if (productUse != null) productUse.toJson(),
           ?siteLabel,
+          _doseContextPayload(normalisedContext),
         ],
         () => _recordInTransaction(
           commandId: commandId,
@@ -1089,6 +1105,7 @@ final class RecordStore {
           stockUse: stockUse,
           productUse: productUse,
           siteLabel: siteLabel,
+          context: normalisedContext,
         ),
         failBeforeCommit: failBeforeCommit,
         beforeCommit: beforeCommit,
@@ -1106,6 +1123,7 @@ final class RecordStore {
     StockUseInput? stockUse,
     ProductUseInput? productUse,
     String? siteLabel,
+    DoseContext context = DoseContext.empty,
   }) async {
     final quantity = ExactQuantity.parse(amount);
 
@@ -1143,6 +1161,8 @@ final class RecordStore {
       'source': personId == meId
           ? RecordSource.selfReported.name
           : RecordSource.recordedOnBehalf.name,
+      'notes': context.notes,
+      'context_tags': jsonEncode(context.contextTags),
     };
     data.addAll(
       productUse != null
@@ -1180,6 +1200,7 @@ final class RecordStore {
     PhysicalCorrection? stockCorrection,
     List<IntervalChangeReview>? intervalReviews,
     String? siteLabel,
+    DoseContext? context,
   }) => _revise(
     commandId,
     recordId,
@@ -1192,6 +1213,7 @@ final class RecordStore {
     stockCorrection,
     intervalReviews,
     siteLabel,
+    context,
   );
   Future<UseRecord> voidRecord({
     required String commandId,
@@ -1213,6 +1235,7 @@ final class RecordStore {
     stockCorrection,
     intervalReviews,
     null,
+    null,
   );
   Future<UseRecord> _revise(
     String commandId,
@@ -1226,9 +1249,13 @@ final class RecordStore {
     PhysicalCorrection? stockCorrection,
     List<IntervalChangeReview>? intervalReviews,
     String? siteLabel,
+    DoseContext? context,
   ) async {
     if (amount != null) ExactQuantity.parse(amount);
     _validateSite(siteLabel);
+    final normalisedContext = context == null
+        ? null
+        : normaliseDoseContext(context);
     return _record(
       await _command(
         commandId,
@@ -1245,6 +1272,7 @@ final class RecordStore {
           ?siteLabel,
           if (intervalReviews?.isNotEmpty == true)
             [for (final r in intervalReviews!) _intervalReviewPayload(r)],
+          if (normalisedContext != null) _doseContextPayload(normalisedContext),
         ],
         () => _reviseInTransaction(
           commandId,
@@ -1258,6 +1286,7 @@ final class RecordStore {
           stockCorrection,
           intervalReviews,
           siteLabel: siteLabel,
+          context: normalisedContext,
         ),
       ),
     );
@@ -1275,6 +1304,7 @@ final class RecordStore {
     PhysicalCorrection? stockCorrection,
     List<IntervalChangeReview>? intervalReviews, {
     String? siteLabel,
+    DoseContext? context,
     bool allowCombined = false,
     bool intervalReviewsValidated = false,
   }) async {
@@ -1318,6 +1348,10 @@ final class RecordStore {
       'entered_at': DateTime.now().microsecondsSinceEpoch,
       'voided': voided ? 1 : 0,
     };
+    if (context != null) {
+      data['notes'] = context.notes;
+      data['context_tags'] = jsonEncode(context.contextTags);
+    }
     await _correctStock(commandId, person, id, stockCorrection);
     if (!voided && amount != null) {
       data.remove('actual_n');
@@ -1375,21 +1409,26 @@ final class RecordStore {
 
   Future<void> _insertRevision(Map<String, Object?> r) async {
     await _db.customStatement(
-      'INSERT INTO revision VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+      '''INSERT INTO revision(record,person,revision,name,form,unit,type,amount,entered,actual,entered_at,voided,notes,context_tags) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
       [
-        'id',
-        'person',
-        'revision',
-        'name',
-        'form',
-        'unit',
-        'type',
-        'amount',
-        'entered',
-        'actual',
-        'entered_at',
-        'voided',
-      ].map((k) => r[k]).toList(),
+        for (final key in const [
+          'id',
+          'person',
+          'revision',
+          'name',
+          'form',
+          'unit',
+          'type',
+          'amount',
+          'entered',
+          'actual',
+          'entered_at',
+          'voided',
+        ])
+          r[key],
+        r['notes'],
+        r['context_tags'] ?? '[]',
+      ],
     );
     await _db.customStatement('INSERT INTO revision_catalogue VALUES (?,?,?)', [
       r['id'],
@@ -1465,7 +1504,24 @@ final class RecordStore {
     product: _productRead(r['product_snapshot']),
     siteLabel: r['site_label'] as String?,
     combinedActionId: r['combined_action'] as String?,
+    notes: r['notes'] as String?,
+    contextTags: _contextTags(r['context_tags']),
   );
+  Map<String, Object?> _doseContextPayload(DoseContext context) => {
+    'notes': context.notes,
+    'tags': context.contextTags,
+  };
+  List<String> _contextTags(Object? value) {
+    if (value is! String || value.isEmpty) return const [];
+    try {
+      final decoded = jsonDecode(value);
+      if (decoded is! List) return const [];
+      return normaliseDoseContextTags(decoded.whereType<String>());
+    } catch (_) {
+      return const [];
+    }
+  }
+
   List<Object?> _filterArgs(
     String personId,
     String? itemId,

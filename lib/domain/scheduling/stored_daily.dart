@@ -27,6 +27,7 @@ final class DailyAction {
     required this.recordedAt,
     this.recordId,
     this.recordRevision,
+    this.reason,
     this.alreadyCommitted = false,
   });
   final String id;
@@ -36,6 +37,7 @@ final class DailyAction {
   final bool isUndone, alreadyCommitted;
   final String? recordId;
   final int? recordRevision;
+  final String? reason;
 }
 
 /// A captured action context. Every revision is rechecked inside the write lock.

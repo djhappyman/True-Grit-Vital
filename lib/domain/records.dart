@@ -61,6 +61,66 @@ final class SubstanceItem {
   final bool alreadyCommitted;
 }
 
+/// Optional context captured only when the person chooses it.
+///
+/// Tags describe the recorded dose; they are never inferred from a substance,
+/// a schedule or a label. A note is free text and stays private in exports and
+/// reports unless the existing notes option is selected.
+final class DoseContext {
+  const DoseContext({this.notes, this.contextTags = const []});
+  static const empty = DoseContext();
+  final String? notes;
+  final List<String> contextTags;
+  bool get isEmpty => notes == null && contextTags.isEmpty;
+}
+
+const maxDoseNoteLength = 2000;
+const maxDoseContextTags = 12;
+const maxDoseContextTagLength = 40;
+const maxSkipReasonLength = 500;
+
+String? normaliseDoseNote(String? note) {
+  final trimmed = note?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  if (trimmed.length > maxDoseNoteLength) {
+    throw ArgumentError('dose_note_bound');
+  }
+  return trimmed;
+}
+
+List<String> normaliseDoseContextTags(Iterable<String> tags) {
+  final result = <String>[];
+  final seen = <String>{};
+  for (final raw in tags) {
+    final tag = raw.trim();
+    if (tag.isEmpty) continue;
+    if (tag.length > maxDoseContextTagLength) {
+      throw ArgumentError('dose_tag_bound');
+    }
+    final key = tag.toLowerCase();
+    if (!seen.add(key)) continue;
+    result.add(tag);
+    if (result.length > maxDoseContextTags) {
+      throw ArgumentError('dose_tag_count');
+    }
+  }
+  return List.unmodifiable(result);
+}
+
+DoseContext normaliseDoseContext(DoseContext context) => DoseContext(
+  notes: normaliseDoseNote(context.notes),
+  contextTags: normaliseDoseContextTags(context.contextTags),
+);
+
+String? normaliseSkipReason(String? reason) {
+  final trimmed = reason?.trim();
+  if (trimmed == null || trimmed.isEmpty) return null;
+  if (trimmed.length > maxSkipReasonLength) {
+    throw ArgumentError('skip_reason_bound');
+  }
+  return trimmed;
+}
+
 final class UseRecord {
   const UseRecord({
     required this.id,
@@ -87,11 +147,17 @@ final class UseRecord {
     this.alreadyCommitted = false,
     this.catalogueSnapshot,
     this.source = RecordSource.unspecified,
+    this.notes,
+    this.contextTags = const [],
   });
   final CatalogueSnapshot? catalogueSnapshot;
   final ProductAdministrationSnapshot? product;
   final String? siteLabel, combinedActionId;
+  final String? notes;
+  final List<String> contextTags;
   final RecordSource source;
+  DoseContext get context =>
+      DoseContext(notes: notes, contextTags: contextTags);
   final String id, personId, itemId, name, form, unit, type, enteredAmount;
   final DateTime actualAt, enteredAt;
   final int revision;

@@ -355,6 +355,7 @@ extension DailyRecordStore on RecordStore {
     isUndone: r['undone'] == 1,
     recordId: r['record'] as String?,
     recordRevision: r['actual_revision'] as int?,
+    reason: r['reason'] as String?,
     alreadyCommitted: r['replay'] == true,
   );
 
@@ -1384,6 +1385,7 @@ extension DailyRecordStore on RecordStore {
     ProductUseInput? productUse,
     ReminderTarget? reminderTarget,
     String? reminderObservedZone,
+    String? skipReason,
     bool failBeforeCommit = false,
     Future<void> Function()? beforeCommit,
     ReminderClockSample? intervalClockSample,
@@ -1395,6 +1397,10 @@ extension DailyRecordStore on RecordStore {
         (stockUse != null || productUse != null)) {
       throw ArgumentError('skip_stock');
     }
+    if (kind == DailyActionKind.taken && skipReason != null) {
+      throw ArgumentError('taken_reason');
+    }
+    final normalisedReason = normaliseSkipReason(skipReason);
     _dailyGeneration(row.generation);
     final e = row.expectation;
     final capturedProductUse =
@@ -1428,6 +1434,7 @@ extension DailyRecordStore on RecordStore {
         if (capturedProductUse != null) capturedProductUse.toJson(),
         if (reminderTarget != null) _targetJson(reminderTarget),
         if (intervalClockSample != null) _sampleJson(intervalClockSample),
+        ?normalisedReason,
       ],
       () => _actDailyInTransaction(
         commandId: commandId,
@@ -1439,6 +1446,7 @@ extension DailyRecordStore on RecordStore {
         reminderTarget: reminderTarget,
         reminderObservedZone: reminderObservedZone,
         intervalClockSample: intervalClockSample,
+        reason: normalisedReason,
       ),
       failBeforeCommit: failBeforeCommit,
       beforeCommit: beforeCommit,
@@ -1456,6 +1464,7 @@ extension DailyRecordStore on RecordStore {
     ReminderTarget? reminderTarget,
     String? reminderObservedZone,
     ReminderClockSample? intervalClockSample,
+    String? reason,
   }) async {
     final e = row.expectation;
     final bucket = dailyIdentityKey(e.identity);
@@ -1661,7 +1670,7 @@ extension DailyRecordStore on RecordStore {
     await _cancelReminderBucket(bucket);
     final recordedAt = DateTime.now().microsecondsSinceEpoch;
     await _db.customStatement(
-      'INSERT INTO daily_action(id,bucket,person,kind,record,revision,undone,sequence,recorded_at,occurs_at) VALUES (?,?,?,?,?,1,0,?,?,(SELECT occurs_at FROM daily_expectation WHERE id=? AND person=?))',
+      'INSERT INTO daily_action(id,bucket,person,kind,record,revision,undone,sequence,recorded_at,occurs_at,reason) VALUES (?,?,?,?,?,1,0,?,?,(SELECT occurs_at FROM daily_expectation WHERE id=? AND person=?),?)',
       [
         commandId,
         bucket,
@@ -1672,6 +1681,7 @@ extension DailyRecordStore on RecordStore {
         recordedAt,
         bucket,
         e.identity.personId,
+        reason,
       ],
     );
     await _dailyIntent(
@@ -1691,6 +1701,7 @@ extension DailyRecordStore on RecordStore {
       'record': actualId,
       'actual_revision': actualId == null ? null : 1,
       'person': e.identity.personId,
+      'reason': reason,
     };
   }
 

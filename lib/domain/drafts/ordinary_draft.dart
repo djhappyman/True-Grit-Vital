@@ -143,6 +143,8 @@ final class OrdinaryDraft {
         'productUse',
         'intervalClockSample',
         'productLabel',
+        'notes',
+        'contextTags',
       },
       DraftKind.phasePlan => {
         'planId',

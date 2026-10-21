@@ -67,6 +67,8 @@ final class ExportDoseRevision {
     this.replacement,
     this.itemInstructions,
     this.itemNotes,
+    this.notes,
+    this.contextTags = const [],
   });
 
   factory ExportDoseRevision.fromRecord(
@@ -74,6 +76,7 @@ final class ExportDoseRevision {
     required int currentRevision,
     String? itemInstructions,
     String? itemNotes,
+    required bool includeNotes,
   }) => ExportDoseRevision(
     recordId: record.id,
     itemId: record.itemId,
@@ -99,6 +102,8 @@ final class ExportDoseRevision {
     replacement: record.replacement,
     itemInstructions: itemInstructions,
     itemNotes: itemNotes,
+    notes: includeNotes ? record.notes : null,
+    contextTags: record.contextTags,
   );
 
   final String recordId, itemId, itemName, itemForm, itemType, primaryUnit;
@@ -113,6 +118,8 @@ final class ExportDoseRevision {
   final ProductAdministrationSnapshot? productSnapshot;
   final LabelledStrength? labelledStrength;
   final StockReplacement? replacement;
+  final String? notes;
+  final List<String> contextTags;
 
   /// Authored item detail. Both stay null unless private notes were selected
   /// for this export and the substance has saved text.
@@ -178,6 +185,7 @@ final class ExportDoseRevision {
           : 'ml',
       'replacementResolved': !replacementUnresolved,
     },
+    'context': {'tags': contextTags, 'note': notes},
   };
 }
 
@@ -288,7 +296,7 @@ final class ExportDocument {
     required Iterable<ExportSupportingRevision> supporting,
     this.undatedCollection,
     this.reportName,
-    this.recordSchemaVersion = 21,
+    this.recordSchemaVersion = 23,
   }) : doses = List.unmodifiable(doses),
        supporting = List.unmodifiable(supporting) {
     if (!generatedAt.isUtc) throw ArgumentError('generated_at_utc');
@@ -358,6 +366,7 @@ const _semantics = <String, String>{
   'times': 'Instants are ISO 8601 UTC. fromDay is inclusive and beforeDay is exclusive in selection.timeZone.',
   'provenance': 'source is unspecified, selfReported or recordedOnBehalf. Catalogue, product, strength and site values are immutable snapshots saved with the revision.',
   'corrections': 'Every saved revision is included. Revision 1 enteredAt is the original entry time. Later enteredAt values are correction times. isCurrent marks the revision used by the app.',
-  'privacy': 'Only the selected adult is exported. Supporting notes and authored substance instructions and notes appear only when notesIncluded is true. File attachments and their internal references are never included.',
+  'context': 'context.tags are neutral labels chosen by the person for the dose. context.note is null unless notesIncluded is true. Neither value is inferred from a substance, label or schedule.',
+  'privacy': 'Only the selected adult is exported. Supporting notes, authored substance instructions and notes, and dose notes appear only when notesIncluded is true. Dose context tags are structured metadata chosen by the person and are always included. File attachments and their internal references are never included.',
   'omissions': 'Supporting records whose collection date is unknown or partial have no positionable date inside the selected range and are excluded. omissions.collectionDateUnknownOrPartial discloses how many were omitted, never their content. counted false means they exceeded the bounded counting window and records is null.',
 };

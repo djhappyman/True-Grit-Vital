@@ -36,6 +36,8 @@ final class ReportLedgerEntry {
     this.source = RecordSource.unspecified,
     this.planName,
     this.site,
+    this.notes,
+    this.contextTags = const [],
     this.identityComplete = true,
   }) {
     if (id.isEmpty ||
@@ -73,6 +75,8 @@ final class ReportLedgerEntry {
         revision: record.revision,
         source: record.source,
         site: record.site,
+        notes: record.notes,
+        contextTags: record.contextTags,
       );
   final String id, itemId, name, form, type, unit;
   final ReportLedgerStatus status;
@@ -84,6 +88,8 @@ final class ReportLedgerEntry {
   final int revision;
   final RecordSource source;
   final String? planName, site;
+  final String? notes;
+  final List<String> contextTags;
 
   String get typeLabel => type.trim().isEmpty ? 'Uncategorised' : type;
 }
@@ -343,6 +349,10 @@ final class ReportHistoryData implements ReportTemplateData {
         );
       }
       if (entry.site != null) lines.add('  Site: ${entry.site}');
+      if (entry.contextTags.isNotEmpty) {
+        lines.add('  Tags: ${entry.contextTags.join(', ')}');
+      }
+      if (entry.notes != null) lines.add('  Note: ${entry.notes}');
       if (entry.source != RecordSource.unspecified) {
         lines.add('  Source: ${_sourceText(entry.source)}');
       }

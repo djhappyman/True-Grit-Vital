@@ -118,7 +118,7 @@ void main() {
     final header = File(snapshot.path).openSync().readSync(16);
     expect(String.fromCharCodes(header), isNot(startsWith('SQLite format 3')));
     expect(snapshot.generation, store.generation);
-    expect(snapshot.schemaVersion, 22);
+    expect(snapshot.schemaVersion, 23);
 
     final inventory = await store.inspectOwnSnapshot(snapshot);
     expect(inventory.peopleCount, 2);

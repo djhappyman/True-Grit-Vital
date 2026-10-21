@@ -96,7 +96,7 @@ Future<void> main(List<String> args) async {
     if (before.entries.any(
           (e) => jsonEncode(e.value) != jsonEncode(after[e.key]),
         ) ||
-        db.select('PRAGMA user_version').single.values.single != 21 ||
+        db.select('PRAGMA user_version').single.values.single != 23 ||
         db.select('PRAGMA foreign_key_check').isNotEmpty) {
       throw StateError('migration_integrity');
     }

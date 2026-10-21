@@ -80,7 +80,7 @@ Future<void> main(List<String> args) async {
     final page = await store.timeline(
       TimelineQuery(filter: TimelineFilter(), displayZone: 'Europe/London'),
     );
-    if (page.schemaVersion != 22 || page.entries.length != 4) {
+    if (page.schemaVersion != 23 || page.entries.length != 4) {
       throw StateError('migration_reader');
     }
     await store.close();

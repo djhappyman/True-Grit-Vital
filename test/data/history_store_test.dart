@@ -451,7 +451,7 @@ void main() {
     db.execute(
       File('test/data/fixtures/record_store_v16.sql').readAsStringSync(),
     );
-    final before = {
+    final queries = {
       for (final t in [
         'attachment_record',
         'attachment_chunk',
@@ -462,9 +462,15 @@ void main() {
         'revision',
         'operation',
       ])
-        t: jsonEncode(
+        t: t == 'revision'
+            ? 'SELECT record,person,revision,name,form,unit,type,amount,entered,actual,entered_at,voided FROM revision'
+            : 'SELECT * FROM $t',
+    };
+    final before = {
+      for (final e in queries.entries)
+        e.key: jsonEncode(
           db
-              .select('SELECT * FROM $t')
+              .select(e.value)
               .map(
                 (r) => r.values
                     .map((v) => v is List<int> ? base64Encode(v) : v)
@@ -487,12 +493,12 @@ void main() {
     );
     await store.close();
     final upgraded = raw();
-    expect(upgraded.select('PRAGMA user_version').single.values.single, 22);
+    expect(upgraded.select('PRAGMA user_version').single.values.single, 23);
     for (final t in before.keys) {
       expect(
         jsonEncode(
           upgraded
-              .select('SELECT * FROM $t')
+              .select(queries[t]!)
               .map(
                 (r) => r.values
                     .map((v) => v is List<int> ? base64Encode(v) : v)

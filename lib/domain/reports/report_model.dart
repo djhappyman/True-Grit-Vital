@@ -25,6 +25,8 @@ final class ReportRecord {
     required this.source,
     this.product,
     this.site,
+    this.notes,
+    this.contextTags = const [],
   }) {
     if (amount <= ExactAmount.zero ||
         !actualAt.isUtc ||
@@ -33,7 +35,10 @@ final class ReportRecord {
       throw const ReportSelectionFailure('report_record');
     }
   }
-  factory ReportRecord.fromUseRecord(UseRecord record) => ReportRecord(
+  factory ReportRecord.fromUseRecord(
+    UseRecord record, {
+    bool includeNotes = false,
+  }) => ReportRecord(
     id: record.id,
     itemId: record.itemId,
     name: record.name,
@@ -46,12 +51,16 @@ final class ReportRecord {
     revision: record.revision,
     source: record.source,
     site: record.siteLabel,
+    notes: includeNotes ? record.notes : null,
+    contextTags: record.contextTags,
     product: record.product == null
         ? null
         : ReportProduct.fromSnapshot(record.product!, record.actualUnit),
   );
   final String id, itemId, name, form, type, unit;
   final String? site;
+  final String? notes;
+  final List<String> contextTags;
   final ExactAmount amount;
   final DateTime actualAt, enteredAt;
   final int revision;
@@ -960,8 +969,10 @@ final class ReportText {
     for (final record in recent) {
       lines.add(
         '${formatInstant(record.actualAt, selection.displayZone, use24Hour: use24Hour)} · '
-        '${record.name} · ${formatAmount(record.amount)} ${record.unit} · ${record.type}',
+        '${record.name} · ${formatAmount(record.amount)} ${record.unit} · ${record.type}'
+        '${record.contextTags.isEmpty ? '' : ' · Tags: ${record.contextTags.join(', ')}'}',
       );
+      if (record.notes != null) lines.add('  Note: ${record.notes}');
     }
     if (snapshot.records.length > recent.length) {
       lines.add(

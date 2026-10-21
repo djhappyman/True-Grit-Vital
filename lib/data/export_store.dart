@@ -139,6 +139,7 @@ extension ExportRecordStore on RecordStore {
         currentRevision: row['current_revision'] as int,
         itemInstructions: detail?.instructions,
         itemNotes: detail?.notes,
+        includeNotes: selection.includeNotes,
       );
       estimated += utf8.encode(jsonEncode(revision.toJson())).length + 2;
       if (estimated > limits.maxBytes) {

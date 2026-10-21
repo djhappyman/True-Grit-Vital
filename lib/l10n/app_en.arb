@@ -8557,5 +8557,96 @@
         "type": "String"
       }
     }
+  },
+  "featureContextHeading": "Dose context",
+  "@featureContextHeading": {
+    "description": "Optional disclosure heading on the dose sheet."
+  },
+  "featureContextHelp": "Optional. Add only the context you choose. It is saved with this dose.",
+  "@featureContextHelp": {
+    "description": "Explains that dose context is optional and never inferred."
+  },
+  "featureContextNotes": "Note (optional)",
+  "@featureContextNotes": {
+    "description": "Field label for an optional private note on one dose."
+  },
+  "featureContextNotesHelp": "Stays private in exports and reports unless you choose to include notes.",
+  "@featureContextNotesHelp": {
+    "description": "Explains the existing notes privacy option for a dose note."
+  },
+  "featureContextNoteInvalid": "Use a note of 2000 characters or fewer.",
+  "@featureContextNoteInvalid": {
+    "description": "Validation message when a dose note is too long."
+  },
+  "featureContextTags": "Tags (optional)",
+  "@featureContextTags": {
+    "description": "Field label for optional neutral context tags on one dose."
+  },
+  "featureContextTagsHelp": "Separate tags with commas. Tags describe this dose and are not instructions.",
+  "@featureContextTagsHelp": {
+    "description": "Explains that tags are user-chosen context, never inferred instructions."
+  },
+  "featureContextTagsInvalid": "Use up to 12 tags of 40 characters or fewer.",
+  "@featureContextTagsInvalid": {
+    "description": "Validation message for too many or too-long context tags."
+  },
+  "featureContextTagWithFood": "With food",
+  "@featureContextTagWithFood": {
+    "description": "Optional context tag chosen by the person, never inferred."
+  },
+  "featureContextTagEmptyStomach": "Empty stomach",
+  "@featureContextTagEmptyStomach": {
+    "description": "Optional context tag chosen by the person, never inferred."
+  },
+  "featureContextTagMorning": "Morning",
+  "@featureContextTagMorning": {
+    "description": "Optional context tag chosen by the person."
+  },
+  "featureContextTagEvening": "Evening",
+  "@featureContextTagEvening": {
+    "description": "Optional context tag chosen by the person."
+  },
+  "featureContextTagsValue": "Tags: {tags}.",
+  "@featureContextTagsValue": {
+    "description": "Read-only context tags shown with a saved dose.",
+    "placeholders": {
+      "tags": {
+        "type": "String"
+      }
+    }
+  },
+  "featureContextNoteValue": "Note: {note}.",
+  "@featureContextNoteValue": {
+    "description": "Read-only private note shown with a saved dose.",
+    "placeholders": {
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "featureContextSkipReasonAction": "Reason",
+  "@featureContextSkipReasonAction": {
+    "description": "One-word disclosure button that reveals the optional skip reason field."
+  },
+  "featureContextSkipReason": "Skip reason (optional)",
+  "@featureContextSkipReason": {
+    "description": "Field label for an optional reason saved only with a skip."
+  },
+  "featureContextSkipReasonHelp": "Saved only with this skip. It does not change the planned dose.",
+  "@featureContextSkipReasonHelp": {
+    "description": "Explains that a skip reason is optional and does not alter the plan."
+  },
+  "featureContextSkipReasonInvalid": "Use a skip reason of 500 characters or fewer.",
+  "@featureContextSkipReasonInvalid": {
+    "description": "Validation message when a skip reason is too long."
+  },
+  "featureContextSkipReasonValue": "Reason: {reason}.",
+  "@featureContextSkipReasonValue": {
+    "description": "Read-only skip reason shown in action and skip history.",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
   }
 }

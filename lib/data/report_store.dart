@@ -100,7 +100,12 @@ extension ReportStore on RecordStore {
       if (record.personId != selection.personId) {
         throw const ReportSelectionFailure('report_owner');
       }
-      records.add(ReportRecord.fromUseRecord(record));
+      records.add(
+        ReportRecord.fromUseRecord(
+          record,
+          includeNotes: selection.includeNotes,
+        ),
+      );
       if (cancellation.isCancelled) throw const ReportCancelled();
     }
 

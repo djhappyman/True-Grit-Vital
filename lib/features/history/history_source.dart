@@ -238,6 +238,12 @@ class HistorySourcePage extends ConsumerWidget {
                       Text(t.plannedInZone(expectation.zoneId)),
                       if (expectation.instant == null) Text(t.dateOnly),
                       if (source.action.isUndone) Text(t.undone),
+                      if (source.action.reason != null)
+                        Text(
+                          t.featureContextSkipReasonValue(
+                            source.action.reason!,
+                          ),
+                        ),
                       Text(
                         t.historyPlanCaptured(
                           source.context.planName ?? t.historyNoCapturedPlan,
@@ -251,26 +257,40 @@ class HistorySourcePage extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 for (final row in rows)
-                                  Text(
-                                    t.historyActionRevision(
-                                      (row['revision'] as int?) ?? 0,
-                                      row['kind'] == 'skip'
-                                          ? t.statusSkipped
-                                          : row['kind'] == 'take'
-                                          ? t.statusRecorded
-                                          : t.undone,
-                                      formatter.format(
-                                        DisplayTime().instant(
-                                          DateTime.fromMicrosecondsSinceEpoch(
-                                            (row['recorded_at'] as int?) ?? 0,
-                                            isUtc: true,
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        t.historyActionRevision(
+                                          (row['revision'] as int?) ?? 0,
+                                          row['kind'] == 'skip'
+                                              ? t.statusSkipped
+                                              : row['kind'] == 'take'
+                                              ? t.statusRecorded
+                                              : t.undone,
+                                          formatter.format(
+                                            DisplayTime().instant(
+                                              DateTime.fromMicrosecondsSinceEpoch(
+                                                (row['recorded_at'] as int?) ??
+                                                    0,
+                                                isUtc: true,
+                                              ),
+                                              zone,
+                                            ),
+                                            includeSeconds: true,
+                                            includeOffset: true,
                                           ),
-                                          zone,
                                         ),
-                                        includeSeconds: true,
-                                        includeOffset: true,
                                       ),
-                                    ),
+                                      if (row['reason']
+                                          case final String reason)
+                                        Text(
+                                          t.featureContextSkipReasonValue(
+                                            reason,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                               ],
                             ),

@@ -740,7 +740,7 @@ void main() {
     check.execute(
       'PRAGMA key="x\'${key.map((x) => x.toRadixString(16).padLeft(2, '0')).join()}\'"',
     );
-    expect(check.select('PRAGMA user_version').single.values.single, 22);
+    expect(check.select('PRAGMA user_version').single.values.single, 23);
     expect(
       check.select('SELECT * FROM interval_clock').single['elapsed'],
       12345,

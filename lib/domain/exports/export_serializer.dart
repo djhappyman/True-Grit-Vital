@@ -97,6 +97,8 @@ const exportCsvHeader = <String>[
   'notes',
   'item_instructions',
   'item_notes',
+  'context_tags',
+  'dose_notes',
 ];
 
 List<Object?> _doseCsvRow(ExportDoseRevision row) {
@@ -166,6 +168,8 @@ List<Object?> _doseCsvRow(ExportDoseRevision row) {
     null,
     row.itemInstructions,
     row.itemNotes,
+    row.contextTags.join('; '),
+    row.notes,
   ];
 }
 
@@ -213,7 +217,15 @@ List<List<Object?>> _supportingCsvRows(ExportSupportingRevision row) {
   ];
   if (snapshot.results.isEmpty) {
     return [
-      [...base, for (var i = 0; i < 15; i++) null, snapshot.notes, null, null],
+      [
+        ...base,
+        for (var i = 0; i < 15; i++) null,
+        snapshot.notes,
+        null,
+        null,
+        null,
+        null,
+      ],
     ];
   }
   return [
@@ -238,6 +250,8 @@ List<List<Object?>> _supportingCsvRows(ExportSupportingRevision row) {
         (result.provenance ?? snapshot.provenance).specimenText,
         (result.provenance ?? snapshot.provenance).recordedBy,
         snapshot.notes,
+        null,
+        null,
         null,
         null,
       ],

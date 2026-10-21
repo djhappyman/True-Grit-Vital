@@ -47,6 +47,7 @@ typedef RecordInput = ({
   DateTime actualAt,
   String personId,
   int? expectedPersonRevision,
+  DoseContext context,
 });
 final recordWriterProvider = Provider<Future<UseRecord> Function(RecordInput)>(
   (ref) => (input) async {
@@ -58,6 +59,7 @@ final recordWriterProvider = Provider<Future<UseRecord> Function(RecordInput)>(
       actualAt: input.actualAt,
       personId: input.personId,
       expectedPersonRevision: input.expectedPersonRevision,
+      context: input.context,
     );
   },
 );
@@ -706,6 +708,9 @@ class _RecordCardState extends ConsumerState<RecordCard> {
             ],
             if (r.combinedActionId != null) Text(t.combinedHistoryHelp),
             if (r.siteLabel != null) Text(t.combinedSiteValue(r.siteLabel!)),
+            if (r.contextTags.isNotEmpty)
+              Text(t.featureContextTagsValue(r.contextTags.join(', '))),
+            if (r.notes != null) Text(t.featureContextNoteValue(r.notes!)),
             if (widget.showActions)
               VitalButton.secondary(
                 onPressed: () => context.push('/site/${r.personId}/${r.id}'),
@@ -2038,6 +2043,8 @@ class _DoseFormState extends DurableFormState<DoseForm> {
     'productUse': frozenProductUse == null
         ? ''
         : jsonEncode(frozenProductUse!.toJson()),
+    'notes': note.text,
+    'contextTags': tags.text,
   };
   @override
   void restoreEntry(Map<String, String> fields) {
@@ -2080,13 +2087,17 @@ class _DoseFormState extends DurableFormState<DoseForm> {
     frozenIntervalClockSample = decodeIntervalClock(
       fields['intervalClockSample'],
     );
+    note.text = fields['notes'] ?? '';
+    tags.text = fields['contextTags'] ?? '';
   }
 
   bool siteOpen = false, _timeExpanded = false;
   final site = TextEditingController();
   final amount = TextEditingController(),
       date = TextEditingController(),
-      time = TextEditingController();
+      time = TextEditingController(),
+      note = TextEditingController(),
+      tags = TextEditingController();
   StoredStockContainer? selectedContainer, baseContainer;
   String? sourceId, baseId, enteredUnit;
   int? sourceRevision, baseRevision;
@@ -2122,6 +2133,8 @@ class _DoseFormState extends DurableFormState<DoseForm> {
       if (initialised && draftReady && mounted) setState(() {});
     });
     site.addListener(entryChanged);
+    note.addListener(entryChanged);
+    tags.addListener(entryChanged);
     labelStrength.addListener(entryChanged);
     labelConcentration.addListener(entryChanged);
     for (final c in [date, time]) {
@@ -2144,6 +2157,8 @@ class _DoseFormState extends DurableFormState<DoseForm> {
       labelStrength,
       labelConcentration,
       site,
+      note,
+      tags,
     ]) {
       c.dispose();
     }
@@ -2238,6 +2253,46 @@ class _DoseFormState extends DurableFormState<DoseForm> {
     }
   }
 
+  List<String> _enteredTags() => tags.text
+      .split(',')
+      .map((tag) => tag.trim())
+      .where((tag) => tag.isNotEmpty)
+      .toList();
+
+  bool _hasTag(String tag) =>
+      _enteredTags().any((value) => value.toLowerCase() == tag.toLowerCase());
+
+  void _toggleTag(String tag) {
+    final values = _enteredTags();
+    final index = values.indexWhere(
+      (value) => value.toLowerCase() == tag.toLowerCase(),
+    );
+    if (index >= 0) {
+      values.removeAt(index);
+    } else {
+      values.add(tag);
+    }
+    tags.text = values.join(', ');
+    entryChanged();
+    setState(() {});
+  }
+
+  DoseContext? _context(AppLocalizations t) {
+    if (note.text.trim().length > maxDoseNoteLength) {
+      setState(() => error = t.featureContextNoteInvalid);
+      return null;
+    }
+    final values = _enteredTags();
+    if (values.length > maxDoseContextTags ||
+        values.any((tag) => tag.length > maxDoseContextTagLength)) {
+      setState(() => error = t.featureContextTagsInvalid);
+      return null;
+    }
+    return normaliseDoseContext(
+      DoseContext(notes: note.text, contextTags: values),
+    );
+  }
+
   Future<void> save() async {
     final t = AppLocalizations.of(context);
     if (site.text.length > 500) {
@@ -2270,6 +2325,8 @@ class _DoseFormState extends DurableFormState<DoseForm> {
       return;
     }
     chosenInstant = at;
+    final doseContext = _context(t);
+    if (doseContext == null) return;
     StockUseInput? stockUse;
     if (original == null && labelOnly && labelStrength.text.trim().isEmpty) {
       setState(() => error = t.stockStrengthRequired);
@@ -2376,6 +2433,7 @@ class _DoseFormState extends DurableFormState<DoseForm> {
           expectedPersonRevision: capturedPersonRevision,
           stockCorrection: stockCorrection,
           intervalReviews: intervalReviews,
+          context: doseContext,
         );
         ref.read(savedRecordProvider.notifier).set(result);
       } else {
@@ -2399,6 +2457,7 @@ class _DoseFormState extends DurableFormState<DoseForm> {
                 expectedPersonRevision: capturedPersonRevision,
                 siteLabel: site.text.trim().isEmpty ? null : site.text,
                 stockUse: stockUse,
+                context: doseContext,
               )
             : site.text.trim().isNotEmpty
             ? await store.record(
@@ -2409,6 +2468,7 @@ class _DoseFormState extends DurableFormState<DoseForm> {
                 personId: item!.personId,
                 expectedPersonRevision: capturedPersonRevision,
                 siteLabel: site.text,
+                context: doseContext,
               )
             : await ref.read(recordWriterProvider)((
                 commandId: command,
@@ -2417,6 +2477,7 @@ class _DoseFormState extends DurableFormState<DoseForm> {
                 actualAt: at,
                 personId: item!.personId,
                 expectedPersonRevision: capturedPersonRevision,
+                context: doseContext,
               ));
         ref.read(savedRecordProvider.notifier).set(result);
       }
@@ -2516,6 +2577,8 @@ class _DoseFormState extends DurableFormState<DoseForm> {
             '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
         time.text =
             '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+        note.text = r.notes ?? '';
+        tags.text = r.contextTags.join(', ');
       }
       initialised = true;
       dirty = false;
@@ -2874,6 +2937,47 @@ class _DoseFormState extends DurableFormState<DoseForm> {
                     ),
                   ),
                 ],
+                const SizedBox(height: 16),
+                DoseSectionHeading(t.featureContextHeading),
+                const SizedBox(height: 6),
+                Text(t.featureContextHelp),
+                const SizedBox(height: 12),
+                LabelledInput(
+                  label: t.featureContextNotes,
+                  helper: t.featureContextNotesHelp,
+                  controller: note,
+                  maxLines: 3,
+                  enabled: !busy && !uncertain && ownerValid,
+                ),
+                LabelledInput(
+                  label: t.featureContextTags,
+                  helper: t.featureContextTagsHelp,
+                  controller: tags,
+                  enabled: !busy && !uncertain && ownerValid,
+                ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final tag in [
+                      t.featureContextTagWithFood,
+                      t.featureContextTagEmptyStomach,
+                      t.featureContextTagMorning,
+                      t.featureContextTagEvening,
+                    ])
+                      Semantics(
+                        selected: _hasTag(tag),
+                        child: StitchButton(
+                          primary: _hasTag(tag),
+                          onPressed: !busy && !uncertain && ownerValid
+                              ? () => _toggleTag(tag)
+                              : null,
+                          child: Text(tag),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 VitalButton.secondary(
                   leading: const Icon(LucideIcons.activity),
                   onPressed: () {

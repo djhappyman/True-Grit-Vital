@@ -1122,7 +1122,7 @@ void main() {
     final hex = key.map((v) => v.toRadixString(16).padLeft(2, '0')).join();
     db.execute("PRAGMA cipher='chacha20'");
     db.execute("PRAGMA key=\"x'$hex'\"");
-    expect(db.select('PRAGMA user_version').single.values.single, 22);
+    expect(db.select('PRAGMA user_version').single.values.single, 23);
     for (final table in ['daily_version', 'daily_version_audit']) {
       db.execute(
         "UPDATE $table SET snapshot=json_remove(snapshot,'\$.calendar')",

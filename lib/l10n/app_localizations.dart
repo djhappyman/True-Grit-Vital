@@ -11324,6 +11324,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{from} to {through}'**
   String featureVaultRange(String from, String through);
+
+  /// Optional disclosure heading on the dose sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose context'**
+  String get featureContextHeading;
+
+  /// Explains that dose context is optional and never inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Add only the context you choose. It is saved with this dose.'**
+  String get featureContextHelp;
+
+  /// Field label for an optional private note on one dose.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get featureContextNotes;
+
+  /// Explains the existing notes privacy option for a dose note.
+  ///
+  /// In en, this message translates to:
+  /// **'Stays private in exports and reports unless you choose to include notes.'**
+  String get featureContextNotesHelp;
+
+  /// Validation message when a dose note is too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a note of 2000 characters or fewer.'**
+  String get featureContextNoteInvalid;
+
+  /// Field label for optional neutral context tags on one dose.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags (optional)'**
+  String get featureContextTags;
+
+  /// Explains that tags are user-chosen context, never inferred instructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Separate tags with commas. Tags describe this dose and are not instructions.'**
+  String get featureContextTagsHelp;
+
+  /// Validation message for too many or too-long context tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Use up to 12 tags of 40 characters or fewer.'**
+  String get featureContextTagsInvalid;
+
+  /// Optional context tag chosen by the person, never inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'With food'**
+  String get featureContextTagWithFood;
+
+  /// Optional context tag chosen by the person, never inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty stomach'**
+  String get featureContextTagEmptyStomach;
+
+  /// Optional context tag chosen by the person.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get featureContextTagMorning;
+
+  /// Optional context tag chosen by the person.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening'**
+  String get featureContextTagEvening;
+
+  /// Read-only context tags shown with a saved dose.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags: {tags}.'**
+  String featureContextTagsValue(String tags);
+
+  /// Read-only private note shown with a saved dose.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: {note}.'**
+  String featureContextNoteValue(String note);
+
+  /// One-word disclosure button that reveals the optional skip reason field.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get featureContextSkipReasonAction;
+
+  /// Field label for an optional reason saved only with a skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip reason (optional)'**
+  String get featureContextSkipReason;
+
+  /// Explains that a skip reason is optional and does not alter the plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved only with this skip. It does not change the planned dose.'**
+  String get featureContextSkipReasonHelp;
+
+  /// Validation message when a skip reason is too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a skip reason of 500 characters or fewer.'**
+  String get featureContextSkipReasonInvalid;
+
+  /// Read-only skip reason shown in action and skip history.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason: {reason}.'**
+  String featureContextSkipReasonValue(String reason);
 }
 
 class _AppLocalizationsDelegate

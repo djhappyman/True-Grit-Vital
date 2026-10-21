@@ -263,6 +263,10 @@ String ledgerItemText(
     );
   }
   if (entry.site != null) lines.add('Site: ${entry.site}');
+  if (entry.contextTags.isNotEmpty) {
+    lines.add('Tags: ${entry.contextTags.join(', ')}');
+  }
+  if (entry.notes != null) lines.add('Note: ${entry.notes}');
   if (entry.planName != null) lines.add('Plan: ${entry.planName}');
   return lines.join('\n');
 }

@@ -34,6 +34,8 @@ void main() {
             .select(
               table == 'attachment_link'
                   ? 'SELECT attachment,person,item,record FROM attachment_link'
+                  : table == 'revision'
+                  ? 'SELECT record,person,revision,name,form,unit,type,amount,entered,actual,entered_at,voided FROM revision'
                   : table == 'daily_action'
                   ? 'SELECT id,bucket,person,kind,record,revision,undone,sequence,recorded_at FROM daily_action'
                   : 'SELECT * FROM "$table"',
@@ -103,7 +105,7 @@ void main() {
         );
         expect(
           checked.select('PRAGMA user_version').single.values.single,
-          22,
+          23,
           reason: 'schema $version',
         );
         expect(
@@ -141,7 +143,7 @@ void main() {
       page.entries.map((e) => (e as SkippedTimelineEntry).action.id),
       orderedEquals(expected),
     );
-    expect(page.schemaVersion, 22);
+    expect(page.schemaVersion, 23);
     final skips = page.entries.cast<SkippedTimelineEntry>().toList();
     expect(
       skips.singleWhere((e) => e.action.id == 'v17-reskip').savedDate,
@@ -151,7 +153,7 @@ void main() {
     await upgraded.close();
     store = null;
     final db = raw();
-    expect(db.select('PRAGMA user_version').single.values.single, 22);
+    expect(db.select('PRAGMA user_version').single.values.single, 23);
     final after = savedRows(db);
     for (final entry in before.entries) {
       expect(after[entry.key], entry.value, reason: entry.key);

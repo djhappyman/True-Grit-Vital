@@ -61,6 +61,8 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
   StoredStockContainer? stockSource;
   bool showSources = false;
   bool showDetails = false;
+  bool showSkipReason = false;
+  final skipReason = TextEditingController();
   Future<void> run(Future<void> Function() operation) async {
     if (busy) return;
     pending ??= operation;
@@ -96,6 +98,15 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
         reminderTarget = widget.reminderTarget,
         command = newCommandId(),
         actual = DateTime.now().toUtc();
+    final reason = kind == DailyActionKind.skip ? skipReason.text.trim() : null;
+    if (reason != null && reason.length > maxSkipReasonLength) {
+      setState(
+        () =>
+            error = AppLocalizations.of(context)
+                .featureContextSkipReasonInvalid,
+      );
+      return;
+    }
     final stockUse =
         kind == DailyActionKind.taken &&
             stockSource != null &&
@@ -142,7 +153,9 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
         productUse: productUse,
         actualAt: kind == DailyActionKind.taken ? actual : null,
         intervalClockSample: intervalClockSample,
+        skipReason: reason,
       );
+      if (mounted) skipReason.clear();
     });
   }
 
@@ -231,6 +244,16 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
       olderActions.clear();
       olderComplete = false;
     }
+    if (oldWidget.row.expectation.identity != widget.row.expectation.identity) {
+      skipReason.clear();
+      showSkipReason = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    skipReason.dispose();
+    super.dispose();
   }
 
   Future<void> moreActions() async {
@@ -603,6 +626,8 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
                           displayStamp(context, ref, action.recordedAt),
                         ),
                       ),
+                      if (action.reason != null)
+                        Text(t.featureContextSkipReasonValue(action.reason!)),
                       VitalButton.secondary(
                         onPressed: busy || pending != null
                             ? null
@@ -652,6 +677,28 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
                 ),
                 if (e.identity.sourceActualId != null)
                   Text(t.intervalTakenHelp),
+                if (!resolved) ...[
+                  const SizedBox(height: 12),
+                  VitalButton.secondary(
+                    onPressed: busy || pending != null
+                        ? null
+                        : () =>
+                              setState(() => showSkipReason = !showSkipReason),
+                    child: Text(t.featureContextSkipReasonAction),
+                  ),
+                  VitalReveal(
+                    expanded: showSkipReason,
+                    child: LabelledInput(
+                      label: t.featureContextSkipReason,
+                      helper: t.featureContextSkipReasonHelp,
+                      controller: skipReason,
+                      error: error == t.featureContextSkipReasonInvalid
+                          ? error
+                          : null,
+                      enabled: !busy && pending == null,
+                    ),
+                  ),
+                ],
               ],
               if (!widget.historyMode &&
                   !resolved &&

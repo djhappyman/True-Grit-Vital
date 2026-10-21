@@ -28,6 +28,10 @@ void main() {
             .select(
               row['name'] == 'attachment_link'
                   ? 'SELECT attachment,person,item,record FROM attachment_link ORDER BY rowid'
+                  : row['name'] == 'revision'
+                  ? 'SELECT record,person,revision,name,form,unit,type,amount,entered,actual,entered_at,voided FROM revision ORDER BY rowid'
+                  : row['name'] == 'daily_action'
+                  ? 'SELECT id,bucket,person,kind,record,revision,undone,sequence,recorded_at,occurs_at FROM daily_action ORDER BY rowid'
                   : 'SELECT * FROM "${row['name']}" ORDER BY rowid',
             )
             .map(
@@ -77,7 +81,7 @@ void main() {
     for (final entry in expected.entries) {
       expect(actual[entry.key], entry.value, reason: entry.key);
     }
-    expect(after.select('PRAGMA user_version').single.values.single, 22);
+    expect(after.select('PRAGMA user_version').single.values.single, 23);
     expect(after.select('PRAGMA integrity_check').single.values.single, 'ok');
     expect(after.select('PRAGMA foreign_key_check'), isEmpty);
     expect(
@@ -187,7 +191,7 @@ void main() {
         restored.keys,
         unorderedEquals([...expected.keys, 'item_detail', 'item_setup']),
       );
-      expect(after.select('PRAGMA user_version').single.values.single, 22);
+      expect(after.select('PRAGMA user_version').single.values.single, 23);
       expect(after.select('PRAGMA integrity_check').single.values.single, 'ok');
       expect(after.select('PRAGMA foreign_key_check'), isEmpty);
       final indexes = after
@@ -239,7 +243,7 @@ void main() {
       failed.close();
       await upgrade();
       final after = raw();
-      expect(after.select('PRAGMA user_version').single.values.single, 22);
+      expect(after.select('PRAGMA user_version').single.values.single, 23);
       // The deliberately colliding table is the only seeded object that the
       // successful retry must remove: the v20 migration creates the index that
       // has that name. Every other preserved table must still match.

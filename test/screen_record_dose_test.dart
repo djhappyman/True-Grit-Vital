@@ -243,6 +243,48 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  appTest('optional dose context saves note and chosen tags behind More', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final item = (await runIo(
+      tester,
+      () => createItem(f.store, name: 'Synthetic context dose'),
+    ))!;
+    f.container.read(routerProvider).go('/record/${item.id}');
+    await settle(tester);
+    await enterAmount(tester, '1');
+    await tap(tester, 'More');
+    expect(find.text('DOSE CONTEXT'), findsOneWidget);
+    expect(
+      find.text(
+        'Optional. Add only the context you choose. It is saved with this dose.',
+      ),
+      findsOneWidget,
+    );
+    await tester.enterText(
+      find.descendant(
+        of: find.widgetWithText(LabelledInput, 'Note (optional)'),
+        matching: find.byType(TextField),
+      ),
+      'With breakfast',
+    );
+    await tester.enterText(
+      find.descendant(
+        of: find.widgetWithText(LabelledInput, 'Tags (optional)'),
+        matching: find.byType(TextField),
+      ),
+      'Morning',
+    );
+    await tap(tester, 'With food');
+    await tap(tester, 'Save');
+    await waitForText(tester, 'Saved for Me: Synthetic context dose, 1 ml.');
+    final saved = (await runIo(tester, f.store.records))!.single;
+    expect(saved.notes, 'With breakfast');
+    expect(saved.contextTags, ['Morning', 'With food']);
+    expect(tester.takeException(), isNull);
+  });
+
   appTest('320/390/430 layouts keep the full dose sheet reachable', (
     tester,
   ) async {

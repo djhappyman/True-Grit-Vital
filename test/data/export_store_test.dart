@@ -153,7 +153,7 @@ void main() {
 
     expect(document.personName, 'Alex');
     expect(document.reportName, 'A. Example');
-    expect(document.recordSchemaVersion, 22);
+    expect(document.recordSchemaVersion, 23);
     expect(document.doseRecords, 1, reason: 'only the selected adult');
     expect(document.doses.map((row) => row.revision), [1, 2, 3]);
     expect(document.doses.map((row) => row.isCurrent), [false, false, true]);
