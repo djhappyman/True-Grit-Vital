@@ -33,6 +33,9 @@ class HistoryState {
     this.refreshed = false,
     this.error,
     this.pages = 0,
+    this.schemaVersion = 0,
+    this.datasetGeneration = '',
+    this.anchored = false,
   });
   final TimelineQuery? query;
   final List<TimelineEntry> entries;
@@ -40,6 +43,16 @@ class HistoryState {
   final bool loading, olderLoading, stale, refreshed;
   final Object? error;
   final int pages;
+
+  /// Cursor metadata from the latest page read, so a correction can mint an
+  /// exact seek cursor without guessing the store identity.
+  final int schemaVersion;
+  final String datasetGeneration;
+
+  /// True while the window starts at an explicitly sought entry rather than
+  /// the top of the filtered list. Such a window holds its position and only
+  /// re-reads on Refresh; the top subscription is not attached.
+  final bool anchored;
 }
 
 final historyControllerProvider = NotifierProvider.autoDispose
@@ -64,7 +77,12 @@ class HistoryController extends Notifier<HistoryState> {
         _epoch++;
         unawaited(_live?.cancel());
         _live = null;
-        state = HistoryState(query: state.query, refreshed: true);
+        state = HistoryState(
+          query: state.query,
+          refreshed: true,
+          schemaVersion: state.schemaVersion,
+          datasetGeneration: state.datasetGeneration,
+        );
       } else if (next.ready && _visible && state.query != null) {
         configure(state.query!, force: true);
       }
@@ -90,7 +108,15 @@ class HistoryController extends Notifier<HistoryState> {
 
   void _subscribe(int epoch) {
     final query = state.query;
-    if (query == null || !_current(epoch) || !_visible) return;
+    // An anchored window is not the top of the filtered list; the top
+    // subscription would compare a different page against it and mark the
+    // window stale on every store change. Anchor windows re-read on Refresh.
+    if (query == null ||
+        !_current(epoch) ||
+        !_visible ||
+        state.anchored) {
+      return;
+    }
     _live = ref
         .read(historyWatcherProvider)(query.firstPage)
         .listen(
@@ -109,6 +135,8 @@ class HistoryController extends Notifier<HistoryState> {
                   next: state.next,
                   stale: true,
                   pages: state.pages,
+                  schemaVersion: page.schemaVersion,
+                  datasetGeneration: page.datasetGeneration,
                 );
               }
               return;
@@ -119,6 +147,8 @@ class HistoryController extends Notifier<HistoryState> {
               next: page.next,
               pages: 1,
               refreshed: state.refreshed,
+              schemaVersion: page.schemaVersion,
+              datasetGeneration: page.datasetGeneration,
             );
           },
           onError: (Object error) {
@@ -130,6 +160,8 @@ class HistoryController extends Notifier<HistoryState> {
               error: error,
               pages: state.pages,
               stale: state.entries.isNotEmpty,
+              schemaVersion: state.schemaVersion,
+              datasetGeneration: state.datasetGeneration,
             );
           },
         );
@@ -172,6 +204,9 @@ class HistoryController extends Notifier<HistoryState> {
       olderLoading: true,
       stale: previous.stale,
       pages: previous.pages,
+      schemaVersion: previous.schemaVersion,
+      datasetGeneration: previous.datasetGeneration,
+      anchored: previous.anchored,
     );
     try {
       final page = await ref.read(historyReaderProvider)(
@@ -194,6 +229,9 @@ class HistoryController extends Notifier<HistoryState> {
         pages: replacing ? 1 : previous.pages + 1,
         stale: previous.stale,
         refreshed: replacing,
+        schemaVersion: page.schemaVersion,
+        datasetGeneration: page.datasetGeneration,
+        anchored: previous.anchored,
       );
     } catch (error) {
       if (!_current(epoch)) return;
@@ -208,8 +246,116 @@ class HistoryController extends Notifier<HistoryState> {
         error: error,
         pages: previous.pages,
         stale: previous.stale,
+        schemaVersion: previous.schemaVersion,
+        datasetGeneration: previous.datasetGeneration,
+        anchored: previous.anchored,
       );
     }
+  }
+
+  /// Restarts the window at an exact entry position, keeping filters and
+  /// query identity. Used to follow a corrected or backfilled entry that
+  /// moved outside the loaded range.
+  Future<void> seek(TimelineEntry anchor) async {
+    final query = state.query;
+    if (query == null || state.loading || state.olderLoading) return;
+    final TimelineCursor position;
+    try {
+      position = TimelineCursor.at(
+        occurredAt: anchor.occurredAt,
+        sortKey: anchor.id.sortKey,
+        query: query,
+        schemaVersion: state.schemaVersion,
+        datasetGeneration: state.datasetGeneration,
+      );
+    } on TimelineCursorException {
+      // Cursor metadata was not carried by a page read yet; do not invent it.
+      return;
+    }
+    final epoch = ++_epoch;
+    await _live?.cancel();
+    _live = null;
+    if (!_current(epoch)) return;
+    state = HistoryState(
+      query: query,
+      loading: true,
+      refreshed: true,
+      schemaVersion: state.schemaVersion,
+      datasetGeneration: state.datasetGeneration,
+      anchored: true,
+    );
+    try {
+      final page = await ref.read(historyReaderProvider)(
+        query.withCursor(position),
+      );
+      if (!_current(epoch) || page.queryIdentity != query.identity) return;
+      state = HistoryState(
+        query: query,
+        entries: [anchor, ...page.entries],
+        next: page.next,
+        pages: 1,
+        refreshed: true,
+        schemaVersion: page.schemaVersion,
+        datasetGeneration: page.datasetGeneration,
+        anchored: true,
+      );
+    } catch (error) {
+      if (!_current(epoch)) return;
+      state = HistoryState(
+        query: query,
+        error: error,
+        schemaVersion: state.schemaVersion,
+        datasetGeneration: state.datasetGeneration,
+        anchored: true,
+      );
+    }
+  }
+
+  /// Replaces one visible row in place with its current version and keeps
+  /// the window, position and cursor intact. Used when a correction changed
+  /// the entry without moving it in the get order.
+  void spliceEntry(TimelineEntry updated) {
+    final query = state.query;
+    if (query == null) return;
+    final index = state.entries.indexWhere(
+      (entry) => entry.id.sortKey == updated.id.sortKey,
+    );
+    if (index < 0) return;
+    state = HistoryState(
+      query: query,
+      entries: List.unmodifiable([
+        for (final (position, entry) in state.entries.indexed)
+          if (position == index) updated else entry,
+      ]),
+      next: state.next,
+      pages: state.pages,
+      refreshed: true,
+      stale: state.stale,
+      schemaVersion: state.schemaVersion,
+      datasetGeneration: state.datasetGeneration,
+      anchored: state.anchored,
+    );
+  }
+
+  /// Removes one visible row whose source no longer resolves, keeping the
+  /// window position. Used when a correction removed the browsed entry.
+  void withdrawEntry(TimelineEntryId id) {
+    final query = state.query;
+    if (query == null) return;
+    final remaining = state.entries
+        .where((entry) => entry.id.sortKey != id.sortKey)
+        .toList();
+    if (remaining.length == state.entries.length) return;
+    state = HistoryState(
+      query: query,
+      entries: List.unmodifiable(remaining),
+      next: state.next,
+      pages: state.pages,
+      stale: state.stale,
+      schemaVersion: state.schemaVersion,
+      datasetGeneration: state.datasetGeneration,
+      anchored: state.anchored,
+    );
   }
 }
 

@@ -46,6 +46,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   bool calendar = false, filtersOpen = false, initialised = false;
   String? dateError;
   DateTime? movedAt;
+  TimelineEntry? movedTarget;
   String? configuredIdentity;
   final Map<String, String> labels = {};
   final _anchorKey = GlobalKey();
@@ -63,6 +64,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     configuredIdentity = null;
     dateError = null;
     movedAt = null;
+    movedTarget = null;
     _anchorPositioned = false;
   }
 
@@ -149,8 +151,22 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     final latest = await (await ref.read(recordStoreProvider.future))
         .historyEntry(entry.id, personId: entry.personId);
     if (!mounted) return;
-    if (latest != null && latest.occurredAt != entry.occurredAt) {
-      setState(() => movedAt = latest.occurredAt);
+    if (latest == null) {
+      // The browsed entry no longer resolves; drop its row and keep the
+      // window and position it had.
+      controller.withdrawEntry(entry.id);
+    } else if (latest.occurredAt == entry.occurredAt) {
+      // Unmoved correction: replace the row in place, without resetting the
+      // loaded pages or the scroll position.
+      controller.spliceEntry(latest);
+    } else {
+      // The entry changed its position. Its old row cannot stand for the
+      // corrected one, so remove it and offer the new position instead.
+      controller.withdrawEntry(entry.id);
+      setState(() {
+        movedAt = latest.occurredAt;
+        movedTarget = latest;
+      });
     }
     // The live first page is reattached; older windows stay anchored until Refresh.
     controller.visible(true);
@@ -180,6 +196,9 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         (anchorEntry != null && anchorEntry.occurredAt != originalAnchorTime
             ? anchorEntry.occurredAt
             : null);
+    final jumped = effectiveMovedAt == null
+        ? null
+        : movedTarget ?? anchorEntry;
     final display = DisplayTime(),
         formatter = displayFormatter(context, preferences.timeFormat);
     final now = ref.watch(historyNowProvider)();
@@ -503,7 +522,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 ],
                 if (state.refreshed || (!state.loading && anchor != null))
                   Semantics(liveRegion: true, child: Text(t.historyRefreshed)),
-                if (effectiveMovedAt != null)
+                if (effectiveMovedAt != null) ...[
                   Semantics(
                     liveRegion: true,
                     child: Text(
@@ -514,6 +533,18 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                       ),
                     ),
                   ),
+                  if (jumped != null && !state.loading)
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: VitalButton.secondary(
+                        onPressed: () {
+                          setState(() => _anchorPositioned = false);
+                          controller.seek(jumped);
+                        },
+                        child: Text(t.view),
+                      ),
+                    ),
+                ],
                 if (state.loading) Text(t.loadingRecords),
                 if (state.error != null) ...[
                   Text(
