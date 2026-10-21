@@ -6,7 +6,7 @@ Owner authorised 21 October 2026: finish D06/D07/D09, verify and push; then impl
 
 | Step | Scope | Acceptance | Status |
 | --- | --- | --- | --- |
-| M00 | Feature baseline | Review both DeepSeek results, integrate with exact dose presets, regenerate localisation, verify combined features and push a clean checkpoint. | In progress |
+| M00 | Feature baseline | Review both DeepSeek results, integrate with exact dose presets, regenerate localisation, verify combined features and push a clean checkpoint. | Verified; checkpoint publishing |
 | M01 | Shared motion and presentation | Central tokens; reusable route, sheet, disclosure, menu/popover and tab adapters; respect system/app reduced motion, focus and privacy. Existing Vital/Stitch APIs share the implementation. | Ready after M00 |
 | M02 | Root navigation | Persistent Today/Substances/Events/History PageView, dock/route synchronisation, retained per-tab state, nested gesture priority and Back/deep-link checks. | Pending |
 | M03 | Dose workflows | Record/correct/combined use actual guarded modal task sheets; concise initial content, relevant source/consequence, optional disclosure and complete dismissal handling. | Pending |

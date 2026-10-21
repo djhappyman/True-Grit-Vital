@@ -38,8 +38,8 @@ These are recorded follow-up work, not completed features. Dependencies refer to
 
 | ID | Feature gap | Required outcome / dependency | State |
 | --- | --- | --- | --- |
-| D06 | Weekly overview and quick-record favourites | Real date selection/weekly summaries, configurable PRN shortcuts and collapsible recorded section with accessible Undo. Define completion denominator and incomplete data; follows D01. | Backlog |
-| D07 | Substance status and counts | Whole-collection active/paused/PRN filters and counts with explicit unscheduled/mixed-plan cases. Item type and PRN schedule remain distinct; follows D02/D03. | Backlog |
+| D06 | Weekly overview and quick-record favourites | Real date selection/weekly summaries, configurable PRN shortcuts and collapsible recorded section with accessible Undo. Define completion denominator and incomplete data; follows D01. | Host integrated and verified: real weekly/day browsing, persisted favourites |
+| D07 | Substance status and counts | Whole-collection active/paused/PRN filters and counts with explicit unscheduled/mixed-plan cases. Item type and PRN schedule remain distinct; follows D02/D03. | Host integrated and verified: whole-collection status queries and counts |
 | D08 | Integrated substance setup | Identity, schedule and optional opening stock in a coherent flow with drafts/recovery; optional authored instructions and notes; follows D04. | Partial: save-first identity, schedule and stock flow integrated; combined setup and notes remain open |
 | D09 | Dose presets and recording sheet | Exact preset quantities and strength equivalents, visible stock consequence, compact responsive sheet/page, existing validation and durable actions retained. | Integrated on host: exact user-saved/latest-schedule presets, responsive sheet and stock/strength previews; durable guards retained |
 | D10 | Dose context and skip reasons | Persist optional notes, food/context tags and skip reason through edits, history, exports and backup/restore. Optional observation entry links use existing supporting-record semantics. | Backlog |
@@ -75,7 +75,7 @@ Current batch evidence: search/type filters, live summaries, shared rows/metrics
 
 The owner requested a direct rebuild of Dashboard and Substances against the saved Stitch batch, implemented by the lead without delegation. The export's original font weights, text sizes, pill geometry, grouped timeline, week strip, search and collection cards replace the looser first-batch composition. Existing logging, Undo, snooze eligibility, search/type filters, paging, stock, overview, settings and profile routes remain connected.
 
-D06 remains backlog for real weekly browsing and configurable favourites; the week strip and Configure action explain their unavailable states. The recorded section now expands to the existing history controls. The blood-pressure sparkline is labelled Design preview and opens supporting records. The refill card shows an existing stock notice when available and opens real stock management; a days-of-stock forecast remains D14. Status filters (D07), remaining screens (D23) and measured glass (D24) remain open.
+D06 now implements real weekly browsing, selected-day reads and configurable favourites. Earlier unavailable previews have been replaced with those real capabilities. The recorded section now expands to the existing history controls. The blood-pressure sparkline is labelled Design preview and opens supporting records. The refill card shows an existing stock notice when available and opens real stock management; a days-of-stock forecast remains D14. Whole-collection status filters (D07) and the remaining screen rollout (D23) are host implemented; measured glass (D24) remains open.
 
 See the [native light/dark screen review](reviews/2026-10-21-stitch-rebuild/README.md). Host checks do not close physical-device gates.
 
@@ -112,4 +112,4 @@ Owner authorised three feature implementations, two by DeepSeek and one by the l
 - D07, DeepSeek: whole-collection status filters/counts composed with name/type search and paging; paused, as-needed, mixed and unscheduled cases are explicit. Plan status is distinct from substance type.
 - D09, lead: exact amount presets drawn from saved plans or user-entered quantities; preserve full units, stock/strength previews, manual entry and durable form safeguards. Presets never imply dose advice or save without review.
 
-D09 is host implemented with focused verification; D06/D07 remain in progress. Each requires regression checks, light/dark and narrow/large-text verification, shared controls and accurate incomplete/error states before integration. See the [feature review](reviews/2026-10-21-feature-batch/README.md).
+D06, D07 and D09 are host integrated and verified. The combined check found and fixed cancellation of a loading status query when filters or minute boundaries change. A targeted cancellation regression now passes. Each requires regression checks, light/dark and narrow/large-text verification, shared controls and accurate incomplete/error states before integration. See the [feature review](reviews/2026-10-21-feature-batch/README.md).

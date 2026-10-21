@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -16,8 +17,7 @@ import 'package:true_grit_vital/features/substances/substance_collection.dart';
 import 'package:true_grit_vital/platform/device_zone.dart';
 
 import 'private_drafts_ui_test.dart' show FakeAuth;
-import 'vital_app_test.dart'
-    show appTest, runIo, settle, tap, waitForText;
+import 'vital_app_test.dart' show appTest, runIo, settle, tap, waitForText;
 
 const statusCaptureDirectory = String.fromEnvironment('VITAL_STATUS_CAPTURES');
 const statusZone = 'Europe/London';
@@ -26,7 +26,8 @@ enum SeedPlan { none, active, paused, asNeeded, future, ended }
 
 typedef SeedSpec = (String name, String type, SeedPlan plan);
 
-Future<({RecordStore store, ProviderContainer container})> launchStatusCollection(
+Future<({RecordStore store, ProviderContainer container})>
+launchStatusCollection(
   WidgetTester tester,
   List<SeedSpec> specs, {
   Stream<List<SubstanceItem>> Function(
@@ -98,9 +99,7 @@ Future<({RecordStore store, ProviderContainer container})> launchStatusCollectio
           start: spec.$3 == SeedPlan.future
               ? today.addDays(1)
               : today.addDays(-7),
-          endExclusive: spec.$3 == SeedPlan.ended
-              ? today.addDays(-5)
-              : null,
+          endExclusive: spec.$3 == SeedPlan.ended ? today.addDays(-5) : null,
           timing: timing,
           zoneBasis: FixedHome(statusZone),
           pauses: spec.$3 == SeedPlan.paused
@@ -151,7 +150,8 @@ Future<({RecordStore store, ProviderContainer container})> launchStatusCollectio
   return (store: store, container: container);
 }
 
-int cards(WidgetTester tester) => find.byType(SubstanceIdentityCard).evaluate().length;
+int cards(WidgetTester tester) =>
+    find.byType(SubstanceIdentityCard).evaluate().length;
 
 void main() {
   appTest('status counts and filters compose as one whole collection', (
@@ -277,6 +277,40 @@ void main() {
     expect(find.text('More'), findsNothing);
   });
 
+  appTest('changing a filter cancels a loading status read safely', (
+    tester,
+  ) async {
+    final waiting = StreamController<SubstanceStatusSnapshot>();
+    addTearDown(waiting.close);
+    await launchStatusCollection(
+      tester,
+      [('Alpha', 'Medicine', SeedPlan.active)],
+      overrideStatus: (store, query) {
+        if (query.search.isEmpty) return waiting.stream;
+        return store.watchSubstanceStatusSnapshot(
+          scope: query.scope,
+          search: query.search,
+          typeId: query.typeId.isEmpty ? null : query.typeId,
+          now: query.asOf,
+          observedZone: query.zone,
+        );
+      },
+    );
+    final field = find.byType(TextField).first;
+    await tester.enterText(field, 'Alpha');
+    await waitForText(tester, 'Active (1)');
+    final deadline = Stopwatch()..start();
+    while (cards(tester) == 0 && deadline.elapsed.inSeconds < 10) {
+      await runIo(
+        tester,
+        () => Future<void>.delayed(const Duration(milliseconds: 5)),
+      );
+      await tester.pumpAndSettle();
+    }
+    expect(cards(tester), 1);
+    expect(tester.takeException(), isNull);
+  });
+
   appTest('a status query failure keeps controls and recovers on retry', (
     tester,
   ) async {
@@ -329,7 +363,10 @@ void main() {
       ('Gamma', 'Medicine', SeedPlan.paused),
     ]);
     await waitForText(tester, 'All statuses (2)');
-    await waitForText(tester, 'A very long synthetic substance name for scaling');
+    await waitForText(
+      tester,
+      'A very long synthetic substance name for scaling',
+    );
     expect(find.text('Active (1)'), findsOneWidget);
     expect(find.text('Paused (1)'), findsOneWidget);
     await tap(tester, 'Active (1)');
@@ -341,7 +378,10 @@ void main() {
     expect(tester.takeException(), isNull);
     final handle = tester.ensureSemantics();
     final node = tester.getSemantics(find.text('Active (1)'));
-    expect(node.getSemanticsData().flagsCollection.isSelected, ui.Tristate.isTrue);
+    expect(
+      node.getSemanticsData().flagsCollection.isSelected,
+      ui.Tristate.isTrue,
+    );
     handle.dispose();
   });
 

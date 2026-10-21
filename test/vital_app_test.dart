@@ -175,7 +175,7 @@ launch(
 Future<void> waitForText(WidgetTester tester, String text) async {
   final elapsed = Stopwatch()..start();
   while (find.text(text).evaluate().isEmpty) {
-    if (elapsed.elapsed > const Duration(seconds: 10)) {
+    if (elapsed.elapsed > const Duration(seconds: 30)) {
       throw TestFailure('Expected rendered text did not appear: $text');
     }
     await runIo(

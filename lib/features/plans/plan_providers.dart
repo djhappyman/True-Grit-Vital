@@ -81,6 +81,9 @@ final dailyWeekFeedProvider = StreamProvider.autoDispose
 /// complete collection and reports a capped read as incomplete.
 final allScopePlansProvider = FutureProvider.autoDispose
     .family<DashboardPlanCollection, FeedScope>((ref, scope) async {
+      // Any plan commit refreshes this projection, including changes beyond
+      // the dashboard's first bounded page.
+      ref.watch(scopePlansProvider(scope));
       final store = await ref.watch(recordStoreProvider.future);
       const pageSize = 500, maxPlans = 5000;
       final plans = <SavedDailyPlan>[];

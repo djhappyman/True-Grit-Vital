@@ -157,6 +157,7 @@ void main() {
       );
       f.container.read(routerProvider).go('/record/${item.id}');
       await settle(tester);
+      await waitForText(tester, '0.7\u00a0ml');
       expect(preset('0.7', 'ml'), findsOneWidget);
       expect(preset('1.25', 'ml'), findsOneWidget);
       await choose(tester, preset('0.7', 'ml'));

@@ -7010,4 +7010,155 @@ class AppLocalizationsEn extends AppLocalizations {
   String featurePresetRemove(String amount, String unit) {
     return 'Remove saved amount $amount $unit';
   }
+
+  @override
+  String featureWeekRange(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String get featureWeekPrevious => 'Previous week';
+
+  @override
+  String get featureWeekNext => 'Next week';
+
+  @override
+  String get featureWeekSummary => 'Week summary';
+
+  @override
+  String get featureWeekSummaryHelp => 'Counts cover planned doses.';
+
+  @override
+  String get featureWeekPlanned => 'Planned';
+
+  @override
+  String get featureWeekRecorded => 'Recorded';
+
+  @override
+  String get featureWeekSkipped => 'Skipped';
+
+  @override
+  String get featureWeekIncomplete =>
+      'Some days could not be calculated. This summary is incomplete.';
+
+  @override
+  String get featureWeekNoPlans => 'No doses are planned this week.';
+
+  @override
+  String get featureWeekViewing => 'Viewing';
+
+  @override
+  String get featureWeekViewingHelp =>
+      'Taken, Skip and Snooze stay on today. Record uses the time you enter.';
+
+  @override
+  String get featureWeekDaySequence => 'Day sequence';
+
+  @override
+  String get featureWeekNothingPlanned => 'No doses are planned for this day.';
+
+  @override
+  String get featureWeekNoRecorded => 'No doses recorded on this day.';
+
+  @override
+  String get featureWeekQuickRecord => 'Quick record';
+
+  @override
+  String get featureWeekFavouritesHelp =>
+      'Choose as-needed plans and their order.';
+
+  @override
+  String get featureWeekFavouritesEmptyHelp =>
+      'With nothing chosen, every as-needed plan appears.';
+
+  @override
+  String featureWeekFavouritesStale(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count saved choices are no longer available.',
+      one: '1 saved choice is no longer available.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get featureWeekFavouritesStaleHelp => 'Saving removes them.';
+
+  @override
+  String get featureWeekFavouriteSaveFailure =>
+      'Not saved. Your saved choices are unchanged.';
+
+  @override
+  String get featureWeekFavouriteLoadFailure =>
+      'Saved choices could not be loaded.';
+
+  @override
+  String get featureWeekPlansLoadFailure => 'Plans could not be loaded.';
+
+  @override
+  String get featureWeekFavouriteListIncomplete =>
+      'The plan list is incomplete. Reload before saving.';
+
+  @override
+  String featureWeekFavouriteUnavailable(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count saved choices are unavailable.',
+      one: '1 saved choice is unavailable.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get featureWeekMoveUp => 'Move up';
+
+  @override
+  String get featureWeekMoveDown => 'Move down';
+
+  @override
+  String featureWeekInclude(String name) {
+    return 'Include $name';
+  }
+
+  @override
+  String get featureWeekNoAsNeeded => 'No as-needed plans.';
+
+  @override
+  String get featureWeekUtc => 'Times shown in UTC.';
+
+  @override
+  String get featureStatusFiltersLabel => 'Plan status';
+
+  @override
+  String get featureStatusAll => 'All statuses';
+
+  @override
+  String get featureStatusActive => 'Active';
+
+  @override
+  String get featureStatusPaused => 'Paused';
+
+  @override
+  String get featureStatusAsNeeded => 'As needed';
+
+  @override
+  String get featureStatusUnscheduled => 'Unscheduled';
+
+  @override
+  String get featureStatusMixedHelp =>
+      'An item with more than one plan can appear under each matching status. Future and ended plans count as unscheduled.';
+
+  @override
+  String featureStatusUnresolvedHelp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count items are only in All because their plans could not be checked.',
+      one: '1 item is only in All because its plan could not be checked.',
+    );
+    return '$_temp0';
+  }
 }

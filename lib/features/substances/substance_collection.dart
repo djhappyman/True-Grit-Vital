@@ -76,17 +76,26 @@ final substancesPageProvider = StreamProvider.autoDispose
         );
         return;
       }
-      final snapshotFuture = ref.watch(
+      final snapshotState = ref.watch(
         substanceStatusSnapshotProvider((
           scope: query.scope,
           search: query.search,
           typeId: query.typeId,
           asOf: asOf,
           zone: query.zone,
-        )).future,
+        )),
       );
+      // Follow the live projection directly. Awaiting its .future can leave a
+      // cancelled loading future when the minute/name/type key changes.
+      if (snapshotState.hasError) {
+        Error.throwWithStackTrace(
+          snapshotState.error!,
+          snapshotState.stackTrace!,
+        );
+      }
+      if (!snapshotState.hasValue) return;
+      final snapshot = snapshotState.requireValue;
       final store = await storeFuture;
-      final snapshot = await snapshotFuture;
       final ids = snapshot
           .itemIdsFor(query.status)
           .skip(query.offset)
@@ -372,8 +381,7 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
               summaries.hasValue && !summaries.isLoading && !summaries.hasError,
           onSelected: _selectType,
         ),
-        if ((counts?.all ?? 0) > 0 ||
-            _status != SubstanceStatusFilter.all) ...[
+        if ((counts?.all ?? 0) > 0 || _status != SubstanceStatusFilter.all) ...[
           const SizedBox(height: 8),
           SubstanceStatusFilters(
             counts: counts,

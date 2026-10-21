@@ -10844,6 +10844,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Remove saved amount {amount} {unit}'**
   String featurePresetRemove(String amount, String unit);
+
+  /// Dashboard week navigation. The localised first and last date of the shown week. The word to joins them without a dash.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String featureWeekRange(String start, String end);
+
+  /// Accessible name for the previous-week arrow on the dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous week'**
+  String get featureWeekPrevious;
+
+  /// Accessible name for the next-week arrow on the dashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Next week'**
+  String get featureWeekNext;
+
+  /// Dashboard weekly summary heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Week summary'**
+  String get featureWeekSummary;
+
+  /// Dashboard weekly summary. States that the totals count planned dose slots, not every kind of record.
+  ///
+  /// In en, this message translates to:
+  /// **'Counts cover planned doses.'**
+  String get featureWeekSummaryHelp;
+
+  /// Dashboard weekly summary metric label.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get featureWeekPlanned;
+
+  /// Dashboard weekly summary metric label.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded'**
+  String get featureWeekRecorded;
+
+  /// Dashboard weekly summary metric label.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get featureWeekSkipped;
+
+  /// Dashboard weekly summary. Truthful partial state when a calculation or action-history limit was reached.
+  ///
+  /// In en, this message translates to:
+  /// **'Some days could not be calculated. This summary is incomplete.'**
+  String get featureWeekIncomplete;
+
+  /// Dashboard weekly summary. Empty week state. No zero ratio is shown.
+  ///
+  /// In en, this message translates to:
+  /// **'No doses are planned this week.'**
+  String get featureWeekNoPlans;
+
+  /// Dashboard badge for a selected day that is not today.
+  ///
+  /// In en, this message translates to:
+  /// **'Viewing'**
+  String get featureWeekViewing;
+
+  /// Dashboard browsed-day note. Explains that one-tap current-time actions remain on today and the record form takes an explicit time.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken, Skip and Snooze stay on today. Record uses the time you enter.'**
+  String get featureWeekViewingHelp;
+
+  /// Dashboard heading replacing Today's sequence while another date is browsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Day sequence'**
+  String get featureWeekDaySequence;
+
+  /// Dashboard browsed-day empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'No doses are planned for this day.'**
+  String get featureWeekNothingPlanned;
+
+  /// Dashboard browsed-day recorded section empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'No doses recorded on this day.'**
+  String get featureWeekNoRecorded;
+
+  /// Dashboard quick-record configuration dialog heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick record'**
+  String get featureWeekQuickRecord;
+
+  /// Dashboard quick-record configuration. Explains the saved subset and order.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose as-needed plans and their order.'**
+  String get featureWeekFavouritesHelp;
+
+  /// Dashboard quick-record configuration. Explains the default when no saved subset exists.
+  ///
+  /// In en, this message translates to:
+  /// **'With nothing chosen, every as-needed plan appears.'**
+  String get featureWeekFavouritesEmptyHelp;
+
+  /// Dashboard quick-record configuration. Saved plans deleted or changed away from as-needed are reported instead of silently replaced.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 saved choice is no longer available.} other{{count} saved choices are no longer available.}}'**
+  String featureWeekFavouritesStale(int count);
+
+  /// Dashboard quick-record configuration. States the effect of saving after unavailable choices were found.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving removes them.'**
+  String get featureWeekFavouritesStaleHelp;
+
+  /// Dashboard quick-record configuration. Storage failure with the last committed selection preserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Not saved. Your saved choices are unchanged.'**
+  String get featureWeekFavouriteSaveFailure;
+
+  /// Dashboard quick-record row. Non-blocking load failure for the saved subset.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved choices could not be loaded.'**
+  String get featureWeekFavouriteLoadFailure;
+
+  /// Dashboard quick-record row. Non-blocking plan load failure.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans could not be loaded.'**
+  String get featureWeekPlansLoadFailure;
+
+  /// Dashboard quick-record configuration. Saving is disabled when the full collection could not be read.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan list is incomplete. Reload before saving.'**
+  String get featureWeekFavouriteListIncomplete;
+
+  /// Dashboard quick-record row. Saved plans that no longer exist or are no longer as-needed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 saved choice is unavailable.} other{{count} saved choices are unavailable.}}'**
+  String featureWeekFavouriteUnavailable(int count);
+
+  /// Accessible name for moving one saved quick-record choice earlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Move up'**
+  String get featureWeekMoveUp;
+
+  /// Accessible name for moving one saved quick-record choice later.
+  ///
+  /// In en, this message translates to:
+  /// **'Move down'**
+  String get featureWeekMoveDown;
+
+  /// Accessible name for the quick-record choice checkbox, including the full plan name.
+  ///
+  /// In en, this message translates to:
+  /// **'Include {name}'**
+  String featureWeekInclude(String name);
+
+  /// Dashboard quick-record row when no as-needed plan exists.
+  ///
+  /// In en, this message translates to:
+  /// **'No as-needed plans.'**
+  String get featureWeekNoAsNeeded;
+
+  /// Dashboard week navigation. Visible fallback when no device zone was observed.
+  ///
+  /// In en, this message translates to:
+  /// **'Times shown in UTC.'**
+  String get featureWeekUtc;
+
+  /// Substances list. Accessible name for the row of plan-status filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan status'**
+  String get featureStatusFiltersLabel;
+
+  /// Substances list. Clears the plan-status filter only. Kept distinct from the item-type All filter.
+  ///
+  /// In en, this message translates to:
+  /// **'All statuses'**
+  String get featureStatusAll;
+
+  /// Substances list. At least one current nonpaused scheduled plan applies.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get featureStatusActive;
+
+  /// Substances list. At least one current plan is paused. A paused As needed plan counts only as paused while paused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get featureStatusPaused;
+
+  /// Substances list. At least one current nonpaused As needed plan applies.
+  ///
+  /// In en, this message translates to:
+  /// **'As needed'**
+  String get featureStatusAsNeeded;
+
+  /// Substances list. No plan applies now. Future-only, ended and absent plans count here.
+  ///
+  /// In en, this message translates to:
+  /// **'Unscheduled'**
+  String get featureStatusUnscheduled;
+
+  /// Substances list. Explains that status filters may overlap and what Unscheduled means. Not an adherence statement.
+  ///
+  /// In en, this message translates to:
+  /// **'An item with more than one plan can appear under each matching status. Future and ended plans count as unscheduled.'**
+  String get featureStatusMixedHelp;
+
+  /// Substances list. Truthful note when a stored plan's date or time zone cannot be evaluated. No guessed status.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item is only in All because its plan could not be checked.} other{{count} items are only in All because their plans could not be checked.}}'**
+  String featureStatusUnresolvedHelp(int count);
 }
 
 class _AppLocalizationsDelegate

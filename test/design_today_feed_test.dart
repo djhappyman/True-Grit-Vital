@@ -100,7 +100,7 @@ Future<(RecordStore, ProviderContainer, SubstanceItem)> launchToday(
   );
   addTearDown(() async {
     container.dispose();
-    await store.close();
+    await runIo(tester, store.close);
     await directory.delete(recursive: true);
   });
   await tester.pumpWidget(
