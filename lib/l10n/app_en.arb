@@ -7963,5 +7963,53 @@
   "screenEventsItemUnavailable": "Substance unavailable",
   "@screenEventsItemUnavailable": {
     "description": "A linked substance name could not be loaded or no longer resolves. Saved membership identity remains available in event detail."
+  },
+  "screenSettingsGroupAll": "All",
+  "@screenSettingsGroupAll": {
+    "description": "Settings hub filter that shows every group. Keeping it as the default hides no destination."
+  },
+  "screenSettingsGroupGeneral": "General",
+  "@screenSettingsGroupGeneral": {
+    "description": "Settings hub group holding profile, appearance, reminders and support links."
+  },
+  "screenSettingsGeneralBody": "Profile, appearance, reminders and help.",
+  "@screenSettingsGeneralBody": {
+    "description": "Helper for the General group. Names the real destinations it holds."
+  },
+  "screenSettingsDataBody": "Reports, exports, backups and restore.",
+  "@screenSettingsDataBody": {
+    "description": "Helper for the Data group. Names the real destinations it holds."
+  },
+  "screenSettingsVaultBadge": "On this device",
+  "@screenSettingsVaultBadge": {
+    "description": "Factual storage badge. Does not claim a cipher, version or remote custody."
+  },
+  "screenSettingsStorageTitle": "Local storage",
+  "@screenSettingsStorageTitle": {
+    "description": "Title of the factual storage summary. No size, count or cipher is invented."
+  },
+  "screenSettingsStorageBody": "Database size and record totals are not available yet.",
+  "@screenSettingsStorageBody": {
+    "description": "Explicit limitation for the storage summary. Never shows a fabricated size or count."
+  },
+  "screenSettingsPreviewBadge": "Preview",
+  "@screenSettingsPreviewBadge": {
+    "description": "Badge marking a capability that is not available yet. Never a working switch or command."
+  },
+  "screenSettingsAutoBackup": "Automatic backups",
+  "@screenSettingsAutoBackup": {
+    "description": "Labelled preview for unattended backups, which are not implemented."
+  },
+  "screenSettingsAutoBackupBody": "Not available yet. Create a backup when you need one.",
+  "@screenSettingsAutoBackupBody": {
+    "description": "Points to the real manual backup instead of promising unattended backups."
+  },
+  "screenSettingsFhir": "FHIR export",
+  "@screenSettingsFhir": {
+    "description": "Labelled preview for a clinical export format, which is not implemented."
+  },
+  "screenSettingsFhirBody": "Not available yet. Use Exports for structured data.",
+  "@screenSettingsFhirBody": {
+    "description": "Points to the real structured export instead of implying FHIR or HL7 support."
   }
 }
