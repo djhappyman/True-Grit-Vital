@@ -11,10 +11,10 @@ All five packages start from the same baseline and [contract](implementation-con
 | ID | Package | Acceptance | Status |
 | --- | --- | --- | --- |
 | D01 | Today dashboard and compact schedule | Real next-dose timing, truthful daily completion, compact time groups and PRN entry points; retain source/strength checks, taken/skip/snooze/extra/edit/Undo and incomplete calculation warnings. | In progress: GLM Flash |
-| D02 | Substance search and filters | Search the whole local collection, not only loaded cards; type filters, clear/reset, bounded paging and preserved browsing state. Compact cards open the substance overview. | In progress: GLM Flash |
-| D03 | Substance summaries | Reusable live schedule, labelled strength, stock and next-dose summary from existing records; explicit partial/unknown states and compatible units; no guessed doses or dates. Mount in list and overview during integration. | In progress: GLM Flash |
-| D04 | Substance overview | One reachable overview with identity, recording, schedule, stock, recent history and existing context links. Preserve existing detail/history URLs and all editing routes. Missing/deleted/locked records recover truthfully. | In progress: GLM Flash |
-| D05 | Shared summary components | Reusable compact row, factual metric and progress components using current tokens/shadcn; safe growth for long names and large text, keyboard/semantics, light/dark and reduced effects. Adopt in D01/D03/D04 during integration. | In progress: GLM Flash |
+| D02 | Substance search and filters | Search the whole local collection, not only loaded cards; type filters, clear/reset, bounded paging and preserved browsing state. Compact cards open the substance overview. | Reviewed; overview/summary mounting pending |
+| D03 | Substance summaries | Reusable live schedule, labelled strength, stock and next-dose summary from existing records; explicit partial/unknown states and compatible units; no guessed doses or dates. Mount in list and overview during integration. | Review repair in progress |
+| D04 | Substance overview | One reachable overview with identity, recording, schedule, stock, recent history and existing context links. Preserve existing detail/history URLs and all editing routes. Missing/deleted/locked records recover truthfully. | Review repair in progress |
+| D05 | Shared summary components | Reusable compact row, factual metric and progress components using current tokens/shadcn; safe growth for long names and large text, keyboard/semantics, light/dark and reduced effects. Adopt in D01/D03/D04 during integration. | Reviewed; feature adoption pending |
 
 ## Remaining audit gaps
 
@@ -53,4 +53,4 @@ These are recorded follow-up work, not completed features. Dependencies refer to
 
 Every integrated package records loaded skill paths, changed capabilities, tests, reference comparisons and remaining limits here. Lead integration runs static analysis, relevant regression tests, shared UI checks and a native boot check. Full release acceptance retains the original G01–G08 gates.
 
-Current batch evidence: pending. Delegation identities and outcomes are retained locally under `.scratch/vital-implementation/design-parity-2026-10-21/`.
+Current batch evidence: search/type filters and shared summary components are in the main checkout. Lead review reproduced and repaired a hidden selected filter, added live rename and pending-count handling, and verified 42 collection/component/navigation tests. The 15 submitted summary tests and six overview tests also passed independently; their review repairs remain open. Cross-package mounting, final light/dark visual checks and native boot remain pending. Physical device gates remain open. Delegation identities and outcomes are retained locally under `.scratch/vital-implementation/design-parity-2026-10-21/`.

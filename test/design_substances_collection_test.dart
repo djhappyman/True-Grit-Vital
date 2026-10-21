@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/services.dart' show LogicalKeyboardKey;
@@ -38,6 +39,11 @@ Future<({RecordStore store, ProviderContainer container})> launchCollection(
     SubstancesPageQuery query,
   )?
   overridePages,
+  Stream<List<SubstanceTypeSummary>> Function(
+    RecordStore store,
+    SubstancesTypeQuery query,
+  )?
+  overrideTypes,
 }) async {
   final dir = (await runIo(
     tester,
@@ -81,6 +87,11 @@ Future<({RecordStore store, ProviderContainer container})> launchCollection(
       observedDeviceZoneProvider.overrideWith(
         (ref) => Stream.value(DeviceZoneObservation.fromId('Europe/London')),
       ),
+      if (overrideTypes != null)
+        substanceTypesProvider.overrideWith((ref, query) async* {
+          final store = await ref.watch(recordStoreProvider.future);
+          yield* overrideTypes(store, query);
+        }),
       if (overridePages != null)
         substancesPageProvider.overrideWith((ref, query) async* {
           final store = await ref.watch(recordStoreProvider.future);
@@ -386,6 +397,57 @@ void main() {
     // Retrying reloads from the injected store and the list recovers.
     expect(find.byType(SubstanceIdentityCard), findsNWidgets(1));
     expect(find.text('Ibuprofen'), findsOneWidget);
+  });
+  appTest('zero-match selected type follows a stored rename', (tester) async {
+    final fixture = await launchCollection(tester, [
+      ('Ibuprofen', 'Medicine'),
+      ('Vitamin C', 'Supplement'),
+    ]);
+    await tap(tester, 'Supplement (1 item)');
+    await searchFor(tester, 'Ibuprofen');
+    await runIo(tester, () async {
+      final item = (await fixture.store.items(search: 'Vitamin C')).single;
+      final type = (await fixture.store.itemTypeById(
+        item.typeId!,
+        personId: meId,
+      ))!;
+      await fixture.store.renameItemType(
+        commandId: newCommandId(),
+        typeId: type.id,
+        expectedRevision: type.revision,
+        expectedPersonRevision: 2,
+        name: 'Vitamins',
+      );
+    });
+    await settle(tester);
+    expect(find.text('Vitamins (0 items)'), findsOneWidget);
+    expect(find.text('Supplement (0 items)'), findsNothing);
+  });
+  appTest('loading type counts stay unknown until the query completes', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    await launchCollection(
+      tester,
+      [('Ibuprofen', 'Medicine'), ('Vitamin C', 'Supplement')],
+      overrideTypes: (store, query) async* {
+        if (query.search == 'Ibuprofen') await gate.future;
+        yield* store.watchItemTypeCounts(
+          scope: query.scope,
+          search: query.search,
+        );
+      },
+    );
+    await tap(tester, 'Supplement (1 item)');
+    await searchFor(tester, 'Ibuprofen');
+    try {
+      expect(find.text('Supplement'), findsOneWidget);
+      expect(find.text('Supplement (0 items)'), findsNothing);
+    } finally {
+      gate.complete();
+    }
+    await settle(tester);
+    expect(find.text('Supplement (0 items)'), findsOneWidget);
   });
   appTest('keyboard focus marks the identity row and Enter opens it', (
     tester,

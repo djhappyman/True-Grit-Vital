@@ -9,6 +9,7 @@ import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
 import '../recording/record_pages.dart' show LoadFailure;
 import '../../ui/vital_ui.dart';
+import '../catalogue/item_types.dart' show itemTypeProvider;
 
 /// One page key of the bounded Substances list. The 51st row of a page only
 /// reveals the next page; search and the type filter run over the whole stored
@@ -60,10 +61,8 @@ class SubstanceCollection extends ConsumerStatefulWidget {
 class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
   final _search = TextEditingController();
   String _typeId = '';
-  // Last known display name of the selected item type. Counts constrained by
-  // the current search omit a selected type whose items match nothing, and
-  // the active filter must stay visible and labelled until the user removes
-  // it; live summaries take over again as soon as the type reappears.
+  // Fallback name while the selected type's live lookup loads. The separate
+  // lookup keeps renames visible even when search-constrained counts omit it.
   String? _typeName;
   int _pages = 1;
 
@@ -125,6 +124,10 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
     final summaries = ref.watch(
       substanceTypesProvider((scope: widget.scope, search: search)),
     );
+    final personId = widget.scope.personId;
+    final selectedType = _typeId.isEmpty || personId == null
+        ? null
+        : ref.watch(itemTypeProvider((personId: personId, typeId: _typeId)));
     final filtered = search.isNotEmpty || _typeId.isNotEmpty;
     // Search and the active type filter stay visible while data fails, so a
     // failure never removes the user's controls or hides why results are
@@ -153,7 +156,9 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
         SubstanceTypeFilters(
           summaries: summaries.value ?? const [],
           selectedTypeId: _typeId,
-          selectedTypeName: _typeName,
+          selectedTypeName: selectedType?.value?.name ?? _typeName,
+          countsKnown:
+              summaries.hasValue && !summaries.isLoading && !summaries.hasError,
           onSelected: _selectType,
         ),
         const SizedBox(height: 16),
@@ -208,10 +213,9 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
 /// Actual item-type filters plus All. Values come from the stored types
 /// present in the scoped collection under the current search, each with its
 /// item count, so a pill never promises results it cannot show. The selected
-/// type keeps its own pill, with a truthful zero count and its last known
-/// name, when the current search hides every item of that type; the pill is
-/// then still selected, still reversible through All and shows the refreshed
-/// live count as soon as the type reappears in the summaries.
+/// type keeps its own pill when the current search hides all its items. Counts
+/// appear only after the query completes; the parent supplies its live name,
+/// with a cached fallback during loading. All always reverses the type filter.
 class SubstanceTypeFilters extends StatelessWidget {
   const SubstanceTypeFilters({
     super.key,
@@ -219,10 +223,12 @@ class SubstanceTypeFilters extends StatelessWidget {
     required this.selectedTypeId,
     required this.selectedTypeName,
     required this.onSelected,
+    this.countsKnown = true,
   });
   final List<SubstanceTypeSummary> summaries;
   final String selectedTypeId;
   final String? selectedTypeName;
+  final bool countsKnown;
   final void Function(String typeId, String typeName) onSelected;
 
   @override
@@ -246,9 +252,17 @@ class SubstanceTypeFilters extends StatelessWidget {
     if (pills.isEmpty) return const SizedBox.shrink();
     final names = {for (final pill in pills) pill.typeId!: pill.typeName};
     final total = summaries.fold<int>(0, (sum, summary) => sum + summary.count);
-    String label(String typeId) => typeId.isEmpty
-        ? '${t.designSubstancesAllFilter} (${t.designSubstancesItemCount(total)})'
-        : '${names[typeId]!} (${t.designSubstancesItemCount(pills.firstWhere((pill) => pill.typeId == typeId).count)})';
+    String label(String typeId) {
+      final name = typeId.isEmpty
+          ? t.designSubstancesAllFilter
+          : names[typeId]!;
+      if (!countsKnown) return name;
+      final count = typeId.isEmpty
+          ? total
+          : pills.firstWhere((pill) => pill.typeId == typeId).count;
+      return '$name (${t.designSubstancesItemCount(count)})';
+    }
+
     return VitalSegments<String>(
       values: ['', ...pills.map((pill) => pill.typeId!)],
       selected: selectedTypeId,
