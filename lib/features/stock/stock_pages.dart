@@ -1,3 +1,4 @@
+import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 
 import 'dart:convert';
@@ -43,19 +44,20 @@ class _StockPageState extends ConsumerState<StockPage> {
       );
     }
     if (owner == null) return EntryPage(children: [Text(t.profileUnavailable)]);
+    final archived = owner.isArchived;
     return EntryPage(
+      panelled: false,
       children: [
         Heading(t.stock),
-        Text(t.profileOwner(ownerLabel(ref, t, owner.id))),
-        if (owner.isArchived) Text(t.archivedHelp),
-        Text(t.stockLocalNoticeHelp),
-        const SizedBox(height: 16),
-        if (widget.itemId != null && !owner.isArchived)
-          VitalButton(
-            onPressed: () =>
-                context.push('/stock/${owner.id}/create?item=${widget.itemId}'),
-            child: Text(t.create),
-          ),
+        _StockIntro(
+          personName: ownerLabel(ref, t, owner.id),
+          archived: archived,
+        ),
+        const SizedBox(height: 24),
+        if (!archived && widget.itemId == null) ...[
+          _StockAttention(personId: owner.id),
+          const SizedBox(height: 24),
+        ],
         ref
             .watch(stockContainersProvider(q))
             .when(
@@ -63,76 +65,618 @@ class _StockPageState extends ConsumerState<StockPage> {
               error: (_, _) => LoadFailure(
                 onRetry: () => ref.invalidate(stockContainersProvider(q)),
               ),
-              data: (rows) => Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (rows.isEmpty) Text(t.stockEmpty),
-                  for (final c in rows.take(50))
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: VitalSurface(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            VitalRecordHeader(
-                              title: c.label,
-                              icon: LucideIcons.archive,
-                            ),
-                            StockItemName(itemId: c.itemId),
-                            if (c.productLabel != null)
-                              ProductLabelView(label: c.productLabel!)
-                            else
-                              Text(t.stockStrengthValue(c.strength.label)),
-                            if (c.strength.mgPerMl != null)
-                              Text(
-                                stockAmountText(
-                                  t,
-                                  c.strength.mgPerMl!,
-                                  'mg/ml',
-                                ),
-                              ),
-                            StockBalanceText(container: c),
-                            if (!owner.isArchived) ...[
-                              const SizedBox(height: 12),
-                              VitalButton.secondary(
-                                onPressed: () => context.push(
-                                  '/stock/${owner.id}/adjust/${c.id}',
-                                ),
-                                child: Text(t.stockAdjustAction),
-                              ),
-                              StockNoticeSettings(
-                                key: ValueKey(c.id),
-                                container: c,
-                                personRevision: owner.revision,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      if (offset > 0)
-                        VitalButton.secondary(
-                          onPressed: () => setState(() => offset -= 50),
-                          child: Text(t.previous),
-                        ),
-                      if (rows.length > 50)
-                        VitalButton.secondary(
-                          onPressed: () => setState(() => offset += 50),
-                          child: Text(t.next),
-                        ),
-                    ],
-                  ),
-                ],
+              data: (rows) => _StockContainerList(
+                rows: rows,
+                personRevision: owner.revision,
+                archived: archived,
+                offset: offset,
+                onPrevious: offset == 0
+                    ? null
+                    : () => setState(() => offset -= 50),
+                onNext: rows.length > 50
+                    ? () => setState(() => offset += 50)
+                    : null,
               ),
             ),
+        if (!archived) ...[
+          const SizedBox(height: 24),
+          _StockAdd(personId: owner.id, itemId: widget.itemId),
+        ],
+        const SizedBox(height: 24),
+        const _StockPrivacy(),
       ],
     );
   }
 }
+
+/// Header context for the vault. The archived state stays read only and does
+/// not offer stock mutations or notice controls.
+class _StockIntro extends StatelessWidget {
+  const _StockIntro({required this.personName, required this.archived});
+  final String personName;
+  final bool archived;
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context), c = StitchColors(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          t.profileOwner(personName),
+          style: StitchType.body.copyWith(
+            color: c.ink,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          t.stockLocalNoticeHelp,
+          style: StitchType.body.copyWith(color: c.muted),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            StitchBadge(t.stitchStored, dot: true),
+            if (archived)
+              VitalBadge(t.archived, tone: VitalTone.warning, compact: true),
+          ],
+        ),
+        if (archived) ...[
+          const SizedBox(height: 12),
+          VitalNotice(
+            icon: LucideIcons.archive,
+            tone: VitalTone.warning,
+            child: Text(t.screenStockArchived),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Whole-person low and refill notices from the stored notice query, ordered by
+/// urgency. This is a real collection-wide read, not a filtered loaded page.
+class _StockAttention extends ConsumerWidget {
+  const _StockAttention({required this.personId});
+  final String personId;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context), c = StitchColors(context);
+    final query = (scope: FeedScope.person(personId), offset: 0);
+    return ref
+        .watch(stockNoticeProvider(query))
+        .when(
+          loading: () => const SizedBox.shrink(),
+          error: (_, _) => LoadFailure(
+            onRetry: () => ref.invalidate(stockNoticeProvider(query)),
+          ),
+          data: (page) {
+            final rows = [...page.rows]
+              ..sort((a, b) {
+                final rank = _stockNoticeRank(
+                  a.container.notice,
+                ).compareTo(_stockNoticeRank(b.container.notice));
+                if (rank != 0) return rank;
+                final item = a.itemName.toLowerCase().compareTo(
+                  b.itemName.toLowerCase(),
+                );
+                if (item != 0) return item;
+                return a.container.label.toLowerCase().compareTo(
+                  b.container.label.toLowerCase(),
+                );
+              });
+            if (rows.isEmpty) return const SizedBox.shrink();
+            final shown = rows.take(3).toList();
+            return Column(
+              key: const ValueKey('stock-attention'),
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Semantics(
+                  header: true,
+                  child: Text(
+                    t.screenStockActionNeeded.toUpperCase(),
+                    style: StitchType.small.copyWith(
+                      color: c.amber,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: .9,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final row in shown) ...[
+                  _StockNoticeCard(
+                    key: ValueKey('stock-attention-${row.container.id}'),
+                    row: row,
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                if (rows.length > shown.length || page.hasMore)
+                  Text(
+                    t.screenStockMoreNotices,
+                    style: StitchType.caption.copyWith(color: c.muted),
+                  ),
+              ],
+            );
+          },
+        );
+  }
+}
+
+class _StockNoticeCard extends StatelessWidget {
+  const _StockNoticeCard({super.key, required this.row});
+  final StockNoticeRow row;
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context),
+        c = row.container,
+        colors = StitchColors(context);
+    final caption = StitchType.caption.copyWith(color: colors.muted);
+    return StitchSurface(
+      radius: 16,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _StockIdentity(
+            icon: c.notice == StockNoticeState.limitReached
+                ? LucideIcons.circleAlert
+                : LucideIcons.triangleAlert,
+            name: row.itemName,
+            containerLabel: c.label,
+            strength: c.strength.label,
+            badge: _stockNoticeBadge(t, c),
+          ),
+          const SizedBox(height: 12),
+          _StockBalanceLine(container: c),
+          if (c.lowThreshold != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              t.stockThresholdValue(
+                stockAmountText(t, c.lowThreshold!, c.unit),
+              ),
+              style: caption,
+            ),
+          ],
+          const SizedBox(height: 6),
+          Text(t.stitchForecastPending, style: caption),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              StitchButton(
+                primary: true,
+                icon: LucideIcons.scale,
+                onPressed: () =>
+                    context.push('/stock/${c.personId}/adjust/${c.id}'),
+                child: Text(t.stockAdjustAction),
+              ),
+              StitchButton(
+                icon: LucideIcons.bellRing,
+                onPressed: () => context.push(
+                  '/stock/${c.personId}/adjust/${c.id}?notices=true',
+                ),
+                child: Text(t.screenStockNoticesAction),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Bounded container page with truthful paging. The trailing caption states
+/// that no whole-collection status filter is applied.
+class _StockContainerList extends StatelessWidget {
+  const _StockContainerList({
+    required this.rows,
+    required this.personRevision,
+    required this.archived,
+    required this.offset,
+    required this.onPrevious,
+    required this.onNext,
+  });
+  final List<StoredStockContainer> rows;
+  final int personRevision;
+  final bool archived;
+  final int offset;
+  final VoidCallback? onPrevious, onNext;
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final visible = rows.take(50).toList();
+    final paging = offset > 0 || rows.length > 50;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _StockSectionTitle(
+          label: t.screenStockContainers,
+          trailing: paging ? t.screenStockLoadedOnly : null,
+        ),
+        const SizedBox(height: 12),
+        if (visible.isEmpty)
+          VitalEmptyState(
+            title: t.screenStockNoContainers,
+            description: t.screenStockNoContainersHelp,
+            icon: LucideIcons.boxes,
+          )
+        else
+          for (final c in visible) ...[
+            _StockContainerCard(
+              key: ValueKey('stock-card-${c.id}'),
+              container: c,
+              personRevision: personRevision,
+              archived: archived,
+            ),
+            const SizedBox(height: 12),
+          ],
+        if (paging) ...[
+          if (visible.isEmpty) const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              if (onPrevious != null)
+                StitchButton(onPressed: onPrevious, child: Text(t.previous)),
+              if (onNext != null)
+                StitchButton(onPressed: onNext, child: Text(t.next)),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _StockContainerCard extends ConsumerWidget {
+  const _StockContainerCard({
+    super.key,
+    required this.container,
+    required this.personRevision,
+    required this.archived,
+  });
+  final StoredStockContainer container;
+  final int personRevision;
+  final bool archived;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context), c = StitchColors(context);
+    final itemName = ref
+        .watch(itemLookupProvider(container.itemId))
+        .value
+        ?.name;
+    return StitchSurface(
+      radius: 16,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _StockIdentity(
+            icon: _stockUnitIcon(container.unit),
+            name: itemName ?? container.label,
+            containerLabel: itemName == null ? null : container.label,
+            strength: container.strength.label,
+            badge: _stockNoticeBadge(t, container),
+          ),
+          const SizedBox(height: 12),
+          _StockBalanceLine(container: container),
+          if (!archived) ...[
+            const SizedBox(height: 12),
+            Container(height: 1, color: c.line),
+            const SizedBox(height: 12),
+            StockNoticeSettings(
+              key: ValueKey(container.id),
+              container: container,
+              personRevision: personRevision,
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: StitchButton(
+                key: ValueKey('stock-adjust-${container.id}'),
+                icon: LucideIcons.scale,
+                onPressed: () => context.push(
+                  '/stock/${container.personId}/adjust/${container.id}',
+                ),
+                child: Text(t.stockAdjustAction),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Identity block reused by notice and container cards. The status pill stays
+/// beside the name while it fits and moves below the identity at narrow widths
+/// or larger text, so a complete name never shares a cramped line.
+class _StockIdentity extends StatelessWidget {
+  const _StockIdentity({
+    required this.icon,
+    required this.name,
+    required this.strength,
+    required this.badge,
+    this.containerLabel,
+  });
+  final IconData icon;
+  final String name, strength;
+  final Widget badge;
+  final String? containerLabel;
+  @override
+  Widget build(BuildContext context) {
+    final c = StitchColors(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final stacked =
+            constraints.maxWidth < 320 ||
+            MediaQuery.textScalerOf(context).scale(14) >= 21;
+        final identity = Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            StitchIcon(icon, size: 44),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(name, style: StitchType.name.copyWith(color: c.ink)),
+                      VitalBadge(strength, compact: true),
+                    ],
+                  ),
+                  if (containerLabel != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      containerLabel!,
+                      style: StitchType.caption.copyWith(color: c.muted),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        );
+        if (!stacked) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: identity),
+              const SizedBox(width: 8),
+              badge,
+            ],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [identity, const SizedBox(height: 8), badge],
+        );
+      },
+    );
+  }
+}
+
+/// The stored balance in the established `Remaining: <amount> <unit>` wording.
+/// An unknown or over-limit balance is spelled out instead of showing zero.
+class _StockBalanceLine extends StatelessWidget {
+  const _StockBalanceLine({required this.container});
+  final StoredStockContainer container;
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context), c = StitchColors(context);
+    final balance = container.balance;
+    final known = balance.value != null && !balance.limitReached;
+    final line = balance.limitReached
+        ? t.stockLimit
+        : balance.value == null
+        ? t.stockUnknown
+        : t.stockBalance(stockAmountText(t, balance.value!, container.unit));
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          line,
+          style: known
+              ? StitchType.body.copyWith(
+                  color: c.ink,
+                  fontWeight: FontWeight.w600,
+                )
+              : StitchType.caption.copyWith(color: c.muted),
+        ),
+        if (balance.isDeficit) ...[
+          const SizedBox(height: 2),
+          Text(
+            t.stockDeficit,
+            style: StitchType.caption.copyWith(color: c.danger),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _StockSectionTitle extends StatelessWidget {
+  const _StockSectionTitle({required this.label, this.trailing});
+  final String label;
+  final String? trailing;
+  @override
+  Widget build(BuildContext context) {
+    final c = StitchColors(context);
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 12,
+      runSpacing: 4,
+      children: [
+        Semantics(
+          header: true,
+          child: Text(label, style: StitchType.name.copyWith(color: c.ink)),
+        ),
+        if (trailing != null)
+          Text(trailing!, style: StitchType.small.copyWith(color: c.muted)),
+      ],
+    );
+  }
+}
+
+/// Manual stock addition stays real for an item-scoped vault. The unscoped
+/// vault has no item identity to attach a container to, so it opens the
+/// collection instead. Scanning, lots, expiry and forecasts stay named gaps.
+class _StockAdd extends StatelessWidget {
+  const _StockAdd({required this.personId, required this.itemId});
+  final String personId;
+  final String? itemId;
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context), c = StitchColors(context);
+    final itemScoped = itemId != null;
+    final caption = StitchType.caption.copyWith(color: c.muted);
+    final copy = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          t.screenStockAddHeading,
+          style: StitchType.name.copyWith(color: c.ink),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          itemScoped ? t.screenStockAddItemHelp : t.screenStockAddAllHelp,
+          style: caption,
+        ),
+      ],
+    );
+    return StitchSurface(
+      key: const ValueKey('stock-add'),
+      radius: 16,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final stacked =
+                  constraints.maxWidth < 320 ||
+                  MediaQuery.textScalerOf(context).scale(14) >= 21;
+              if (stacked) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StitchIcon(LucideIcons.scanBarcode, size: 44),
+                    const SizedBox(height: 8),
+                    copy,
+                  ],
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  StitchIcon(LucideIcons.scanBarcode, size: 44),
+                  const SizedBox(width: 12),
+                  Expanded(child: copy),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 10),
+          Text(t.screenStockGaps, style: caption),
+          const SizedBox(height: 12),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: StitchButton(
+              key: const ValueKey('stock-add-action'),
+              primary: true,
+              icon: itemScoped ? LucideIcons.plus : LucideIcons.pill,
+              onPressed: () => context.push(
+                itemScoped
+                    ? '/stock/$personId/create?item=$itemId'
+                    : '/substances',
+              ),
+              child: Text(itemScoped ? t.add : t.substances),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Local encrypted storage is real; network, sync and complete-verification
+/// claims are not made here.
+class _StockPrivacy extends StatelessWidget {
+  const _StockPrivacy();
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context), c = StitchColors(context);
+    return StitchSurface(
+      inset: true,
+      radius: 16,
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const StitchIcon(LucideIcons.lock, size: 36, selected: false),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  t.stitchStored,
+                  style: StitchType.label.copyWith(
+                    color: c.ink,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  t.stitchLocalBody,
+                  style: StitchType.caption.copyWith(color: c.muted),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+int _stockNoticeRank(StockNoticeState state) => switch (state) {
+  StockNoticeState.refill => 0,
+  StockNoticeState.low => 1,
+  StockNoticeState.unknown => 2,
+  StockNoticeState.limitReached => 3,
+  StockNoticeState.none => 4,
+};
+
+Widget _stockNoticeBadge(AppLocalizations t, StoredStockContainer c) {
+  return switch (c.notice) {
+    StockNoticeState.none => StitchBadge(t.screenStockStocked),
+    StockNoticeState.low => StitchBadge(t.stockLow, warning: true),
+    StockNoticeState.refill => StitchBadge(t.stockRefillDue, warning: true),
+    StockNoticeState.unknown => VitalBadge(t.screenStockUnknown, compact: true),
+    StockNoticeState.limitReached => VitalBadge(
+      t.screenStockUnavailable,
+      compact: true,
+    ),
+  };
+}
+
+IconData _stockUnitIcon(String unit) => switch (unit) {
+  'ml' => LucideIcons.droplet,
+  'count' => LucideIcons.package,
+  _ => LucideIcons.pill,
+};
 
 class StockContainerForm extends ConsumerStatefulWidget {
   const StockContainerForm({
@@ -943,24 +1487,29 @@ class _StockNoticeSettingsState extends ConsumerState<StockNoticeSettings> {
           reduceMotion: MediaQuery.disableAnimationsOf(context),
           onChanged: save,
         ),
-        Text(
-          widget.container.lowThreshold == null
-              ? t.stockThresholdHelp
-              : t.stockThresholdValue(
-                  stockAmountText(
-                    t,
-                    widget.container.lowThreshold!,
-                    widget.container.unit,
+        if (widget.container.lowThreshold != null) ...[
+          const SizedBox(height: 10),
+          Text(
+            t.stockThresholdValue(
+              stockAmountText(
+                t,
+                widget.container.lowThreshold!,
+                widget.container.unit,
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 10),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: VitalButton.secondary(
+            onPressed: busy || pending != null
+                ? null
+                : () => context.push(
+                    '/stock/${widget.container.personId}/adjust/${widget.container.id}?notices=true',
                   ),
-                ),
-        ),
-        VitalButton.secondary(
-          onPressed: busy || pending != null
-              ? null
-              : () => context.push(
-                  '/stock/${widget.container.personId}/adjust/${widget.container.id}?notices=true',
-                ),
-          child: Text(t.edit),
+            child: Text(t.edit),
+          ),
         ),
         if (error != null) Semantics(liveRegion: true, child: Text(error!)),
         if (pending != null)

@@ -7284,5 +7284,65 @@
   "screenRecordSkipNote": "Skip is available on Today for a scheduled dose.",
   "@screenRecordSkipNote": {
     "description": "Explains that skip belongs to a planned occurrence, not this generic route."
+  },
+  "screenStockActionNeeded": "Action needed",
+  "@screenStockActionNeeded": {
+    "description": "Stock screen. Section heading for whole-collection low and refill notices, ordered by urgency."
+  },
+  "screenStockAddAllHelp": "Open a substance to add its container.",
+  "@screenStockAddAllHelp": {
+    "description": "Stock screen. A container needs the saved substance identity, so the unscoped vault opens the substance list."
+  },
+  "screenStockAddHeading": "Add container",
+  "@screenStockAddHeading": {
+    "description": "Stock screen. Heading for the manual container section. The visible command stays Add."
+  },
+  "screenStockAddItemHelp": "Add a physical container for this substance.",
+  "@screenStockAddItemHelp": {
+    "description": "Stock screen. Manual container creation for the substance this vault is scoped to."
+  },
+  "screenStockArchived": "This profile is archived. Stock is read only.",
+  "@screenStockArchived": {
+    "description": "Stock screen. Archived profiles keep their balances visible without stock or notice changes."
+  },
+  "screenStockContainers": "Active containers",
+  "@screenStockContainers": {
+    "description": "Stock screen. Section heading for the bounded container page."
+  },
+  "screenStockGaps": "Pack scanning, batch lots, expiry, capacity and runout forecasts are not available yet.",
+  "@screenStockGaps": {
+    "description": "Stock screen. Names unavailable D13 to D15 capabilities; never presents example lot, expiry or forecast data."
+  },
+  "screenStockLoadedOnly": "Only the loaded page is shown.",
+  "@screenStockLoadedOnly": {
+    "description": "Stock screen. Truthful paging caption because no whole-collection stock filter is applied."
+  },
+  "screenStockMoreNotices": "More containers need attention.",
+  "@screenStockMoreNotices": {
+    "description": "Stock screen. Further notice rows exist beyond the shown ones."
+  },
+  "screenStockNoContainers": "No containers",
+  "@screenStockNoContainers": {
+    "description": "Stock screen. Empty state heading when no stock containers are stored."
+  },
+  "screenStockNoContainersHelp": "Add a container when you need to track its supply.",
+  "@screenStockNoContainersHelp": {
+    "description": "Stock screen. Empty state help. Stock stays optional."
+  },
+  "screenStockNoticesAction": "Notices",
+  "@screenStockNoticesAction": {
+    "description": "Stock screen. Opens the existing notice settings route for this container."
+  },
+  "screenStockStocked": "Stocked",
+  "@screenStockStocked": {
+    "description": "Stock screen. Status when a known balance has no low, refill or unknown notice."
+  },
+  "screenStockUnavailable": "Unavailable",
+  "@screenStockUnavailable": {
+    "description": "Stock screen. The aggregate stock total could not be calculated; this is not zero."
+  },
+  "screenStockUnknown": "Unknown",
+  "@screenStockUnknown": {
+    "description": "Stock screen. The remaining balance is unknown; this is not zero."
   }
 }
