@@ -11,9 +11,10 @@ import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/ui/vital_ui.dart';
 
-import 'vital_app_test.dart' show appTest, launch, runIo, settle;
+import 'vital_app_test.dart' show appTest, launch, runIo, settle, waitForText;
 
 const snapshots = String.fromEnvironment('VITAL_UI_SNAPSHOTS');
+const snapshotRoutes = String.fromEnvironment('VITAL_UI_ROUTES');
 
 void main() {
   setUpAll(() async {
@@ -131,10 +132,34 @@ void main() {
           'recorded': '/recorded',
           'item-history': '/item/${items.first.id}',
         };
-        for (final route in routes.entries) {
+        final selectedRoutes = snapshotRoutes.isEmpty
+            ? routes.keys.toSet()
+            : snapshotRoutes.split(',').toSet();
+        expect(selectedRoutes.difference(routes.keys.toSet()), isEmpty);
+        for (final route in routes.entries.where(
+          (route) => selectedRoutes.contains(route.key),
+        )) {
           debugPrint('Visual check: ${mode.name} ${route.key}');
           router.go(route.value);
           await settle(tester);
+          if (route.key == 'substances') {
+            await waitForText(tester, 'Magnesium Glycinate');
+            await waitForText(tester, 'No stock recorded.');
+            final loaded = Stopwatch()..start();
+            while (find.text('No stock recorded.').evaluate().length <
+                items.length) {
+              if (loaded.elapsed > const Duration(seconds: 10)) {
+                throw TestFailure(
+                  'Substance summaries did not finish loading.',
+                );
+              }
+              await runIo(
+                tester,
+                () => Future<void>.delayed(const Duration(milliseconds: 5)),
+              );
+              await tester.pumpAndSettle();
+            }
+          }
           expect(
             tester.takeException(),
             isNull,

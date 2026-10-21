@@ -9,7 +9,7 @@ import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
 import '../plans/plan_providers.dart';
 import '../products/product_widgets.dart' show ProductLabelView;
-import '../stock/stock_widgets.dart' show StockBalanceText, stockAmountNumber;
+import '../stock/stock_widgets.dart' show stockAmountNumber;
 import 'substance_summary_providers.dart';
 
 /// Reusable live summary for one stored substance.
@@ -86,8 +86,6 @@ class _SummaryFailure extends StatelessWidget {
   }
 }
 
-/// Weekly pages keep every container's own unit and strength separate while
-/// truncation stays explicit in both compact and detailed modes.
 class _Schedules extends ConsumerWidget {
   const _Schedules({
     required this.plans,
@@ -617,19 +615,29 @@ class _ContainerRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (detailed)
-            Text(container.label)
-          else
+            VitalMetric(
+              label: container.label,
+              value:
+                  container.balance.value == null ||
+                      container.balance.limitReached
+                  ? null
+                  : shortBalance(t),
+              detail: t.stockStrengthValue(container.strength.label),
+            )
+          else ...[
             Text(
               t.designSubstancesContainerEntry(
                 container.label,
                 shortBalance(t),
               ),
             ),
-          Text(t.stockStrengthValue(container.strength.label)),
+            Text(t.stockStrengthValue(container.strength.label)),
+          ],
           Wrap(spacing: 12, runSpacing: 8, children: _badges(context)),
           if (detailed && container.productLabel != null)
             ProductLabelView(label: container.productLabel!),
-          if (detailed) StockBalanceText(container: container),
+          if (detailed && container.balance.limitReached) Text(t.stockLimit),
+          if (detailed && container.balance.isDeficit) Text(t.stockDeficit),
         ],
       ),
     );

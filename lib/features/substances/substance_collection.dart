@@ -1,4 +1,4 @@
-import 'package:flutter/services.dart' show LogicalKeyboardKey, TextInputAction;
+import 'package:flutter/services.dart' show TextInputAction;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +10,7 @@ import '../../l10n/app_localizations.dart';
 import '../recording/record_pages.dart' show LoadFailure;
 import '../../ui/vital_ui.dart';
 import '../catalogue/item_types.dart' show itemTypeProvider;
+import 'substance_summary.dart';
 
 /// One page key of the bounded Substances list. The 51st row of a page only
 /// reveals the next page; search and the type filter run over the whole stored
@@ -292,61 +293,15 @@ class SubstanceIdentityCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Semantics(
-              button: true,
-              label: t.designSubstancesOpenItem(item.name),
-              onTap: () => _open(context),
-              child: ExcludeSemantics(
-                child: FocusableActionDetector(
-                  mouseCursor: SystemMouseCursors.click,
-                  shortcuts: const {
-                    SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
-                    SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-                  },
-                  actions: {
-                    ActivateIntent: CallbackAction<ActivateIntent>(
-                      onInvoke: (_) {
-                        _open(context);
-                        return null;
-                      },
-                    ),
-                  },
-                  child: Builder(
-                    builder: (context) {
-                      // The shared focus ring marks the keyboard focus on the
-                      // identity row; it appears only for keyboard focus and
-                      // keeps the tap and activation behaviour unchanged.
-                      final focused = Focus.of(context).hasFocus;
-                      return FocusOutline(
-                        focused: focused,
-                        borderRadius: BorderRadius.circular(12),
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => _open(context),
-                          child: Container(
-                            constraints: const BoxConstraints(minHeight: 48),
-                            alignment: AlignmentDirectional.centerStart,
-                            child: VitalRecordHeader(
-                              title: item.name,
-                              subtitle: t.itemDetails(
-                                item.form,
-                                item.type,
-                                item.unit,
-                              ),
-                              trailing: const Icon(LucideIcons.chevronRight),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
+            VitalCompactRow(
+              title: item.name,
+              subtitle: t.itemDetails(item.form, item.type, item.unit),
+              trailing: const Icon(LucideIcons.chevronRight),
+              icon: LucideIcons.pill,
+              onPressed: () => _open(context),
             ),
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: VitalBadge(item.type),
-            ),
+            const SizedBox(height: 12),
+            SubstanceSummary(item: item),
             const SizedBox(height: 12),
             Wrap(
               spacing: 12,

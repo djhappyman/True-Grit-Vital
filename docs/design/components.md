@@ -20,6 +20,9 @@ The owner selected the strongest components from the [Stitch references](stitch/
 | `VitalButton` | Primary, secondary or destructive shadcn command, including pending state. |
 | `VitalSegments` | Short mutually exclusive choices with accessible selection and keyboard behaviour. |
 | `VitalBadge` | A factual, labelled status. Tone supplements the text. |
+| `VitalCompactRow` | A wrapping identity/summary row with optional keyboard-accessible activation and a visible focus ring. Trailing content stays non-interactive when the whole row is an action. |
+| `VitalMetric` | A complete labelled value with optional detail; an unknown value stays explicitly unknown. |
+| `VitalProgress` | A factual proportion with visible values and denominator; `noTotal` and `unknown` show explanatory text without a progress bar. |
 | `VitalNotice` | Information or a problem kept together with its recovery action. |
 | `VitalEmptyState` | Clear orientation and an optional next action for an empty collection. |
 | `VitalIconTile` | Consistent decorative icon container beside a meaningful label. |
@@ -27,6 +30,8 @@ The owner selected the strongest components from the [Stitch references](stitch/
 | `VitalType`, `VitalLayout` | Semantic typography and shared spacing/geometry. |
 
 `EntryPage`, `Heading` and `PageContent` remain compatibility adapters for existing features. New features should use the shared UI entry point directly. Settings retain their established semantic navigation/toggle rows within `VitalPanel` groups.
+
+`SubstanceSummary(item: ..., detailed: ...)` in `lib/features/substances/substance_summary.dart` supplies bounded live schedule, next-dose and per-container stock information. It renders content inside the caller's container, preserves units and partial states, and uses the existing resolver rather than inventing dates or dose equivalents.
 
 ## A feature screen
 
@@ -73,3 +78,5 @@ Reference the relevant Stitch screen and explain which shared components it info
 The screenshots contain generated example data and some invented capabilities. Implement controls only for behaviour available in the repo. Review changes against the functional specification as well as the visual references.
 
 Run `./tool/flutterw test --no-pub test/visual_framework_test.dart test/design_system_test.dart` for the shared framework checks. To capture synthetic screen previews, add `--dart-define=VITAL_UI_SNAPSHOTS=output/ui-review` to that command. Native device accessibility and performance require separate verification.
+
+For a focused capture, add `--dart-define=VITAL_UI_ROUTES=substances` (or comma-separated route keys from the visual test). Omitting it checks every listed route; unknown keys fail instead of silently skipping the check.

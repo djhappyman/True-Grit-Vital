@@ -454,6 +454,10 @@ void main() {
   ) async {
     await launchCollection(tester, [('Ibuprofen', 'Medicine')]);
     expect(visibleFocusRings(tester), isZero);
+    // shadcn follows the platform highlight mode: keyboard traversal enables
+    // the focus ring, while a touch or programmatic focus need not show one.
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await settle(tester);
     final node = Focus.maybeOf(tester.element(find.text('Ibuprofen').first));
     expect(node, isNotNull);
     node!.requestFocus();
