@@ -136,6 +136,26 @@ final class _HistorySql {
   final List<Object?> args;
 }
 
+/// One bounded transaction result for an inspection splice.
+///
+/// [entry] is the entry's current stored version, read through the same
+/// branch SQL and combined parent match as `timeline`, so applying it can
+/// never regress a window to an earlier revision and can never put a row in
+/// that no longer matches the filters. A null resolution means the entry no
+/// longer resolves inside the filtered snapshot.
+final class ResolvedHistoryEntry {
+  const ResolvedHistoryEntry({
+    required this.entry,
+    required this.queryIdentity,
+    required this.schemaVersion,
+    required this.datasetGeneration,
+  });
+  final TimelineEntry entry;
+  final String queryIdentity;
+  final int schemaVersion;
+  final String datasetGeneration;
+}
+
 extension HistoryRecordStore on RecordStore {
   Future<void> _writeEventHistoryBounds(EventRecord event) async {
     await _writeHistoryEventBounds(_db, event);
@@ -406,19 +426,39 @@ extension HistoryRecordStore on RecordStore {
     return rows.isEmpty ? null : rows.single;
   }
 
-  /// True when one parent entry still resolves inside the same filtered
-  /// snapshot as `timeline`, so an inspection refresh can splice it where it
-  /// stands. Shared predicates cover scope, dates, item, type, unit, event
-  /// boundaries and the combined parent match; a row that left the filters
-  /// returns false instead of being spliced in outside them.
-  Future<bool> historyEntryInQuery(TimelineQuery query, TimelineEntryId id) =>
-      _db.transaction(() async {
-        final branches = await _historyBranches(query);
-        for (final b in branches) {
-          if (await _timelineRow(b, id.sortKey) != null) return true;
-        }
-        return false;
-      });
+  /// The entry's current version, resolved through the same branch SQL and
+  /// combined parent match as `timeline`, inside one transaction.
+  ///
+  /// Used by the page's inspection splice so the matched row is the CURRENT
+  /// stored content, not a caller-cached revision: a correction, void or
+  /// move between the caller's earlier fetch and this read returns the fresh
+  /// row, or null when the entry no longer resolves inside the filtered
+  /// snapshot. One read avoids any membership-then-fetch snapshot race.
+  Future<ResolvedHistoryEntry?> historyEntrySnapshot(
+    TimelineQuery query,
+    TimelineEntryId id,
+  ) => _db.transaction(() async {
+    final branches = await _historyBranches(query);
+    Map<String, Object?>? found;
+    for (final b in branches) {
+      final row = await _timelineRow(b, id.sortKey);
+      if (row != null) {
+        found = row;
+        break;
+      }
+    }
+    if (found == null) return null;
+    final entry = (await _historyLoad([found], query)).single;
+    if (entry.id.sortKey != id.sortKey) {
+      throw const TimelineModelException('page_duplicate');
+    }
+    return ResolvedHistoryEntry(
+      entry: entry,
+      queryIdentity: query.identity,
+      schemaVersion: _db.schemaVersion,
+      datasetGeneration: generation,
+    );
+  });
 
   /// One bounded read that resolves [anchor] inside the current filtered
   /// snapshot and returns the parent-first window that starts at it.

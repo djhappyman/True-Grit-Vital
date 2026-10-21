@@ -1,14 +1,44 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:true_grit_vital/app/app_lock.dart';
 import 'package:true_grit_vital/app/history.dart';
+import 'package:true_grit_vital/app/storage.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/history/history_pages.dart';
+import 'package:true_grit_vital/platform/app_auth.dart';
 
 import 'stock_ui_test.dart' show enter;
 import 'vital_app_test.dart' show appTest, launch, runIo, settle, tap;
+
+/// Deterministic fake lock so controller tests can gate on the lock
+/// lifecycle without the platform auth bootstrap.
+final class TestingLockController extends AppLockController {
+  @override
+  AppLockState build() => AppLockState(
+    ready: true,
+    locked: false,
+    enabled: false,
+    availability: AppAuthAvailability.unsupported,
+  );
+}
+
+/// Bounded wait on a live copy of the state so controller tests do not
+/// depend on the number of store turns a re-read needs.
+Future<HistoryState> awaitState(
+  HistoryState Function() read,
+  bool Function(HistoryState state) ready,
+) async {
+  for (var attempt = 0; attempt < 400; attempt++) {
+    final state = read();
+    if (ready(state)) return state;
+    await Future<void>.delayed(const Duration(milliseconds: 25));
+  }
+  throw StateError('the splice window never reached the expected state');
+}
 
 /// Daily offsets keep timestamps distinct so the anchor position is exact.
 Future<List<UseRecord>> seededHistory(
@@ -261,25 +291,371 @@ void main() {
         actualAt: DateTime.utc(2026, 10, 19, 10),
       );
       expect(
-        await store.historyEntryInQuery(
+        await store.historyEntrySnapshot(
           query(),
           TimelineEntryId.record('no-such-record'),
         ),
-        isFalse,
+        isNull,
       );
-      expect(
-        await store.historyEntryInQuery(
-          query(),
-          TimelineEntryId.record(last.id),
-        ),
-        isTrue,
+      final matched = await store.historyEntrySnapshot(
+        query(),
+        TimelineEntryId.record(last.id),
       );
+      expect(matched, isNotNull);
+      expect(matched!.entry.id.value, last.id);
+      expect(matched.queryIdentity, query().identity);
+      expect(matched.datasetGeneration, store.generation);
       expect(
-        await store.historyEntryInQuery(
+        await store.historyEntrySnapshot(
           query(filter: TimelineFilter(fromInstant: DateTime.utc(2026, 11, 1))),
           TimelineEntryId.record(last.id),
         ),
-        isFalse,
+        isNull,
+      );
+    });
+
+    test(
+      'a splice snapshot returns the current revision, never a cached one',
+      () async {
+        final records = [
+          for (var i = 0; i < 2; i++)
+            await store.record(
+              commandId: newCommandId(),
+              itemId: item.id,
+              amount: '${i + 1}',
+              actualAt: DateTime.utc(2026, 10, 19, 10).add(Duration(days: i)),
+            ),
+        ];
+        final page = await store.timeline(query());
+        final old = page.entries.whereType<RecordTimelineEntry>().firstWhere(
+          (entry) => entry.id.value == records[0].id,
+        );
+        expect(old.record.enteredAmount, '1');
+        await store.correct(
+          commandId: newCommandId(),
+          recordId: records[0].id,
+          expectedRevision: records[0].revision,
+          amount: '7',
+          actualAt: records[0].actualAt,
+        );
+        final resolved = await store.historyEntrySnapshot(
+          query(),
+          TimelineEntryId.record(records[0].id),
+        );
+        expect(resolved, isNotNull);
+        expect(resolved!.entry.id.sortKey, old.id.sortKey);
+        expect(resolved.schemaVersion, greaterThanOrEqualTo(1));
+        expect(resolved.datasetGeneration, store.generation);
+        final entry = resolved.entry as RecordTimelineEntry;
+        expect(
+          entry.record.enteredAmount,
+          '7',
+          reason: 'the CURRENT row is returned, not the version at fetch time',
+        );
+        expect(entry.record.revision, greaterThan(old.record.revision));
+      },
+    );
+
+    test(
+      'a splice snapshot withdraws a row voided between fetch and splice',
+      () async {
+        final records = [
+          for (var i = 0; i < 2; i++)
+            await store.record(
+              commandId: newCommandId(),
+              itemId: item.id,
+              amount: '${i + 1}',
+              actualAt: DateTime.utc(2026, 10, 19, 10).add(Duration(days: i)),
+            ),
+        ];
+        await store.voidRecord(
+          commandId: newCommandId(),
+          recordId: records[0].id,
+          expectedRevision: records[0].revision,
+        );
+        expect(
+          await store.historyEntrySnapshot(
+            query(filter: TimelineFilter(status: TimelineStatus.recorded)),
+            TimelineEntryId.record(records[0].id),
+          ),
+          isNull,
+          reason: 'a voided row never stays in a Recorded-only view',
+        );
+        final all = await store.historyEntrySnapshot(
+          query(filter: TimelineFilter(status: TimelineStatus.all)),
+          TimelineEntryId.record(records[0].id),
+        );
+        expect(all, isNotNull);
+        expect((all!.entry as RecordTimelineEntry).record.isVoided, isTrue);
+      },
+    );
+  });
+
+  group('the splice lifecycle gating', () {
+    late Directory dir;
+    late RecordStore store;
+    late SubstanceItem item;
+    final key = List.generate(32, (i) => i + 1);
+    setUp(() async {
+      dir = await Directory.systemTemp.createTemp('vital-splice-gate-');
+      final path = '${dir.path}/db';
+      store = await RecordStore.open(path: path, key: key, isNew: true);
+      item = await store.createItem(
+        commandId: newCommandId(),
+        name: 'Splice gating medicine',
+        form: 'Tablet',
+        unit: 'mg',
+        type: 'Medicine',
+      );
+    });
+    tearDown(() async {
+      await store.close();
+      await dir.delete(recursive: true);
+    });
+
+    ProviderContainer spliceContainer({
+      Completer<ResolvedHistoryEntry?>? gate,
+    }) => ProviderContainer(
+      overrides: [
+        storeLoaderProvider.overrideWithValue(() => Future.value(store)),
+        appLockProvider.overrideWith(() => TestingLockController()),
+        if (gate != null)
+          historyEntrySnapshotProvider.overrideWithValue(
+            (query, id) => gate.future,
+          ),
+      ],
+    );
+
+    test(
+      'a late splice across a reconfigure and a lock does not win',
+      () async {
+        final records = [
+          for (var i = 0; i < 3; i++)
+            await store.record(
+              commandId: newCommandId(),
+              itemId: item.id,
+              amount: '${i + 1}',
+              actualAt: DateTime.utc(
+                2026,
+                10,
+                19,
+                10,
+              ).subtract(Duration(days: i)),
+            ),
+        ];
+        final gate = Completer<ResolvedHistoryEntry?>();
+        final container = spliceContainer(gate: gate);
+        addTearDown(container.dispose);
+        final provider = historyControllerProvider('late-splice');
+        await container.read(recordStoreProvider.future);
+        addTearDown(container.listen(provider, (_, _) {}).close);
+        final controller = container.read(provider.notifier);
+        await controller.configure(
+          TimelineQuery(filter: TimelineFilter(), displayZone: 'UTC'),
+        );
+        final state = await awaitState(() => container.read(provider), (state) {
+          final row = state.entries
+              .whereType<RecordTimelineEntry>()
+              .where((entry) => entry.id.value == records[1].id)
+              .firstOrNull;
+          return !state.loading && row != null;
+        });
+        final old = state.entries.whereType<RecordTimelineEntry>().firstWhere(
+          (entry) => entry.id.value == records[1].id,
+        );
+        // The live record is corrected again while the splice resolution
+        // waits on the injected seam.
+        await store.correct(
+          commandId: newCommandId(),
+          recordId: records[1].id,
+          expectedRevision: records[1].revision,
+          amount: '7',
+          actualAt: records[1].actualAt,
+        );
+        final splice = controller.spliceEntry(old);
+        final moved = TimelineQuery(
+          displayZone: 'UTC',
+          filter: TimelineFilter(status: TimelineStatus.skipped),
+        );
+        await controller.configure(moved);
+        await awaitState(() => container.read(provider), (state) {
+          return state.query?.identity == moved.identity && !state.loading;
+        });
+        container.read(appLockProvider.notifier).lock();
+        gate.complete(
+          ResolvedHistoryEntry(
+            entry: old,
+            queryIdentity: state.query!.identity,
+            schemaVersion: state.schemaVersion,
+            datasetGeneration: store.generation,
+          ),
+        );
+        await splice;
+        final finalState = container.read(provider);
+        expect(
+          finalState.error,
+          isNull,
+          reason: 'the superseded splice must not park a stale row or error',
+        );
+        expect(finalState.query?.identity, moved.identity);
+        expect(
+          finalState.entries.every((entry) => entry.id.value != records[1].id),
+          isTrue,
+          reason:
+              'the locked window stays empty; the stale splice never applies',
+        );
+      },
+    );
+
+    test(
+      'a splice resolved at a superseded generation cannot regress a row',
+      () async {
+        final records = [
+          for (var i = 0; i < 2; i++)
+            await store.record(
+              commandId: newCommandId(),
+              itemId: item.id,
+              amount: '${i + 1}',
+              actualAt: DateTime.utc(2026, 10, 19, 10).add(Duration(days: i)),
+            ),
+        ];
+        final gate = Completer<ResolvedHistoryEntry?>();
+        final container = spliceContainer(gate: gate);
+        addTearDown(container.dispose);
+        final provider = historyControllerProvider('gate-generation');
+        await container.read(recordStoreProvider.future);
+        addTearDown(container.listen(provider, (_, _) {}).close);
+        await container
+            .read(provider.notifier)
+            .configure(
+              TimelineQuery(filter: TimelineFilter(), displayZone: 'UTC'),
+            );
+        final seeded = await awaitState(() => container.read(provider), (
+          state,
+        ) {
+          final row = state.entries
+              .whereType<RecordTimelineEntry>()
+              .where((entry) => entry.id.value == records[0].id)
+              .firstOrNull;
+          return !state.loading && row != null;
+        });
+        final cached = seeded.entries
+            .whereType<RecordTimelineEntry>()
+            .firstWhere((entry) => entry.id.value == records[0].id);
+        expect(cached.record.enteredAmount, '1');
+        // The record is corrected while the splice resolution waits on the
+        // injected seam; the resolution then arrives holding the stale cached
+        // row under a generation the store no longer reports.
+        await store.correct(
+          commandId: newCommandId(),
+          recordId: records[0].id,
+          expectedRevision: records[0].revision,
+          amount: '7',
+          actualAt: records[0].actualAt,
+        );
+        // The live window first reflects the correction through the bounded
+        // watch; the splice candidate stays on the superseded row.
+        final corrected = await awaitState(() => container.read(provider), (
+          state,
+        ) {
+          final current = state.entries
+              .whereType<RecordTimelineEntry>()
+              .where((entry) => entry.id.value == records[0].id)
+              .firstOrNull;
+          return !state.loading &&
+              current != null &&
+              current.record.enteredAmount == '7';
+        });
+        final splice = container.read(provider.notifier).spliceEntry(cached);
+        gate.complete(
+          ResolvedHistoryEntry(
+            entry: cached,
+            queryIdentity: corrected.query!.identity,
+            schemaVersion: corrected.schemaVersion,
+            datasetGeneration: 'superseded-generation',
+          ),
+        );
+        await splice;
+        final after = container.read(provider);
+        expect(after.query?.identity, seeded.query?.identity);
+        final row = after.entries.whereType<RecordTimelineEntry>().firstWhere(
+          (entry) => entry.id.value == records[0].id,
+        );
+        expect(
+          row.record.enteredAmount,
+          '7',
+          reason: 'a superseded splice never regresses the corrected row',
+        );
+        expect(row.record.revision, greaterThan(cached.record.revision));
+      },
+    );
+
+    test('a limit-one anchored window re-mints its continuation when rows appear below', () async {
+      final windowed = TimelineQuery(
+        filter: TimelineFilter(),
+        displayZone: 'UTC',
+        limit: 1,
+      );
+      final newer = await store.record(
+        commandId: newCommandId(),
+        itemId: item.id,
+        amount: '1',
+        actualAt: DateTime.utc(2026, 10, 19, 10),
+      );
+      final older = await store.record(
+        commandId: newCommandId(),
+        itemId: item.id,
+        amount: '2',
+        actualAt: DateTime.utc(2026, 10, 18, 10),
+      );
+      final container = spliceContainer();
+      addTearDown(container.dispose);
+      final provider = historyControllerProvider('limit-one');
+      await container.read(recordStoreProvider.future);
+      addTearDown(container.listen(provider, (_, _) {}).close);
+      final controller = container.read(provider.notifier);
+      await controller.configure(windowed);
+      await awaitState(() => container.read(provider), (state) {
+        return !state.loading && state.entries.isNotEmpty;
+      });
+      final olderEntry =
+          (await store.timeline(
+                TimelineQuery(filter: TimelineFilter(), displayZone: 'UTC'),
+              )).entries
+              .whereType<RecordTimelineEntry>()
+              .firstWhere((entry) => entry.id.value == older.id);
+      await controller.seek(olderEntry);
+      await awaitState(() => container.read(provider), (state) {
+        return state.anchored && state.entries.single.id.value == older.id;
+      });
+      expect(container.read(provider).next, isNull);
+      // A further matching row is recorded below the anchored window: the
+      // aligned limit-one emission cannot carry it, so the window must
+      // expose the continuation instead of leaving Next null forever.
+      final added = await store.record(
+        commandId: newCommandId(),
+        itemId: item.id,
+        amount: '3',
+        actualAt: DateTime.utc(2026, 10, 17, 10),
+      );
+      await awaitState(
+        () => container.read(provider),
+        (state) => state.next != null,
+      );
+      expect(container.read(provider).next, isNotNull);
+      expect(newer.revision, greaterThan(0), reason: 'fixture sanity');
+      await controller.older();
+      final merged = await awaitState(() => container.read(provider), (state) {
+        return state.entries.length == 2 && !state.olderLoading;
+      });
+      expect(merged.entries.map((entry) => entry.id.value), [
+        older.id,
+        added.id,
+      ]);
+      expect(
+        merged.entries.map((entry) => entry.id.value).toSet().length,
+        2,
+        reason: 'no duplicate or lost matching rows at the limit-one anchor',
       );
     });
   });
@@ -758,6 +1134,195 @@ void main() {
         reason: 'the in-place voided update needs no refresh path',
       );
       expect(find.textContaining('This entry moved to'), findsOneWidget);
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  appTest('a stale splice cannot regress a record corrected again after it', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final record = (await runIo(tester, () async {
+      final records = await seededHistory(f.store);
+      return records[20];
+    }))!;
+    // The row version captured before the inspections: the candidate a
+    // delayed or stale splice could splice back.
+    final stale = (await runIo(tester, () async {
+      final initial = await f.store.timeline(
+        TimelineQuery(filter: TimelineFilter(), displayZone: 'UTC'),
+      );
+      return initial.entries.whereType<RecordTimelineEntry>().firstWhere(
+        (entry) => entry.id.value == record.id,
+      );
+    }))!;
+    f.container.read(routerProvider).go('/history');
+    await settle(tester);
+    await settledWindow(
+      tester,
+      f,
+      (state) =>
+          state.query != null &&
+          !state.loading &&
+          state.entries.any((entry) => entry.id.value == record.id),
+    );
+    await inspectCard(tester, record);
+    await tap(tester, 'Correct');
+    await enter(tester, 'Amount', '7');
+    await tap(tester, 'Save');
+    await settledWindow(tester, f, (state) {
+      final row = state.entries
+          .whereType<RecordTimelineEntry>()
+          .where((entry) => entry.id.value == record.id)
+          .firstOrNull;
+      return row != null && row.record.enteredAmount == '7';
+    });
+    // A second correction lands while the stale candidate stays cached:
+    // a stale splice at this point must not regress revision, amount or date.
+    final current = (await runIo(tester, () async {
+      final now = (await f.store.recordById(record.id))!;
+      await f.store.correct(
+        commandId: newCommandId(),
+        recordId: record.id,
+        expectedRevision: now.revision,
+        amount: '9',
+        actualAt: now.actualAt,
+        expectedPersonRevision: 2,
+      );
+      return now;
+    }))!;
+    await runIo(
+      tester,
+      () => f.container
+          .read(
+            historyControllerProvider(currentLocation(f.container).toString())
+                .notifier,
+          )
+          .spliceEntry(stale),
+    );
+    final finalState = await settledWindow(tester, f, (state) {
+      final row = state.entries
+          .whereType<RecordTimelineEntry>()
+          .where((entry) => entry.id.value == record.id)
+          .firstOrNull;
+      return row != null && row.record.enteredAmount == '9';
+    });
+    expect(finalState.stale, isFalse);
+    final subject = finalState.entries
+        .whereType<RecordTimelineEntry>()
+        .firstWhere((entry) => entry.id.value == record.id);
+    expect(subject.record.enteredAmount, '9');
+    expect(subject.record.revision, greaterThan(stale.record.revision));
+    expect(subject.record.actualAt.toUtc(), current.actualAt.toUtc());
+    expect(
+      find.textContaining('This entry moved to'),
+      findsNothing,
+      reason: 'the date never moved',
+    );
+    await settle(tester);
+    expect(tester.takeException(), isNull);
+  });
+
+  appTest(
+    'an anchor leaving the snapshot while anchored drops the moved View and shows refresh',
+    (tester) async {
+      final f = await launch(tester);
+      final records = (await runIo(tester, () => seededWindow(f.store)))!;
+      final record = records[2];
+      f.container
+          .read(routerProvider)
+          .go(
+            '/history?from=2026-10-02T00:00:00.000Z&before=2026-10-06T00:00:00.000Z',
+          );
+      await settle(tester);
+      await settledWindow(
+        tester,
+        f,
+        (state) =>
+            state.query != null &&
+            !state.loading &&
+            state.entries.any((entry) => entry.id.value == record.id),
+      );
+      // Move the entry to another day INSIDE the window: View reloads the
+      // anchored window at its new position.
+      await inspectCard(tester, record);
+      await tap(tester, 'Correct');
+      await enter(tester, 'Actual date', '2026-10-02');
+      await tap(tester, 'Save');
+      await settledWindow(
+        tester,
+        f,
+        (state) =>
+            state.query != null &&
+            !state.loading &&
+            state.entries.isNotEmpty &&
+            // The corrected position stays in-filter, so the visible top
+            // window may either keep the moved row withdrawn or re-land
+            // it at its corrected timestamp. Either way the window must
+            // not keep standing for the superseded October 4 row.
+            state.entries.every(
+              (entry) =>
+                  entry.id.value != record.id ||
+                  entry.occurredAt.toUtc() == DateTime.utc(2026, 10, 2, 10),
+            ),
+      );
+      expect(find.textContaining('This entry moved to'), findsOneWidget);
+      final jump = find.text('View').first;
+      await tester.ensureVisible(jump);
+      await settle(tester);
+      await tester.tap(jump);
+      final anchored = await settledWindow(
+        tester,
+        f,
+        (state) =>
+            state.anchored &&
+            !state.loading &&
+            state.entries.isNotEmpty &&
+            !state.anchorUnavailable,
+      );
+      expect(anchored.entries.first.id.sortKey, 'r:${record.id}');
+      // The anchor is corrected again to a day OUTSIDE the applied window
+      // while the anchored window is visible: the bounded anchored watch
+      // re-resolves the anchor, finds it out of the snapshot, and the
+      // window must show refresh instead of an out-of-filter row or a
+      // moved View built on its stored row.
+      final current = (await runIo(
+        tester,
+        () => f.store.recordById(record.id),
+      ))!;
+      await runIo(
+        tester,
+        () => f.store.correct(
+          commandId: newCommandId(),
+          recordId: record.id,
+          expectedRevision: current.revision,
+          amount: current.enteredAmount,
+          actualAt: DateTime.utc(2026, 9, 1, 10),
+          expectedPersonRevision: 2,
+        ),
+      );
+      final after = await settledWindow(
+        tester,
+        f,
+        (state) => state.anchored && state.stale && state.anchorUnavailable,
+      );
+      await settle(tester);
+      expect(
+        after.entries.any((entry) => entry.id.value == record.id),
+        isFalse,
+        reason: 'the out-of-filter row is never kept visible',
+      );
+      expect(
+        find.textContaining('This entry moved to'),
+        findsNothing,
+        reason: 'the unavailable anchor stops advertising View',
+      );
+      expect(
+        find.textContaining('History changed'),
+        findsOneWidget,
+        reason: 'the refresh path stays offered without widening filters',
+      );
       await settle(tester);
       expect(tester.takeException(), isNull);
     },
