@@ -112,60 +112,54 @@ void main() {
     },
   );
 
-  test(
-    'a capture taken after adoption plus a legacy discard keeps the adopted intent',
-    () async {
-      final legacy = await draftTo(legacyId, 'notices', operation: 'op-late');
-      await store.saveDraft(legacy);
-      await store.relocateLegacyStockNoticesDraft(
-        legacyId: legacyId,
-        destinationId: variantId,
-        personId: meId,
-        targetId: container.id,
-      );
-      // A still-mounted legacy form captures after the move. Capture mutates
-      // the in-memory operation map even before persistence is attempted.
-      store.captureDraftCheckpoint(legacy);
-      await store.discardDraft(legacyId);
-      expect(await store.draftById(variantId), isNotNull);
-      expect(await store.operationCommitted('op-late'), isFalse);
-      expect(await store.draftById(legacyId), isNull);
-    },
-  );
+  test('a capture taken after adoption plus a legacy discard keeps the adopted intent', () async {
+    final legacy = await draftTo(legacyId, 'notices', operation: 'op-late');
+    await store.saveDraft(legacy);
+    await store.relocateLegacyStockNoticesDraft(
+      legacyId: legacyId,
+      destinationId: variantId,
+      personId: meId,
+      targetId: container.id,
+    );
+    // A still-mounted legacy form captures after the move. Capture mutates
+    // the in-memory operation map even before persistence is attempted.
+    store.captureDraftCheckpoint(legacy);
+    await store.discardDraft(legacyId);
+    expect(await store.draftById(variantId), isNotNull);
+    expect(await store.operationCommitted('op-late'), isFalse);
+    expect(await store.draftById(legacyId), isNull);
+  });
 
-  test(
-    'a fresh quantity draft on a different operation is the only casualty of a legacy discard',
-    () async {
-      final legacy = await draftTo(legacyId, 'notices', operation: 'op-ab');
-      await store.saveDraft(legacy);
-      await store.relocateLegacyStockNoticesDraft(
-        legacyId: legacyId,
-        destinationId: variantId,
-        personId: meId,
-        targetId: container.id,
-      );
-      // A late legacy capture is interleaved with a legitimate fresh
-      // quantity draft created and saved on the shared key afterwards.
-      store.captureDraftCheckpoint(legacy);
-      await store.saveDraft(
-        await draftTo(legacyId, 'restock', operation: 'op-fresh'),
-      );
-      await store.discardDraft(legacyId);
-      // A discarded quantity intent is invalidly invalidated; the adopted
-      // notices intent stays pending and untouched.
-      await expectLater(
-        store.operationCommitted('op-fresh'),
-        throwsA(isA<CommandConflict>()),
-      );
-      expect(await store.draftById(variantId), isNotNull);
-      final probes = await (
-        store.operationCommitted('op-ab'),
-        store.draftById(legacyId),
-      ).wait;
-      expect(probes.$2, isNull); // no tombstone of the adopted operation
-      expect(probes.$1, isFalse);
-    },
-  );
+  test('a fresh quantity draft on a different operation is the only casualty of a legacy discard', () async {
+    final legacy = await draftTo(legacyId, 'notices', operation: 'op-ab');
+    await store.saveDraft(legacy);
+    await store.relocateLegacyStockNoticesDraft(
+      legacyId: legacyId,
+      destinationId: variantId,
+      personId: meId,
+      targetId: container.id,
+    );
+    // A late legacy capture is interleaved with a legitimate fresh
+    // quantity draft created and saved on the shared key afterwards.
+    store.captureDraftCheckpoint(legacy);
+    await store.saveDraft(
+      await draftTo(legacyId, 'restock', operation: 'op-fresh'),
+    );
+    await store.discardDraft(legacyId);
+    // A discarded quantity intent is invalidly invalidated; the adopted
+    // notices intent stays pending and untouched.
+    await expectLater(
+      store.operationCommitted('op-fresh'),
+      throwsA(isA<CommandConflict>()),
+    );
+    expect(await store.draftById(variantId), isNotNull);
+    final probes = await (
+      store.operationCommitted('op-ab'),
+      store.draftById(legacyId),
+    ).wait;
+    expect(probes.$2, isNull); // no tombstone of the adopted operation
+    expect(probes.$1, isFalse);
+  });
 
   test(
     'old callbacks after the adopted draft was discarded cannot resurrect it',
@@ -217,38 +211,35 @@ void main() {
     expect(adopted.personRevision, (await store.profileById(meId))!.revision);
   });
 
-  test(
-    'the real command behind an adopted intent can still be saved after late callbacks',
-    () async {
-      final legacy = await draftTo(legacyId, 'notices', operation: 'op-real');
-      await store.saveDraft(legacy);
-      store.captureDraftCheckpoint(legacy);
-      await store.relocateLegacyStockNoticesDraft(
-        legacyId: legacyId,
-        destinationId: variantId,
+  test('the real command behind an adopted intent can still be saved after late callbacks', () async {
+    final legacy = await draftTo(legacyId, 'notices', operation: 'op-real');
+    await store.saveDraft(legacy);
+    store.captureDraftCheckpoint(legacy);
+    await store.relocateLegacyStockNoticesDraft(
+      legacyId: legacyId,
+      destinationId: variantId,
+      personId: meId,
+      targetId: container.id,
+    );
+    Object? failure;
+    try {
+      await store.configureStockNotices(
+        commandId: 'op-real',
         personId: meId,
-        targetId: container.id,
+        expectedPersonRevision: (await store.profileById(meId))!.revision,
+        containerId: container.id,
+        expectedContainerRevision: container.revision,
+        expectedGeneration: store.generation,
+        lowThreshold: ExactAmount.parseEntry('0.25'),
+        refillEnabled: container.refillEnabled,
       );
-      Object? failure;
-      try {
-        await store.configureStockNotices(
-          commandId: 'op-real',
-          personId: meId,
-          expectedPersonRevision: (await store.profileById(meId))!.revision,
-          containerId: container.id,
-          expectedContainerRevision: container.revision,
-          expectedGeneration: store.generation,
-          lowThreshold: ExactAmount.parseEntry('0.25'),
-          refillEnabled: container.refillEnabled,
-        );
-      } catch (e) {
-        failure = e;
-      }
-      expect(failure, isNull);
-      expect(await store.operationCommitted('op-real'), isTrue);
-      // The committed command drops its draft row without losing the content.
-      expect(await store.draftById(variantId), isNull);
-      expect(await store.draftById(legacyId), isNull);
-    },
-  );
+    } catch (e) {
+      failure = e;
+    }
+    expect(failure, isNull);
+    expect(await store.operationCommitted('op-real'), isTrue);
+    // The committed command drops its draft row without losing the content.
+    expect(await store.draftById(variantId), isNull);
+    expect(await store.draftById(legacyId), isNull);
+  });
 }

@@ -178,6 +178,11 @@ void main() {
     expect(find.text('Stock notices'), findsOneWidget);
     expect(find.textContaining('This record has changed'), findsOneWidget);
     expect(_entered(tester, 'Low-stock threshold'), isEmpty);
+    expect(
+      tester.widget<TextField>(_field('Low-stock threshold')).enabled,
+      isFalse,
+      reason: 'a foreign draft must stay untouched while the conflict is shown',
+    );
     // The stored foreign draft is untouched: both commands stay whole.
     final stored = await _adjustmentDrafts(tester, f.store);
     expect(stored.single.fields['kind'], 'restock');

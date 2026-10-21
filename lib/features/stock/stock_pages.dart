@@ -731,7 +731,7 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
         !live.isArchived &&
         live.revision == capturedPersonRevision &&
         result.value!.revision == capturedTargetRevision;
-    final enabled = valid && !busy && !uncertain;
+    final enabled = valid && !busy && !uncertain && !conflict;
     return wrap([
       Heading(noticesMode ? t.stockNotices : t.stockAdjust),
       Text(t.profileOwner(ownerLabel(ref, t, widget.personId))),

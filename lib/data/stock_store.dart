@@ -400,9 +400,8 @@ extension StockRecordStore on RecordStore {
     String? legacyOperationId;
     await _db.transaction(() async {
       await _db.customStatement('UPDATE dataset SET generation=generation');
-      if ((await _rows(
-            'SELECT generation FROM dataset',
-          )).single['generation'] !=
+      if ((await _rows('SELECT generation FROM dataset'))
+              .single['generation'] !=
           generation) {
         throw const CommandConflict('generation');
       }
