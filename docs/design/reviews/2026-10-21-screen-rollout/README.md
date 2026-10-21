@@ -81,4 +81,13 @@ Native Flutter captures from the remaining-screen rollout. Designs use the saved
 
 The [route captures](routes/) contain 34 existing routes in both themes. The sweep checks device safe areas, fixed navigation and opaque/reduced-effects layouts using synthetic records. Secondary editors keep their existing forms and shared framework. Missing-record and unavailable-platform states are intentional; the loaded screen captures above provide evidence for their populated counterparts.
 
+## Final verification
+
+- `./tool/flutterw test --reporter expanded`: **1,855 passed**, one existing opt-in skip, no failures.
+- `./tool/flutterw analyze`: no issues. Final changed-test formatting and `git diff --check` passed.
+- All 34 visual-framework routes passed in both themes. Loaded screen-specific captures and narrow/double-text checks are recorded above.
+- The real Secret Service Linux boot test passed encrypted persistence, navigation, structured export, PDF reporting and backup creation. Its temporary namespace and key were removed successfully.
+- Normal Linux debug build and Android debug APK build passed. The Android SDK XML-version warning did not prevent the APK build. Android release signing remains deliberately unconfigured; use `./tool/flutterw run --debug` for development installation.
+- Physical-device screen-reader testing, native notification delivery, production signing and measured glass/performance gates remain open. Host checks do not close them.
+
 Run logs are local under `output/stitch-screen-rollout-2026-10-21/`. The [roadmap](../../roadmap.md) tracks the remaining screens and capability gaps.
