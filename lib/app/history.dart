@@ -110,6 +110,16 @@ class HistoryController extends Notifier<HistoryState> {
   @override
   HistoryState build() {
     ref.watch(recordStoreProvider.select((s) => s.value?.generation));
+    ref.listen(recordStoreProvider, (previous, next) {
+      // While the store is loading, errored or replaced no pending private
+      // work may finish on a retired snapshot; the settled store and the
+      // UI's reconfigured query own the next window state instead.
+      if (next.isLoading || next.hasError) {
+        _epoch++;
+        unawaited(_live?.cancel());
+        _live = null;
+      }
+    });
     ref.onDispose(() {
       _epoch++;
       unawaited(_live?.cancel());
@@ -134,6 +144,16 @@ class HistoryController extends Notifier<HistoryState> {
 
   bool _current(int epoch) =>
       ref.mounted && _epoch == epoch && !ref.read(appLockProvider).locked;
+
+  /// The settled store's dataset identity, or null while the store is
+  /// loading, errored or replaced. A retained loading AsyncValue must never
+  /// be read as the current store, so a retired generation never passes or
+  /// fences any window work.
+  String? get _storeGeneration {
+    final snapshot = ref.read(recordStoreProvider);
+    if (!snapshot.hasValue || snapshot.isLoading) return null;
+    return snapshot.requireValue.generation;
+  }
   Future<void> configure(TimelineQuery query, {bool force = false}) async {
     if (!force && state.query?.identity == query.identity) return;
     final epoch = ++_epoch;
@@ -152,10 +172,11 @@ class HistoryController extends Notifier<HistoryState> {
     final query = state.query;
     if (query == null || !_current(epoch) || !_visible) return;
     final anchored = state.anchored && state.entries.isNotEmpty;
-    // Top windows observe their first page; anchored windows observe the
-    // bounded anchored window of their first row (the anchor) instead of
-    // detaching, so a later correction or deletion still updates the window
-    // or marks it stale through the same filtered snapshot.
+    // The anchored watcher resolves [watched] once at subscribe time: the
+    // actually observed anchor identity, not whatever row happens to come
+    // first later. Withdrawals and staleness must never retire a row behind
+    // the observed identity. A window with no rows has no watched anchor.
+    final watched = state.entries.isNotEmpty ? state.entries.first.id : null;
     void onError(Object error, StackTrace stackTrace) {
       if (!_current(epoch)) return;
       state = HistoryState(
@@ -180,17 +201,19 @@ class HistoryController extends Notifier<HistoryState> {
           .listen((page) {
             if (!_visible ||
                 !_current(epoch) ||
-                page.queryIdentity != state.query?.identity) {
+                page.queryIdentity != state.query?.identity ||
+                page.datasetGeneration != _storeGeneration) {
               return;
             }
-            _applyAnchorPage(page);
+            _applyAnchorPage(page, watched!);
           }, onError: onError);
       return;
     }
     _live = ref.read(historyWatcherProvider)(query.firstPage).listen((page) {
       if (!_visible ||
           !_current(epoch) ||
-          page.queryIdentity != state.query?.identity) {
+          page.queryIdentity != state.query?.identity ||
+          page.datasetGeneration != _storeGeneration) {
         return;
       }
       if (state.entries.isNotEmpty && (!atTop || state.pages > 1)) {
@@ -228,25 +251,59 @@ class HistoryController extends Notifier<HistoryState> {
   /// reordered parents leave the position intact and mark the window stale,
   /// and an anchor that no longer resolves keeps the position with the
   /// refresh path visible instead of silently widening filters.
-  void _applyAnchorPage(TimelineAnchoredPage page) {
+  void _applyAnchorPage(TimelineAnchoredPage page, TimelineEntryId watched) {
     final previous = state, query = previous.query;
     if (query == null) return;
+    if (!page.anchorAvailable) {
+      _markAnchorStale(page, previous, watched);
+      return;
+    }
+    // When the watched anchor was withdrawn earlier, the window's first row
+    // no longer stands for the observed anchor: a fresh emission anchored at
+    // the watched row re-lands the window instead of comparing unrelated
+    // rows, so availability recovers coherently behind the same identity.
+    final recovered =
+        previous.entries.isEmpty ||
+        previous.entries.first.id.sortKey != watched.sortKey;
+    if (recovered) {
+      if (page.entries.isEmpty ||
+          page.entries.first.id.sortKey != watched.sortKey) {
+        // The emission does not stand for a window anchored at the watched
+        // row: keep the withdrawn posture and the refresh path.
+        _markAnchorStale(page, previous, watched);
+        return;
+      }
+      state = HistoryState(
+        query: query,
+        entries: page.entries,
+        next: _cursorFrom(page, query),
+        pages: previous.pages,
+        stale: false,
+        refreshed: previous.refreshed,
+        schemaVersion: page.schemaVersion,
+        datasetGeneration: page.datasetGeneration,
+        anchored: true,
+        anchorUnavailable: false,
+      );
+      return;
+    }
     final window = previous.entries.take(page.entries.length).toList();
     final aligned =
-        page.anchorAvailable &&
         page.entries.length <= previous.entries.length &&
         window.indexed.every(
           (pair) => pair.$2.id.sortKey == page.entries[pair.$1].id.sortKey,
         );
     if (!aligned) {
-      _markAnchorStale(page, previous);
+      _markAnchorStale(page, previous, watched);
       return;
     }
     if (page.entries.length < previous.entries.length) {
       // A shorter emission covers the first page of a wider window: keep the
-      // position untouched unless the observed page itself changed.
+      // position untouched unless the observed page itself changed. The tail
+      // pages are not revalidated by this emission, so an earlier stale
+      // claim stays readable.
       if (_signature(window) == _signature(page.entries)) return;
-      _markAnchorStale(page, previous);
+      _markAnchorStale(page, previous, watched);
       return;
     }
     // The visible window is fully covered by the aligned emission, so the
@@ -254,26 +311,35 @@ class HistoryController extends Notifier<HistoryState> {
     // being retained: a moved single-row anchor keeps Next at its new
     // position, and a page whose hasMore changed exposes the continuation
     // immediately instead of leaving Next null forever.
-    final next = !page.hasMore || page.entries.isEmpty
-        ? null
-        : TimelineCursor.at(
-            occurredAt: page.entries.last.occurredAt,
-            sortKey: page.entries.last.id.sortKey,
-            query: query,
-            schemaVersion: page.schemaVersion,
-            datasetGeneration: page.datasetGeneration,
-          );
+    final next = _cursorFrom(page, query);
     final unchanged =
         _signature(previous.entries) == _signature(page.entries) &&
         ((next == null) == (previous.next == null)) &&
         (next == null || next.encode() == previous.next!.encode());
-    if (unchanged) return;
+    if (unchanged) {
+      // The window already mirrors the current emission, so any earlier
+      // stale claim about it is out of date.
+      if (previous.stale) {
+        state = HistoryState(
+          query: query,
+          entries: previous.entries,
+          next: previous.next,
+          pages: previous.pages,
+          refreshed: previous.refreshed,
+          schemaVersion: previous.schemaVersion,
+          datasetGeneration: previous.datasetGeneration,
+          anchored: true,
+          anchorUnavailable: false,
+        );
+      }
+      return;
+    }
     state = HistoryState(
       query: query,
       entries: page.entries,
       next: next,
       pages: previous.pages,
-      stale: previous.stale,
+      stale: false,
       refreshed: previous.refreshed,
       schemaVersion: page.schemaVersion,
       datasetGeneration: page.datasetGeneration,
@@ -282,19 +348,37 @@ class HistoryController extends Notifier<HistoryState> {
     );
   }
 
-  void _markAnchorStale(TimelineAnchoredPage page, HistoryState previous) {
+  TimelineCursor? _cursorFrom(TimelineAnchoredPage page, TimelineQuery query) =>
+      !page.hasMore || page.entries.isEmpty
+          ? null
+          : TimelineCursor.at(
+              occurredAt: page.entries.last.occurredAt,
+              sortKey: page.entries.last.id.sortKey,
+              query: query,
+              schemaVersion: page.schemaVersion,
+              datasetGeneration: page.datasetGeneration,
+            );
+
+  void _markAnchorStale(
+    TimelineAnchoredPage page,
+    HistoryState previous,
+    TimelineEntryId watched,
+  ) {
     final query = previous.query;
     if (query == null) return;
-    // The anchor row itself no longer resolves inside the filtered snapshot,
-    // so it may never stay visible: withdraw it from the anchored window
-    // (its first row) while the in-filter rows behind it keep their
-    // position and the refresh path is offered.
-    final bool departed =
-        !page.anchorAvailable &&
-        previous.anchored &&
-        previous.entries.isNotEmpty;
-    final entries = departed
-        ? List<TimelineEntry>.unmodifiable(previous.entries.skip(1))
+    // The observed anchor row itself no longer resolves inside the filtered
+    // snapshot, so only an unavailable emission may retire it: withdraw
+    // exactly the watched identity from the anchored window while the
+    // in-filter rows behind it keep their position and the refresh path is
+    // offered. A repeated unavailable emission about the same identity must
+    // never retire an unrelated new first row. An available emission that
+    // misaligned only keeps the position claim, never a row.
+    final entries = !page.anchorAvailable
+        ? List<TimelineEntry>.unmodifiable(
+            previous.entries.where(
+              (entry) => entry.id.sortKey != watched.sortKey,
+            ),
+          )
         : previous.entries;
     state = HistoryState(
       query: query,
@@ -307,7 +391,8 @@ class HistoryController extends Notifier<HistoryState> {
       anchored: true,
       // An emission that says the anchor no longer resolves has the last
       // word, so an unavailable anchor never keeps advertising the moved
-      // View offer built on its stored row.
+      // View offer built on its stored row. A later emission anchored at
+      // the watched row again re-lands the window and clears it.
       anchorUnavailable: previous.anchorUnavailable || !page.anchorAvailable,
     );
   }
@@ -327,7 +412,22 @@ class HistoryController extends Notifier<HistoryState> {
     _visible = value;
     await _live?.cancel();
     _live = null;
-    if (value) _subscribe(_epoch);
+    if (!value) {
+      // A hidden window owns no more pending private work: a seek or splice
+      // captured before the page lost visibility never applies unseen. Lock,
+      // dispose, replacement reload and reconfigure fence the same way.
+      _epoch++;
+      return;
+    }
+    final query = state.query;
+    if (query == null) return;
+    if (state.loading || state.olderLoading) {
+      // An interrupted page or seek read never parks a stuck load: restart
+      // the same filters and offer any position path again.
+      await configure(query.firstPage, force: true);
+      return;
+    }
+    _subscribe(_epoch);
   }
 
   Future<void> refresh() async {
@@ -358,7 +458,13 @@ class HistoryController extends Notifier<HistoryState> {
       final page = await ref.read(historyReaderProvider)(
         query.withCursor(next),
       );
-      if (!_current(epoch) || page.queryIdentity != query.identity) return;
+      if (!ref.mounted || !_current(epoch)) return;
+      final storeGeneration = _storeGeneration;
+      if (storeGeneration == null ||
+          page.datasetGeneration != storeGeneration ||
+          page.queryIdentity != query.identity) {
+        return;
+      }
       final replacing = previous.pages >= maxWindowPages;
       final seen = <String>{};
       final merged = [
@@ -430,7 +536,14 @@ class HistoryController extends Notifier<HistoryState> {
         query,
         anchor.id,
       );
-      if (!_current(epoch) || page.queryIdentity != query.identity) return;
+      if (!ref.mounted || !_current(epoch)) return;
+      final storeGeneration = _storeGeneration;
+      if (storeGeneration == null || page.datasetGeneration != storeGeneration) {
+        // The anchored page resolved on a loading, retired or replaced
+        // store: a later settled re-read owns the window state.
+        return;
+      }
+      if (page.queryIdentity != query.identity) return;
       if (!page.anchorAvailable) {
         state = HistoryState(
           query: query,
@@ -496,6 +609,7 @@ class HistoryController extends Notifier<HistoryState> {
     final query = state.query;
     if (query == null) return;
     final epoch = _epoch, sortKey = updated.id.sortKey;
+    if (!ref.mounted || !_current(epoch)) return;
     if (!state.entries.any((entry) => entry.id.sortKey == sortKey)) return;
     ResolvedHistoryEntry? resolved;
     try {
@@ -508,28 +622,42 @@ class HistoryController extends Notifier<HistoryState> {
       // treat them as outside the snapshot so no unvalidated row stays, and
       // Refresh re-reads through the normal bounded path.
       resolved = null;
+    } on CommandConflict {
+      // The store refuses reads while locked or closing: a later settled
+      // window wins and nothing is spliced here.
+      resolved = null;
     }
-    if (resolved != null) {
-      final store = await ref.read(recordStoreProvider.future);
-      if (store.generation != resolved.datasetGeneration) {
-        // The dataset moved on after the resolution on a replaced store: the
-        // originating job is superseded and a later emission owns the
-        // window state.
-        return;
-      }
-    }
-    if (!_current(epoch) ||
-        !ref.mounted ||
-        state.query?.identity != query.identity) {
+    // After the await and before ANY ref or state access again: a disposed,
+    // locked, hidden-facing replacement epoch or superseded controller never
+    // touches the window.
+    if (!ref.mounted || !_current(epoch)) return;
+    final storeState = ref.read(recordStoreProvider);
+    if (!storeState.hasValue || storeState.isLoading) {
+      // The store that is loading, replaced or errored owns the next window
+      // state: a splice started on the retained previous store is retired.
       return;
     }
+    if (resolved != null &&
+        storeState.requireValue.generation != resolved.datasetGeneration) {
+      // The dataset moved on after the resolution on a replaced store: the
+      // originating job is superseded and a later emission owns the
+      // window state.
+      return;
+    }
+    if (state.query?.identity != query.identity) return;
     final index = state.entries.indexWhere(
       (entry) => entry.id.sortKey == sortKey,
     );
     if (index < 0) return;
+    final visible = state.entries[index];
     if (resolved == null ||
         resolved.queryIdentity != query.identity ||
         resolved.entry.id.sortKey != sortKey) {
+      // A null or mismatched resolution means the entry's row at that
+      // position no longer stands in the current filtered snapshot. A job
+      // that a fresher window emission already superseded with a newer
+      // visible version must never withdraw it.
+      if (_entryVersion(visible) > _entryVersion(updated)) return;
       state = HistoryState(
         query: query,
         entries: List.unmodifiable([
@@ -546,6 +674,34 @@ class HistoryController extends Notifier<HistoryState> {
       );
       return;
     }
+    if (resolved.entry.occurredAt != visible.occurredAt) {
+      // The row changed position while the snapshot read ran: applying it
+      // in place would force an out-of-order row and no repaired cursor, so
+      // the current row is withdrawn and the refresh path is offered for a
+      // bounded re-read instead of a forced reorder.
+      state = HistoryState(
+        query: query,
+        entries: List.unmodifiable([
+          for (final (position, entry) in state.entries.indexed)
+            if (position != index) entry,
+        ]),
+        next: state.next,
+        pages: state.pages,
+        stale: true,
+        schemaVersion: state.schemaVersion,
+        datasetGeneration: state.datasetGeneration,
+        anchored: state.anchored,
+        anchorUnavailable: state.anchorUnavailable,
+      );
+      return;
+    }
+    if (_entryVersion(resolved.entry) < _entryVersion(visible)) {
+      // Same-generation superseded content: the live window already reaches
+      // a newer version of the row, so the stale job is rejected without a
+      // regression to the older revision.
+      return;
+    }
+    if (_signature([resolved.entry]) == _signature([visible])) return;
     state = HistoryState(
       query: query,
       entries: List.unmodifiable([
@@ -562,6 +718,14 @@ class HistoryController extends Notifier<HistoryState> {
       anchorUnavailable: state.anchorUnavailable,
     );
   }
+
+  int _entryVersion(TimelineEntry entry) => switch (entry) {
+    RecordTimelineEntry() => entry.record.revision,
+    CombinedTimelineEntry() => entry.components
+        .map((component) => component.record.revision)
+        .reduce((first, second) => first > second ? first : second),
+    SkippedTimelineEntry() => entry.action.revision,
+  };
 
   /// Removes one visible row whose source no longer resolves, keeping the
   /// window position. Used when a correction removed the browsed entry.

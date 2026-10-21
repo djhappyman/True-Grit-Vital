@@ -437,7 +437,9 @@ extension HistoryRecordStore on RecordStore {
   Future<ResolvedHistoryEntry?> historyEntrySnapshot(
     TimelineQuery query,
     TimelineEntryId id,
-  ) => _db.transaction(() async {
+  ) async {
+    _requireWritable();
+    return _db.transaction(() async {
     final branches = await _historyBranches(query);
     Map<String, Object?>? found;
     for (final b in branches) {
@@ -459,6 +461,7 @@ extension HistoryRecordStore on RecordStore {
       datasetGeneration: generation,
     );
   });
+  }
 
   /// One bounded read that resolves [anchor] inside the current filtered
   /// snapshot and returns the parent-first window that starts at it.
