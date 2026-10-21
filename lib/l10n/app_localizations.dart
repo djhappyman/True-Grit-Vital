@@ -10604,6 +10604,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not available yet. Use Exports for structured data.'**
   String get screenSettingsFhirBody;
+
+  /// Complete form and recorded unit beneath the substance name. The type badge already names the type.
+  ///
+  /// In en, this message translates to:
+  /// **'{form} · {unit}'**
+  String screenOverviewFormUnit(String form, String unit);
+
+  /// Section jump back to the identity and commands at the top of the substance overview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get screenOverviewSectionOverview;
+
+  /// One-word action opening this substance’s existing recorded-use periods.
+  ///
+  /// In en, this message translates to:
+  /// **'Periods'**
+  String get screenOverviewPeriods;
 }
 
 class _AppLocalizationsDelegate

@@ -6862,4 +6862,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get screenSettingsFhirBody =>
       'Not available yet. Use Exports for structured data.';
+
+  @override
+  String screenOverviewFormUnit(String form, String unit) {
+    return '$form · $unit';
+  }
+
+  @override
+  String get screenOverviewSectionOverview => 'Overview';
+
+  @override
+  String get screenOverviewPeriods => 'Periods';
 }

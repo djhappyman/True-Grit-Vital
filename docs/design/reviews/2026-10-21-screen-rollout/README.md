@@ -63,4 +63,11 @@ Native Flutter captures from the remaining-screen rollout. Designs use the saved
 - Lead integration replaced the inherited custom gesture/focus rows with shared shadcn controls and shared surface geometry. Keyboard and accessible activation remain one command per row. Preview badges stack at narrow widths/large text.
 - Lead verification: 74 regression checks, eight hub/capture checks, five framework/safe-area checks and clean analysis. Includes 320/390/430 px double text, route capability guards, keyboard activation, lock/draft and appearance recovery. Physical-device screen-reader/performance gates remain open.
 
+## Substance overview
+
+- [Light](light-substance-overview.png), [dark](dark-substance-overview.png), [full light](light-substance-overview-full.png) and [full dark](dark-substance-overview-full.png) use the saved earlier substance-detail composition on the existing `/substance/:id` route.
+- Identity, Record/Combine/Stock, factual low-stock notices and Overview/Schedule/Stock/History jumps share one page and scroll owner. Saved plan Edit/Add, exact balances, bounded recent records, linked events, product/source context, files and recorded-use periods stay connected.
+- Full identities, quantities, unknown zone, pause, incomplete next-dose calculation and More hints remain visible. No fabricated Active, clinical notes, capacity, runout or on-time values are shown. The secondary page keeps Back navigation.
+- Lead verification: 49 overview/collection/summary regression checks, 18 final overview checks including real section jumps, five framework/capture checks and clean analysis. Includes lock, mounted plan refresh, per-plan edit identity, low-balance routing and narrow/double-text layouts. Physical-device accessibility/performance gates remain open.
+
 Run logs are local under `output/stitch-screen-rollout-2026-10-21/`. The [roadmap](../../roadmap.md) tracks the remaining screens and capability gaps.

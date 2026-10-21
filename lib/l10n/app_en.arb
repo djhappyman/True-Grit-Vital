@@ -8027,5 +8027,9 @@
   "screenOverviewSectionOverview": "Overview",
   "@screenOverviewSectionOverview": {
     "description": "Section jump back to the identity and commands at the top of the substance overview."
+  },
+  "screenOverviewPeriods": "Periods",
+  "@screenOverviewPeriods": {
+    "description": "One-word action opening this substance’s existing recorded-use periods."
   }
 }

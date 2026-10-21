@@ -878,7 +878,7 @@ class _OverviewContext extends StatelessWidget {
             VitalButton.secondary(
               multiline: true,
               onPressed: () => context.push('/use/${item.personId}/${item.id}'),
-              child: Text(t.useHistory),
+              child: Text(t.screenOverviewPeriods),
             ),
           ],
         ),

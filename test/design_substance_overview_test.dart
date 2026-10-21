@@ -15,6 +15,7 @@ import 'package:true_grit_vital/features/substances/substance_overview.dart';
 import 'package:true_grit_vital/platform/device_zone.dart'
     show DeviceZoneObservation;
 import 'package:true_grit_vital/ui/vital_ui.dart';
+import 'package:true_grit_vital/ui/stitch_ui.dart';
 
 import 'private_drafts_ui_test.dart' show FakeAuth;
 import 'vital_app_test.dart'
@@ -127,6 +128,46 @@ Future<({RecordStore store, ProviderContainer container})> launchOverview(
 }
 
 void main() {
+  appTest('overview section jumps scroll the one canonical page', (
+    tester,
+  ) async {
+    final f = await launchOverview(tester);
+    final item = (await runIo(
+      tester,
+      () => f.store.createItem(
+        commandId: newCommandId(),
+        expectedPersonRevision: fixtureRevision,
+        name: 'Section jump item',
+        form: 'Tablet',
+        unit: 'mg',
+        type: 'Medicine',
+      ),
+    ))!;
+    final router = f.container.read(routerProvider);
+    router.go('/substance/${item.id}');
+    await settle(tester);
+    await waitForText(tester, 'Section jump item');
+    final historyJump = find.widgetWithText(StitchButton, 'History');
+    await tester.ensureVisible(historyJump);
+    await settle(tester);
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
+    final before = position.pixels;
+    await tester.tap(historyJump);
+    await settle(tester);
+    expect(position.pixels, greaterThan(before));
+    final historyOffset = position.pixels;
+    expect(router.routerDelegate.state.uri.path, '/substance/${item.id}');
+    final overviewJump = find.widgetWithText(StitchButton, 'Overview');
+    await tester.ensureVisible(overviewJump);
+    await settle(tester);
+    await tester.tap(overviewJump);
+    await settle(tester);
+    expect(position.pixels, lessThan(historyOffset));
+    expect(find.byType(SubstanceOverviewPage), findsOneWidget);
+  });
+
   appTest(
     'overview joins record, schedule, stock, history and context routes',
     (tester) async {
