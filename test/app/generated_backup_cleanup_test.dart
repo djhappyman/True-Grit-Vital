@@ -1048,59 +1048,103 @@ void main() {
       expect(identical(holder.single, replaced), isTrue);
     });
 
-    test('a cancelled capture cleanup failure blocks the preparation', () async {
-      final creation = await _creation(directory!, 'cap', 'a' * 64);
-      final operations = _HarnessOperations(
-        nextCreation: creation,
-        discardOutcomes: [true, false],
+    for (final rebuild in [false, true]) {
+      test(
+        'a pending capture stays owned after ${rebuild ? 'rebuild' : 'lock'}',
+        () async {
+          final creation = await _creation(directory!, 'pending', 'a' * 64);
+          final operations = _HarnessOperations(
+            nextCreation: creation,
+            discardOutcomes: [true, false],
+          );
+          final (:container, :gateway, holder: _) = _harness(operations);
+          final createGate = operations.createGate =
+              Completer<BackupCreation>();
+          final notifier = container.read(backupProvider.notifier);
+          final capture = notifier.create(
+            password: _password,
+            confirmation: _password,
+          );
+          if (rebuild) {
+            container.refresh(backupProvider);
+          } else {
+            container.read(appLockProvider.notifier).lock();
+          }
+          expect(_stateOf(container).creation, isNull);
+          expect(await notifier.releaseForDataChange(), BackupRelease.busy);
+          expect(_cleanups(gateway), 0);
+
+          createGate.complete(creation);
+          await capture;
+          expect(operations.discards, 1);
+          final release = notifier.releaseForDataChange();
+          operations.held.completion.complete();
+          expect(await release, BackupRelease.failed);
+          expect(_cleanups(gateway), 0);
+
+          final retry = notifier.releaseForDataChange();
+          expect(operations.discards, 2);
+          operations.held.completion.complete();
+          expect(await retry, BackupRelease.released);
+        },
       );
-      final (:container, :gateway, :holder) = _harness(operations);
-      final createGate = Completer<BackupCreation>();
-      operations.createGate = createGate;
-      final pendingCreate = container.read(backupProvider.notifier).create(
-        password: _password,
-        confirmation: _password,
-      );
-      await _flush();
-      expect(_stateOf(container).phase, BackupPhase.preparing);
+    }
 
-      // The data change cancels the capture and is refused.
-      await expectLater(
-        container.read(_prepareForDataChange)(),
-        _throwsWorkBusy,
-      );
-      expect(operations.creates, 1);
-      expect(operations.discards, 0);
+    test(
+      'a cancelled capture cleanup failure blocks the preparation',
+      () async {
+        final creation = await _creation(directory!, 'cap', 'a' * 64);
+        final operations = _HarnessOperations(
+          nextCreation: creation,
+          discardOutcomes: [true, false],
+        );
+        final (:container, :gateway, :holder) = _harness(operations);
+        final createGate = Completer<BackupCreation>();
+        operations.createGate = createGate;
+        final pendingCreate = container
+            .read(backupProvider.notifier)
+            .create(password: _password, confirmation: _password);
+        await _flush();
+        expect(_stateOf(container).phase, BackupPhase.preparing);
 
-      createGate.complete(creation);
-      await _flush();
-      expect(
-        operations.discards,
-        1,
-        reason: 'the cancelled capture self-releases through the tracker',
-      );
+        // The data change cancels the capture and is refused.
+        await expectLater(
+          container.read(_prepareForDataChange)(),
+          _throwsWorkBusy,
+        );
+        expect(operations.creates, 1);
+        expect(operations.discards, 0);
 
-      final prepare = container.read(_prepareForDataChange)();
-      await _flush();
-      expect(_cleanups(gateway), 0, reason: 'the deletion is unsettled');
-      operations.pending.single.completion.complete();
-      await expectLater(prepare, _throwsCleanupFailed);
+        createGate.complete(creation);
+        await _flush();
+        expect(
+          operations.discards,
+          1,
+          reason: 'the cancelled capture self-releases through the tracker',
+        );
 
-      // The attempt itself still reports cancellation truthfully while the
-      // retained failed cleanup blocks erasure for the next release.
-      await pendingCreate;
-      expect(_stateOf(container).phase, BackupPhase.cancelled);
-      expect(_stateOf(container).errorCode, 'backup_cancelled');
-      expect(_cleanups(gateway), 0);
+        final prepare = container.read(_prepareForDataChange)();
+        await _flush();
+        expect(_cleanups(gateway), 0, reason: 'the deletion is unsettled');
+        operations.pending.single.completion.complete();
+        await expectLater(prepare, _throwsCleanupFailed);
 
-      final retry = container.read(_prepareForDataChange)();
-      expect(operations.discards, 2, reason: 'the retained failure retries');
-      operations.pending.single.completion.complete();
-      await retry;
+        // The attempt itself still reports cancellation truthfully while the
+        // retained failed cleanup blocks erasure for the next release.
+        await pendingCreate;
+        expect(_stateOf(container).phase, BackupPhase.cancelled);
+        expect(_stateOf(container).errorCode, 'backup_cancelled');
+        expect(_cleanups(gateway), 0);
 
-      expect(_cleanups(gateway), 1);
-      expect(gateway.includedOffered, isTrue);
-      expect(identical(holder.single, operations), isTrue);
-    });
+        final retry = container.read(_prepareForDataChange)();
+        expect(operations.discards, 2, reason: 'the retained failure retries');
+        operations.pending.single.completion.complete();
+        await retry;
+
+        expect(_cleanups(gateway), 1);
+        expect(gateway.includedOffered, isTrue);
+        expect(identical(holder.single, operations), isTrue);
+      },
+    );
   });
 }
