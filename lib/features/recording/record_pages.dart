@@ -12,6 +12,7 @@ import '../stock/stock_providers.dart';
 import '../stock/stock_widgets.dart';
 import '../products/product_widgets.dart';
 import '../products/product_pages.dart';
+import '../substances/substance_collection.dart';
 import '../../app/settings_toggle_row.dart';
 
 import 'package:flutter/services.dart' show TextInputAction;
@@ -257,7 +258,6 @@ class RecordCollection extends ConsumerStatefulWidget {
 
 class _RecordCollectionState extends ConsumerState<RecordCollection> {
   Destination get destination => widget.destination;
-  int itemPages = 1;
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
@@ -278,18 +278,6 @@ class _RecordCollectionState extends ConsumerState<RecordCollection> {
       );
     }
     const scope = FeedScope.me();
-    final itemResults = [
-      for (var page = 0; page < itemPages; page++)
-        ref.watch(scopedItemsPageProvider((scope: scope, offset: page * 50))),
-    ];
-    final AsyncValue<List<SubstanceItem>> items =
-        itemResults.any((p) => p.hasError)
-        ? AsyncError(Object(), StackTrace.current)
-        : itemResults.any((p) => !p.hasValue)
-        ? const AsyncLoading()
-        : AsyncData([
-            for (final page in itemResults) ...page.requireValue.take(50),
-          ]);
     final now = DateTime.now();
     final day = DateTime(now.year, now.month, now.day);
     final query = (
@@ -352,83 +340,9 @@ class _RecordCollectionState extends ConsumerState<RecordCollection> {
           PlannedHistory(key: ValueKey((scope, 'planned')), scope: scope),
         if (destination == Destination.events)
           Text(t.eventsBody)
-        else if (destination == Destination.substances) ...[
-          items.when(
-            data: (items) => Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (items.isEmpty)
-                  VitalEmptyState(
-                    title: t.substances,
-                    description: t.substancesReady,
-                    icon: LucideIcons.pill,
-                  ),
-                for (final item in items)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: VitalSurface(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          VitalRecordHeader(
-                            title: item.name,
-                            subtitle: t.itemDetails(
-                              item.form,
-                              item.type,
-                              item.unit,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: [
-                              VitalButton(
-                                onPressed: () =>
-                                    context.push('/record/${item.id}'),
-                                child: Text(t.record),
-                              ),
-                              VitalButton.secondary(
-                                onPressed: () => context.push(
-                                  '/combined/${item.personId}?item=${item.id}',
-                                ),
-                                child: Text(t.combinedAction),
-                              ),
-                              VitalButton.secondary(
-                                onPressed: () =>
-                                    context.push('/schedule/${item.id}'),
-                                child: Text(t.schedule),
-                              ),
-                              VitalButton.secondary(
-                                onPressed: () => context.push(
-                                  '/stock/${item.personId}?item=${item.id}',
-                                ),
-                                child: Text(t.stock),
-                              ),
-                              VitalButton.secondary(
-                                onPressed: () =>
-                                    context.push('/item/${item.id}'),
-                                child: Text(t.history),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            error: (_, _) => LoadFailure(
-              onRetry: () => ref.invalidate(scopedItemsPageProvider),
-            ),
-            loading: () => Text(t.loadingRecords),
-          ),
-          if ((itemResults.last.value?.length ?? 0) > 50)
-            VitalButton.secondary(
-              onPressed: () => setState(() => itemPages++),
-              child: Text(t.more),
-            ),
-        ] else if (destination == Destination.today)
+        else if (destination == Destination.substances)
+          SubstanceCollection(key: ValueKey(scope), scope: scope)
+        else if (destination == Destination.today)
           VitalSection(
             title: Text(t.statusRecorded),
             children: [

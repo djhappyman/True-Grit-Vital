@@ -5550,4 +5550,39 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get restoreSingleUserRequired =>
       'This backup contains other people. Choose a backup containing only your records.';
+
+  @override
+  String get designSubstancesSearchLabel => 'Search';
+
+  @override
+  String get designSubstancesSearchHint => 'Name of a substance';
+
+  @override
+  String get designSubstancesAllFilter => 'All';
+
+  @override
+  String designSubstancesItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get designSubstancesClear => 'Clear';
+
+  @override
+  String get designSubstancesNoMatchesTitle => 'No matches';
+
+  @override
+  String get designSubstancesNoMatchesBody =>
+      'Try another name or clear the filter.';
+
+  @override
+  String designSubstancesOpenItem(String name) {
+    return 'Open $name';
+  }
 }

@@ -285,6 +285,21 @@ const schemaV1 = [
 
 enum DraftOperationStatus { pending, committed, invalidated }
 
+/// One actual item type present in a scoped item collection, with the number
+/// of items that share it under the same search used by the collection list.
+/// A null [typeId] marks an item whose type row is missing; it can stay in the
+/// whole-collection view but has no filter to reach.
+final class SubstanceTypeSummary {
+  const SubstanceTypeSummary({
+    required this.typeId,
+    required this.typeName,
+    required this.count,
+  });
+  final String? typeId;
+  final String typeName;
+  final int count;
+}
+
 /// One immutable checkpoint captured while unlocked. Its one-shot persistence
 /// may finish behind the privacy cover, without granting clinical write access.
 final class DraftCheckpoint {
@@ -950,17 +965,57 @@ final class RecordStore {
     revision: r['item_revision'] as int? ?? 1,
     catalogueSnapshot: _catalogueSnapshot(r['catalogue_snapshot']),
   );
+  /// Keeps SQL wildcard input literal for `LIKE`: `\\`, `%` and `_` are
+  /// escaped and the query runs with `ESCAPE '\'`. Other characters (including
+  /// apostrophes) stay bound as a parameter.
+  static String _escapeLike(String search) => search
+      .replaceAll('\\', '\\\\')
+      .replaceAll('%', '\\%')
+      .replaceAll('_', '\\_');
+
+  List<Object?> _itemFilterArgs(
+    String? personId,
+    FeedScope? scope,
+    String? search,
+    String? typeId,
+  ) => [
+    if (scope?.isEveryone != true) scope?.personId ?? personId,
+    if ((search?.trim().isNotEmpty ?? false))
+      '%${_escapeLike(search!.trim())}%',
+    ?typeId,
+  ];
+
+  String _itemFilterSql(
+    String? personId,
+    FeedScope? scope,
+    String? search,
+    String? typeId,
+  ) {
+    final conditions = [
+      scope?.isEveryone == true
+          ? 'person IN (SELECT id FROM person WHERE archived=0)'
+          : 'person=?',
+      if (search?.trim().isNotEmpty ?? false) r"name LIKE ? ESCAPE '\'",
+      if (typeId != null) 'type_id=?',
+    ];
+    return conditions.join(' AND ');
+  }
+
   Future<List<SubstanceItem>> items({
     String personId = meId,
     FeedScope? scope,
+    String? search,
+    String? typeId,
     int limit = 100,
     int offset = 0,
   }) async {
+    // Search and the optional type filter run over the whole scoped
+    // collection, so results never depend on how many cards are loaded.
     _pageBounds(limit, offset);
     return (await _rows(
-      'SELECT * FROM item WHERE ${scope?.isEveryone == true ? 'person IN (SELECT id FROM person WHERE archived=0)' : 'person=?'} ORDER BY name,id LIMIT ? OFFSET ?',
+      'SELECT * FROM item WHERE ${_itemFilterSql(personId, scope, search, typeId)} ORDER BY name,id LIMIT ? OFFSET ?',
       [
-        if (scope?.isEveryone != true) scope?.personId ?? personId,
+        ..._itemFilterArgs(personId, scope, search, typeId),
         limit,
         offset,
       ],
@@ -1565,13 +1620,57 @@ final class RecordStore {
       await queue;
     };
   });
+  /// Whole-scoped item counts grouped by actual item type, under the same
+  /// search the collection list uses. Counts are bounded by distinct types and
+  /// say how many items share each type; no status or schedule is involved.
+  Future<List<SubstanceTypeSummary>> itemTypeCounts({
+    String personId = meId,
+    FeedScope? scope,
+    String? search,
+  }) async {
+    final conditions = [
+      scope?.isEveryone == true
+          ? 'item.person IN (SELECT id FROM person WHERE archived=0)'
+          : 'item.person=?',
+      if (search?.trim().isNotEmpty ?? false) r"item.name LIKE ? ESCAPE '\'",
+    ];
+    return [
+      for (final row in await _rows(
+        'SELECT item.type_id AS type_id, COALESCE(t.name, item.type) AS type_name, COUNT(*) AS count FROM item LEFT JOIN personal_item_type t ON t.id=item.type_id AND t.person=item.person WHERE ${conditions.join(' AND ')} GROUP BY item.type_id, item.type ORDER BY type_name, item.type_id',
+        _itemFilterArgs(personId, scope, search, null),
+      ))
+        SubstanceTypeSummary(
+          typeId: row['type_id'] as String?,
+          typeName: row['type_name'] as String? ?? '',
+          count: row['count'] as int,
+        ),
+    ];
+  }
+
   Stream<List<SubstanceItem>> watchItems({
     String personId = meId,
     FeedScope? scope,
+    String? search,
+    String? typeId,
     int limit = 100,
     int offset = 0,
   }) => _watch(
-    () => items(personId: personId, scope: scope, limit: limit, offset: offset),
+    () => items(
+      personId: personId,
+      scope: scope,
+      search: search,
+      typeId: typeId,
+      limit: limit,
+      offset: offset,
+    ),
+  );
+
+  Stream<List<SubstanceTypeSummary>> watchItemTypeCounts({
+    String personId = meId,
+    FeedScope? scope,
+    String? search,
+  }) => _watch(
+    () => itemTypeCounts(personId: personId, scope: scope, search: search),
   );
   Stream<List<UseRecord>> watchRecords({
     String personId = meId,

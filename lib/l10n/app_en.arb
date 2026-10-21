@@ -6277,5 +6277,47 @@
   "restoreSingleUserRequired": "This backup contains other people. Choose a backup containing only your records.",
   "@restoreSingleUserRequired": {
     "description": "Rejects a legacy multi-person backup before replacing any live records."
+  },
+  "designSubstancesSearchLabel": "Search",
+  "@designSubstancesSearchLabel": {
+    "description": "Visible label of the persistent Substances name search field."
+  },
+  "designSubstancesSearchHint": "Name of a substance",
+  "@designSubstancesSearchHint": {
+    "description": "Example placeholder, not a label, for the Substances name search."
+  },
+  "designSubstancesAllFilter": "All",
+  "@designSubstancesAllFilter": {
+    "description": "Item-type filter choice that never filters away an item type; counts are shown beside it."
+  },
+  "designSubstancesItemCount": "{count, plural, one {1 item} other {{count} items}}",
+  "@designSubstancesItemCount": {
+    "description": "Count of substances sharing an item-type filter, stated in items.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "designSubstancesClear": "Clear",
+  "@designSubstancesClear": {
+    "description": "One-word command that removes the active search text and item-type filter."
+  },
+  "designSubstancesNoMatchesTitle": "No matches",
+  "@designSubstancesNoMatchesTitle": {
+    "description": "Filtered-empty heading when a search or item-type filter hides every item."
+  },
+  "designSubstancesNoMatchesBody": "Try another name or clear the filter.",
+  "@designSubstancesNoMatchesBody": {
+    "description": "Recovery hint for the filtered-empty state; the Clear command sits with it."
+  },
+  "designSubstancesOpenItem": "Open {name}",
+  "@designSubstancesOpenItem": {
+    "description": "Accessible name for the tappable identity row of a substance card.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

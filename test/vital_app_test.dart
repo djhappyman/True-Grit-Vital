@@ -466,9 +466,14 @@ void main() {
     );
     await tap(tester, 'Back');
     await tap(tester, 'Discard');
-    expect(find.byType(TextField), findsNothing);
+    // Only the new persistent Substances search field remains, empty.
+    final remaining = tester
+        .widgetList<TextField>(find.byType(TextField))
+        .toList();
+    expect(remaining.length, 1);
+    expect(remaining.single.controller!.text, isEmpty);
     expect(find.text('Unsaved synthetic item'), findsNothing);
-    expect(find.text('Create'), findsOneWidget);
+    expect(find.text('Create'), findsWidgets);
   });
 
   appTest('appearance persists and mounted draft survives colour change', (

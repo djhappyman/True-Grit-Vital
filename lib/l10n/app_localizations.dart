@@ -8900,6 +8900,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This backup contains other people. Choose a backup containing only your records.'**
   String get restoreSingleUserRequired;
+
+  /// Visible label of the persistent Substances name search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get designSubstancesSearchLabel;
+
+  /// Example placeholder, not a label, for the Substances name search.
+  ///
+  /// In en, this message translates to:
+  /// **'Name of a substance'**
+  String get designSubstancesSearchHint;
+
+  /// Item-type filter choice that never filters away an item type; counts are shown beside it.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get designSubstancesAllFilter;
+
+  /// Count of substances sharing an item-type filter, stated in items.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {1 item} other {{count} items}}'**
+  String designSubstancesItemCount(int count);
+
+  /// One-word command that removes the active search text and item-type filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get designSubstancesClear;
+
+  /// Filtered-empty heading when a search or item-type filter hides every item.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches'**
+  String get designSubstancesNoMatchesTitle;
+
+  /// Recovery hint for the filtered-empty state; the Clear command sits with it.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another name or clear the filter.'**
+  String get designSubstancesNoMatchesBody;
+
+  /// Accessible name for the tappable identity row of a substance card.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {name}'**
+  String designSubstancesOpenItem(String name);
 }
 
 class _AppLocalizationsDelegate
