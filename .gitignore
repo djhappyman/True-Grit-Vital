@@ -78,6 +78,7 @@ linux/flutter/ephemeral/
 !/docs/design/implementation-contract.md
 !/docs/design/stitch/
 !/docs/design/reviews/
+!/docs/design/references/
 /docs/implementation/*
 !/docs/implementation/licenses/
 

@@ -1,5 +1,4 @@
 import '../../ui/stitch_ui.dart';
-import '../../ui/vital_ui.dart';
 
 import 'dart:math' as math;
 
@@ -40,10 +39,16 @@ class HistoryMonthGrid extends StatelessWidget {
     required this.counts,
     required this.onSelect,
     required this.onMonth,
+    this.available = true,
+    this.unavailableLabel,
+    this.tools,
   });
   final CivilDate month;
   final CivilDate? selected;
   final String zone;
+  final Widget? tools;
+  final bool available;
+  final String? unavailableLabel;
   final Map<CivilDate, HistoryDayCounts> counts;
   final ValueChanged<CivilDate> onSelect, onMonth;
   @override
@@ -64,42 +69,73 @@ class HistoryMonthGrid extends StatelessWidget {
       }
     }
 
+    final previous = Semantics(
+      label: t.previousMonth,
+      child: StitchButton(
+        quiet: true,
+        compact: true,
+        onPressed: month.year == 1 && month.month == 1 ? null : () => move(-1),
+        child: const Icon(LucideIcons.chevronLeft),
+      ),
+    );
+    final next = Semantics(
+      label: t.nextMonth,
+      child: StitchButton(
+        quiet: true,
+        compact: true,
+        onPressed: month.year == 9999 && month.month == 12
+            ? null
+            : () => move(1),
+        child: const Icon(LucideIcons.chevronRight),
+      ),
+    );
+    final heading = Semantics(
+      header: true,
+      child: Text(
+        locale.formatMonthYear(month.calendarValue),
+        textAlign: TextAlign.center,
+        style: VitalType.detailTitle.copyWith(color: c.ink),
+      ),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Semantics(
-              label: t.previousMonth,
-              child: VitalButton.secondary(
-                onPressed: month.year == 1 && month.month == 1
-                    ? null
-                    : () => move(-1),
-                child: const Icon(LucideIcons.chevronLeft),
+        if (scale > 1.3) ...[
+          heading,
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [previous, next, ?tools],
+          ),
+        ] else
+          Row(
+            children: [
+              previous,
+              Expanded(child: heading),
+              next,
+              ?tools,
+            ],
+          ),
+        if (available) ...[
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              t.calendarRecordedDays(
+                counts.entries
+                    .where(
+                      (entry) =>
+                          entry.key.year == month.year &&
+                          entry.key.month == month.month &&
+                          entry.value.recorded > 0,
+                    )
+                    .length,
               ),
+              style: StitchType.body.copyWith(color: c.muted),
             ),
-            Expanded(
-              child: Semantics(
-                header: true,
-                child: Text(
-                  locale.formatMonthYear(month.calendarValue),
-                  textAlign: TextAlign.center,
-                  style: StitchType.name.copyWith(color: c.ink),
-                ),
-              ),
-            ),
-            Semantics(
-              label: t.nextMonth,
-              child: VitalButton.secondary(
-                onPressed: month.year == 9999 && month.month == 12
-                    ? null
-                    : () => move(1),
-                child: const Icon(LucideIcons.chevronRight),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
+          ),
+        ],
+        const SizedBox(height: 20),
         LayoutBuilder(
           builder: (context, constraints) => SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -144,78 +180,104 @@ class HistoryMonthGrid extends StatelessWidget {
                                   key: ValueKey('history-day-$date'),
                                   button: true,
                                   selected: isSelected,
-                                  label: t.historyDaySummary(
-                                    locale.formatFullDate(date.calendarValue),
-                                    marker.recorded,
-                                    marker.skipped,
-                                    marker.voided,
-                                  ),
+                                  label: available
+                                      ? t.historyDaySummary(
+                                          locale.formatFullDate(
+                                            date.calendarValue,
+                                          ),
+                                          marker.recorded,
+                                          marker.skipped,
+                                          marker.voided,
+                                        )
+                                      : t.screenHistoryDayUnavailable(
+                                          locale.formatFullDate(
+                                            date.calendarValue,
+                                          ),
+                                          unavailableLabel ??
+                                              t.historyMonthLoading,
+                                        ),
                                   excludeSemantics: true,
                                   onTap: () => onSelect(date),
                                   child: CalendarItem(
-                                    type: isSelected
-                                        ? CalendarItemType.selected
-                                        : CalendarItemType.none,
+                                    type: CalendarItemType.none,
                                     indexAtRow: col,
                                     rowCount: 7,
                                     state: DateState.enabled,
                                     width: cell,
                                     height: cell,
                                     onTap: () => onSelect(date),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          '${date.day}',
-                                          style: StitchType.label.copyWith(
-                                            color: date.month == month.month
-                                                ? c.ink
-                                                : c.muted,
-                                            fontWeight:
-                                                date.month == month.month
-                                                ? FontWeight.w600
-                                                : FontWeight.w400,
-                                          ),
-                                        ),
-                                        if (marker.recorded +
-                                                marker.skipped +
-                                                marker.voided >
-                                            0)
-                                          ExcludeSemantics(
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                if (marker.recorded > 0)
-                                                  Text(
-                                                    '●',
-                                                    style: StitchType.small
-                                                        .copyWith(
-                                                          color: c.accent,
-                                                        ),
-                                                  ),
-                                                if (marker.skipped > 0)
-                                                  Text(
-                                                    '−',
-                                                    style: StitchType.small
-                                                        .copyWith(
-                                                          color: c.amber,
-                                                        ),
-                                                  ),
-                                                if (marker.voided > 0)
-                                                  Text(
-                                                    '×',
-                                                    style: StitchType.small
-                                                        .copyWith(
-                                                          color: c.muted,
-                                                        ),
-                                                  ),
-                                              ],
+                                    child: Container(
+                                      constraints: BoxConstraints(
+                                        minHeight: cell,
+                                        minWidth: cell,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? c.accent
+                                            : Colors.transparent,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            '${date.day}',
+                                            style: StitchType.label.copyWith(
+                                              color: isSelected
+                                                  ? c.accentInk
+                                                  : date.month == month.month
+                                                  ? c.ink
+                                                  : c.muted,
+                                              fontWeight:
+                                                  date.month == month.month
+                                                  ? FontWeight.w600
+                                                  : FontWeight.w400,
                                             ),
                                           ),
-                                      ],
+                                          if (available &&
+                                              marker.recorded +
+                                                      marker.skipped +
+                                                      marker.voided >
+                                                  0)
+                                            ExcludeSemantics(
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  if (marker.recorded > 0)
+                                                    Container(
+                                                      width: 6,
+                                                      height: 6,
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        color: isSelected
+                                                            ? c.accentInk
+                                                            : c.accent,
+                                                      ),
+                                                    ),
+                                                  if (marker.skipped > 0)
+                                                    Icon(
+                                                      LucideIcons.minus,
+                                                      size: 10,
+                                                      color: isSelected
+                                                          ? c.accentInk
+                                                          : c.amber,
+                                                    ),
+                                                  if (marker.voided > 0)
+                                                    Icon(
+                                                      LucideIcons.x,
+                                                      size: 10,
+                                                      color: isSelected
+                                                          ? c.accentInk
+                                                          : c.muted,
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 );
@@ -229,9 +291,33 @@ class HistoryMonthGrid extends StatelessWidget {
             ),
           ),
         ),
-        Text(
-          t.historyMarkerLegend,
-          style: StitchType.small.copyWith(color: c.muted),
+        const SizedBox(height: 16),
+        Container(height: 1, color: c.line),
+        const SizedBox(height: 16),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            for (final marker in [
+              (LucideIcons.circle, t.statusRecorded, c.accent),
+              (LucideIcons.minus, t.statusSkipped, c.amber),
+              (LucideIcons.x, t.statusVoided, c.muted),
+            ])
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ExcludeSemantics(
+                    child: Icon(marker.$1, size: 10, color: marker.$3),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    marker.$2,
+                    style: StitchType.small.copyWith(color: c.muted),
+                  ),
+                ],
+              ),
+          ],
         ),
       ],
     );

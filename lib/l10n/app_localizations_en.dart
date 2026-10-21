@@ -6596,4 +6596,31 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get screenLabsLatestDateScope =>
       'Latest results use collection or measured dates across all dates. Date filters apply to the records below.';
+
+  @override
+  String get calendarFiltered => 'Filtered';
+
+  @override
+  String get calendarMonthlySummary => 'Monthly summary (PDF)';
+
+  @override
+  String calendarExportMonth(String month) {
+    return 'Export $month summary';
+  }
+
+  @override
+  String calendarRecordedDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days recorded this month',
+      one: '1 day recorded this month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String calendarEntryState(String status, String time) {
+    return '$status · $time';
+  }
 }

@@ -7651,5 +7651,43 @@
   "screenLabsLatestDateScope": "Latest results use collection or measured dates across all dates. Date filters apply to the records below.",
   "@screenLabsLatestDateScope": {
     "description": "Clarifies that date filters affect the paged records, while the bounded latest-value summary always uses collection or measured dates."
+  },
+  "calendarFiltered": "Filtered",
+  "@calendarFiltered": {
+    "description": "Compact indication that advanced History filters are active."
+  },
+  "calendarMonthlySummary": "Monthly summary (PDF)",
+  "@calendarMonthlySummary": {
+    "description": "Explains that Export opens the existing report-selection workflow for the displayed calendar month."
+  },
+  "calendarExportMonth": "Export {month} summary",
+  "@calendarExportMonth": {
+    "description": "Accessible name for the monthly report selection action.",
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarRecordedDays": "{count, plural, =1{1 day recorded this month} other{{count} days recorded this month}}",
+  "@calendarRecordedDays": {
+    "description": "Counts calendar days with saved recorded use in the displayed month and current non-date filters; not planned adherence.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarEntryState": "{status} · {time}",
+  "@calendarEntryState": {
+    "description": "Compact saved-entry state and recorded or scheduled time; no adherence judgement.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
   }
 }

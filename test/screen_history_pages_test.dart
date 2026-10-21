@@ -15,91 +15,108 @@ import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/exports/export_pages.dart';
 import 'package:true_grit_vital/features/history/history_pages.dart';
+import 'package:true_grit_vital/features/history/history_calendar.dart';
+import 'package:true_grit_vital/ui/stitch_ui.dart';
 import 'package:true_grit_vital/features/reports/reports_page.dart';
-import 'package:true_grit_vital/ui/vital_ui.dart';
 
 import 'history_mobile_ui_test.dart' show historyItem, historyRecord, today;
 import 'vital_app_test.dart' show appTest, launch, runIo, settle, tap;
 
 void main() {
-  appTest('history groups real days and keeps complete names and amounts', (
-    tester,
-  ) async {
-    final f = await launch(tester);
-    await runIo(tester, () async {
-      final item = await historyItem(
-        f.store,
-        'Complete original medicine name that stays whole',
+  appTest(
+    'calendar opens on today with compact cards and hidden secondary tools',
+    (tester) async {
+      final f = await launch(tester);
+      await runIo(tester, () async {
+        final item = await historyItem(f.store, 'Complete medicine name');
+        await historyRecord(f.store, item, today());
+        await historyRecord(f.store, item, today().addDays(-1), amount: '2');
+      });
+      f.container.read(routerProvider).go('/history');
+      await settle(tester);
+      expect(
+        tester.widget<HistoryMonthGrid>(find.byType(HistoryMonthGrid)).selected,
+        today(),
       );
-      await historyRecord(f.store, item, today());
-      await historyRecord(f.store, item, today().addDays(-1), amount: '2');
-    });
-    f.container.read(routerProvider).go('/history');
-    await settle(tester);
+      expect(find.byType(HistoryEntryCard), findsOneWidget);
+      expect(find.textContaining('1 mg · Tablet'), findsOneWidget);
+      expect(find.textContaining('2 mg · Tablet'), findsNothing);
+      for (final hidden in [
+        'Charts',
+        'Reports',
+        'Development preview',
+        'Timeline',
+        'All',
+        'View',
+      ]) {
+        expect(find.text(hidden), findsNothing);
+      }
+      final yesterday = today().addDays(-1);
+      final cell = find.byKey(ValueKey('history-day-$yesterday'));
+      await tester.ensureVisible(cell);
+      await tester.tap(cell);
+      await settle(tester);
+      final query = f.container
+          .read(historyControllerProvider('/history'))
+          .query!;
+      final bounds = DisplayTime().dayBounds(yesterday, query.displayZone);
+      expect(query.filter.fromInstant, bounds.start);
+      expect(query.filter.beforeInstant, bounds.endExclusive);
+      expect(find.textContaining('2 mg · Tablet'), findsOneWidget);
+      expect(find.textContaining('1 mg · Tablet'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
-    expect(
-      find.text('Complete original medicine name that stays whole'),
-      findsWidgets,
-    );
-    expect(find.textContaining('1 mg · Tablet'), findsOneWidget);
-    expect(find.textContaining('2 mg · Tablet'), findsOneWidget);
-    expect(find.text('Today'), findsWidgets);
-    expect(find.text('Yesterday'), findsOneWidget);
-    expect(find.text('Recorded'), findsWidgets);
-    for (final hidden in ['PRN', 'As-Needed', 'Integrity', 'On Track']) {
-      expect(find.textContaining(hidden), findsNothing, reason: hidden);
-    }
-    // The audit section is an explicit preview, never invented data.
-    final audit = find.text(
-      'Adherence and integrity measures are not available yet. '
-      'Your records are unchanged.',
-    );
-    await tester.ensureVisible(audit);
-    expect(audit, findsOneWidget);
-    expect(find.text('Development preview'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
-
-  appTest('week strip selects one real day and reflects its counts', (
-    tester,
-  ) async {
-    final f = await launch(tester);
-    final item = (await runIo(
-      tester,
-      () => historyItem(f.store, 'Week strip medicine'),
-    ))!;
-    await runIo(tester, () async {
-      await historyRecord(f.store, item, today());
-      await historyRecord(f.store, item, today().addDays(-1));
-    });
-    f.container.read(routerProvider).go('/history');
-    await settle(tester);
-    final yesterday = today().addDays(-1);
-    final cell = find.byKey(ValueKey('history-week-$yesterday'));
-    await tester.ensureVisible(cell);
-    await settle(tester);
-    await tester.tap(cell);
-    await settle(tester);
-    final query = f.container
-        .read(historyControllerProvider('/history'))
-        .query!;
-    final bounds = DisplayTime().dayBounds(yesterday, query.displayZone);
-    expect(query.filter.fromInstant, bounds.start);
-    expect(query.filter.beforeInstant, bounds.endExclusive);
-    expect(
-      tester.widget<HistoryWeekStrip>(find.byType(HistoryWeekStrip)).selected,
-      yesterday,
-    );
-    expect(find.byType(HistoryEntryCard), findsOneWidget);
-    expect(find.text('Showing 1 entry.'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+  appTest(
+    'month navigation and monthly PDF selection use the displayed month',
+    (tester) async {
+      final f = await launch(tester);
+      f.container.read(routerProvider).go('/history');
+      await settle(tester);
+      tester
+          .widget<HistoryMonthGrid>(find.byType(HistoryMonthGrid))
+          .onMonth(CivilDate(2026, 12, 1));
+      await settle(tester);
+      expect(
+        tester.widget<HistoryMonthGrid>(find.byType(HistoryMonthGrid)).selected,
+        CivilDate(2026, 12, 1),
+      );
+      final bounds = DisplayTime().dayBounds(
+        CivilDate(2026, 12, 1),
+        'Europe/London',
+      );
+      expect(
+        f.container
+            .read(historyControllerProvider('/history'))
+            .query!
+            .filter
+            .fromInstant,
+        bounds.start,
+      );
+      await tap(tester, 'Export');
+      final uri = GoRouterState.of(tester.element(find.byType(ReportsPage)))
+          .uri;
+      expect(uri.queryParameters['from'], '2026-12-01');
+      expect(uri.queryParameters['before'], '2027-01-01');
+      final back = Uri.parse(uri.queryParameters['return']!);
+      expect(back.queryParameters['selected'], '2026-12-01');
+      f.container.read(routerProvider).pop();
+      await settle(tester);
+      expect(
+        tester.widget<HistoryMonthGrid>(find.byType(HistoryMonthGrid)).month,
+        CivilDate(2026, 12, 1),
+      );
+    },
+  );
 
   appTest('history export and reports carry the shown range and return link', (
     tester,
   ) async {
     final f = await launch(tester);
     f.container.read(routerProvider).go('/history');
+    await settle(tester);
+    await tester.tap(find.byKey(const ValueKey('history-filters-toggle')));
     await settle(tester);
     await tap(tester, 'Export');
     final export = GoRouterState.of(tester.element(find.byType(ExportPage)))
@@ -120,7 +137,7 @@ void main() {
     expect(reports.queryParameters['before'], isNotNull);
     final back = Uri.parse(reports.queryParameters['return']!).queryParameters;
     expect(back['status'], 'all');
-    expect(back['view'], 'list');
+    expect(back['view'], 'calendar');
     expect(tester.takeException(), isNull);
   });
 
@@ -141,7 +158,7 @@ void main() {
         );
     await settle(tester);
     if (find.widgetWithText(LabelledInput, 'From').evaluate().isEmpty) {
-      final toggle = find.widgetWithText(VitalButton, 'Filters');
+      final toggle = find.byKey(const ValueKey('history-filters-toggle'));
       await tester.ensureVisible(toggle);
       await tester.tap(toggle);
       await settle(tester);
@@ -181,7 +198,10 @@ void main() {
       });
       f.container.read(routerProvider).go('/history');
       await settle(tester);
-      final target = find.bySemanticsLabel('View Accessible history item');
+      final target = find.descendant(
+        of: find.byType(HistoryEntryCard),
+        matching: find.byType(StitchButton),
+      );
       await tester.ensureVisible(target);
       await settle(tester);
       final node = tester.getSemantics(target);
@@ -200,7 +220,7 @@ void main() {
     }
   });
 
-  testWidgets('unavailable week counts never announce zero records', (
+  testWidgets('unavailable month counts never announce zero records', (
     tester,
   ) async {
     final handle = tester.ensureSemantics();
@@ -215,23 +235,24 @@ void main() {
             ),
           ],
           child: host(
-            HistoryWeekStrip(
+            HistoryCalendarSection(
               query: TimelineQuery(
                 filter: TimelineFilter(scope: const FeedScope.me()),
                 displayZone: 'Europe/London',
               ),
-              today: day,
-              selected: null,
+              month: CivilDate(day.year, day.month, 1),
+              selected: day,
+              onMonth: (_) {},
               onSelect: (_) {},
             ),
           ),
         ),
       );
       await tester.pump();
-      final cell = find.byKey(ValueKey('history-week-$day'));
+      final cell = find.byKey(ValueKey('history-day-$day'));
       expect(
         tester.getSemantics(cell).getSemanticsData().label,
-        contains('Opening records'),
+        contains('Loading day counts'),
       );
       expect(
         tester.getSemantics(cell).getSemanticsData().label,
@@ -299,12 +320,12 @@ void main() {
     });
     f.container.read(routerProvider).go('/history');
     await settle(tester);
-    expect(find.text('Skipped'), findsWidgets);
+    expect(find.textContaining('Skipped'), findsWidgets);
     expect(
       find.text(
         'This is a skipped planned occurrence. It is not recorded use.',
       ),
-      findsOneWidget,
+      findsNothing,
     );
     expect(find.textContaining('PRN'), findsNothing);
     expect(find.textContaining('As-Needed'), findsNothing);
@@ -333,22 +354,22 @@ void main() {
       });
       f.container.read(routerProvider).go('/history');
       await settle(tester);
-      for (var i = 0; i < 7; i++) {
-        expect(
-          find.byKey(ValueKey('history-week-${today().addDays(-i)}')),
-          findsOneWidget,
-          reason: 'day $i',
-        );
-      }
-      for (final label in ['All', 'Recorded', 'Skipped', 'Voided', 'Filters']) {
-        expect(find.text(label), findsWidgets, reason: label);
-      }
-      final view = find.text('View');
-      await tester.ensureVisible(view);
+      final grid = tester.widget<HistoryMonthGrid>(
+        find.byType(HistoryMonthGrid),
+      );
+      expect(find.byKey(ValueKey('history-day-${grid.month}')), findsOneWidget);
+      expect(find.text('All'), findsNothing);
+      final action = find.descendant(
+        of: find.byType(HistoryEntryCard),
+        matching: find.byType(StitchIcon),
+      );
+      await tester.ensureVisible(action);
       await settle(tester);
-      expect(view.hitTestable(), findsOneWidget);
+      expect(action.hitTestable(), findsOneWidget);
       expect(
-        tester.getSize(find.widgetWithText(VitalButton, 'Filters')).height,
+        tester
+            .getSize(find.byKey(const ValueKey('history-filters-toggle')))
+            .height,
         greaterThanOrEqualTo(48),
       );
       expect(tester.takeException(), isNull);

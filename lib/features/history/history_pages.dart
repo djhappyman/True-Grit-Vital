@@ -4,6 +4,8 @@ import '../../ui/vital_ui.dart';
 
 import 'dart:async';
 
+import 'package:intl/intl.dart';
+
 import 'package:flutter/material.dart' show MaterialLocalizations;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,7 +46,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   TimelineStatus status = TimelineStatus.all;
   CivilDate? selected, month;
   DateTime? appliedFrom, appliedBefore;
-  bool calendar = false, filtersOpen = false, initialised = false;
+  bool calendar = true, filtersOpen = false, initialised = false;
   String? dateError;
   DateTime? movedAt;
   TimelineEntry? movedTarget;
@@ -191,6 +193,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       extra: entry,
     );
     if (!mounted) return;
+    ref.invalidate(historyCalendarProvider);
     final latest = await (await ref.read(recordStoreProvider.future))
         .historyEntry(entry.id, personId: entry.personId);
     if (!mounted) return;
@@ -278,7 +281,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
               .where((value) => value.name == seed['status'])
               .firstOrNull ??
           TimelineStatus.all;
-      calendar = seed['view'] == 'calendar';
+      calendar = seed['view'] != 'list';
       selected = seed['selected'] == null ? null : parseDate(seed['selected']!);
       final start = DateTime.tryParse(seed['from'] ?? ''),
           end = DateTime.tryParse(seed['before'] ?? '');
@@ -292,6 +295,23 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       }
       month = seed['month'] == null ? null : parseDate(seed['month']!);
       month ??= CivilDate(today.year, today.month, 1);
+      if (calendar &&
+          appliedFrom == null &&
+          appliedBefore == null &&
+          seed['anchor'] == null &&
+          seed['item'] == null &&
+          seed['unit'] == null &&
+          seed['status'] == null &&
+          seed['type'] == null &&
+          seed['event'] == null) {
+        selected ??= today;
+        final bounds = display.dayBounds(selected!, zone);
+        appliedFrom = bounds.start;
+        appliedBefore = bounds.endExclusive;
+        from.text = selected.toString();
+        through.text = selected.toString();
+        month = CivilDate(selected!.year, selected!.month, 1);
+      }
     }
     final query = TimelineQuery(
       filter: filter(scope, zone),
@@ -325,67 +345,58 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           .entries
           .add(entry);
     }
-    final stripQuery = query.restart(
-      filter: query.filter.restart(clearFrom: true, clearBefore: true),
-    );
     final activeFilters =
         status != TimelineStatus.all ||
         types.isNotEmpty ||
         events.isNotEmpty ||
         appliedFrom != null ||
         appliedBefore != null;
+    final filtersToggle = MergeSemantics(
+      child: Semantics(
+        key: const ValueKey('history-filters-toggle'),
+        label: t.historyFilters,
+        expanded: filtersOpen,
+        child: StitchButton(
+          quiet: true,
+          compact: true,
+          onPressed: () => setState(() => filtersOpen = !filtersOpen),
+          child: const ExcludeSemantics(
+            child: Icon(LucideIcons.slidersHorizontal, size: 20),
+          ),
+        ),
+      ),
+    );
     final page = <Widget>[
-      _HistoryTitleBlock(
-        subtitle: t.screenHistorySubtitle,
-        zone: display.resolveZone(zone).zoneId,
-        onExport: () =>
-            context.push(artifactLocation('/exports', personId, today, zone)),
-      ),
-      const SizedBox(height: 16),
-      HistoryWeekStrip(
-        query: stripQuery,
-        today: today,
-        selected: selected,
-        onSelect: (date) => selectDay(date, zone),
-      ),
-      const SizedBox(height: 16),
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          _HistoryStatusChips(
-            status: status,
-            onChanged: (value) => setState(() => status = value),
-          ),
-          MergeSemantics(
-            child: Semantics(
-              key: const ValueKey('history-filters-toggle'),
-              expanded: filtersOpen,
-              child: VitalButton.secondary(
-                leading: const Icon(LucideIcons.slidersHorizontal),
-                onPressed: () => setState(() => filtersOpen = !filtersOpen),
-                child: Text(t.historyFilters),
-              ),
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 12),
-      VitalSegments<bool>(
-        values: const [false, true],
-        selected: calendar,
-        label: (value) => value ? t.historyCalendar : t.historyTimeline,
-        onChanged: (value) => setState(() {
-          calendar = value;
-          if (calendar && selected == null) {
+      if (calendar)
+        HistoryCalendarSection(
+          query: selected == null
+              ? query
+              : query.restart(
+                  filter: query.filter.restart(
+                    clearFrom: true,
+                    clearBefore: true,
+                  ),
+                ),
+          tools: filtersToggle,
+          month: month!,
+          selected: selected,
+          onMonth: (date) {
+            setState(() => month = date);
             selectDay(
-              display.instant(DateTime.now().toUtc(), zone).civilDate,
+              date.year == today.year && date.month == today.month
+                  ? today
+                  : date,
               zone,
             );
-          }
-        }),
-      ),
+          },
+          onSelect: (date) {
+            setState(() => month = CivilDate(date.year, date.month, 1));
+            selectDay(date, zone);
+          },
+        ),
+      if (calendar) const SizedBox(height: 16),
+      if (!calendar)
+        Align(alignment: AlignmentDirectional.centerEnd, child: filtersToggle),
       if (filtersOpen) ...[
         const SizedBox(height: 12),
         StitchSurface(
@@ -396,6 +407,23 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
               Text(
                 t.historyFilters,
                 style: StitchType.name.copyWith(color: c.ink),
+              ),
+              const SizedBox(height: 12),
+              _HistoryStatusChips(
+                status: status,
+                onChanged: (value) => setState(() => status = value),
+              ),
+              const SizedBox(height: 12),
+              VitalSegments<bool>(
+                values: const [true, false],
+                selected: calendar,
+                label: (value) => value ? t.historyCalendar : t.historyTimeline,
+                onChanged: (value) => setState(() => calendar = value),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                t.shownInZone(display.resolveZone(zone).zoneId),
+                style: StitchType.caption,
               ),
               const SizedBox(height: 12),
               LabelledInput(
@@ -473,72 +501,17 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           ),
         ),
       ],
-      if (!filtersOpen && activeFilters) ...[
-        const SizedBox(height: 12),
-        StitchSurface(
-          radius: VitalLayout.sectionRadius,
-          inset: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                t.historyFilters,
-                style: StitchType.name.copyWith(color: c.ink),
-              ),
-              if (status != TimelineStatus.all) ...[
-                const SizedBox(height: 4),
-                Text(switch (status) {
-                  TimelineStatus.recorded => t.statusRecorded,
-                  TimelineStatus.skipped => t.statusSkipped,
-                  TimelineStatus.voided => t.statusVoided,
-                  TimelineStatus.all => t.statusAll,
-                }, style: StitchType.caption.copyWith(color: c.muted)),
-              ],
-              if (types.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  t.historySelectedTypes(types.length),
-                  style: StitchType.caption.copyWith(color: c.muted),
-                ),
-              ],
-              if (events.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  t.historySelectedEvents(events.length),
-                  style: StitchType.caption.copyWith(color: c.muted),
-                ),
-              ],
-              if (appliedFrom != null || appliedBefore != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  t.historyDateFilter(
-                    from.text.isEmpty ? t.historyAnyDate : from.text,
-                    through.text.isEmpty ? t.historyAnyDate : through.text,
-                  ),
-                  style: StitchType.caption.copyWith(color: c.muted),
-                ),
-              ],
-            ],
-          ),
+      if (!filtersOpen &&
+          (status != TimelineStatus.all ||
+              types.isNotEmpty ||
+              events.isNotEmpty ||
+              (selected == null && activeFilters))) ...[
+        const SizedBox(height: 8),
+        Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: VitalBadge(t.calendarFiltered, compact: true),
         ),
       ],
-      const SizedBox(height: 20),
-      if (calendar)
-        HistoryCalendarSection(
-          query: selected == null
-              ? query
-              : query.restart(
-                  filter: query.filter.restart(
-                    clearFrom: true,
-                    clearBefore: true,
-                  ),
-                ),
-          month: month!,
-          selected: selected,
-          onMonth: (date) => setState(() => month = date),
-          onSelect: (date) => selectDay(date, zone),
-        ),
-      if (calendar) const SizedBox(height: 16),
       if (state.stale) ...[
         Semantics(liveRegion: true, child: Text(t.historyNewEntries)),
         const SizedBox(height: 8),
@@ -576,6 +549,48 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             ),
           ),
       ],
+      if (selected != null) ...[
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Semantics(
+                    header: true,
+                    child: Text(
+                      DateFormat(
+                        'EEEE, MMM d',
+                        Localizations.localeOf(context).toString(),
+                      ).format(selected!.calendarValue),
+                      style: VitalType.section,
+                    ),
+                  ),
+                  if (!state.loading && state.error == null)
+                    Text(
+                      state.next != null
+                          ? t.historyShowing(state.entries.length)
+                          : t.screenHistoryEntryCount(state.entries.length),
+                      style: StitchType.caption.copyWith(color: c.muted),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            StitchButton(
+              compact: true,
+              icon: LucideIcons.calendarDays,
+              onPressed: () {
+                setState(() => month = CivilDate(today.year, today.month, 1));
+                selectDay(today, zone);
+              },
+              child: Text(t.today),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+      ],
       if (state.loading) Text(t.loadingRecords),
       if (state.error != null) ...[
         Text(
@@ -609,29 +624,17 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 t.historyNoEntriesBody,
                 style: StitchType.caption.copyWith(color: c.muted),
               ),
-              const SizedBox(height: 12),
-              Text(
-                t.historyNoCapturedPlan,
-                style: StitchType.label.copyWith(
-                  color: c.ink,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                t.historyNoCapturedPlanBody,
-                style: StitchType.caption.copyWith(color: c.muted),
-              ),
             ],
           ),
         ),
       for (final group in groups.values) ...[
-        _HistoryDayHeader(
-          date: group.date,
-          entries: group.entries.length,
-          today: today,
-          locale: locale,
-        ),
+        if (selected == null)
+          _HistoryDayHeader(
+            date: group.date,
+            entries: group.entries.length,
+            today: today,
+            locale: locale,
+          ),
         const SizedBox(height: 8),
         for (final entry in group.entries)
           HistoryEntryCard(
@@ -645,11 +648,6 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           ),
         const SizedBox(height: 12),
       ],
-      if (!state.loading && state.error == null && state.entries.isNotEmpty)
-        Text(
-          t.historyShowing(state.entries.length),
-          style: StitchType.caption.copyWith(color: c.muted),
-        ),
       if (state.olderLoading) Text(t.loadingRecords),
       if (state.next != null) ...[
         const SizedBox(height: 8),
@@ -664,32 +662,85 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           style: StitchType.caption.copyWith(color: c.muted),
         ),
       const SizedBox(height: 24),
-      _HistoryReportsPanel(
-        onReports: () =>
-            context.push(artifactLocation('/reports', personId, today, zone)),
-        onCharts: () => context.push(
-          Uri(
-            path: '/charts',
-            queryParameters: {
-              'scope': personId,
-              if (seed['item'] != null) 'item': seed['item']!,
-              if (appliedFrom != null) 'from': appliedFrom!.toIso8601String(),
-              if (appliedBefore != null)
-                'before': appliedBefore!.toIso8601String(),
-              'return': viewLocation(personId),
-            },
-          ).toString(),
+      Text(
+        t.calendarMonthlySummary,
+        style: StitchType.caption.copyWith(color: c.muted),
+        textAlign: TextAlign.center,
+      ),
+      const SizedBox(height: 8),
+      Semantics(
+        label: t.calendarExportMonth(
+          locale.formatMonthYear(month!.calendarValue),
         ),
-        onSupporting: () => context.push(
-          supportingLocation(
-            personId,
-            item: seed['item'],
-            back: viewLocation(personId),
-          ),
+        child: VitalButton.secondary(
+          expand: true,
+          leading: const Icon(LucideIcons.download),
+          onPressed: () {
+            final start = CivilDate(month!.year, month!.month, 1);
+            final next = DateTime.utc(start.year, start.month + 1, 1);
+            context.push(
+              Uri(
+                path: '/reports',
+                queryParameters: {
+                  'person': personId,
+                  'from': start.toString(),
+                  'before': CivilDate(
+                    next.year,
+                    next.month,
+                    next.day,
+                  ).toString(),
+                  'return': viewLocation(personId),
+                },
+              ).toString(),
+            );
+          },
+          child: Text(t.exportTitle),
         ),
       ),
-      const SizedBox(height: 12),
-      const _HistoryAuditPreview(),
+      const SizedBox(height: 8),
+      Align(
+        alignment: AlignmentDirectional.center,
+        child: StitchButton(
+          quiet: true,
+          compact: true,
+          icon: LucideIcons.pill,
+          onPressed: () => context.go('/substances'),
+          child: Text(t.substances),
+        ),
+      ),
+      if (filtersOpen) ...[
+        const SizedBox(height: 16),
+        VitalButton.secondary(
+          onPressed: () =>
+              context.push(artifactLocation('/exports', personId, today, zone)),
+          child: Text(t.exportTitle),
+        ),
+        const SizedBox(height: 24),
+        _HistoryReportsPanel(
+          onReports: () =>
+              context.push(artifactLocation('/reports', personId, today, zone)),
+          onCharts: () => context.push(
+            Uri(
+              path: '/charts',
+              queryParameters: {
+                'scope': personId,
+                if (seed['item'] != null) 'item': seed['item']!,
+                if (appliedFrom != null) 'from': appliedFrom!.toIso8601String(),
+                if (appliedBefore != null)
+                  'before': appliedBefore!.toIso8601String(),
+                'return': viewLocation(personId),
+              },
+            ).toString(),
+          ),
+          onSupporting: () => context.push(
+            supportingLocation(
+              personId,
+              item: seed['item'],
+              back: viewLocation(personId),
+            ),
+          ),
+        ),
+      ],
     ];
     return ListView(
       controller: scroll,
@@ -715,64 +766,6 @@ class _HistoryDayGroup {
   _HistoryDayGroup(this.date);
   final CivilDate date;
   final List<TimelineEntry> entries = [];
-}
-
-class _HistoryTitleBlock extends StatelessWidget {
-  const _HistoryTitleBlock({
-    required this.subtitle,
-    required this.zone,
-    required this.onExport,
-  });
-  final String subtitle, zone;
-  final VoidCallback onExport;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context), c = StitchColors(context);
-    final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
-    final heading = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Semantics(
-          header: true,
-          child: Text(
-            t.history,
-            style: StitchType.title.copyWith(color: c.ink),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(subtitle, style: StitchType.body.copyWith(color: c.muted)),
-      ],
-    );
-    final export = VitalButton(
-      leading: const Icon(LucideIcons.package),
-      onPressed: onExport,
-      child: Text(t.exportTitle),
-    );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (largeText) ...[
-          heading,
-          const SizedBox(height: 12),
-          Align(alignment: AlignmentDirectional.centerStart, child: export),
-        ] else
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: heading),
-              const SizedBox(width: 12),
-              export,
-            ],
-          ),
-        const SizedBox(height: 10),
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: StitchBadge(t.shownInZone(zone)),
-        ),
-      ],
-    );
-  }
 }
 
 class _HistoryStatusChips extends StatelessWidget {
@@ -1244,7 +1237,6 @@ class HistoryEntryCard extends ConsumerWidget {
 
     late final IconData icon;
     late final String title, meta, timeText;
-    final notes = <String>[];
     final combined = entry is CombinedTimelineEntry ? entry : null;
     final record = entry is RecordTimelineEntry ? entry.record : null;
     final skipped = entry is SkippedTimelineEntry ? entry : null;
@@ -1259,7 +1251,6 @@ class HistoryEntryCard extends ConsumerWidget {
       meta =
           '${stockRecordAmountNumber(t, record)} ${record.actualUnit} · ${record.form}';
       timeText = t.screenHistoryRecordedAt(formatter.time(instant));
-      if (record.isVoided) notes.add(statusLabel);
     } else if (skipped != null) {
       icon = LucideIcons.calendarClock;
       title = skipped.context.itemName ?? t.historyInspection;
@@ -1268,13 +1259,8 @@ class HistoryEntryCard extends ConsumerWidget {
         skipped.amount.unit,
       );
       timeText = skipped.dateOnly
-          ? formatter.date(instant, full: true)
+          ? t.dateOnly
           : t.screenHistoryScheduledAt(formatter.time(instant));
-      notes.add(t.historyPlannedDate(skipped.savedDate.toString()));
-      notes.add(t.plannedInZone(skipped.planZone));
-      if (skipped.dateOnly) notes.add(t.dateOnly);
-      if (skipped.timeNeedsReview) notes.add(t.timeNeedsReview);
-      notes.add(t.historySkippedHelp);
     } else {
       icon = LucideIcons.history;
       title = t.historyInspection;
@@ -1324,37 +1310,11 @@ class HistoryEntryCard extends ConsumerWidget {
         );
       }
     }
-    if (notes.isNotEmpty) {
+    if (skipped?.timeNeedsReview == true) {
       details.add(
-        Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: StitchSurface(
-            radius: VitalLayout.sectionRadius,
-            inset: true,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(LucideIcons.info, size: 16, color: c.muted),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      for (final note in notes)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 2),
-                          child: Text(
-                            note,
-                            style: StitchType.caption.copyWith(color: c.muted),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+        Text(
+          t.timeNeedsReview,
+          style: StitchType.caption.copyWith(color: c.amber),
         ),
       );
     }
@@ -1362,88 +1322,52 @@ class HistoryEntryCard extends ConsumerWidget {
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 6,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(title, style: StitchType.name.copyWith(color: c.ink)),
-            VitalBadge(statusLabel, tone: tone, compact: true),
-          ],
-        ),
+        Text(title, style: StitchType.name.copyWith(color: c.ink)),
         const SizedBox(height: 4),
         Text(meta, style: StitchType.body.copyWith(color: c.muted)),
         const SizedBox(height: 6),
         Semantics(
           key: ValueKey('history-time-${entry.id.sortKey}'),
-          label: entry.dateOnly
-              ? t.historyDateZone(
-                  formatter.date(instant, full: true),
-                  entry.planZone ?? instant.zoneId,
-                )
-              : t.historyRelativeExact(relative, exact),
+          label: t.calendarEntryState(
+            statusLabel,
+            entry.dateOnly
+                ? t.historyDateZone(
+                    formatter.date(instant, full: true),
+                    entry.planZone ?? instant.zoneId,
+                  )
+                : t.historyRelativeExact(relative, exact),
+          ),
           excludeSemantics: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(timeText, style: StitchType.label.copyWith(color: c.muted)),
-            ],
+          child: VitalBadge(
+            entry.status == TimelineEntryStatus.recorded
+                ? timeText
+                : t.calendarEntryState(statusLabel, timeText),
+            tone: tone,
+            compact: true,
           ),
         ),
         ...details,
       ],
     );
-    final action = Semantics(
-      label: t.screenHistoryViewEntry(title),
-      button: true,
-      onTap: onInspect,
-      child: ExcludeSemantics(
-        child: StitchButton(
-          compact: true,
-          onPressed: onInspect,
-          child: Text(t.view),
-        ),
-      ),
-    );
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 12),
       child: StitchSurface(
-        radius: VitalLayout.sectionRadius,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final stack =
-                constraints.maxWidth < 300 ||
-                MediaQuery.textScalerOf(context).scale(13) > 19;
-            final header = Row(
+        padding: EdgeInsets.zero,
+        child: Semantics(
+          key: ValueKey('history-open-${entry.id.sortKey}'),
+          label: t.screenHistoryViewEntry(title),
+          child: StitchButton(
+            quiet: true,
+            onPressed: onInspect,
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                StitchIcon(icon, size: 40),
+                StitchIcon(icon, size: 44),
                 const SizedBox(width: 12),
                 Expanded(child: content),
               ],
-            );
-            if (stack) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  header,
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: action,
-                  ),
-                ],
-              );
-            }
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: header),
-                const SizedBox(width: 8),
-                action,
-              ],
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
@@ -1513,47 +1437,6 @@ class _HistoryReportsPanel extends StatelessWidget {
   }
 }
 
-class _HistoryAuditPreview extends StatelessWidget {
-  const _HistoryAuditPreview();
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context), c = StitchColors(context);
-    return StitchSurface(
-      radius: VitalLayout.surfaceRadius,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  StitchIcon(LucideIcons.shieldCheck, size: 40),
-                  const SizedBox(width: 12),
-                  Text(
-                    t.screenHistoryAudit,
-                    style: StitchType.name.copyWith(color: c.ink),
-                  ),
-                ],
-              ),
-              StitchBadge(t.preview, warning: true),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            t.screenHistoryAuditPreview,
-            style: StitchType.caption.copyWith(color: c.muted),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class CalendarRequest {
   CalendarRequest(this.query, this.dates);
   final TimelineQuery query;
@@ -1585,7 +1468,9 @@ class HistoryCalendarSection extends ConsumerWidget {
     required this.selected,
     required this.onMonth,
     required this.onSelect,
+    this.tools,
   });
+  final Widget? tools;
   final TimelineQuery query;
   final CivilDate month;
   final CivilDate? selected;
@@ -1602,48 +1487,42 @@ class HistoryCalendarSection extends ConsumerWidget {
       historyCalendarDates(month, locale.firstDayOfWeekIndex),
     );
     final result = ref.watch(historyCalendarProvider(request));
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (result.isLoading) Text(t.historyMonthLoading),
-        if (result.hasError) ...[
-          Text(t.historyLoadFailed),
-          VitalButton.secondary(
-            onPressed: () => ref.invalidate(historyCalendarProvider(request)),
-            child: Text(t.retry),
+    return StitchSurface(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (result.isLoading) Text(t.historyMonthLoading),
+          if (result.hasError) ...[
+            Text(t.historyLoadFailed),
+            VitalButton.secondary(
+              onPressed: () => ref.invalidate(historyCalendarProvider(request)),
+              child: Text(t.retry),
+            ),
+          ],
+          HistoryMonthGrid(
+            month: month,
+            selected: selected,
+            tools: tools,
+            available:
+                !result.hasError && result.hasValue && result.value != null,
+            unavailableLabel: result.hasError
+                ? t.historyLoadFailed
+                : t.historyMonthLoading,
+            zone: DisplayTime().resolveZone(query.displayZone).zoneId,
+            counts: {
+              for (final cell in result.value?.cells ?? <HistoryCalendarCell>[])
+                cell.date: HistoryDayCounts(
+                  recorded: cell.recorded,
+                  skipped: cell.skipped,
+                  voided: cell.voided,
+                ),
+            },
+            onMonth: onMonth,
+            onSelect: onSelect,
           ),
         ],
-        HistoryMonthGrid(
-          month: month,
-          selected: selected,
-          zone: DisplayTime().resolveZone(query.displayZone).zoneId,
-          counts: {
-            for (final cell in result.value?.cells ?? <HistoryCalendarCell>[])
-              cell.date: HistoryDayCounts(
-                recorded: cell.recorded,
-                skipped: cell.skipped,
-                voided: cell.voided,
-              ),
-          },
-          onMonth: onMonth,
-          onSelect: onSelect,
-        ),
-        if (selected != null && result.hasValue && result.value != null)
-          Builder(
-            builder: (context) {
-              final cell = result.value!.cells
-                  .where((c) => c.date == selected)
-                  .firstOrNull;
-              return Text(
-                t.historyDayCounts(
-                  cell?.recorded ?? 0,
-                  cell?.skipped ?? 0,
-                  cell?.voided ?? 0,
-                ),
-              );
-            },
-          ),
-      ],
+      ),
     );
   }
 }

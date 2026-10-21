@@ -1,3 +1,5 @@
+import 'package:true_grit_vital/ui/stitch_ui.dart';
+
 import 'dart:async';
 import 'dart:io';
 
@@ -105,7 +107,7 @@ Finder entryCard(UseRecord record) => find.byWidgetPredicate(
 Future<void> inspectCard(WidgetTester tester, UseRecord record) async {
   final view = find.descendant(
     of: entryCard(record),
-    matching: find.text('View'),
+    matching: find.byType(StitchIcon),
   );
   await tester.ensureVisible(view);
   await settle(tester);
@@ -668,7 +670,7 @@ void main() {
         final records = await seededHistory(f.store);
         return records[6];
       }))!;
-      f.container.read(routerProvider).go('/history');
+      f.container.read(routerProvider).go('/history?view=list');
       await settle(tester);
       await inspectCard(tester, record);
       await tap(tester, 'Correct');
@@ -737,7 +739,7 @@ void main() {
       final records = await seededHistory(f.store);
       return records[24];
     }))!;
-    f.container.read(routerProvider).go('/history');
+    f.container.read(routerProvider).go('/history?view=list');
     await settle(tester);
     await inspectCard(tester, record);
     await tap(tester, 'Correct');
@@ -909,7 +911,7 @@ void main() {
         final records = await seededHistory(f.store);
         return records[6];
       }))!;
-      f.container.read(routerProvider).go('/history');
+      f.container.read(routerProvider).go('/history?view=list');
       await settle(tester);
       await inspectCard(tester, record);
       await tap(tester, 'Correct');
@@ -980,7 +982,7 @@ void main() {
         final records = await seededHistory(f.store);
         return records[8];
       }))!;
-      f.container.read(routerProvider).go('/history');
+      f.container.read(routerProvider).go('/history?view=list');
       await settle(tester);
       await inspectCard(tester, record);
       await tap(tester, 'Correct');
@@ -1065,7 +1067,7 @@ void main() {
         final records = await seededHistory(f.store);
         return records[6];
       }))!;
-      f.container.read(routerProvider).go('/history');
+      f.container.read(routerProvider).go('/history?view=list');
       await settle(tester);
       await inspectCard(tester, record);
       await tap(tester, 'Correct');
@@ -1157,7 +1159,7 @@ void main() {
         (entry) => entry.id.value == record.id,
       );
     }))!;
-    f.container.read(routerProvider).go('/history');
+    f.container.read(routerProvider).go('/history?view=list');
     await settle(tester);
     await settledWindow(
       tester,

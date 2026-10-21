@@ -10250,6 +10250,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Latest results use collection or measured dates across all dates. Date filters apply to the records below.'**
   String get screenLabsLatestDateScope;
+
+  /// Compact indication that advanced History filters are active.
+  ///
+  /// In en, this message translates to:
+  /// **'Filtered'**
+  String get calendarFiltered;
+
+  /// Explains that Export opens the existing report-selection workflow for the displayed calendar month.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly summary (PDF)'**
+  String get calendarMonthlySummary;
+
+  /// Accessible name for the monthly report selection action.
+  ///
+  /// In en, this message translates to:
+  /// **'Export {month} summary'**
+  String calendarExportMonth(String month);
+
+  /// Counts calendar days with saved recorded use in the displayed month and current non-date filters; not planned adherence.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day recorded this month} other{{count} days recorded this month}}'**
+  String calendarRecordedDays(int count);
+
+  /// Compact saved-entry state and recorded or scheduled time; no adherence judgement.
+  ///
+  /// In en, this message translates to:
+  /// **'{status} · {time}'**
+  String calendarEntryState(String status, String time);
 }
 
 class _AppLocalizationsDelegate

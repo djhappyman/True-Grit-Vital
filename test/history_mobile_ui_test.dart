@@ -1,3 +1,5 @@
+import 'package:true_grit_vital/ui/stitch_ui.dart';
+
 import 'fixtures/single_user.dart';
 
 import 'package:go_router/go_router.dart';
@@ -75,7 +77,7 @@ Future<void> openChoices(WidgetTester tester, String kind) async {
 }
 
 Future<void> toggleFilters(WidgetTester tester) async {
-  final target = find.widgetWithText(VitalButton, 'Filters');
+  final target = find.byKey(const ValueKey('history-filters-toggle'));
   await tester.ensureVisible(target);
   await settle(tester);
   await tester.tap(target);
@@ -165,6 +167,7 @@ void main() {
       ).toString();
       f.container.read(routerProvider).go(location);
       await settle(tester);
+      await toggleFilters(tester);
       await tap(tester, 'Charts');
       expect(find.byType(ChartsPage), findsOneWidget);
       final uri = GoRouterState.of(tester.element(find.byType(ChartsPage))).uri;
@@ -215,9 +218,9 @@ void main() {
               await historyRecord(f.store, item, today().addDays(-days)),
           ];
         }))!;
-        f.container.read(routerProvider).go('/history');
+        f.container.read(routerProvider).go('/history?view=list');
         await settle(tester);
-        expect(find.widgetWithText(VitalButton, 'Charts'), findsOneWidget);
+        expect(find.widgetWithText(VitalButton, 'Charts'), findsNothing);
         expect(find.text('Yesterday'), findsOneWidget);
         expect(find.text('3 days ago'), findsOneWidget);
         final exact = find.byKey(ValueKey('history-time-r:${records[1].id}'));
@@ -236,7 +239,10 @@ void main() {
               widget is HistoryEntryCard &&
               widget.entry.id.value == records.first.id,
         );
-        final view = find.descendant(of: card, matching: find.text('View'));
+        final view = find.descendant(
+          of: card,
+          matching: find.byType(StitchIcon),
+        );
         await tester.ensureVisible(view);
         await settle(tester);
         await tester.tap(view);
@@ -353,8 +359,9 @@ void main() {
         item.id,
       );
       await toggleFilters(tester);
-      expect(find.text('1 type selected'), findsOneWidget);
-      expect(find.text('1 event selected'), findsOneWidget);
+      expect(find.text('Filtered'), findsOneWidget);
+      await toggleFilters(tester);
+      expect(find.text('Selected course'), findsWidgets);
     },
   );
 
@@ -430,7 +437,6 @@ void main() {
         });
         f.container.read(routerProvider).go('/history');
         await settle(tester);
-        await tap(tester, 'Calendar');
         await settle(tester);
         final section = tester.widget<HistoryCalendarSection>(
           find.byType(HistoryCalendarSection),
@@ -479,19 +485,19 @@ void main() {
               .selected,
           today(),
         );
-        expect(
-          find.text('Recorded: 2. Skipped: 1. Voided: 1.'),
-          findsOneWidget,
-        );
+        expect(find.text('4 entries'), findsOneWidget);
         expect(find.byType(HistoryEntryCard), findsNWidgets(4));
-        expect(find.text('Date only'), findsOneWidget);
+        expect(find.textContaining('Date only'), findsOneWidget);
         final planned = find.byWidgetPredicate(
           (widget) =>
               widget is HistoryEntryCard &&
               widget.entry is RecordTimelineEntry &&
               (widget.entry as RecordTimelineEntry).planContext != null,
         );
-        final view = find.descendant(of: planned, matching: find.text('View'));
+        final view = find.descendant(
+          of: planned,
+          matching: find.byType(StitchIcon),
+        );
         await tester.ensureVisible(view);
         await settle(tester);
         await tester.tap(view);
@@ -526,7 +532,14 @@ void main() {
           .read(historyControllerProvider('/history'))
           .query!;
       await toggleFilters(tester);
-      await tap(tester, 'View');
+      final cardAction = find.descendant(
+        of: find.byType(HistoryEntryCard).first,
+        matching: find.byType(StitchIcon),
+      );
+      await tester.ensureVisible(cardAction);
+      await settle(tester);
+      await tester.tap(cardAction);
+      await settle(tester);
       await runIo(
         tester,
         () => f.store.correct(
@@ -546,7 +559,7 @@ void main() {
         query.identity,
       );
       expect(find.textContaining('This entry moved to'), findsOneWidget);
-      expect(find.textContaining(today().toString()), findsWidgets);
+      expect(find.text('Filtered'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
@@ -568,9 +581,8 @@ void main() {
       }))!;
       f.container.read(routerProvider).go('/history');
       await settle(tester);
-      await tap(tester, 'Calendar');
       await tap(tester, 'More');
-      await waitForText(tester, 'Showing 30 entries.');
+      await waitForText(tester, '30 entries');
       final originalQuery = f.container
           .read(historyControllerProvider('/history'))
           .query!;
@@ -579,14 +591,20 @@ void main() {
             widget is HistoryEntryCard && widget.entry.id.value == record.id,
       );
       Future<void> inspectTarget() async {
-        final view = find.descendant(of: target, matching: find.text('View'));
+        final view = find.descendant(
+          of: target,
+          matching: find.byType(StitchIcon),
+        );
         await tester.ensureVisible(view);
         await settle(tester);
         await tester.tap(view);
         await settle(tester);
       }
 
-      final view = find.descendant(of: target, matching: find.text('View'));
+      final view = find.descendant(
+        of: target,
+        matching: find.byType(StitchIcon),
+      );
       await tester.ensureVisible(view);
       await settle(tester);
       final list = tester.widget<ListView>(
@@ -715,7 +733,7 @@ void main() {
           ),
         );
         await settle(tester);
-        container.read(routerProvider).go('/history');
+        container.read(routerProvider).go('/history?view=list');
         await settle(tester);
         if (expired) {
           await tap(tester, 'More');
@@ -740,7 +758,11 @@ void main() {
             ),
           );
           await settle(tester);
-          container.read(historyControllerProvider('/history').notifier).atTop =
+          container
+                  .read(
+                    historyControllerProvider('/history?view=list').notifier,
+                  )
+                  .atTop =
               false;
           changes.add(
             TimelinePage(
@@ -774,7 +796,7 @@ void main() {
         }
         expect(
           container
-              .read(historyControllerProvider('/history'))
+              .read(historyControllerProvider('/history?view=list'))
               .query!
               .filter
               .scope

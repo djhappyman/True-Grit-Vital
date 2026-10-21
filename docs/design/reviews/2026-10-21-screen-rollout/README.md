@@ -1,6 +1,6 @@
 # Screen rollout review
 
-Native Flutter captures from the remaining-screen rollout. Designs come only from the saved [Stitch batch](../../stitch/2026-10-20/README.md). These screenshots use the real shared components and synthetic local records.
+Native Flutter captures from the remaining-screen rollout. Designs use the saved [Stitch batch](../../stitch/2026-10-20/README.md), with the owner’s later [History reference](../../references/2026-10-21-history-calendar/README.md) replacing that screen’s composition. These screenshots use the real shared components and synthetic local records.
 
 ## Create
 
@@ -35,11 +35,11 @@ Native Flutter captures from the remaining-screen rollout. Designs come only fro
 
 ## History
 
-- [Light](light-history.png), [dark](dark-history.png), [full light](light-history-full.png) and [full dark](dark-history-full.png) show loaded native day markers and a real synthetic recorded entry inside the existing fixed dock.
-- Calendar/timeline, supported status/type/event/date filters, paging, refresh, source/correction, charts, supporting records and report/export selection routes remain connected. Return and moved-anchor behaviour stay on the existing controller.
-- Export/report drafts use applied date bounds. Calendar counts are explicitly unavailable until read successfully, and View has a real accessible activation. Names, quantities and units remain complete; narrow/double-text layouts deliberately stack.
-- Lead verification: 52 regression checks, nine focused checks after the singular-copy correction, five visual/safe-area checks and clean project analysis. Tests include unapplied date edits, semantic activation, unknown/error counts and 320/430 px double text.
-- Undo remains on the existing `/recorded` compatibility flow; no new inline History Undo is claimed. Audit/adherence measures are labelled previews. Physical-device screen-reader and performance evidence stays open.
+- [Light](light-history.png), [dark](dark-history.png), [full light](light-history-full.png) and [full dark](dark-history-full.png) implement the owner’s replacement monthly-calendar composition, using the same shared surfaces, controls, palette and type scale.
+- Opens on today with a month grid, exact saved-record markers and compact selected-day cards. Whole cards open the existing source/correction flow. Full names, quantities and units stay visible. Calendar dots represent recorded/skipped/voided entries, not adherence or planned rest days.
+- Filters, range/timeline browsing, charts, structured exports and other reports stay behind the calendar’s filter control. The audit preview, weekly strip and repeated metadata are removed from the default view. The monthly PDF action opens the existing report review with the displayed month’s exact dates, including year boundaries.
+- Existing source return, moved anchors, bounded paging, stale refresh, combined records, lock guards and four-destination fixed dock remain in place. Calendar counts refresh after source inspection and stay unavailable on failed reads.
+- Lead verification: nine focused calendar/UI checks, 43 History/combined regression checks, five visual/safe-area checks and clean analysis. Narrow and double-text cases retain all days and actions; the month heading stacks above controls at large text sizes. Physical-device screen-reader and performance evidence remains open.
 
 ## Labs
 

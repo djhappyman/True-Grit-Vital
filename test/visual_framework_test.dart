@@ -198,7 +198,7 @@ void main() {
           }
           if (route.key == 'history') {
             await waitForText(tester, 'Telmisartan');
-            await waitForText(tester, '1 recorded');
+            await waitForText(tester, '1 day recorded this month');
           }
           if (route.key == 'stock') {
             await runIo(
