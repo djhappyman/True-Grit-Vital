@@ -8169,5 +8169,61 @@
   "screenPanelNoChecksums": "The files shown have no recorded checksum. Open Files to review them.",
   "@screenPanelNoChecksums": {
     "description": "Saved files exist in the bounded page but none have stored inspection hashes."
+  },
+  "featurePresetHeading": "Saved amounts",
+  "@featurePresetHeading": {
+    "description": "Exact dose preset selection and management."
+  },
+  "featurePresetHelp": "Choose a saved amount or enter your own. Schedule amounts come from the latest saved schedule.",
+  "@featurePresetHelp": {
+    "description": "Exact dose preset selection and management."
+  },
+  "featurePresetManageHelp": "Enter an amount above, then Add to keep it for this substance. This does not record a dose.",
+  "@featurePresetManageHelp": {
+    "description": "Exact dose preset selection and management."
+  },
+  "featurePresetLoadFailed": "Unable to load saved amounts. Retry.",
+  "@featurePresetLoadFailed": {
+    "description": "Exact dose preset selection and management."
+  },
+  "featurePresetSaveFailed": "Unable to save the change. Retry.",
+  "@featurePresetSaveFailed": {
+    "description": "Exact dose preset selection and management."
+  },
+  "featurePresetPlanFailed": "Unable to load schedule amounts. Retry.",
+  "@featurePresetPlanFailed": {
+    "description": "Exact dose preset selection and management."
+  },
+  "featurePresetLimit": "You can save up to 8 amounts. Remove one to add another.",
+  "@featurePresetLimit": {
+    "description": "Exact dose preset selection and management."
+  },
+  "featurePresetLess": "Less",
+  "@featurePresetLess": {
+    "description": "Exact dose preset selection and management."
+  },
+  "featurePresetSelect": "Choose {amount} {unit}",
+  "@featurePresetSelect": {
+    "description": "Exact dose preset selection and management.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "featurePresetRemove": "Remove saved amount {amount} {unit}",
+  "@featurePresetRemove": {
+    "description": "Exact dose preset selection and management.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   }
 }

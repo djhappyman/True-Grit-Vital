@@ -10784,6 +10784,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The files shown have no recorded checksum. Open Files to review them.'**
   String get screenPanelNoChecksums;
+
+  /// Exact dose preset selection and management.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved amounts'**
+  String get featurePresetHeading;
+
+  /// Exact dose preset selection and management.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a saved amount or enter your own. Schedule amounts come from the latest saved schedule.'**
+  String get featurePresetHelp;
+
+  /// Exact dose preset selection and management.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount above, then Add to keep it for this substance. This does not record a dose.'**
+  String get featurePresetManageHelp;
+
+  /// Exact dose preset selection and management.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load saved amounts. Retry.'**
+  String get featurePresetLoadFailed;
+
+  /// Exact dose preset selection and management.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save the change. Retry.'**
+  String get featurePresetSaveFailed;
+
+  /// Exact dose preset selection and management.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load schedule amounts. Retry.'**
+  String get featurePresetPlanFailed;
+
+  /// Exact dose preset selection and management.
+  ///
+  /// In en, this message translates to:
+  /// **'You can save up to 8 amounts. Remove one to add another.'**
+  String get featurePresetLimit;
+
+  /// Exact dose preset selection and management.
+  ///
+  /// In en, this message translates to:
+  /// **'Less'**
+  String get featurePresetLess;
+
+  /// Exact dose preset selection and management.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose {amount} {unit}'**
+  String featurePresetSelect(String amount, String unit);
+
+  /// Exact dose preset selection and management.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove saved amount {amount} {unit}'**
+  String featurePresetRemove(String amount, String unit);
 }
 
 class _AppLocalizationsDelegate

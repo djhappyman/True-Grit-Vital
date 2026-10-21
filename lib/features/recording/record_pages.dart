@@ -3,6 +3,7 @@ import '../../app/display_preferences.dart';
 import '../../ui/vital_ui.dart';
 import '../../ui/stitch_ui.dart';
 import 'dose_sheet.dart';
+import 'dose_preset_panel.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -2612,6 +2613,28 @@ class _DoseFormState extends DurableFormState<DoseForm> {
               t.stockNewEquivalent(
                 stockAmountText(t, r!.actualAmount, r.actualUnit),
               ),
+            ),
+          if (r == null)
+            DosePresetPanel(
+              owner: (personId: owner!.id, itemId: item!.id),
+              amount: amount.text,
+              unit: unit,
+              allowedUnits: {
+                item!.unit,
+                if (productLabel == null &&
+                    (selectedContainer != null || labelOnly) &&
+                    const {'mg', 'ml'}.contains(item!.unit)) ...[
+                  'mg',
+                  'ml',
+                ],
+              },
+              enabled: !busy && !uncertain && ownerValid,
+              onSelected: (preset) => setState(() {
+                enteredUnit = preset.unit;
+                keep = null;
+                amount.text = preset.text;
+                entryChanged();
+              }),
             ),
           const SizedBox(height: 16),
           if (productLabel != null) ...[

@@ -6972,4 +6972,42 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get screenPanelNoChecksums =>
       'The files shown have no recorded checksum. Open Files to review them.';
+
+  @override
+  String get featurePresetHeading => 'Saved amounts';
+
+  @override
+  String get featurePresetHelp =>
+      'Choose a saved amount or enter your own. Schedule amounts come from the latest saved schedule.';
+
+  @override
+  String get featurePresetManageHelp =>
+      'Enter an amount above, then Add to keep it for this substance. This does not record a dose.';
+
+  @override
+  String get featurePresetLoadFailed => 'Unable to load saved amounts. Retry.';
+
+  @override
+  String get featurePresetSaveFailed => 'Unable to save the change. Retry.';
+
+  @override
+  String get featurePresetPlanFailed =>
+      'Unable to load schedule amounts. Retry.';
+
+  @override
+  String get featurePresetLimit =>
+      'You can save up to 8 amounts. Remove one to add another.';
+
+  @override
+  String get featurePresetLess => 'Less';
+
+  @override
+  String featurePresetSelect(String amount, String unit) {
+    return 'Choose $amount $unit';
+  }
+
+  @override
+  String featurePresetRemove(String amount, String unit) {
+    return 'Remove saved amount $amount $unit';
+  }
 }
