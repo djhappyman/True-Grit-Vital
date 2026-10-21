@@ -6873,4 +6873,103 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get screenOverviewPeriods => 'Periods';
+
+  @override
+  String get screenPanelPanelDetail => 'Panel detail';
+
+  @override
+  String get screenPanelObservationDetail => 'Observation detail';
+
+  @override
+  String screenPanelCollected(String date) {
+    return 'Collected $date';
+  }
+
+  @override
+  String get screenPanelRecorded => 'Recorded';
+
+  @override
+  String get screenPanelRevision => 'Revision';
+
+  @override
+  String get screenPanelSaved => 'Saved';
+
+  @override
+  String get screenPanelRevised => 'Revised';
+
+  @override
+  String screenPanelFilterAll(int count) {
+    return 'All ($count)';
+  }
+
+  @override
+  String screenPanelFilterRange(int count) {
+    return 'With range ($count)';
+  }
+
+  @override
+  String screenPanelFilterNoRange(int count) {
+    return 'No range ($count)';
+  }
+
+  @override
+  String get screenPanelNoFilteredResults => 'No results in this filter.';
+
+  @override
+  String get screenPanelSubstance => 'Substance';
+
+  @override
+  String get screenPanelEvent => 'Event';
+
+  @override
+  String get screenPanelLinkGone => 'Linked record unavailable';
+
+  @override
+  String get screenPanelFileChecksums => 'File checksums';
+
+  @override
+  String get screenPanelFileChecksumsHelp =>
+      'Recorded when each file was saved. This does not verify the whole record.';
+
+  @override
+  String get screenPanelChecksumsUnavailable =>
+      'Saved checksums could not be loaded. Retry.';
+
+  @override
+  String screenPanelFileLabel(String name) {
+    return 'File: $name';
+  }
+
+  @override
+  String get screenPanelChecksumLimit =>
+      'Checksums use up to 25 saved files. Open Files to review all files.';
+
+  @override
+  String get screenPanelNoFiles =>
+      'No saved files. Add a source file to record its checksum.';
+
+  @override
+  String get screenPanelCopy => 'Copy';
+
+  @override
+  String get screenPanelCopied => 'Copied';
+
+  @override
+  String get screenPanelChecksumCopied => 'Checksum copied.';
+
+  @override
+  String get screenPanelCopyFailed => 'Copy failed. Try again.';
+
+  @override
+  String screenPanelCopyChecksum(String name) {
+    return 'Copy checksum for $name';
+  }
+
+  @override
+  String get screenPanelFhirUnavailable =>
+      'FHIR export is not available in this build. Use Export for the formats Vital supports.';
+
+  @override
+  String get screenPanelNoChecksums =>
+      'The files shown have no recorded checksum. Open Files to review them.';
 }

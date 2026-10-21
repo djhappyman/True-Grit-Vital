@@ -6,7 +6,7 @@ The owner selected the strongest parts of the Stitch designs as Vital's shared v
 
 **Implementation roadmap:** the owner authorised closing the design and feature gaps on 21 October 2026. Track the complete audit and the first five GLM Flash work packages in [the design roadmap](roadmap.md). Agents use [the implementation contract](implementation-contract.md); generated clinical/security claims retain their explicit decision status.
 
-**Approved layout:** [Dashboard and Substances](reviews/2026-10-21-stitch-rebuild/README.md) record the closer native Stitch rebuild in both themes. The [first integrated batch](reviews/2026-10-21/README.md) is retained as history. The remaining S00–S10 screen rollout is tracked in the roadmap.
+**Approved layout:** [Dashboard and Substances](reviews/2026-10-21-stitch-rebuild/README.md) record the closer native Stitch rebuild in both themes. The [first integrated batch](reviews/2026-10-21/README.md) is retained as history. The [remaining-screen rollout](reviews/2026-10-21-screen-rollout/README.md) records all ten canonical screen integrations and their captures. History follows the owner’s later [calendar reference](references/2026-10-21-history-calendar/README.md), which overrides the original Stitch History layout.
 
 ## Contribution workflow
 

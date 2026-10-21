@@ -8129,7 +8129,7 @@
       }
     }
   },
-  "screenPanelChecksumLimit": "Showing the 25 most recent saved files.",
+  "screenPanelChecksumLimit": "Checksums use up to 25 saved files. Open Files to review all files.",
   "@screenPanelChecksumLimit": {
     "description": "Lab panel detail. Truthful limit note when the bounded checksum list reaches 25 files."
   },
@@ -8165,5 +8165,9 @@
   "screenPanelFhirUnavailable": "FHIR export is not available in this build. Use Export for the formats Vital supports.",
   "@screenPanelFhirUnavailable": {
     "description": "Lab panel detail. Truthful state for the missing FHIR export capability. Export opens the existing formats only."
+  },
+  "screenPanelNoChecksums": "The files shown have no recorded checksum. Open Files to review them.",
+  "@screenPanelNoChecksums": {
+    "description": "Saved files exist in the bounded page but none have stored inspection hashes."
   }
 }

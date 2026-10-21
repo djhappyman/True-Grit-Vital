@@ -1,3 +1,4 @@
+import 'package:true_grit_vital/ui/stitch_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/widgets.dart' show Size, ValueKey;
 import 'package:true_grit_vital/app/display_preferences.dart';
@@ -95,7 +96,7 @@ void main() {
       );
       expect(find.textContaining('administrations'), findsNothing);
       expect(find.byType(HistoryEntryCard), findsNWidgets(2));
-      expect(find.text('Me: 5 mg'), findsNothing);
+      expect(find.text('5 mg · liquid'), findsNothing);
       expect(
         find.text(
           'Voided records are shown here but do not count towards totals.',
@@ -110,12 +111,12 @@ void main() {
             'Voided records are shown here but do not count towards totals.',
       );
       expect(find.byType(HistoryEntryCard), findsOneWidget);
-      expect(find.text('Me: 5 mg'), findsOneWidget);
+      expect(find.text('5 mg · liquid'), findsOneWidget);
       expect(find.text('3 mg'), findsWidgets);
 
       await selectSources(tester, 'Recorded', expected: '3 recorded doses');
       expect(find.byType(HistoryEntryCard), findsNWidgets(2));
-      expect(find.text('Me: 5 mg'), findsNothing);
+      expect(find.text('5 mg · liquid'), findsNothing);
       expect(
         find.text(
           'Voided records are shown here but do not count towards totals.',
@@ -183,7 +184,7 @@ void main() {
       );
       expect(find.byType(HistoryEntryCard), findsNWidgets(25));
       expect(find.text('Previous'), findsNothing);
-      expect(find.text('Me: 9 mg'), findsWidgets);
+      expect(find.text('9 mg · liquid'), findsWidgets);
       final secondNext = find.text('Next').last;
       await tester.ensureVisible(secondNext);
       await settle(tester);
@@ -196,7 +197,7 @@ void main() {
       // page cursor chain, not fall back to recorded sources.
       final inspect = find.descendant(
         of: find.byType(HistoryEntryCard),
-        matching: find.text('View'),
+        matching: find.byType(StitchIcon),
       );
       await tester.ensureVisible(inspect.first);
       await tester.tap(inspect.first);
@@ -216,7 +217,7 @@ void main() {
       await selectSources(tester, 'Recorded', expected: '26 recorded doses');
       expect(find.byType(HistoryEntryCard), findsNWidgets(25));
       expect(find.text('Next'), findsOneWidget);
-      expect(find.text('Me: 9 mg'), findsNothing);
+      expect(find.text('9 mg · liquid'), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );
@@ -282,8 +283,8 @@ void main() {
     await settle(tester);
     expect(find.text('Unable to load history. Try again.'), findsNothing);
     expect(find.byType(HistoryEntryCard), findsNWidgets(2));
-    expect(find.text('Me: 9 mg'), findsWidgets);
-    expect(find.text('Me: 1 mg'), findsNothing);
+    expect(find.text('9 mg · liquid'), findsWidgets);
+    expect(find.text('1 mg · liquid'), findsNothing);
     expect(
       find.text(
         'Voided records are shown here but do not count towards totals.',

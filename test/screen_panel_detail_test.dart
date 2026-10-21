@@ -5,9 +5,14 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:true_grit_vital/app/app_lock.dart';
 import 'package:true_grit_vital/app/device_zone.dart';
 import 'package:true_grit_vital/app/storage.dart';
+import 'package:true_grit_vital/app/supporting.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/recording/record_pages.dart';
+import 'package:true_grit_vital/features/exports/export_pages.dart';
+
+import 'design_system_test.dart' show host;
+
 import 'package:true_grit_vital/features/supporting/screen_panel_widgets.dart';
 import 'package:true_grit_vital/features/supporting/supporting_pages.dart';
 import 'package:true_grit_vital/platform/device_zone.dart';
@@ -15,7 +20,7 @@ import 'package:true_grit_vital/ui/stitch_ui.dart';
 import 'package:true_grit_vital/ui/vital_ui.dart';
 
 import 'supporting_ui_test.dart' as supporting;
-import 'vital_app_test.dart' show appTest, launch, runIo, settle;
+import 'vital_app_test.dart' show appTest, launch, runIo, settle, waitForText;
 
 LabPanelSnapshot exactPanel(String id) => LabPanelSnapshot(
   id: SupportingRecordId(id: id, personId: meId),
@@ -78,6 +83,71 @@ LabPanelSnapshot linkedPanel(
 );
 
 void main() {
+  testWidgets('source range applicability remains accessible', (tester) async {
+    final handle = tester.ensureSemantics();
+    try {
+      await tester.pumpWidget(
+        host(
+          ScreenPanelResultCard(
+            result: LabResultSnapshot(
+              id: 'source-range',
+              metricId: 'source-range',
+              markerName: 'Source marker',
+              value: SupportingValue.numeric('4.4'),
+              unit: 'mmol/L',
+              referenceRange: SourceReferenceRange(
+                originalText: '3.5 to 5.1',
+                applicabilityText: 'Adults aged 18 and over',
+              ),
+            ),
+            onTrends: () {},
+          ),
+        ),
+      );
+      expect(
+        find.bySemanticsLabel(RegExp('Adults aged 18 and over')),
+        findsOneWidget,
+      );
+    } finally {
+      handle.dispose();
+    }
+  });
+
+  appTest('observation hero identifies its measured date', (tester) async {
+    final f = await launch(tester);
+    await runIo(
+      tester,
+      () => f.store.saveObservation(
+        SaveObservationCommand(
+          commandId: 'measured-observation',
+          generation: f.store.generation,
+          expectedPersonRevision: 2,
+          observation: ObservationSnapshot(
+            id: SupportingRecordId(id: 'measured-observation', personId: meId),
+            title: 'Measured observation',
+            measuredDate: SupportingDate.day(CivilDate(2026, 10, 19)),
+            provenance: SupportingProvenance(
+              mode: SupportingProvenanceMode.manualTranscription,
+            ),
+            components: exactPanel('measured-observation').results,
+          ),
+        ),
+      ),
+    );
+    f.container
+        .read(routerProvider)
+        .go('/supporting/$meId/measured-observation');
+    await settle(tester);
+    expect(
+      find.descendant(
+        of: find.byType(ScreenPanelHero),
+        matching: find.textContaining('Measured date:'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Collected'), findsNothing);
+  });
+
   appTest('panel detail shows exact values and recorded file checksum', (
     tester,
   ) async {
@@ -111,6 +181,11 @@ void main() {
     expect(find.text('File checksums'), findsOneWidget);
     expect(find.text('Files'), findsOneWidget);
     expect(find.text('Export'), findsOneWidget);
+    await supporting.tap(tester, 'Export');
+    final location = tester
+        .widget<ExportPage>(find.byType(ExportPage))
+        .location;
+    expect(Uri.parse(location).queryParameters['content'], 'supporting');
   });
 
   appTest('historical revision stays read only without file management', (
@@ -373,6 +448,26 @@ void main() {
     await supporting.tap(tester, 'Next');
     expect(find.byType(ScreenPanelResultCard), findsNWidgets(5));
     expect(find.text('Marker 29 with full name'), findsOneWidget);
+    await runIo(
+      tester,
+      () => f.store.saveLabPanel(
+        SaveLabPanelCommand(
+          commandId: 'shorten-filter-panel',
+          generation: f.store.generation,
+          expectedPersonRevision: 2,
+          expectedRevision: 1,
+          panel: supporting.panel(
+            'filter-panel',
+            meId,
+            results: results.take(2).toList(),
+          ),
+        ),
+      ),
+    );
+    f.container.invalidate(supportingLookupProvider);
+    await waitForText(tester, 'All (2)');
+    expect(find.byType(ScreenPanelResultCard), findsNWidgets(2));
+    expect(find.text('Marker 0 with full name'), findsOneWidget);
   });
 
   appTest('320 px at 200 percent keeps actions and checksums readable', (

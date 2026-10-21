@@ -10622,6 +10622,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Periods'**
   String get screenOverviewPeriods;
+
+  /// Lab panel detail. Authored page heading for a saved lab panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Panel detail'**
+  String get screenPanelPanelDetail;
+
+  /// Lab panel detail. Authored page heading for a saved observation.
+  ///
+  /// In en, this message translates to:
+  /// **'Observation detail'**
+  String get screenPanelObservationDetail;
+
+  /// Lab panel detail. The saved collection date, shown without inventing a time or zone.
+  ///
+  /// In en, this message translates to:
+  /// **'Collected {date}'**
+  String screenPanelCollected(String date);
+
+  /// Lab panel detail. Count caption for the saved results.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded'**
+  String get screenPanelRecorded;
+
+  /// Lab panel detail. Short label for the saved revision number.
+  ///
+  /// In en, this message translates to:
+  /// **'Revision'**
+  String get screenPanelRevision;
+
+  /// Lab panel detail. Caption confirming the revision number is a saved revision.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get screenPanelSaved;
+
+  /// Lab panel detail. Timestamp label when the current revision corrected the record.
+  ///
+  /// In en, this message translates to:
+  /// **'Revised'**
+  String get screenPanelRevised;
+
+  /// Lab panel detail. Filter pill showing every saved result.
+  ///
+  /// In en, this message translates to:
+  /// **'All ({count})'**
+  String screenPanelFilterAll(int count);
+
+  /// Lab panel detail. Filter pill for results that include saved source range text.
+  ///
+  /// In en, this message translates to:
+  /// **'With range ({count})'**
+  String screenPanelFilterRange(int count);
+
+  /// Lab panel detail. Filter pill for results that have no saved source range text.
+  ///
+  /// In en, this message translates to:
+  /// **'No range ({count})'**
+  String screenPanelFilterNoRange(int count);
+
+  /// Lab panel detail. Truthful empty state when the chosen factual filter has no matching results.
+  ///
+  /// In en, this message translates to:
+  /// **'No results in this filter.'**
+  String get screenPanelNoFilteredResults;
+
+  /// Lab panel detail. Kind label for a linked substance.
+  ///
+  /// In en, this message translates to:
+  /// **'Substance'**
+  String get screenPanelSubstance;
+
+  /// Lab panel detail. Kind label for a linked event.
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get screenPanelEvent;
+
+  /// Lab panel detail. The stored link id no longer resolves to a saved substance or event. Do not show the raw id.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked record unavailable'**
+  String get screenPanelLinkGone;
+
+  /// Lab panel detail. Section for checksums recorded against saved source files.
+  ///
+  /// In en, this message translates to:
+  /// **'File checksums'**
+  String get screenPanelFileChecksums;
+
+  /// Lab panel detail. States that a saved file hash is not a complete ledger or clinical verification claim.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded when each file was saved. This does not verify the whole record.'**
+  String get screenPanelFileChecksumsHelp;
+
+  /// Lab panel detail. Checksum read failure.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved checksums could not be loaded. Retry.'**
+  String get screenPanelChecksumsUnavailable;
+
+  /// Lab panel detail. Labels a saved file beside its recorded checksum without impersonating a source reference.
+  ///
+  /// In en, this message translates to:
+  /// **'File: {name}'**
+  String screenPanelFileLabel(String name);
+
+  /// Lab panel detail. Truthful limit note when the bounded checksum list reaches 25 files.
+  ///
+  /// In en, this message translates to:
+  /// **'Checksums use up to 25 saved files. Open Files to review all files.'**
+  String get screenPanelChecksumLimit;
+
+  /// Lab panel detail. Empty state for saved file checksums. No example hash is shown.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved files. Add a source file to record its checksum.'**
+  String get screenPanelNoFiles;
+
+  /// Lab panel detail. Button that copies a recorded checksum.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get screenPanelCopy;
+
+  /// Lab panel detail. Copy button state after the checksum is placed on the clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get screenPanelCopied;
+
+  /// Lab panel detail. Polite live update after copying a checksum.
+  ///
+  /// In en, this message translates to:
+  /// **'Checksum copied.'**
+  String get screenPanelChecksumCopied;
+
+  /// Lab panel detail. Clipboard failure with a retry instruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy failed. Try again.'**
+  String get screenPanelCopyFailed;
+
+  /// Lab panel detail. Accessible name for a copy button, including the saved file name.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy checksum for {name}'**
+  String screenPanelCopyChecksum(String name);
+
+  /// Lab panel detail. Truthful state for the missing FHIR export capability. Export opens the existing formats only.
+  ///
+  /// In en, this message translates to:
+  /// **'FHIR export is not available in this build. Use Export for the formats Vital supports.'**
+  String get screenPanelFhirUnavailable;
+
+  /// Saved files exist in the bounded page but none have stored inspection hashes.
+  ///
+  /// In en, this message translates to:
+  /// **'The files shown have no recorded checksum. Open Files to review them.'**
+  String get screenPanelNoChecksums;
 }
 
 class _AppLocalizationsDelegate

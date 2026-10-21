@@ -1,3 +1,5 @@
+import 'package:true_grit_vital/ui/stitch_ui.dart';
+
 import 'fixtures/single_user.dart';
 
 import 'package:fl_chart/fl_chart.dart' as plot;
@@ -126,7 +128,7 @@ void main() {
       expect(find.textContaining('Morgan liquid'), findsNothing);
       final inspect = find.descendant(
         of: find.byType(HistoryEntryCard),
-        matching: find.text('View'),
+        matching: find.byType(StitchIcon),
       );
       await tester.ensureVisible(inspect.first);
       await tester.tap(inspect.first);

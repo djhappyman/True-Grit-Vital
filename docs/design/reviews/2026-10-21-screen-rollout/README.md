@@ -70,4 +70,15 @@ Native Flutter captures from the remaining-screen rollout. Designs use the saved
 - Full identities, quantities, unknown zone, pause, incomplete next-dose calculation and More hints remain visible. No fabricated Active, clinical notes, capacity, runout or on-time values are shown. The secondary page keeps Back navigation.
 - Lead verification: 49 overview/collection/summary regression checks, 18 final overview checks including real section jumps, five framework/capture checks and clean analysis. Includes lock, mounted plan refresh, per-plan edit identity, low-balance routing and narrow/double-text layouts. Physical-device accessibility/performance gates remain open.
 
+## Panel detail
+
+- [Light](light-panel-detail.png), [dark](dark-panel-detail.png), [full light](light-panel-detail-full.png), [full dark](dark-panel-detail-full.png) and [320 px / double-text](light-panel-detail-narrow-2x-full.png) captures show saved results and a synthetic original-file attachment.
+- Exact values, units, source ranges and applicability, source flags, dates, revisions, linked record names, Edit/Void/Restore, Files and Trends use the existing durable records. Observations retain their measured-date label. Range filters and paging remain valid after a correction changes the result count.
+- Copy uses saved attachment hashes and the real clipboard. The page explicitly distinguishes these from whole-record verification, describes its 25-file window and opens the existing supporting-content export selection. FHIR, categories and accession metadata remain gaps.
+- Lead verification: 60 supporting/panel regression checks, two loaded capture checks, five framework checks and clean analysis. Includes source-range semantics, read-only revisions, shortened result paging and export scope. Native screen-reader and physical-device performance checks remain open.
+
+## Route sweep
+
+The [route captures](routes/) contain 34 existing routes in both themes. The sweep checks device safe areas, fixed navigation and opaque/reduced-effects layouts using synthetic records. Secondary editors keep their existing forms and shared framework. Missing-record and unavailable-platform states are intentional; the loaded screen captures above provide evidence for their populated counterparts.
+
 Run logs are local under `output/stitch-screen-rollout-2026-10-21/`. The [roadmap](../../roadmap.md) tracks the remaining screens and capability gaps.

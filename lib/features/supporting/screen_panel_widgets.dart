@@ -54,6 +54,7 @@ class ScreenPanelHero extends StatelessWidget {
     required this.kindLabel,
     required this.laboratory,
     required this.collectionLabel,
+    required this.dateLabel,
     required this.reportLabel,
     required this.revision,
     required this.resultCount,
@@ -61,7 +62,7 @@ class ScreenPanelHero extends StatelessWidget {
     this.dateSource,
   });
 
-  final String title, kindLabel;
+  final String title, kindLabel, dateLabel;
   final String? laboratory, reportLabel, dateSource;
   final String collectionLabel;
   final int revision, resultCount;
@@ -102,7 +103,7 @@ class ScreenPanelHero extends StatelessWidget {
             runSpacing: 4,
             children: [
               Text(
-                t.screenPanelCollected(collectionLabel),
+                t.supportingDateLabel(dateLabel, collectionLabel),
                 style: VitalType.metadata.copyWith(color: colors.muted),
               ),
               Text(
@@ -285,6 +286,7 @@ class ScreenPanelResultCard extends StatelessWidget {
         range?.originalText ?? t.supportingRangeMissing,
       ),
       if (flag != null) t.supportingDateLabel(t.supportingFlag, flag),
+      ?range?.applicabilityText,
     ].join(' ');
     return StitchSurface(
       radius: VitalLayout.sectionRadius,
@@ -526,7 +528,11 @@ class _ScreenPanelFilesState extends ConsumerState<ScreenPanelFiles> {
         else if (!saved.hasValue)
           Text(t.loadingRecords)
         else if (files.isEmpty)
-          Text(t.screenPanelNoFiles)
+          Text(
+            saved.value!.isEmpty
+                ? t.screenPanelNoFiles
+                : t.screenPanelNoChecksums,
+          )
         else ...[
           for (final file in files)
             VitalSurface(
@@ -569,12 +575,12 @@ class _ScreenPanelFilesState extends ConsumerState<ScreenPanelFiles> {
                 ],
               ),
             ),
-          if (files.length == 25)
-            Text(
-              t.screenPanelChecksumLimit,
-              style: VitalType.metadata.copyWith(color: colors.muted),
-            ),
         ],
+        if (!saved.hasError && (saved.value?.length ?? 0) >= 25)
+          Text(
+            t.screenPanelChecksumLimit,
+            style: VitalType.metadata.copyWith(color: colors.muted),
+          ),
         if (copyFailed)
           Semantics(
             liveRegion: true,

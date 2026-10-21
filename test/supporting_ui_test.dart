@@ -872,6 +872,8 @@ void main() {
         '/history?scope=${adult.id}&status=voided&mode=calendar&day=2026-10-19';
     f.container.read(routerProvider).go(location);
     await settle(tester);
+    await tester.tap(find.byKey(const ValueKey('history-filters-toggle')));
+    await settle(tester);
     await tap(tester, 'Supporting');
     // One local adult: the collection does not repeat a person label.
     expect(find.text('Person: Named adult'), findsNothing);

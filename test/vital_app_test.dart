@@ -1,3 +1,4 @@
+import 'package:true_grit_vital/ui/stitch_ui.dart';
 import 'package:true_grit_vital/app/artifact_transfer.dart';
 import 'package:true_grit_vital/platform/artifact_transfer.dart';
 
@@ -368,7 +369,7 @@ void main() {
           );
         }
       });
-      f.container.read(routerProvider).go('/history');
+      f.container.read(routerProvider).go('/history?view=list');
       await settle(tester);
       expect(find.byType(HistoryEntryCard), findsNWidgets(25));
       expect(find.text('More'), findsOneWidget);
@@ -378,11 +379,12 @@ void main() {
       expect(find.byType(HistoryEntryCard), findsNWidgets(51));
       final oldestView = find.descendant(
         of: find.byKey(ValueKey('r:${oldest.id}')),
-        matching: find.text('View'),
+        matching: find.byType(StitchIcon),
       );
       await tester.ensureVisible(oldestView);
       await settle(tester);
-      await tap(tester, 'View');
+      await tester.tap(oldestView);
+      await settle(tester);
       expect(find.byType(HistorySourcePage), findsOneWidget);
       expect(
         tester

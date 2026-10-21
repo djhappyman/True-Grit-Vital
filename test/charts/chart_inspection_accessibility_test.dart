@@ -6,6 +6,7 @@ import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/history/history_pages.dart'
     show HistoryEntryCard;
 import 'package:true_grit_vital/ui/vital_ui.dart';
+import 'package:true_grit_vital/ui/stitch_ui.dart';
 
 import '../stock_ui_test.dart' show item;
 import '../vital_app_test.dart' show appTest, launch, runIo, settle, tap;
@@ -123,7 +124,7 @@ void main() {
 
       final inspect = find.descendant(
         of: find.byType(HistoryEntryCard),
-        matching: find.text('View'),
+        matching: find.byType(StitchIcon),
       );
       await tester.ensureVisible(inspect);
       await tester.tap(inspect);

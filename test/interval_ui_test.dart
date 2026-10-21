@@ -1,3 +1,4 @@
+import 'package:true_grit_vital/ui/stitch_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:true_grit_vital/app/reminders.dart';
@@ -351,9 +352,16 @@ void main() {
       tester,
       () => f.store.saveBrowsingScope(FeedScope.person(f.item.personId)),
     );
-    f.container.read(routerProvider).go('/history');
+    f.container.read(routerProvider).go('/history?item=${f.item.id}');
     await settle(tester);
-    await tap(tester, 'View');
+    final source = find.descendant(
+      of: find.byKey(ValueKey('history-open-r:${r.id}')),
+      matching: find.byType(StitchIcon),
+    );
+    await tester.ensureVisible(source);
+    await settle(tester);
+    await tester.tap(source);
+    await settle(tester);
     await tap(tester, 'Review');
     await tap(tester, 'Select');
     expect(find.textContaining('After:'), findsOneWidget);

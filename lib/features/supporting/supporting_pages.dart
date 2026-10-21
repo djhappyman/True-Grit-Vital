@@ -21,13 +21,14 @@ import 'supporting_widgets.dart';
 /// Runs one durably saved supporting void or restore intent. Overridable in
 /// widget tests so a commit failure or a lost reply can be exercised without a
 /// second command engine.
-typedef SupportingVoidRun =
-    Future<SupportingRevision> Function(OrdinaryDraft draft);
+typedef SupportingVoidRun = Future<SupportingRevision> Function(
+  OrdinaryDraft draft,
+);
 final supportingVoidWriterProvider = Provider<SupportingVoidRun>(
   (ref) =>
-      (draft) async => (await ref.read(
-        recordStoreProvider.future,
-      )).resumeSupportingVoidDraft(draft),
+      (draft) async =>
+          (await ref.read(recordStoreProvider.future))
+              .resumeSupportingVoidDraft(draft),
 );
 
 String supportingLocation(
@@ -362,7 +363,9 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
       ScreenPanelResultFilter.withRange => withRange,
       ScreenPanelResultFilter.withoutRange => withoutRange,
     };
-    final visible = filtered.skip(resultPage * 25).take(25);
+    final lastPage = filtered.isEmpty ? 0 : (filtered.length - 1) ~/ 25;
+    final shownPage = resultPage.clamp(0, lastPage);
+    final visible = filtered.skip(shownPage * 25).take(25);
     void openTrends(LabResultSnapshot result) => context.push(
       Uri(
         path: '/supporting/${widget.personId}/trends',
@@ -392,6 +395,9 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
               ? t.supportingPanel
               : t.supportingObservation,
           laboratory: laboratory,
+          dateLabel: s.kind == SupportingRecordKind.labPanel
+              ? t.supportingCollection
+              : t.supportingMeasured,
           collectionLabel: collectionLabel,
           reportLabel: reportLabel,
           dateSource: collectionSource,
@@ -506,14 +512,14 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
                 runSpacing: 8,
                 children: [
                   StitchButton(
-                    onPressed: resultPage > 0
-                        ? () => setState(() => resultPage--)
+                    onPressed: shownPage > 0
+                        ? () => setState(() => resultPage = shownPage - 1)
                         : null,
                     child: Text(t.supportingPrevious),
                   ),
                   StitchButton(
-                    onPressed: (resultPage + 1) * 25 < filtered.length
-                        ? () => setState(() => resultPage++)
+                    onPressed: (shownPage + 1) * 25 < filtered.length
+                        ? () => setState(() => resultPage = shownPage + 1)
                         : null,
                     child: Text(t.supportingNext),
                   ),
@@ -617,7 +623,7 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
             enabled: true,
             filesFocusNode: backFocus,
             onOpenFiles: _openFiles,
-            onExport: () => context.push('/exports'),
+            onExport: () => context.push('/exports?content=supporting'),
           ),
         ],
       ],
