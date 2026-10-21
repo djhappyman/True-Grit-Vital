@@ -10,10 +10,12 @@ import '../../app/storage.dart';
 import '../../app/supporting.dart';
 import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
+import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
 import 'screen_labs_collection.dart';
+import 'screen_panel_widgets.dart';
 import 'supporting_widgets.dart';
 
 /// Runs one durably saved supporting void or restore intent. Overridable in
@@ -71,6 +73,7 @@ class SupportingDetailPage extends ConsumerStatefulWidget {
 
 class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
   int resultPage = 0;
+  ScreenPanelResultFilter resultFilter = ScreenPanelResultFilter.all;
   bool revisions = false, busy = false;
   int? beforeRevision;
   String? error, feedback;
@@ -94,6 +97,11 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
     ref.invalidate(supportingLookupProvider);
     ref.invalidate(supportingRevisionsProvider);
     ref.invalidate(ordinaryDraftsProvider);
+  }
+
+  Future<void> _openFiles() async {
+    await context.push('/files/${widget.personId}/supporting/${widget.id}');
+    if (mounted) backFocus.requestFocus();
   }
 
   Future<bool> _committed(RecordStore store, String operation) async {
@@ -330,7 +338,39 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
             )),
           )
         : null;
+    final collectionLabel = supportingDateLabel(context, ref, s.collectionDate);
+    final collectionSource = supportingDateSourceLabel(
+      context,
+      ref,
+      s.collectionDate,
+    );
+    final reportLabel = s.kind == SupportingRecordKind.labPanel
+        ? supportingDateLabel(context, ref, s.reportDate)
+        : null;
+    final reportSource = s.kind == SupportingRecordKind.labPanel
+        ? supportingDateSourceLabel(context, ref, s.reportDate)
+        : null;
+    final laboratory = s.provenance.laboratoryName ?? s.provenance.laboratoryId;
+    final withRange = s.results
+        .where((result) => result.referenceRange != null)
+        .toList(growable: false);
+    final withoutRange = s.results
+        .where((result) => result.referenceRange == null)
+        .toList(growable: false);
+    final filtered = switch (resultFilter) {
+      ScreenPanelResultFilter.all => s.results,
+      ScreenPanelResultFilter.withRange => withRange,
+      ScreenPanelResultFilter.withoutRange => withoutRange,
+    };
+    final visible = filtered.skip(resultPage * 25).take(25);
+    void openTrends(LabResultSnapshot result) => context.push(
+      Uri(
+        path: '/supporting/${widget.personId}/trends',
+        queryParameters: {'metric': result.metricId, 'kind': s.kind.name},
+      ).toString(),
+    );
     return EntryPage(
+      panelled: false,
       onBack: () {
         if (context.canPop()) {
           context.pop();
@@ -343,75 +383,40 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
       children: [
         Heading(
           s.kind == SupportingRecordKind.labPanel
+              ? t.screenPanelPanelDetail
+              : t.screenPanelObservationDetail,
+        ),
+        ScreenPanelHero(
+          title: s.title,
+          kindLabel: s.kind == SupportingRecordKind.labPanel
               ? t.supportingPanel
               : t.supportingObservation,
+          laboratory: laboratory,
+          collectionLabel: collectionLabel,
+          reportLabel: reportLabel,
+          dateSource: collectionSource,
+          revision: saved.revision,
+          resultCount: s.results.length,
+          voided: saved.isVoided,
         ),
-        Text(t.profileOwner(ownerLabel(ref, t, widget.personId))),
-        Text(
-          s.title,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
-        ),
-        Text(t.supportingRevisionLabel(saved.revision)),
-        if (saved.isVoided) Text(t.supportingVoided),
-        Text(
-          t.supportingDateLabel(
-            s.kind == SupportingRecordKind.labPanel
-                ? t.supportingCollection
-                : t.supportingMeasured,
-            supportingDateLabel(context, ref, s.collectionDate),
-          ),
-        ),
-        if (supportingDateSourceLabel(context, ref, s.collectionDate)
-            case final source?)
-          Text(source),
-        if (s.kind == SupportingRecordKind.labPanel)
-          Text(
-            t.supportingDateLabel(
-              t.supportingReport,
-              supportingDateLabel(context, ref, s.reportDate),
-            ),
-          ),
-        if (s.kind == SupportingRecordKind.labPanel &&
-            supportingDateSourceLabel(context, ref, s.reportDate) != null)
-          Text(supportingDateSourceLabel(context, ref, s.reportDate)!),
-        Text(
-          t.supportingDateLabel(
-            t.supportingEntry,
-            displayStamp(
-              context,
-              ref,
-              saved.enteredAt,
-              zoneId: 'UTC',
-              includeSeconds: true,
-            ),
-          ),
-        ),
-        if (saved.correctedAt != null)
-          Text(
-            t.supportingDateLabel(
-              t.supportingRevisions,
-              displayStamp(
-                context,
-                ref,
-                saved.revisionEnteredAt,
-                zoneId: 'UTC',
-                includeSeconds: true,
-              ),
-            ),
-          ),
-        if (pending != null && owner != null)
+        if (pending != null && owner != null) ...[
+          const SizedBox(height: 16),
           _pendingCard(
             t,
             pending,
             canResume: !owner.isArchived,
             explanation: owner.isArchived ? t.supportingVoidArchived : null,
           ),
+        ],
+        const SizedBox(height: 16),
         Wrap(
-          spacing: 12,
-          runSpacing: 12,
+          spacing: 8,
+          runSpacing: 8,
           children: [
             if (!saved.isVoided)
-              VitalButton.secondary(
+              StitchButton(
+                icon: LucideIcons.pencil,
+                primary: true,
                 onPressed: mutable
                     ? () => context.push(
                         Uri(
@@ -427,18 +432,6 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
                     : null,
                 child: Text(t.edit),
               ),
-            VitalButton.secondary(
-              focusNode: backFocus,
-              onPressed: widget.revision == null
-                  ? () async {
-                      await context.push(
-                        '/files/${widget.personId}/supporting/${widget.id}',
-                      );
-                      if (mounted) backFocus.requestFocus();
-                    }
-                  : null,
-              child: Text(t.attachments),
-            ),
             if (pending == null)
               VitalButton.secondary(
                 isLoading: busy,
@@ -451,43 +444,75 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
               ),
           ],
         ),
-        if (error != null) Semantics(liveRegion: true, child: Text(error!)),
-        if (feedback != null)
-          Semantics(liveRegion: true, child: Text(feedback!)),
+        if (error != null) ...[
+          const SizedBox(height: 16),
+          VitalNotice(
+            tone: VitalTone.danger,
+            icon: LucideIcons.circleAlert,
+            child: Semantics(liveRegion: true, child: Text(error!)),
+          ),
+        ],
+        if (feedback != null) ...[
+          const SizedBox(height: 16),
+          VitalNotice(
+            icon: LucideIcons.check,
+            child: Semantics(liveRegion: true, child: Text(feedback!)),
+          ),
+        ],
+        if (s.contextLinks.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          VitalSection(
+            title: Text(t.supportingContext),
+            children: [
+              Text(t.supportingContextHint),
+              for (final link in s.contextLinks)
+                ScreenPanelLinkedRecord(
+                  key: ValueKey('${link.kind.name}-${link.id}'),
+                  link: link,
+                ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 24),
         VitalSection(
           title: Text(t.supportingResults),
           children: [
-            if (s.results.isEmpty) Text(t.supportingNoResults),
-            for (final result in s.results.skip(resultPage * 25).take(25))
-              SupportingResultView(
-                key: ValueKey(result.id),
-                result: result,
-                action: VitalButton.secondary(
-                  onPressed: () => context.push(
-                    Uri(
-                      path: '/supporting/${widget.personId}/trends',
-                      queryParameters: {
-                        'metric': result.metricId,
-                        'kind': s.kind.name,
-                      },
-                    ).toString(),
-                  ),
-                  child: Text(t.supportingTrends),
+            ScreenPanelFilters(
+              selected: resultFilter,
+              onChanged: (filter) => setState(() {
+                resultFilter = filter;
+                resultPage = 0;
+              }),
+              allLabel: t.screenPanelFilterAll(s.results.length),
+              rangeLabel: t.screenPanelFilterRange(withRange.length),
+              noRangeLabel: t.screenPanelFilterNoRange(withoutRange.length),
+            ),
+            if (filtered.isEmpty)
+              Text(
+                s.results.isEmpty
+                    ? t.supportingNoResults
+                    : t.screenPanelNoFilteredResults,
+              )
+            else
+              for (final result in visible)
+                ScreenPanelResultCard(
+                  key: ValueKey(result.id),
+                  result: result,
+                  onTrends: () => openTrends(result),
                 ),
-              ),
-            if (s.results.length > 25)
+            if (filtered.length > 25)
               Wrap(
-                spacing: 12,
-                runSpacing: 12,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  VitalButton.secondary(
+                  StitchButton(
                     onPressed: resultPage > 0
                         ? () => setState(() => resultPage--)
                         : null,
                     child: Text(t.supportingPrevious),
                   ),
-                  VitalButton.secondary(
-                    onPressed: (resultPage + 1) * 25 < s.results.length
+                  StitchButton(
+                    onPressed: (resultPage + 1) * 25 < filtered.length
                         ? () => setState(() => resultPage++)
                         : null,
                     child: Text(t.supportingNext),
@@ -496,44 +521,70 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
               ),
           ],
         ),
-        VitalSection(
-          title: Text(t.supportingProvenance),
+        const SizedBox(height: 24),
+        VitalPanel(
+          title: t.supportingProvenance,
+          icon: LucideIcons.flaskConical,
           children: [
+            Text(
+              t.supportingDateLabel(
+                s.kind == SupportingRecordKind.labPanel
+                    ? t.supportingCollection
+                    : t.supportingMeasured,
+                collectionLabel,
+              ),
+            ),
+            if (collectionSource != null) Text(collectionSource),
+            if (reportLabel != null)
+              Text(t.supportingDateLabel(t.supportingReport, reportLabel)),
+            if (reportSource != null) Text(reportSource),
             SupportingProvenanceView(provenance: s.provenance),
+            if (s.notes != null) Text(t.supportingNotes),
             if (s.notes != null) Text(s.notes!),
+            Text(
+              t.supportingDateLabel(
+                t.supportingEntry,
+                displayStamp(
+                  context,
+                  ref,
+                  saved.enteredAt,
+                  zoneId: 'UTC',
+                  includeSeconds: true,
+                ),
+              ),
+            ),
+            if (saved.correctedAt != null)
+              Text(
+                t.supportingDateLabel(
+                  t.screenPanelRevised,
+                  displayStamp(
+                    context,
+                    ref,
+                    saved.revisionEnteredAt,
+                    zoneId: 'UTC',
+                    includeSeconds: true,
+                  ),
+                ),
+              ),
           ],
         ),
-        if (s.contextLinks.isNotEmpty)
-          VitalSection(
-            title: Text(t.supportingContext),
-            children: [
-              Text(t.supportingContextHint),
-              for (final link in s.contextLinks)
-                VitalButton.secondary(
-                  multiline: true,
-                  onPressed: () => context.push(
-                    link.kind == SupportingContextKind.item
-                        ? '/item/${link.id}'
-                        : '/event/${link.id}',
-                  ),
-                  child: Text(link.id),
-                ),
-            ],
-          ),
+        const SizedBox(height: 16),
         SupportingDisclosure(
           label: t.supportingRevisions,
           open: revisions,
           onPressed: () => setState(() => revisions = !revisions),
         ),
         if (revisions) ...[
-          if (audit!.hasError)
+          if (audit!.hasError) ...[
+            const SizedBox(height: 12),
             LoadFailure(
               message: t.supportingLoadFailure,
               onRetry: () => ref.invalidate(supportingRevisionsProvider),
             ),
-          for (final old in audit.value ?? <SupportingRevision>[])
-            VitalButton.secondary(
-              multiline: true,
+          ],
+          for (final old in audit.value ?? <SupportingRevision>[]) ...[
+            const SizedBox(height: 8),
+            StitchButton(
               onPressed: () => context.push(
                 '/supporting/${widget.personId}/${widget.id}?revision=${old.revision}',
               ),
@@ -541,17 +592,33 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
                 '${t.supportingRevisionLabel(old.revision)} · ${displayStamp(context, ref, old.revisionEnteredAt, zoneId: 'UTC', includeSeconds: true)}',
               ),
             ),
-          if (beforeRevision != null)
-            VitalButton.secondary(
+          ],
+          if (beforeRevision != null) ...[
+            const SizedBox(height: 8),
+            StitchButton(
               onPressed: () => setState(() => beforeRevision = null),
               child: Text(t.supportingPrevious),
             ),
-          if (audit.value?.length == 25)
-            VitalButton.secondary(
+          ],
+          if (audit.value?.length == 25) ...[
+            const SizedBox(height: 8),
+            StitchButton(
               onPressed: () =>
                   setState(() => beforeRevision = audit.value!.last.revision),
               child: Text(t.supportingNext),
             ),
+          ],
+        ],
+        if (widget.revision == null) ...[
+          const SizedBox(height: 24),
+          ScreenPanelFiles(
+            personId: widget.personId,
+            id: widget.id,
+            enabled: true,
+            filesFocusNode: backFocus,
+            onOpenFiles: _openFiles,
+            onExport: () => context.push('/exports'),
+          ),
         ],
       ],
     );

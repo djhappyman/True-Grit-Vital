@@ -8031,5 +8031,139 @@
   "screenOverviewPeriods": "Periods",
   "@screenOverviewPeriods": {
     "description": "One-word action opening this substance’s existing recorded-use periods."
+  },
+  "screenPanelPanelDetail": "Panel detail",
+  "@screenPanelPanelDetail": {
+    "description": "Lab panel detail. Authored page heading for a saved lab panel."
+  },
+  "screenPanelObservationDetail": "Observation detail",
+  "@screenPanelObservationDetail": {
+    "description": "Lab panel detail. Authored page heading for a saved observation."
+  },
+  "screenPanelCollected": "Collected {date}",
+  "@screenPanelCollected": {
+    "description": "Lab panel detail. The saved collection date, shown without inventing a time or zone.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "screenPanelRecorded": "Recorded",
+  "@screenPanelRecorded": {
+    "description": "Lab panel detail. Count caption for the saved results."
+  },
+  "screenPanelRevision": "Revision",
+  "@screenPanelRevision": {
+    "description": "Lab panel detail. Short label for the saved revision number."
+  },
+  "screenPanelSaved": "Saved",
+  "@screenPanelSaved": {
+    "description": "Lab panel detail. Caption confirming the revision number is a saved revision."
+  },
+  "screenPanelRevised": "Revised",
+  "@screenPanelRevised": {
+    "description": "Lab panel detail. Timestamp label when the current revision corrected the record."
+  },
+  "screenPanelFilterAll": "All ({count})",
+  "@screenPanelFilterAll": {
+    "description": "Lab panel detail. Filter pill showing every saved result.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenPanelFilterRange": "With range ({count})",
+  "@screenPanelFilterRange": {
+    "description": "Lab panel detail. Filter pill for results that include saved source range text.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenPanelFilterNoRange": "No range ({count})",
+  "@screenPanelFilterNoRange": {
+    "description": "Lab panel detail. Filter pill for results that have no saved source range text.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenPanelNoFilteredResults": "No results in this filter.",
+  "@screenPanelNoFilteredResults": {
+    "description": "Lab panel detail. Truthful empty state when the chosen factual filter has no matching results."
+  },
+  "screenPanelSubstance": "Substance",
+  "@screenPanelSubstance": {
+    "description": "Lab panel detail. Kind label for a linked substance."
+  },
+  "screenPanelEvent": "Event",
+  "@screenPanelEvent": {
+    "description": "Lab panel detail. Kind label for a linked event."
+  },
+  "screenPanelLinkGone": "Linked record unavailable",
+  "@screenPanelLinkGone": {
+    "description": "Lab panel detail. The stored link id no longer resolves to a saved substance or event. Do not show the raw id."
+  },
+  "screenPanelFileChecksums": "File checksums",
+  "@screenPanelFileChecksums": {
+    "description": "Lab panel detail. Section for checksums recorded against saved source files."
+  },
+  "screenPanelFileChecksumsHelp": "Recorded when each file was saved. This does not verify the whole record.",
+  "@screenPanelFileChecksumsHelp": {
+    "description": "Lab panel detail. States that a saved file hash is not a complete ledger or clinical verification claim."
+  },
+  "screenPanelChecksumsUnavailable": "Saved checksums could not be loaded. Retry.",
+  "@screenPanelChecksumsUnavailable": {
+    "description": "Lab panel detail. Checksum read failure."
+  },
+  "screenPanelFileLabel": "File: {name}",
+  "@screenPanelFileLabel": {
+    "description": "Lab panel detail. Labels a saved file beside its recorded checksum without impersonating a source reference.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "screenPanelChecksumLimit": "Showing the 25 most recent saved files.",
+  "@screenPanelChecksumLimit": {
+    "description": "Lab panel detail. Truthful limit note when the bounded checksum list reaches 25 files."
+  },
+  "screenPanelNoFiles": "No saved files. Add a source file to record its checksum.",
+  "@screenPanelNoFiles": {
+    "description": "Lab panel detail. Empty state for saved file checksums. No example hash is shown."
+  },
+  "screenPanelCopy": "Copy",
+  "@screenPanelCopy": {
+    "description": "Lab panel detail. Button that copies a recorded checksum."
+  },
+  "screenPanelCopied": "Copied",
+  "@screenPanelCopied": {
+    "description": "Lab panel detail. Copy button state after the checksum is placed on the clipboard."
+  },
+  "screenPanelChecksumCopied": "Checksum copied.",
+  "@screenPanelChecksumCopied": {
+    "description": "Lab panel detail. Polite live update after copying a checksum."
+  },
+  "screenPanelCopyFailed": "Copy failed. Try again.",
+  "@screenPanelCopyFailed": {
+    "description": "Lab panel detail. Clipboard failure with a retry instruction."
+  },
+  "screenPanelCopyChecksum": "Copy checksum for {name}",
+  "@screenPanelCopyChecksum": {
+    "description": "Lab panel detail. Accessible name for a copy button, including the saved file name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "screenPanelFhirUnavailable": "FHIR export is not available in this build. Use Export for the formats Vital supports.",
+  "@screenPanelFhirUnavailable": {
+    "description": "Lab panel detail. Truthful state for the missing FHIR export capability. Export opens the existing formats only."
   }
 }
