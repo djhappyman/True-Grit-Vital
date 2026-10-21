@@ -5438,7 +5438,7 @@ abstract class AppLocalizations {
   /// No description provided for @historyShowing.
   ///
   /// In en, this message translates to:
-  /// **'Showing {count} entries.'**
+  /// **'Showing {count, plural, =1{1 entry} other{{count} entries}}.'**
   String historyShowing(int count);
 
   /// No description provided for @historyNoCapturedPlan.
@@ -9959,6 +9959,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown'**
   String get screenStockUnknown;
+
+  /// History subtitle. Local storage is factual; no sync or integrity claim.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded use and skipped plans kept on this device.'**
+  String get screenHistorySubtitle;
+
+  /// Heading for the seven real day markers ending today.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get screenHistoryLastSevenDays;
+
+  /// Factual count of recorded entries in the seven-day strip. Not an adherence percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No recorded entries} one{1 recorded} other{{count} recorded}}'**
+  String screenHistoryRecordedCount(int count);
+
+  /// Number of history entries shown for one day.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 entry} other{{count} entries}}'**
+  String screenHistoryEntryCount(int count);
+
+  /// Recorded time for one history entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded at {time}'**
+  String screenHistoryRecordedAt(String time);
+
+  /// Planned time for a skipped occurrence. Does not imply a recorded dose.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled {time}'**
+  String screenHistoryScheduledAt(String time);
+
+  /// Supporting line for the real reports, charts and supporting actions.
+  ///
+  /// In en, this message translates to:
+  /// **'Build a report or open related records.'**
+  String get screenHistoryReportsHelp;
+
+  /// Heading for the clearly labelled audit preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit'**
+  String get screenHistoryAudit;
+
+  /// Explicit preview. Does not invent adherence, integrity, hash or delivery claims.
+  ///
+  /// In en, this message translates to:
+  /// **'Adherence and integrity measures are not available yet. Your records are unchanged.'**
+  String get screenHistoryAuditPreview;
+
+  /// Accessible name for one entry's View action.
+  ///
+  /// In en, this message translates to:
+  /// **'View {name}'**
+  String screenHistoryViewEntry(String name);
+
+  /// Accessible date label while its calendar counts are loading or unavailable. Never announces zero counts before a successful read.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}. {state}'**
+  String screenHistoryDayUnavailable(String date, String state);
 }
 
 class _AppLocalizationsDelegate

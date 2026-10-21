@@ -33,4 +33,12 @@ Native Flutter captures from the remaining-screen rollout. Designs come only fro
 - A container without an active notice says No notice. Zero stock with notices disabled is never described as stocked. The redundant profile label is removed, and surfaces use shared semantic geometry.
 - Lead verification: 39 stock regression checks, five visual/safe-area checks, an expanded 320/390/430 px double-text check and clean project analysis. Physical-device accessibility, keyboard and performance evidence remains open.
 
+## History
+
+- [Light](light-history.png), [dark](dark-history.png), [full light](light-history-full.png) and [full dark](dark-history-full.png) show loaded native day markers and a real synthetic recorded entry inside the existing fixed dock.
+- Calendar/timeline, supported status/type/event/date filters, paging, refresh, source/correction, charts, supporting records and report/export selection routes remain connected. Return and moved-anchor behaviour stay on the existing controller.
+- Export/report drafts use applied date bounds. Calendar counts are explicitly unavailable until read successfully, and View has a real accessible activation. Names, quantities and units remain complete; narrow/double-text layouts deliberately stack.
+- Lead verification: 52 regression checks, nine focused checks after the singular-copy correction, five visual/safe-area checks and clean project analysis. Tests include unapplied date edits, semantic activation, unknown/error counts and 320/430 px double text.
+- Undo remains on the existing `/recorded` compatibility flow; no new inline History Undo is claimed. Audit/adherence measures are labelled previews. Physical-device screen-reader and performance evidence stays open.
+
 Run logs are local under `output/stitch-screen-rollout-2026-10-21/`. The [roadmap](../../roadmap.md) tracks the remaining screens and capability gaps.

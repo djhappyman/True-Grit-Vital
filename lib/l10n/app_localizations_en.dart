@@ -3320,7 +3320,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String historyShowing(int count) {
-    return 'Showing $count entries.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries',
+      one: '1 entry',
+    );
+    return 'Showing $_temp0.';
   }
 
   @override
@@ -6354,4 +6360,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get screenStockUnknown => 'Unknown';
+
+  @override
+  String get screenHistorySubtitle =>
+      'Recorded use and skipped plans kept on this device.';
+
+  @override
+  String get screenHistoryLastSevenDays => 'Last 7 days';
+
+  @override
+  String screenHistoryRecordedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count recorded',
+      one: '1 recorded',
+      zero: 'No recorded entries',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String screenHistoryEntryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries',
+      one: '1 entry',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String screenHistoryRecordedAt(String time) {
+    return 'Recorded at $time';
+  }
+
+  @override
+  String screenHistoryScheduledAt(String time) {
+    return 'Scheduled $time';
+  }
+
+  @override
+  String get screenHistoryReportsHelp =>
+      'Build a report or open related records.';
+
+  @override
+  String get screenHistoryAudit => 'Audit';
+
+  @override
+  String get screenHistoryAuditPreview =>
+      'Adherence and integrity measures are not available yet. Your records are unchanged.';
+
+  @override
+  String screenHistoryViewEntry(String name) {
+    return 'View $name';
+  }
+
+  @override
+  String screenHistoryDayUnavailable(String date, String state) {
+    return '$date. $state';
+  }
 }

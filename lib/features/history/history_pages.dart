@@ -149,14 +149,31 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     });
   }
 
-  String exportLocation(String personId, CivilDate today) {
-    final start = parseDate(from.text), end = parseDate(through.text);
+  String artifactLocation(
+    String path,
+    String personId,
+    CivilDate today,
+    String zone,
+  ) {
+    final display = DisplayTime();
+    final start = appliedFrom == null
+        ? CivilDate(today.year, 1, 1)
+        : display.instant(appliedFrom!, zone).civilDate;
+    final end = appliedBefore == null
+        ? today
+        : display
+              .instant(
+                appliedBefore!.subtract(const Duration(microseconds: 1)),
+                zone,
+              )
+              .civilDate;
     return Uri(
-      path: '/exports',
+      path: path,
       queryParameters: {
-        'from': (start ?? CivilDate(today.year, 1, 1)).toString(),
-        'before': (end ?? today).addDays(1).toString(),
-        'content': 'doses',
+        if (path == '/reports') 'person': personId,
+        'from': start.toString(),
+        'before': end.addDays(1).toString(),
+        if (path == '/exports') 'content': 'doses',
         'return': viewLocation(personId),
       },
     ).toString();
@@ -321,7 +338,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       _HistoryTitleBlock(
         subtitle: t.screenHistorySubtitle,
         zone: display.resolveZone(zone).zoneId,
-        onExport: () => context.push(exportLocation(personId, today)),
+        onExport: () =>
+            context.push(artifactLocation('/exports', personId, today, zone)),
       ),
       const SizedBox(height: 16),
       HistoryWeekStrip(
@@ -371,6 +389,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       if (filtersOpen) ...[
         const SizedBox(height: 12),
         StitchSurface(
+          radius: VitalLayout.sectionRadius,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -457,6 +476,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       if (!filtersOpen && activeFilters) ...[
         const SizedBox(height: 12),
         StitchSurface(
+          radius: VitalLayout.sectionRadius,
           inset: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -574,6 +594,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       ],
       if (!state.loading && state.error == null && state.entries.isEmpty)
         StitchSurface(
+          radius: VitalLayout.sectionRadius,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -644,20 +665,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         ),
       const SizedBox(height: 24),
       _HistoryReportsPanel(
-        onReports: () {
-          final start = parseDate(from.text), end = parseDate(through.text);
-          context.push(
-            Uri(
-              path: '/reports',
-              queryParameters: {
-                'person': personId,
-                'from': (start ?? CivilDate(today.year, 1, 1)).toString(),
-                'before': (end ?? today).addDays(1).toString(),
-                'return': viewLocation(personId),
-              },
-            ).toString(),
-          );
-        },
+        onReports: () =>
+            context.push(artifactLocation('/reports', personId, today, zone)),
         onCharts: () => context.push(
           Uri(
             path: '/charts',
@@ -689,7 +698,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(
-              maxWidth: VitalLayout.compactWidth,
+              maxWidth: VitalLayout.contentWidth,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -841,6 +850,10 @@ class _HistoryWeekStripState extends ConsumerState<HistoryWeekStrip> {
     final dates = [for (var i = 6; i >= 0; i--) widget.today.addDays(-i)];
     final request = CalendarRequest(widget.query, dates);
     final result = ref.watch(historyCalendarProvider(request));
+    final available = result.value != null;
+    final unavailable = result.hasError
+        ? t.historyLoadFailed
+        : t.loadingRecords;
     final cells = {
       for (final cell in result.value?.cells ?? <HistoryCalendarCell>[])
         cell.date: cell,
@@ -848,6 +861,7 @@ class _HistoryWeekStripState extends ConsumerState<HistoryWeekStrip> {
     final recorded = cells.values.fold(0, (sum, cell) => sum + cell.recorded);
     final scale = MediaQuery.textScalerOf(context).scale(16) / 16;
     return StitchSurface(
+      radius: VitalLayout.sectionRadius,
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -871,7 +885,7 @@ class _HistoryWeekStripState extends ConsumerState<HistoryWeekStrip> {
                     ),
                   ],
                 );
-                if (!result.hasValue) return heading;
+                if (!available) return heading;
                 final badge = VitalBadge(
                   t.screenHistoryRecordedCount(recorded),
                   compact: true,
@@ -892,6 +906,14 @@ class _HistoryWeekStripState extends ConsumerState<HistoryWeekStrip> {
               },
             ),
           ),
+          if (!available && !result.hasError)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+              child: Text(
+                unavailable,
+                style: StitchType.caption.copyWith(color: c.muted),
+              ),
+            ),
           if (result.hasError)
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
@@ -925,15 +947,21 @@ class _HistoryWeekStripState extends ConsumerState<HistoryWeekStrip> {
                   key: ValueKey('history-week-$date'),
                   button: true,
                   selected: isSelected,
-                  label: t.historyDaySummary(
-                    locale.formatFullDate(date.calendarValue),
-                    recorded,
-                    skipped,
-                    voided,
-                  ),
+                  label: available
+                      ? t.historyDaySummary(
+                          locale.formatFullDate(date.calendarValue),
+                          recorded,
+                          skipped,
+                          voided,
+                        )
+                      : t.screenHistoryDayUnavailable(
+                          locale.formatFullDate(date.calendarValue),
+                          unavailable,
+                        ),
                   excludeSemantics: true,
                   onTap: () => widget.onSelect(date),
                   child: _HistoryWeekCell(
+                    available: available,
                     weekday:
                         locale.narrowWeekdays[date.calendarValue.weekday % 7],
                     day: date.day,
@@ -988,6 +1016,7 @@ class _HistoryWeekStripState extends ConsumerState<HistoryWeekStrip> {
 class _HistoryWeekCell extends StatelessWidget {
   const _HistoryWeekCell({
     required this.weekday,
+    required this.available,
     required this.day,
     required this.selected,
     required this.today,
@@ -997,6 +1026,7 @@ class _HistoryWeekCell extends StatelessWidget {
     required this.onTap,
   });
   final String weekday;
+  final bool available;
   final int day, recorded, skipped, voided;
   final bool selected, today;
   final VoidCallback onTap;
@@ -1004,7 +1034,9 @@ class _HistoryWeekCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = StitchColors(context);
-    final marker = recorded > 0
+    final marker = !available
+        ? (icon: LucideIcons.circleHelp, colour: c.muted, fill: c.inset)
+        : recorded > 0
         ? (icon: LucideIcons.check, colour: c.accent, fill: c.accentSurface)
         : skipped > 0
         ? (
@@ -1043,7 +1075,7 @@ class _HistoryWeekCell extends StatelessWidget {
                 ? c.inset
                 : Colors.transparent,
             border: Border.all(color: selected ? c.accent : Colors.transparent),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(VitalLayout.sectionRadius),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1175,7 +1207,7 @@ class HistoryEntryCard extends ConsumerWidget {
   final VoidCallback onInspect;
 
   IconData _icon(UseRecord record) =>
-      record.actualUnit == 'ml' ? LucideIcons.droplet : LucideIcons.pill;
+      record.actualUnit == 'ml' ? LucideIcons.droplets : LucideIcons.pill;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1297,6 +1329,7 @@ class HistoryEntryCard extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(top: 10),
           child: StitchSurface(
+            radius: VitalLayout.sectionRadius,
             inset: true,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
@@ -1363,6 +1396,7 @@ class HistoryEntryCard extends ConsumerWidget {
     final action = Semantics(
       label: t.screenHistoryViewEntry(title),
       button: true,
+      onTap: onInspect,
       child: ExcludeSemantics(
         child: StitchButton(
           compact: true,
@@ -1374,6 +1408,7 @@ class HistoryEntryCard extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: StitchSurface(
+        radius: VitalLayout.sectionRadius,
         child: LayoutBuilder(
           builder: (context, constraints) {
             final stack =
@@ -1427,6 +1462,7 @@ class _HistoryReportsPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context), c = StitchColors(context);
     return StitchSurface(
+      radius: VitalLayout.sectionRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1484,6 +1520,7 @@ class _HistoryAuditPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context), c = StitchColors(context);
     return StitchSurface(
+      radius: VitalLayout.surfaceRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

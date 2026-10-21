@@ -3624,7 +3624,7 @@
   "historyInspection": "Source",
   "historyUnknownSource": "This source is no longer available. Return to history and refresh.",
   "historyAuditEmpty": "No earlier actions are available.",
-  "historyShowing": "Showing {count} entries.",
+  "historyShowing": "Showing {count, plural, =1{1 entry} other{{count} entries}}.",
   "@historyShowing": {
     "placeholders": {
       "count": {
@@ -7406,6 +7406,18 @@
     "description": "Accessible name for one entry's View action.",
     "placeholders": {
       "name": {
+        "type": "String"
+      }
+    }
+  },
+  "screenHistoryDayUnavailable": "{date}. {state}",
+  "@screenHistoryDayUnavailable": {
+    "description": "Accessible date label while its calendar counts are loading or unavailable. Never announces zero counts before a successful read.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "state": {
         "type": "String"
       }
     }

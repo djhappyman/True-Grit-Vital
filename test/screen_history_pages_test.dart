@@ -1,3 +1,12 @@
+import 'dart:async';
+import 'dart:ui' show SemanticsAction, SemanticsActionEvent;
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:true_grit_vital/features/history/history_source.dart';
+import 'package:true_grit_vital/features/recording/record_pages.dart';
+
+import 'design_system_test.dart' show host;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -82,6 +91,7 @@ void main() {
       yesterday,
     );
     expect(find.byType(HistoryEntryCard), findsOneWidget);
+    expect(find.text('Showing 1 entry.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -112,6 +122,134 @@ void main() {
     expect(back['status'], 'all');
     expect(back['view'], 'list');
     expect(tester.takeException(), isNull);
+  });
+
+  appTest('artifact drafts ignore unapplied date edits', (tester) async {
+    final f = await launch(tester);
+    final day = today().addDays(-7);
+    final bounds = DisplayTime().dayBounds(day, 'Europe/London');
+    f.container
+        .read(routerProvider)
+        .go(
+          Uri(
+            path: '/history',
+            queryParameters: {
+              'from': bounds.start.toIso8601String(),
+              'before': bounds.endExclusive.toIso8601String(),
+            },
+          ).toString(),
+        );
+    await settle(tester);
+    if (find.widgetWithText(LabelledInput, 'From').evaluate().isEmpty) {
+      final toggle = find.widgetWithText(VitalButton, 'Filters');
+      await tester.ensureVisible(toggle);
+      await tester.tap(toggle);
+      await settle(tester);
+    }
+    final field = find.descendant(
+      of: find.widgetWithText(LabelledInput, 'From'),
+      matching: find.byType(TextField),
+    );
+    await tester.ensureVisible(field);
+    await tester.enterText(field, '1999-01-01');
+    await settle(tester);
+    for (final action in ['Export', 'Reports']) {
+      await tap(tester, action);
+      final uri = GoRouterState.of(
+        tester.element(
+          action == 'Export'
+              ? find.byType(ExportPage)
+              : find.byType(ReportsPage),
+        ),
+      ).uri;
+      expect(uri.queryParameters['from'], day.toString());
+      expect(uri.queryParameters['before'], day.addDays(1).toString());
+      f.container.read(routerProvider).pop();
+      await settle(tester);
+    }
+  });
+
+  appTest('View can be activated through its accessible action', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    try {
+      final f = await launch(tester);
+      await runIo(tester, () async {
+        final item = await historyItem(f.store, 'Accessible history item');
+        await historyRecord(f.store, item, today());
+      });
+      f.container.read(routerProvider).go('/history');
+      await settle(tester);
+      final target = find.bySemanticsLabel('View Accessible history item');
+      await tester.ensureVisible(target);
+      await settle(tester);
+      final node = tester.getSemantics(target);
+      expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+      tester.binding.performSemanticsAction(
+        SemanticsActionEvent(
+          type: SemanticsAction.tap,
+          nodeId: node.id,
+          viewId: tester.view.viewId,
+        ),
+      );
+      await settle(tester);
+      expect(find.byType(HistorySourcePage), findsOneWidget);
+    } finally {
+      handle.dispose();
+    }
+  });
+
+  testWidgets('unavailable week counts never announce zero records', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    try {
+      final pending = Completer<HistoryCalendar?>();
+      final day = today();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            historyCalendarProvider.overrideWith(
+              (ref, request) => pending.future,
+            ),
+          ],
+          child: host(
+            HistoryWeekStrip(
+              query: TimelineQuery(
+                filter: TimelineFilter(scope: const FeedScope.me()),
+                displayZone: 'Europe/London',
+              ),
+              today: day,
+              selected: null,
+              onSelect: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      final cell = find.byKey(ValueKey('history-week-$day'));
+      expect(
+        tester.getSemantics(cell).getSemanticsData().label,
+        contains('Opening records'),
+      );
+      expect(
+        tester.getSemantics(cell).getSemanticsData().label,
+        isNot(contains('0 recorded')),
+      );
+      pending.completeError(StateError('unavailable'));
+      await tester.pumpAndSettle();
+      expect(
+        tester.getSemantics(cell).getSemanticsData().label,
+        contains('Unable to load history'),
+      );
+      expect(
+        tester.getSemantics(cell).getSemanticsData().label,
+        isNot(contains('0 recorded')),
+      );
+    } finally {
+      handle.dispose();
+    }
   });
 
   appTest('skipped use stays truthful and never claims PRN or adherence', (

@@ -196,6 +196,10 @@ void main() {
           if (route.key == 'schedule') {
             await waitForText(tester, 'RECURRENCE');
           }
+          if (route.key == 'history') {
+            await waitForText(tester, 'Telmisartan');
+            await waitForText(tester, '1 recorded');
+          }
           if (route.key == 'stock') {
             await runIo(
               tester,
@@ -256,15 +260,11 @@ void main() {
           if (snapshots.isNotEmpty) {
             await saveCapture(tester, boundaryKey, '${mode.name}-${route.key}');
             if (fullSnapshots) {
-              final vertical = find.byWidgetPredicate(
-                (w) =>
-                    w is SingleChildScrollView &&
-                    w.scrollDirection == Axis.vertical,
-              );
               final scroll = find
-                  .descendant(
-                    of: vertical.first,
-                    matching: find.byType(Scrollable),
+                  .byWidgetPredicate(
+                    (w) =>
+                        w is Scrollable &&
+                        w.axisDirection == AxisDirection.down,
                   )
                   .first;
               final extent = tester
