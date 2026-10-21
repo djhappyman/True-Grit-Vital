@@ -28,6 +28,14 @@ void main() {
     await settle(tester);
     await waitForText(tester, 'New substance');
     expect(find.text('Drafting'), findsOneWidget);
+    expect(find.text('Person: Me'), findsNothing);
+    expect(
+      find.text(
+        'Frequency and dose times are added from the substance overview after you save.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('food'), findsNothing);
     expect(
       find.text(
         'Strength belongs to a stock container. Add it from the substance overview after you save.',
@@ -81,6 +89,12 @@ void main() {
     await waitForText(
       tester,
       'Choose a unit and enter a form and type. Keep each field within 500 characters.',
+    );
+    expect(
+      find.text(
+        'Choose a unit and enter a form and type. Keep each field within 500 characters.',
+      ),
+      findsOneWidget,
     );
     expect(find.text('New substance'), findsOneWidget);
     expect(await runIo(tester, f.store.items), isEmpty);
@@ -194,6 +208,64 @@ void main() {
     await tester.tap(create);
     await settle(tester);
     expect(find.text('Enter the full substance name.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  appTest('Create stays above an open keyboard', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final f = await launch(tester);
+    f.container.read(routerProvider).go('/create?person=$meId');
+    await settle(tester);
+    await waitForText(tester, 'New substance');
+
+    await tester.tap(field('Type'));
+    await settle(tester);
+    tester.view.viewInsets = const FakeViewPadding(bottom: 320);
+    await settle(tester);
+
+    final create = find.widgetWithText(StitchButton, 'Create');
+    await tester.scrollUntilVisible(
+      create,
+      240,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await settle(tester);
+    expect(create.hitTestable(), findsOneWidget);
+    expect(tester.getRect(create).bottom, lessThanOrEqualTo(844 - 320));
+    expect(tester.takeException(), isNull);
+  });
+
+  appTest('long custom type names stay complete at 320px 2x', (tester) async {
+    tester.view.physicalSize = const Size(320, 740);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    const longName = 'Prescription compounded hormone therapy';
+    final f = await launch(tester);
+    await runIo(tester, () async {
+      final person = (await f.store.profileById(meId))!;
+      await f.store.createItemType(
+        commandId: 'long-type',
+        personId: meId,
+        expectedPersonRevision: person.revision,
+        name: longName,
+      );
+    });
+    f.container.read(routerProvider).go('/create?person=$meId');
+    await settle(tester);
+    await waitForText(tester, 'New substance');
+
+    final chip = find.widgetWithText(StitchButton, longName);
+    await tester.ensureVisible(chip);
+    await settle(tester);
+    expect(chip, findsOneWidget);
+    expect(tester.getSize(chip).width, lessThanOrEqualTo(288));
+    await tap(tester, longName);
+    await settle(tester);
+    expect(find.text('Selected type: $longName'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

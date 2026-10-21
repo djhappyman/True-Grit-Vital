@@ -7056,7 +7056,7 @@
   "@screenCreateStrengthLater": {
     "description": "Create substance screen. The item record has no strength field; do not imply one was saved."
   },
-  "screenCreateScheduleLater": "Frequency, dose times and food context are added from the substance overview after you save.",
+  "screenCreateScheduleLater": "Frequency and dose times are added from the substance overview after you save.",
   "@screenCreateScheduleLater": {
     "description": "Create substance screen. Schedule editing needs the saved item identity."
   },

@@ -1476,14 +1476,12 @@ class _ItemFormState extends DurableFormState<ItemForm> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  t.newSubstance,
-                  style: StitchType.name.copyWith(color: c.ink),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  t.profileOwner(ownerLabel(ref, t, owner!.id)),
-                  style: StitchType.caption.copyWith(color: c.muted),
+                Semantics(
+                  header: true,
+                  child: Text(
+                    t.newSubstance,
+                    style: StitchType.name.copyWith(color: c.ink),
+                  ),
                 ),
                 if (stacked) ...[const SizedBox(height: 8), badge],
               ],
@@ -1623,7 +1621,7 @@ class _ItemFormState extends DurableFormState<ItemForm> {
         value: 'Softgel',
         icon: LucideIcons.circleDot,
       ),
-      (label: t.liquid, value: 'Liquid', icon: LucideIcons.droplet),
+      (label: t.liquid, value: 'Liquid', icon: LucideIcons.droplets),
       (
         label: t.screenCreateFormPowder,
         value: 'Powder',
@@ -1756,6 +1754,19 @@ class _ItemFormState extends DurableFormState<ItemForm> {
               ],
             ),
             const SizedBox(height: 12),
+            if (error == t.detailsRequired) ...[
+              const SizedBox(height: 2),
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  error!,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.destructive,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
             StitchSurface(
               inset: true,
               radius: 12,
@@ -1912,7 +1923,8 @@ class _ItemFormState extends DurableFormState<ItemForm> {
         warning: true,
       ),
       const SizedBox(height: 20),
-      ?failure(),
+      if (error != t.detailsRequired && error != t.productIngredientInvalid)
+        ?failure(),
       _actions(t, ownerValid: ownerValid),
     ]);
   }
