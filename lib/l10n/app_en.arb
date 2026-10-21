@@ -7165,5 +7165,124 @@
   "screenSchedulePreviewResult": "Planned doses",
   "@screenSchedulePreviewResult": {
     "description": "Heading for the preview result, distinct from the Preview action."
+  },
+  "screenRecordEditTime": "Edit",
+  "@screenRecordEditTime": {
+    "description": "One-word action moving focus to the visible actual date and time fields."
+  },
+  "screenRecordUnitValue": "Unit {unit}",
+  "@screenRecordUnitValue": {
+    "description": "Accessible label for the unit shown beside the exact quantity.",
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "screenRecordTypeForm": "{type} · {form}",
+  "@screenRecordTypeForm": {
+    "description": "Complete item classification under the product name.",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "form": {
+        "type": "String"
+      }
+    }
+  },
+  "screenRecordTimestamp": "{date} at {time}",
+  "@screenRecordTimestamp": {
+    "description": "Chosen actual date and wall time shown in the sheet header.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "screenRecordTimeUnset": "Time not set",
+  "@screenRecordTimeUnset": {
+    "description": "Header state when the entered actual date or time is not valid yet."
+  },
+  "screenRecordQuantity": "Quantity",
+  "@screenRecordQuantity": {
+    "description": "Section heading above the exact amount field and its unit."
+  },
+  "screenRecordWhen": "When",
+  "@screenRecordWhen": {
+    "description": "Section heading above the editable actual date and time fields."
+  },
+  "screenRecordContext": "Context & conditions",
+  "@screenRecordContext": {
+    "description": "Section heading for unavailable food, water and symptom tags."
+  },
+  "screenRecordContextHelp": "Food, water and symptom tags are not saved yet.",
+  "@screenRecordContextHelp": {
+    "description": "Clearly labelled preview; D10 context tags are not implemented and must not write example data."
+  },
+  "screenRecordVitals": "Vitals & observations",
+  "@screenRecordVitals": {
+    "description": "Section heading for unavailable dose-attached vitals and notes."
+  },
+  "screenRecordVitalsHelp": "Vitals and notes are not attached to this dose yet.",
+  "@screenRecordVitalsHelp": {
+    "description": "Clearly labelled preview; no invented measurements are shown."
+  },
+  "screenRecordObservations": "Observations",
+  "@screenRecordObservations": {
+    "description": "One-word action opening the existing supporting observation records."
+  },
+  "screenRecordPreview": "Preview",
+  "@screenRecordPreview": {
+    "description": "Badge marking a capability that is not saved by this build."
+  },
+  "screenRecordStockDeducts": "Deducts {deducted}, leaving {remaining}.",
+  "@screenRecordStockDeducts": {
+    "description": "Exact stock consequence in the container's own unit. Both amounts include their units.",
+    "placeholders": {
+      "deducted": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "screenRecordStockUnknownDeduction": "Deducts {deducted}. Remaining balance is unknown.",
+  "@screenRecordStockUnknownDeduction": {
+    "description": "The deduction is convertible but the current balance is unknown.",
+    "placeholders": {
+      "deducted": {
+        "type": "String"
+      }
+    }
+  },
+  "screenRecordStockNotCalculated": "The stock deduction cannot be calculated for these units.",
+  "@screenRecordStockNotCalculated": {
+    "description": "The entered quantity cannot be converted to this source's stock unit, or a replacement choice is still required."
+  },
+  "screenRecordStockLimitPreview": "The stock total is unavailable. Saving still records this dose.",
+  "@screenRecordStockLimitPreview": {
+    "description": "The aggregate stock calculation limit was reached; the dose itself can still be recorded."
+  },
+  "screenRecordStockDeficitPreview": "This leaves the balance below zero.",
+  "@screenRecordStockDeficitPreview": {
+    "description": "The exact post-dose balance is negative; the recorded use is not blocked."
+  },
+  "screenRecordStockLow": "Low stock at or below {threshold}.",
+  "@screenRecordStockLow": {
+    "description": "Uses the container's stored threshold rather than a hardcoded count.",
+    "placeholders": {
+      "threshold": {
+        "type": "String"
+      }
+    }
+  },
+  "screenRecordSkipNote": "Skip is available on Today for a scheduled dose.",
+  "@screenRecordSkipNote": {
+    "description": "Explains that skip belongs to a planned occurrence, not this generic route."
   }
 }

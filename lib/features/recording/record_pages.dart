@@ -2,6 +2,7 @@ import '../supporting/supporting_pages.dart';
 import '../../app/display_preferences.dart';
 import '../../ui/vital_ui.dart';
 import '../../ui/stitch_ui.dart';
+import 'dose_sheet.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -17,7 +18,8 @@ import '../substances/substance_collection.dart';
 import '../../app/settings_toggle_row.dart';
 
 import 'package:flutter/services.dart' show TextInputAction;
-import 'package:flutter/material.dart' show showDialog;
+import 'package:flutter/material.dart' as material show TimeOfDay;
+import 'package:flutter/material.dart' show MaterialLocalizations, showDialog;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -2057,6 +2059,7 @@ class _DoseFormState extends DurableFormState<DoseForm> {
   AdultProfile? owner;
   DateTime? chosenInstant;
   List<DateTime> clockChoices = [];
+  final GlobalKey _timeSection = GlobalKey();
   @override
   void initState() {
     super.initState();
@@ -2099,6 +2102,54 @@ class _DoseFormState extends DurableFormState<DoseForm> {
       c.dispose();
     }
     super.dispose();
+  }
+
+  DateTime? _enteredMoment() {
+    final day = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$')
+        .firstMatch(date.text.trim());
+    final clock = RegExp(r'^(\d{2}):(\d{2})$').firstMatch(time.text.trim());
+    if (day == null || clock == null) return null;
+    final y = int.parse(day[1]!),
+        m = int.parse(day[2]!),
+        d = int.parse(day[3]!),
+        h = int.parse(clock[1]!),
+        n = int.parse(clock[2]!);
+    final at = DateTime(y, m, d, h, n);
+    return at.year == y &&
+            at.month == m &&
+            at.day == d &&
+            at.hour == h &&
+            at.minute == n
+        ? at
+        : null;
+  }
+
+  String _timestampLabel(AppLocalizations t) {
+    final at = (chosenInstant ?? _enteredMoment())?.toLocal();
+    if (at == null) return t.screenRecordTimeUnset;
+    final localizations = MaterialLocalizations.of(context);
+    final now = DateTime.now();
+    final date =
+        at.year == now.year && at.month == now.month && at.day == now.day
+        ? t.today
+        : localizations.formatMediumDate(at);
+    final time = localizations.formatTimeOfDay(
+      material.TimeOfDay.fromDateTime(at),
+      alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
+    );
+    return t.screenRecordTimestamp(date, time);
+  }
+
+  void _editTime() {
+    final target = _timeSection.currentContext;
+    if (target == null) return;
+    Scrollable.ensureVisible(
+      target,
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 200),
+      alignment: .1,
+    );
   }
 
   DateTime? actual() {
@@ -2471,274 +2522,408 @@ class _DoseFormState extends DurableFormState<DoseForm> {
     final r = original;
     final name = r?.name ?? item!.name,
         unit = r?.actualUnit ?? enteredUnit ?? item!.unit;
-    return wrap([
-      Heading(r == null ? t.recordHeading : t.correctHeading),
-      if (!ownerValid) ...[
-        Text(t.conflictFailure),
-        VitalButton.secondary(
-          onPressed: () => context.push('/profile'),
-          child: Text(t.profile),
-        ),
-      ],
-      Text(
-        r == null
-            ? t.recordContext(ownerLabel(ref, t, owner!.id), name, unit)
-            : t.correctionContext(ownerLabel(ref, t, owner!.id), name, unit),
-      ),
-      if (owner!.id != meId)
-        Text(t.recordingOnBehalf(ownerLabel(ref, t, owner!.id))),
-      const SizedBox(height: 20),
-      LabelledInput(
-        label: r != null && stockRecordHasDerivedAmount(r)
-            ? t.stockCorrectionAmount
-            : t.amountLabel,
-        helper: productLabel != null
-            ? t.productVolumeHelp
-            : r != null && stockRecordHasDerivedAmount(r)
-            ? t.stockCorrectionKeep
-            : (selectedContainer != null ||
-                  labelOnly ||
-                  r?.labelledStrength != null)
-            ? t.stockDecimalHelp
-            : null,
-        controller: amount,
-        error: error == t.amountInvalid ? error : null,
-        enabled: !busy && !uncertain && ownerValid,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      ),
-      Text(unit),
-      if (r?.exactActualAmount != null)
-        Text(
-          t.stockNewEquivalent(
-            stockAmountText(t, r!.actualAmount, r.actualUnit),
-          ),
-        ),
-      const SizedBox(height: 16),
-      if (productLabel != null) ...[
-        Heading(t.productIngredients),
-        if (selectedContainer != null ||
-            frozenProductUse?.sourceLabel != null) ...[
-          Text(t.productFixedVolume),
-          Heading(t.productOldLabel),
-          ProductLabelView(
-            label: productLabel!,
-            volume: _productPreviewVolume(amount.text, original),
-          ),
-          Heading(t.productNewLabel),
-        ],
-        ProductLabelView(
-          label:
-              frozenProductUse?.sourceLabel ??
-              selectedContainer?.productLabel ??
-              productLabel!,
-          volume: _productPreviewVolume(amount.text, original),
-        ),
-      ],
-      if (r == null) ...[
-        StockSourcePicker(
-          personId: owner!.id,
-          itemId: item!.id,
-          selectedId: selectedContainer?.id ?? sourceId,
-          productOnly: productLabel != null,
-          enabled: !busy && !uncertain && ownerValid,
-          onSelected: (c) => setState(() {
-            if (c == null) {
-              selectedContainer = null;
-              baseContainer = null;
-              sourceId = null;
-              baseId = null;
-              keep = null;
-              enteredUnit = item!.unit;
-            } else {
-              baseContainer ??= c;
-              selectedContainer = c;
-              sourceId = c.id;
-              sourceRevision = c.revision;
-              keep = null;
-              labelOnly = false;
-            }
-            entryChanged();
-          }),
-        ),
-        if (productLabel == null &&
-            const {'mg', 'ml'}.contains(item!.unit) &&
-            (selectedContainer != null || labelOnly)) ...[
-          Text(t.unitLabel),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              for (final u in ['mg', 'ml'])
-                Semantics(
-                  selected: unit == u,
-                  child: VitalButton.secondary(
-                    multiline: true,
-                    onPressed: !busy && !uncertain && ownerValid
-                        ? () => setState(() {
-                            enteredUnit = u;
-                            keep = null;
-                            entryChanged();
-                          })
-                        : null,
-                    child: Text(u),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-        ],
-        if (productLabel == null &&
-            selectedContainer == null &&
-            (sourceId == null || sourceId!.isEmpty)) ...[
-          SettingsToggleRow(
-            label: t.stockLabelOnly,
-            description: t.stockLabelOnlyHelp,
-            value: labelOnly,
-            enabled: !busy && !uncertain && ownerValid,
-            reduceMotion: MediaQuery.disableAnimationsOf(context),
-            onChanged: (v) => setState(() {
-              labelOnly = v;
-              if (!v) enteredUnit = item!.unit;
-              entryChanged();
-            }),
-          ),
-          if (labelOnly) ...[
-            LabelledInput(
-              label: t.stockStrength,
-              controller: labelStrength,
-              error: error == t.stockStrengthRequired ? error : null,
-              enabled: !busy && !uncertain && ownerValid,
-            ),
-            LabelledInput(
-              label: t.stockConcentration,
-              controller: labelConcentration,
-              helper: t.stockConcentrationHelp,
-              enabled: !busy && !uncertain && ownerValid,
-            ),
-          ],
-        ],
-        if (productLabel == null && selectedContainer != null)
-          StockDosePreview(
+    final stockEffect = selectedContainer == null
+        ? null
+        : doseStockConsequence(
             enteredText: amount.text,
             enteredUnit: unit,
-            selected: selectedContainer!,
+            container: selectedContainer!,
             base: baseContainer,
             keep: keep,
-            enabled: !busy && !uncertain && ownerValid,
-            onKeep: (v) => setState(() {
-              keep = v;
-              entryChanged();
-            }),
-            onActual: () => setState(() {
-              baseContainer = selectedContainer;
-              baseId = selectedContainer!.id;
-              baseRevision = selectedContainer!.revision;
-              keep = null;
-              entryChanged();
-            }),
+          );
+    return wrap([
+      DoseSheet(
+        children: [
+          DoseSheetHeader(
+            title: r == null ? t.recordHeading : t.correctHeading,
+            timestamp: _timestampLabel(t),
+            editLabel: t.screenRecordEditTime,
+            onEdit: _editTime,
           ),
-      ] else ...[
-        Text(t.stockCorrectionEntryHelp),
-        ref
-            .watch(stockUseProvider((personId: r.personId, recordId: r.id)))
-            .when(
-              loading: () => Text(t.loadingRecords),
-              error: (_, _) => LoadFailure(
-                onRetry: () => ref.invalidate(
-                  stockUseProvider((personId: r.personId, recordId: r.id)),
+          const SizedBox(height: 12),
+          if (!ownerValid) ...[
+            Text(t.conflictFailure),
+            VitalButton.secondary(
+              onPressed: () => context.push('/profile'),
+              child: Text(t.profile),
+            ),
+          ],
+          Text(
+            r == null
+                ? t.recordContext(ownerLabel(ref, t, owner!.id), name, unit)
+                : t.correctionContext(
+                    ownerLabel(ref, t, owner!.id),
+                    name,
+                    unit,
+                  ),
+            style: StitchType.caption.copyWith(
+              color: StitchColors(context).muted,
+            ),
+          ),
+          if (owner!.id != meId)
+            Text(
+              t.recordingOnBehalf(ownerLabel(ref, t, owner!.id)),
+              style: StitchType.caption.copyWith(
+                color: StitchColors(context).muted,
+              ),
+            ),
+          const SizedBox(height: 16),
+          DoseProductCard(
+            name: name,
+            subtitle: t.screenRecordTypeForm(
+              r?.type ?? item!.type,
+              r?.form ?? item!.form,
+            ),
+          ),
+          const SizedBox(height: 16),
+          DoseSectionHeading(
+            t.screenRecordQuantity,
+            trailing: Semantics(
+              label: t.screenRecordUnitValue(unit),
+              child: ExcludeSemantics(
+                child: Text(
+                  unit,
+                  style: StitchType.label.copyWith(
+                    color: StitchColors(context).accent,
+                  ),
                 ),
               ),
-              data: (movement) => movement == null
-                  ? const SizedBox.shrink()
-                  : StockPhysicalChoice(
-                      value: stockCorrection,
-                      reviewed: movement.reviewedCorrection != null,
-                      enabled: !busy && !uncertain && ownerValid,
-                      onChanged: (v) => setState(() {
-                        stockCorrection = v;
-                        entryChanged();
-                      }),
-                    ),
             ),
-      ],
-      if (r == null) ...[
-        VitalButton.secondary(
-          onPressed: !busy && !uncertain && ownerValid
-              ? () => setState(() {
-                  siteOpen = !siteOpen;
-                  entryChanged();
-                })
-              : null,
-          child: Text(t.combinedSiteAction),
-        ),
-        if (siteOpen)
-          LabelledInput(
-            label: t.combinedSite,
-            helper: t.combinedSiteHelp,
-            controller: site,
-            enabled: !busy && !uncertain && ownerValid,
           ),
-        Text(t.intervalExtraHelp),
-      ],
-      LabelledInput(
-        label: t.actualDateLabel,
-        controller: date,
-        helper: t.dateExample,
-        error: error == t.timeInvalid ? error : null,
-        enabled: !busy && !uncertain && ownerValid,
-        keyboardType: TextInputType.datetime,
-      ),
-      LabelledInput(
-        label: t.actualTimeLabel,
-        controller: time,
-        helper: t.timeExample,
-        enabled: !busy && !uncertain && ownerValid,
-        keyboardType: TextInputType.datetime,
-      ),
-      if (clockChoices.length > 1) ...[
-        Text(t.ambiguousTime),
-        const SizedBox(height: 8),
-        for (var i = 0; i < clockChoices.length; i++)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  t.offsetChoice(
-                    i == 0 ? t.earlier : t.later,
-                    utcOffset(clockChoices[i].toLocal().timeZoneOffset),
-                  ),
+          const SizedBox(height: 6),
+          LabelledInput(
+            label: r != null && stockRecordHasDerivedAmount(r)
+                ? t.stockCorrectionAmount
+                : t.amountLabel,
+            helper: productLabel != null
+                ? t.productVolumeHelp
+                : r != null && stockRecordHasDerivedAmount(r)
+                ? t.stockCorrectionKeep
+                : (selectedContainer != null ||
+                      labelOnly ||
+                      r?.labelledStrength != null)
+                ? t.stockDecimalHelp
+                : null,
+            controller: amount,
+            error: error == t.amountInvalid ? error : null,
+            enabled: !busy && !uncertain && ownerValid,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          ),
+          if (r?.exactActualAmount != null)
+            Text(
+              t.stockNewEquivalent(
+                stockAmountText(t, r!.actualAmount, r.actualUnit),
+              ),
+            ),
+          const SizedBox(height: 16),
+          if (productLabel != null) ...[
+            Heading(t.productIngredients),
+            if (selectedContainer != null ||
+                frozenProductUse?.sourceLabel != null) ...[
+              Text(t.productFixedVolume),
+              Heading(t.productOldLabel),
+              ProductLabelView(
+                label: productLabel!,
+                volume: _productPreviewVolume(amount.text, original),
+              ),
+              Heading(t.productNewLabel),
+            ],
+            ProductLabelView(
+              label:
+                  frozenProductUse?.sourceLabel ??
+                  selectedContainer?.productLabel ??
+                  productLabel!,
+              volume: _productPreviewVolume(amount.text, original),
+            ),
+          ],
+          if (r == null) ...[
+            StockSourcePicker(
+              personId: owner!.id,
+              itemId: item!.id,
+              selectedId: selectedContainer?.id ?? sourceId,
+              productOnly: productLabel != null,
+              enabled: !busy && !uncertain && ownerValid,
+              onSelected: (c) => setState(() {
+                if (c == null) {
+                  selectedContainer = null;
+                  baseContainer = null;
+                  sourceId = null;
+                  baseId = null;
+                  keep = null;
+                  enteredUnit = item!.unit;
+                } else {
+                  baseContainer ??= c;
+                  selectedContainer = c;
+                  sourceId = c.id;
+                  sourceRevision = c.revision;
+                  keep = null;
+                  labelOnly = false;
+                }
+                entryChanged();
+              }),
+            ),
+            if (productLabel == null &&
+                const {'mg', 'ml'}.contains(item!.unit) &&
+                (selectedContainer != null || labelOnly)) ...[
+              Text(t.unitLabel),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  for (final u in ['mg', 'ml'])
+                    Semantics(
+                      selected: unit == u,
+                      child: StitchButton(
+                        primary: unit == u,
+                        onPressed: !busy && !uncertain && ownerValid
+                            ? () => setState(() {
+                                enteredUnit = u;
+                                keep = null;
+                                entryChanged();
+                              })
+                            : null,
+                        child: Text(u),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+            if (productLabel == null &&
+                selectedContainer == null &&
+                (sourceId == null || sourceId!.isEmpty)) ...[
+              SettingsToggleRow(
+                label: t.stockLabelOnly,
+                description: t.stockLabelOnlyHelp,
+                value: labelOnly,
+                enabled: !busy && !uncertain && ownerValid,
+                reduceMotion: MediaQuery.disableAnimationsOf(context),
+                onChanged: (v) => setState(() {
+                  labelOnly = v;
+                  if (!v) enteredUnit = item!.unit;
+                  entryChanged();
+                }),
+              ),
+              if (labelOnly) ...[
+                LabelledInput(
+                  label: t.stockStrength,
+                  controller: labelStrength,
+                  error: error == t.stockStrengthRequired ? error : null,
+                  enabled: !busy && !uncertain && ownerValid,
                 ),
-                Semantics(
-                  selected: chosenInstant == clockChoices[i],
-                  child: VitalButton.secondary(
-                    multiline: true,
-                    onPressed: busy || uncertain || !ownerValid
-                        ? null
-                        : () => setState(() {
-                            chosenInstant = clockChoices[i];
+                LabelledInput(
+                  label: t.stockConcentration,
+                  controller: labelConcentration,
+                  helper: t.stockConcentrationHelp,
+                  enabled: !busy && !uncertain && ownerValid,
+                ),
+              ],
+            ],
+            if (productLabel == null && selectedContainer != null) ...[
+              if (stockEffect != null)
+                DoseStockEffect(
+                  consequence: stockEffect,
+                  container: selectedContainer!,
+                ),
+              if (stockEffect != null) const SizedBox(height: 8),
+              StockDosePreview(
+                enteredText: amount.text,
+                enteredUnit: unit,
+                selected: selectedContainer!,
+                base: baseContainer,
+                keep: keep,
+                enabled: !busy && !uncertain && ownerValid,
+                onKeep: (v) => setState(() {
+                  keep = v;
+                  entryChanged();
+                }),
+                onActual: () => setState(() {
+                  baseContainer = selectedContainer;
+                  baseId = selectedContainer!.id;
+                  baseRevision = selectedContainer!.revision;
+                  keep = null;
+                  entryChanged();
+                }),
+              ),
+            ],
+          ] else ...[
+            Text(t.stockCorrectionEntryHelp),
+            ref
+                .watch(stockUseProvider((personId: r.personId, recordId: r.id)))
+                .when(
+                  loading: () => Text(t.loadingRecords),
+                  error: (_, _) => LoadFailure(
+                    onRetry: () => ref.invalidate(
+                      stockUseProvider((personId: r.personId, recordId: r.id)),
+                    ),
+                  ),
+                  data: (movement) => movement == null
+                      ? const SizedBox.shrink()
+                      : StockPhysicalChoice(
+                          value: stockCorrection,
+                          reviewed: movement.reviewedCorrection != null,
+                          enabled: !busy && !uncertain && ownerValid,
+                          onChanged: (v) => setState(() {
+                            stockCorrection = v;
                             entryChanged();
                           }),
-                    child: Text(i == 0 ? t.earlier : t.later),
-                  ),
+                        ),
                 ),
+          ],
+          const SizedBox(height: 20),
+          DosePreviewPanel(
+            title: t.screenRecordContext,
+            description: t.screenRecordContextHelp,
+          ),
+          const SizedBox(height: 12),
+          DosePreviewPanel(
+            title: t.screenRecordVitals,
+            description: t.screenRecordVitalsHelp,
+            action: Align(
+              alignment: Alignment.centerLeft,
+              child: StitchButton(
+                compact: true,
+                icon: LucideIcons.activity,
+                onPressed: () {
+                  final location = Uri.parse(
+                    supportingLocation(
+                      owner!.id,
+                      item: item!.id,
+                      back: widget.returnLocation ?? '/recorded',
+                    ),
+                  );
+                  context.push(
+                    location
+                        .replace(
+                          queryParameters: {
+                            ...location.queryParameters,
+                            'kind': 'observation',
+                          },
+                        )
+                        .toString(),
+                  );
+                },
+                child: Text(t.screenRecordObservations),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          if (r == null) ...[
+            VitalButton.secondary(
+              onPressed: !busy && !uncertain && ownerValid
+                  ? () => setState(() {
+                      siteOpen = !siteOpen;
+                      entryChanged();
+                    })
+                  : null,
+              child: Text(t.combinedSiteAction),
+            ),
+            if (siteOpen)
+              LabelledInput(
+                label: t.combinedSite,
+                helper: t.combinedSiteHelp,
+                controller: site,
+                enabled: !busy && !uncertain && ownerValid,
+              ),
+            Text(t.intervalExtraHelp),
+          ],
+          const SizedBox(height: 20),
+          Container(
+            key: _timeSection,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                DoseSectionHeading(t.screenRecordWhen),
+                const SizedBox(height: 6),
+                LabelledInput(
+                  label: t.actualDateLabel,
+                  controller: date,
+                  helper: t.dateExample,
+                  error: error == t.timeInvalid ? error : null,
+                  enabled: !busy && !uncertain && ownerValid,
+                  keyboardType: TextInputType.datetime,
+                ),
+                LabelledInput(
+                  label: t.actualTimeLabel,
+                  controller: time,
+                  helper: t.timeExample,
+                  enabled: !busy && !uncertain && ownerValid,
+                  keyboardType: TextInputType.datetime,
+                ),
+                if (clockChoices.length > 1) ...[
+                  Text(t.ambiguousTime),
+                  const SizedBox(height: 8),
+                  for (var i = 0; i < clockChoices.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            t.offsetChoice(
+                              i == 0 ? t.earlier : t.later,
+                              utcOffset(
+                                clockChoices[i].toLocal().timeZoneOffset,
+                              ),
+                            ),
+                          ),
+                          Semantics(
+                            selected: chosenInstant == clockChoices[i],
+                            child: StitchButton(
+                              primary: chosenInstant == clockChoices[i],
+                              onPressed: busy || uncertain || !ownerValid
+                                  ? null
+                                  : () => setState(() {
+                                      chosenInstant = clockChoices[i];
+                                      entryChanged();
+                                    }),
+                              child: Text(i == 0 ? t.earlier : t.later),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ],
             ),
           ),
-      ],
-      ?failure(),
-      VitalButton(
-        onPressed: busy || conflict || (!ownerValid && !uncertain)
-            ? null
-            : save,
-        child: Text(
-          busy
-              ? t.saving
-              : uncertain
-              ? t.retry
-              : t.save,
-        ),
+          ?failure(),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: StitchButton(
+              primary: true,
+              icon: LucideIcons.check,
+              onPressed: busy || conflict || (!ownerValid && !uncertain)
+                  ? null
+                  : save,
+              child: Text(
+                busy
+                    ? t.saving
+                    : uncertain
+                    ? t.retry
+                    : t.save,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: StitchButton(
+              quiet: true,
+              onPressed: leave,
+              child: Text(t.cancel),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            t.screenRecordSkipNote,
+            textAlign: TextAlign.center,
+            style: StitchType.caption.copyWith(
+              color: StitchColors(context).muted,
+            ),
+          ),
+        ],
       ),
     ]);
   }
