@@ -7023,5 +7023,61 @@
   "stitchSnoozeUnavailable": "Snooze is available when reminders are enabled for this schedule.",
   "@stitchSnoozeUnavailable": {
     "description": "Truthful unavailable-state explanation; does not promise native delivery."
+  },
+  "screenCreateDrafting": "Drafting",
+  "@screenCreateDrafting": {
+    "description": "Create substance screen. A local encrypted draft is kept while this form is unfinished."
+  },
+  "screenCreateClassification": "Classification",
+  "@screenCreateClassification": {
+    "description": "Create substance screen. Group label above the saved personal type choices."
+  },
+  "screenCreateIdentity": "Identity",
+  "@screenCreateIdentity": {
+    "description": "Create substance screen. Card heading for the name, form, unit and type controls."
+  },
+  "screenCreateFormHelp": "Tap a common form or enter your own.",
+  "@screenCreateFormHelp": {
+    "description": "Create substance screen. Form chips fill the free-text form field; they are not dose advice."
+  },
+  "screenCreateFormCapsule": "Capsule",
+  "@screenCreateFormCapsule": {
+    "description": "Create substance screen. Form choice written to the item's existing form field."
+  },
+  "screenCreateFormSoftgel": "Softgel",
+  "@screenCreateFormSoftgel": {
+    "description": "Create substance screen. Form choice written to the item's existing form field."
+  },
+  "screenCreateFormPowder": "Powder",
+  "@screenCreateFormPowder": {
+    "description": "Create substance screen. Form choice written to the item's existing form field."
+  },
+  "screenCreateStrengthLater": "Strength belongs to a stock container. Add it from the substance overview after you save.",
+  "@screenCreateStrengthLater": {
+    "description": "Create substance screen. The item record has no strength field; do not imply one was saved."
+  },
+  "screenCreateScheduleLater": "Frequency, dose times and food context are added from the substance overview after you save.",
+  "@screenCreateScheduleLater": {
+    "description": "Create substance screen. Schedule editing needs the saved item identity."
+  },
+  "screenCreateStockLater": "Opening quantity, low-stock threshold and strength are added from the substance overview after you save.",
+  "@screenCreateStockLater": {
+    "description": "Create substance screen. Stock editing needs the saved item identity."
+  },
+  "screenCreateNotes": "Notes",
+  "@screenCreateNotes": {
+    "description": "Create substance screen. Heading for unavailable free-text substance notes."
+  },
+  "screenCreateNotesUnavailable": "Substance notes are not available in this version.",
+  "@screenCreateNotesUnavailable": {
+    "description": "Create substance screen. Truthful unavailable state; no note is saved or invented."
+  },
+  "screenCreateAfterSave": "After save",
+  "@screenCreateAfterSave": {
+    "description": "Create substance screen. Badge marking a section that opens only once the item exists."
+  },
+  "screenCreateUnavailable": "Unavailable",
+  "@screenCreateUnavailable": {
+    "description": "Create substance screen. Badge for a feature this version does not record."
   }
 }

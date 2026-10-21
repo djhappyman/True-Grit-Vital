@@ -981,6 +981,10 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
   int? get entryPersonRevision;
   String? get entryTarget;
   String get entryFallback => '/substances';
+
+  /// Whether the compatibility page supplies its own panel around [wrap]'s
+  /// children. A composition that provides explicit cards sets this false.
+  bool get entryPanelled => true;
   int? get entryTargetRevision => null;
 
   /// Optional mode suffix of a form that hosts more than one command over the
@@ -1236,6 +1240,7 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
       },
       child: EntryPage(
         onBack: leave,
+        panelled: entryPanelled,
         children: [
           if (draftFailed)
             Semantics(liveRegion: true, child: Text(draftFailureMessage)),
@@ -1275,6 +1280,8 @@ class ItemForm extends ConsumerStatefulWidget {
 class _ItemFormState extends DurableFormState<ItemForm> {
   @override
   DraftKind get entryKind => DraftKind.item;
+  @override
+  bool get entryPanelled => false;
   @override
   String? get entryPerson => owner?.id;
   @override
@@ -1389,6 +1396,472 @@ class _ItemFormState extends DurableFormState<ItemForm> {
     }, successPath: '/substances');
   }
 
+  bool _editable(bool ownerValid) => !busy && !uncertain && ownerValid;
+
+  Widget _chip({
+    required String label,
+    required bool selected,
+    required VoidCallback? onPressed,
+    IconData? icon,
+    String? semanticLabel,
+  }) => Semantics(
+    selected: selected,
+    inMutuallyExclusiveGroup: true,
+    label: semanticLabel,
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: VitalLayout.target),
+      child: StitchButton(
+        primary: selected,
+        icon: icon,
+        onPressed: onPressed,
+        child: Text(label),
+      ),
+    ),
+  );
+
+  Widget _pager(String label, VoidCallback onPressed) => ConstrainedBox(
+    constraints: const BoxConstraints(minHeight: VitalLayout.target),
+    child: StitchButton(onPressed: onPressed, child: Text(label)),
+  );
+
+  Widget _cardHeading(
+    BuildContext context,
+    IconData icon,
+    String title, {
+    Widget? trailing,
+  }) {
+    final c = StitchColors(context);
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 12,
+      runSpacing: 8,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ExcludeSemantics(child: Icon(icon, size: 20, color: c.accent)),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Semantics(
+                header: true,
+                child: Text(
+                  title,
+                  style: StitchType.heading.copyWith(color: c.ink),
+                ),
+              ),
+            ),
+          ],
+        ),
+        ?trailing,
+      ],
+    );
+  }
+
+  Widget _introCard(BuildContext context, AppLocalizations t) {
+    final c = StitchColors(context);
+    final stacked =
+        MediaQuery.sizeOf(context).width < 360 ||
+        MediaQuery.textScalerOf(context).scale(14) >= 21;
+    final badge = StitchBadge(t.screenCreateDrafting, dot: true);
+    return StitchSurface(
+      radius: 16,
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const StitchIcon(LucideIcons.flaskConical, size: 48),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  t.newSubstance,
+                  style: StitchType.name.copyWith(color: c.ink),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  t.profileOwner(ownerLabel(ref, t, owner!.id)),
+                  style: StitchType.caption.copyWith(color: c.muted),
+                ),
+                if (stacked) ...[const SizedBox(height: 8), badge],
+              ],
+            ),
+          ),
+          if (!stacked) ...[const SizedBox(width: 8), badge],
+        ],
+      ),
+    );
+  }
+
+  Widget _classificationSection(
+    BuildContext context,
+    AppLocalizations t, {
+    required bool ownerValid,
+  }) {
+    final c = StitchColors(context);
+    final enabled = _editable(ownerValid);
+    final types = ref.watch(
+      itemTypesProvider((personId: owner!.id, offset: typeOffset)),
+    );
+    final caption = StitchType.caption.copyWith(color: c.muted);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Semantics(
+          header: true,
+          label: t.screenCreateClassification,
+          excludeSemantics: true,
+          child: Text(
+            t.screenCreateClassification.toUpperCase(),
+            style: StitchType.small.copyWith(
+              color: c.muted,
+              fontWeight: FontWeight.w600,
+              letterSpacing: .8,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        types.when(
+          loading: () => Text(t.loadingRecords, style: caption),
+          error: (_, _) => LoadFailure(
+            onRetry: () => ref.invalidate(
+              itemTypesProvider((personId: owner!.id, offset: typeOffset)),
+            ),
+          ),
+          data: (types) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (types.isEmpty) Text(t.itemTypesEmpty, style: caption),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  for (final value in types.take(50))
+                    _chip(
+                      label: value.name,
+                      selected: value.id == selectedTypeId,
+                      semanticLabel: t.itemTypeChoice(value.name),
+                      onPressed: enabled
+                          ? () => setState(() {
+                              type.text = value.name;
+                              selectedTypeId = value.id;
+                              selectedTypeRevision = value.revision;
+                              entryChanged();
+                            })
+                          : null,
+                    ),
+                  if (typeOffset > 0)
+                    _pager(t.previous, () => setState(() => typeOffset -= 50)),
+                  if (types.length > 50)
+                    _pager(t.next, () => setState(() => typeOffset += 50)),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        LabelledInput(
+          label: t.typeLabel,
+          controller: type,
+          enabled: enabled && selectedTypeId == null,
+        ),
+        Text(t.itemTypesHelp, style: caption),
+        if (selectedTypeId != null) ...[
+          const SizedBox(height: 8),
+          Text(t.itemTypeCurrent(type.text), style: StitchType.body),
+          const SizedBox(height: 8),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: StitchButton(
+              onPressed: enabled
+                  ? () => setState(() {
+                      selectedTypeId = null;
+                      selectedTypeRevision = null;
+                      entryChanged();
+                    })
+                  : null,
+              child: Text(t.catalogueClear),
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: StitchButton(
+            icon: LucideIcons.tags,
+            onPressed: enabled
+                ? () => context.push('/types/${owner!.id}')
+                : null,
+            child: Text(t.itemTypeManage),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _identityCard(
+    BuildContext context,
+    AppLocalizations t, {
+    required bool ownerValid,
+  }) {
+    final c = StitchColors(context);
+    final enabled = _editable(ownerValid);
+    final formEditable =
+        enabled && (selection == null || selection!.product.form.isEmpty);
+    final formChoices = <({String label, String value, IconData icon})>[
+      (label: t.tablet, value: 'Tablet', icon: LucideIcons.tablets),
+      (
+        label: t.screenCreateFormCapsule,
+        value: 'Capsule',
+        icon: LucideIcons.pill,
+      ),
+      (
+        label: t.screenCreateFormSoftgel,
+        value: 'Softgel',
+        icon: LucideIcons.circleDot,
+      ),
+      (label: t.liquid, value: 'Liquid', icon: LucideIcons.droplet),
+      (
+        label: t.screenCreateFormPowder,
+        value: 'Powder',
+        icon: LucideIcons.sparkles,
+      ),
+      (label: t.injection, value: 'Injection', icon: LucideIcons.syringe),
+    ];
+    final caption = StitchType.caption.copyWith(color: c.muted);
+    return StitchSurface(
+      radius: 16,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _cardHeading(
+            context,
+            LucideIcons.pill,
+            t.screenCreateIdentity,
+            trailing: searching
+                ? null
+                : StitchButton(
+                    icon: LucideIcons.search,
+                    onPressed: enabled
+                        ? () => setState(() => searching = true)
+                        : null,
+                    child: Text(t.catalogueSearchAction),
+                  ),
+          ),
+          const SizedBox(height: 16),
+          if (searching)
+            CataloguePicker(
+              query: query,
+              enabled: enabled,
+              onSelect: (value) => setState(() {
+                selection = value;
+                name.text = value.product.name;
+                form.text = value.product.form;
+                searching = false;
+                entryChanged();
+              }),
+              onCustom: (value) => setState(() {
+                selection = null;
+                name.text = value;
+                searching = false;
+                entryChanged();
+              }),
+            )
+          else ...[
+            if (selection != null) ...[
+              Text(
+                t.catalogueSelected,
+                style: StitchType.label.copyWith(color: c.muted),
+              ),
+              const SizedBox(height: 6),
+              CatalogueSource(snapshot: selection!),
+              const SizedBox(height: 6),
+              Text(t.catalogueSelectedHelp, style: caption),
+              const SizedBox(height: 8),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: StitchButton(
+                  onPressed: enabled
+                      ? () => setState(() {
+                          selection = null;
+                          entryChanged();
+                        })
+                      : null,
+                  child: Text(t.catalogueClear),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+            LabelledInput(
+              label: t.nameLabel,
+              controller: name,
+              error: error == t.nameRequired ? error : null,
+              enabled: enabled && selection == null,
+            ),
+            LabelledInput(
+              label: t.formLabel,
+              controller: form,
+              enabled: formEditable,
+            ),
+            Text(t.screenCreateFormHelp, style: caption),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                for (final choice in formChoices)
+                  _chip(
+                    label: choice.label,
+                    icon: choice.icon,
+                    selected:
+                        form.text.trim().toLowerCase() ==
+                        choice.value.toLowerCase(),
+                    onPressed: formEditable
+                        ? () => setState(() {
+                            form.text = choice.value;
+                            entryChanged();
+                          })
+                        : null,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Text(
+              t.unitLabel,
+              style: StitchType.label.copyWith(
+                color: c.ink,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                for (final value in ['mg', 'ml', 'count'])
+                  _chip(
+                    label: value,
+                    selected: unit.text == value,
+                    onPressed: enabled && !productEnabled
+                        ? () => setState(() {
+                            unit.text = value;
+                            entryChanged();
+                          })
+                        : null,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            StitchSurface(
+              inset: true,
+              radius: 12,
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ExcludeSemantics(
+                    child: Icon(LucideIcons.scale, size: 18, color: c.accent),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(t.screenCreateStrengthLater, style: caption),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            SettingsToggleRow(
+              label: t.productToggle,
+              description: t.productToggleHelp,
+              value: productEnabled,
+              enabled: enabled,
+              reduceMotion: MediaQuery.disableAnimationsOf(context),
+              onChanged: (value) => setState(() {
+                productEnabled = value;
+                if (value) {
+                  unit.text = 'ml';
+                  productEditor.initialise();
+                }
+                entryChanged();
+              }),
+            ),
+            if (productEnabled)
+              ProductComponentEditor(
+                data: productEditor,
+                enabled: enabled,
+                error: error == t.productIngredientInvalid ? error : null,
+                onChanged: () => setState(() {}),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _afterSaveCard(
+    BuildContext context,
+    String title,
+    String body, {
+    required IconData icon,
+    String? badge,
+    bool warning = false,
+  }) {
+    final c = StitchColors(context);
+    return StitchSurface(
+      radius: 16,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _cardHeading(
+            context,
+            icon,
+            title,
+            trailing: StitchBadge(badge ?? '', warning: warning),
+          ),
+          const SizedBox(height: 10),
+          Text(body, style: StitchType.caption.copyWith(color: c.muted)),
+        ],
+      ),
+    );
+  }
+
+  Widget _actions(AppLocalizations t, {required bool ownerValid}) {
+    final label = busy
+        ? t.saving
+        : uncertain
+        ? t.retry
+        : t.create;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: StitchButton(
+            primary: true,
+            icon: LucideIcons.check,
+            onPressed: busy || conflict || (!ownerValid && !uncertain)
+                ? null
+                : save,
+            child: Text(label),
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: StitchButton(
+            onPressed: busy ? null : leave,
+            child: Text(t.cancel),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
@@ -1407,194 +1880,40 @@ class _ItemFormState extends DurableFormState<ItemForm> {
           p.revision == capturedPersonRevision,
     );
     return wrap([
-      Heading(t.newSubstance),
-      if (!ownerValid) Text(t.profileChanged),
-      Text(t.profileOwner(ownerLabel(ref, t, owner!.id))),
-      const SizedBox(height: 20),
-      if (searching)
-        CataloguePicker(
-          query: query,
-          enabled: !busy && !uncertain && ownerValid,
-          onSelect: (value) => setState(() {
-            selection = value;
-            name.text = value.product.name;
-            form.text = value.product.form;
-            searching = false;
-            entryChanged();
-          }),
-          onCustom: (value) => setState(() {
-            selection = null;
-            name.text = value;
-            searching = false;
-            entryChanged();
-          }),
-        )
-      else ...[
-        if (selection != null) ...[
-          Heading(t.catalogueSelected),
-          CatalogueSource(snapshot: selection!),
-          Text(t.catalogueSelectedHelp),
-          VitalButton.secondary(
-            onPressed: busy || uncertain || !ownerValid
-                ? null
-                : () => setState(() {
-                    selection = null;
-                    entryChanged();
-                  }),
-            child: Text(t.catalogueClear),
-          ),
-        ],
-        VitalButton.secondary(
-          onPressed: busy || uncertain || !ownerValid
-              ? null
-              : () => setState(() => searching = true),
-          child: Text(t.catalogueSearchAction),
-        ),
-        const SizedBox(height: 20),
-      ],
-      LabelledInput(
-        label: t.nameLabel,
-        controller: name,
-        error: error == t.nameRequired ? error : null,
-        enabled: !busy && !uncertain && ownerValid && selection == null,
+      _introCard(context, t),
+      if (!ownerValid) ...[const SizedBox(height: 12), Text(t.profileChanged)],
+      const SizedBox(height: 16),
+      _classificationSection(context, t, ownerValid: ownerValid),
+      const SizedBox(height: 16),
+      _identityCard(context, t, ownerValid: ownerValid),
+      const SizedBox(height: 16),
+      _afterSaveCard(
+        context,
+        t.schedule,
+        t.screenCreateScheduleLater,
+        icon: LucideIcons.calendarDays,
+        badge: t.screenCreateAfterSave,
       ),
-      LabelledInput(
-        label: t.formLabel,
-        controller: form,
-        enabled:
-            !busy &&
-            !uncertain &&
-            ownerValid &&
-            (selection == null || selection!.product.form.isEmpty),
-      ),
-      SettingsToggleRow(
-        label: t.productToggle,
-        description: t.productToggleHelp,
-        value: productEnabled,
-        enabled: !busy && !uncertain && ownerValid,
-        reduceMotion: MediaQuery.disableAnimationsOf(context),
-        onChanged: (value) => setState(() {
-          productEnabled = value;
-          if (value) {
-            unit.text = 'ml';
-            productEditor.initialise();
-          }
-          entryChanged();
-        }),
-      ),
-      if (productEnabled)
-        ProductComponentEditor(
-          data: productEditor,
-          enabled: !busy && !uncertain && ownerValid,
-          error: error == t.productIngredientInvalid ? error : null,
-          onChanged: () => setState(() {}),
-        ),
-      Text(t.unitLabel),
-      const SizedBox(height: 8),
-      Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        children: [
-          for (final value in ['mg', 'ml', 'count'])
-            Semantics(
-              selected: unit.text == value,
-              child: VitalButton.secondary(
-                multiline: true,
-                onPressed: busy || uncertain || !ownerValid || productEnabled
-                    ? null
-                    : () => setState(() => unit.text = value),
-                child: Text(value),
-              ),
-            ),
-        ],
-      ),
-      const SizedBox(height: 20),
-      LabelledInput(
-        label: t.typeLabel,
-        controller: type,
-        enabled: !busy && !uncertain && ownerValid && selectedTypeId == null,
-      ),
-      Text(t.itemTypesHelp),
-      if (selectedTypeId != null) ...[
-        Text(t.itemTypeCurrent(type.text)),
-        VitalButton.secondary(
-          onPressed: busy || uncertain || !ownerValid
-              ? null
-              : () => setState(() {
-                  selectedTypeId = null;
-                  selectedTypeRevision = null;
-                  entryChanged();
-                }),
-          child: Text(t.catalogueClear),
-        ),
-      ],
-      ref
-          .watch(itemTypesProvider((personId: owner!.id, offset: typeOffset)))
-          .when(
-            loading: () => Text(t.loadingRecords),
-            error: (_, _) => LoadFailure(
-              onRetry: () => ref.invalidate(
-                itemTypesProvider((personId: owner!.id, offset: typeOffset)),
-              ),
-            ),
-            data: (types) => Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                for (final value in types.take(50))
-                  Semantics(
-                    selected: value.id == selectedTypeId,
-                    label: t.itemTypeChoice(value.name),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 48),
-                      child: VitalButton.secondary(
-                        multiline: true,
-                        onPressed: busy || uncertain || !ownerValid
-                            ? null
-                            : () => setState(() {
-                                type.text = value.name;
-                                selectedTypeId = value.id;
-                                selectedTypeRevision = value.revision;
-                                entryChanged();
-                              }),
-                        child: Text(value.name),
-                      ),
-                    ),
-                  ),
-                if (typeOffset > 0)
-                  VitalButton.secondary(
-                    onPressed: () => setState(() => typeOffset -= 50),
-                    child: Text(t.previous),
-                  ),
-                if (types.length > 50)
-                  VitalButton.secondary(
-                    onPressed: () => setState(() => typeOffset += 50),
-                    child: Text(t.next),
-                  ),
-              ],
-            ),
-          ),
       const SizedBox(height: 12),
-      VitalButton.secondary(
-        onPressed: busy || uncertain || !ownerValid
-            ? null
-            : () => context.push('/types/${owner!.id}'),
-        child: Text(t.itemTypeManage),
+      _afterSaveCard(
+        context,
+        t.stock,
+        t.screenCreateStockLater,
+        icon: LucideIcons.package,
+        badge: t.screenCreateAfterSave,
+      ),
+      const SizedBox(height: 12),
+      _afterSaveCard(
+        context,
+        t.screenCreateNotes,
+        t.screenCreateNotesUnavailable,
+        icon: LucideIcons.notebookPen,
+        badge: t.screenCreateUnavailable,
+        warning: true,
       ),
       const SizedBox(height: 20),
       ?failure(),
-      VitalButton(
-        onPressed: busy || conflict || (!ownerValid && !uncertain)
-            ? null
-            : save,
-        child: Text(
-          busy
-              ? t.saving
-              : uncertain
-              ? t.retry
-              : t.create,
-        ),
-      ),
+      _actions(t, ownerValid: ownerValid),
     ]);
   }
 }
