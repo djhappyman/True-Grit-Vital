@@ -303,6 +303,35 @@ void main() {
     expect((await store.itemDetail(item.id))!.notes, 'Kept while locked');
   });
 
+  test('captured setup and detail commands reject another dataset', () async {
+    final item = await createItem();
+    final conflict = throwsA(
+      isA<CommandConflict>().having((e) => e.code, 'code', 'generation'),
+    );
+    await expectLater(
+      store.updateItemSetup(
+        commandId: 'stale-setup',
+        itemId: item.id,
+        expectedGeneration: 'retired-dataset',
+        skipStock: true,
+      ),
+      conflict,
+    );
+    await expectLater(
+      store.saveItemDetail(
+        commandId: 'stale-detail',
+        itemId: item.id,
+        expectedGeneration: 'retired-dataset',
+        expectedRevision: null,
+        instructions: 'Stale text',
+        notes: '',
+      ),
+      conflict,
+    );
+    expect((await store.itemSetup(item.id))!.stockSkipped, isFalse);
+    expect(await store.itemDetail(item.id), isNull);
+  });
+
   test('a replaced dataset generation retires stale setup progress', () async {
     final item = await createItem();
     await updateSetup(itemId: item.id, skipSchedule: true);
@@ -319,6 +348,13 @@ void main() {
 
     expect(await store.itemSetup(item.id), isNull);
     expect(await store.itemDetail(item.id), isNotNull);
+    final restarted = await updateSetup(
+      command: 'new-generation-setup',
+      itemId: item.id,
+      skipStock: true,
+    );
+    expect(restarted.scheduleSkipped, isFalse);
+    expect(restarted.stockSkipped, isTrue);
   });
 
   test('deleting the profile removes setup and authored detail', () async {

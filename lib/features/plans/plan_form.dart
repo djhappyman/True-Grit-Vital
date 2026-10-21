@@ -48,9 +48,15 @@ class PlanSlotEntry {
 }
 
 class DailyPlanForm extends ConsumerStatefulWidget {
-  const DailyPlanForm({super.key, required this.itemId, this.planId});
+  const DailyPlanForm({
+    super.key,
+    required this.itemId,
+    this.planId,
+    this.returnToSetup = false,
+  });
   final String itemId;
   final String? planId;
+  final bool returnToSetup;
   @override
   ConsumerState<DailyPlanForm> createState() => _DailyPlanFormState();
 }
@@ -333,21 +339,26 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       }
       if (!mounted) return;
     }
-    await commit((command) async {
-      final store = await ref.read(recordStoreProvider.future);
-      await store.saveDailyPlan(
-        commandId: command,
-        plan: plan,
-        expectedPersonRevision: capturedPersonRevision!,
-        expectedPlanRevision: capturedTargetRevision,
-        expectedGeneration: store.generation,
-        intervalClockSample: intervalClockSample,
-      );
-      ref.invalidate(dailyFeedProvider);
-      ref.invalidate(nextDailyPlansProvider);
-      ref.invalidate(itemPlansProvider);
-      ref.invalidate(scopePlansProvider);
-    }, successPath: '/today');
+    await commit(
+      (command) async {
+        final store = await ref.read(recordStoreProvider.future);
+        await store.saveDailyPlan(
+          commandId: command,
+          plan: plan,
+          expectedPersonRevision: capturedPersonRevision!,
+          expectedPlanRevision: capturedTargetRevision,
+          expectedGeneration: capturedGeneration!,
+          intervalClockSample: intervalClockSample,
+        );
+        ref.invalidate(dailyFeedProvider);
+        ref.invalidate(nextDailyPlansProvider);
+        ref.invalidate(itemPlansProvider);
+        ref.invalidate(scopePlansProvider);
+      },
+      successPath: widget.returnToSetup
+          ? '/substance/${widget.itemId}/setup'
+          : '/today',
+    );
   }
 
   void loadPlan(SavedDailyPlan saved) {

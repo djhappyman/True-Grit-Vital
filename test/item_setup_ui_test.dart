@@ -134,14 +134,54 @@ void main() {
     await tap(tester, 'Save');
     await settle(tester);
     await waitForText(tester, 'Interrupted setup substance');
-    expect(router.routerDelegate.state.uri.path, '/substance/${item.id}');
-    await waitForText(tester, instructions);
-    expect(find.text(notes), findsOneWidget);
+    expect(router.routerDelegate.state.uri.path, '/substance/${item.id}/setup');
+    await waitForText(tester, 'Added');
 
     final detail = (await runIo(tester, () => f.store.itemDetail(item.id)))!;
     expect(detail.instructions, instructions);
     expect(detail.notes, notes);
     expect(detail.revision, 1);
+    router.go('/substance/${item.id}');
+    await settle(tester);
+    await waitForText(tester, instructions);
+    expect(find.text(notes), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  appTest('setup returns from the canonical schedule and stock editors', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final item = (await runIo(
+      tester,
+      () => createItem(f.store, 'Guided setup substance'),
+    ))!;
+    final router = f.container.read(routerProvider);
+    router.go('/substance/${item.id}/setup');
+    await settle(tester);
+    await waitForText(tester, 'Setup');
+    await tapPanelButton(tester, 'Schedule', 'Add');
+    await waitForText(tester, 'As needed');
+    await tap(tester, 'As needed');
+    await tap(tester, 'Preview');
+    await tap(tester, 'Save');
+    await settle(tester);
+    await waitForText(tester, 'Setup');
+    expect(router.routerDelegate.state.uri.path, '/substance/${item.id}/setup');
+    expect((await runIo(tester, f.store.dailyPlans))!, hasLength(1));
+    await tapPanelButton(tester, 'Stock', 'Add');
+    await waitForText(tester, 'Container name');
+    await enter(tester, 'Container name', 'Opening bottle');
+    await enter(tester, 'Labelled strength', 'Original tablet label');
+    await tap(tester, 'Create');
+    await settle(tester);
+    await waitForText(tester, 'Setup');
+    expect(router.routerDelegate.state.uri.path, '/substance/${item.id}/setup');
+    expect(
+      (await runIo(tester, () => f.store.stockContainers(personId: meId)))!,
+      hasLength(1),
+    );
+    expect(await runIo(tester, f.store.records), isEmpty);
     expect(tester.takeException(), isNull);
   });
 

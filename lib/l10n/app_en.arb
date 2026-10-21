@@ -7278,7 +7278,7 @@
   "@featureSetupStockHelp": {
     "description": "Help for the optional opening stock step."
   },
-  "featureSetupDetailsHelp": "Instructions and private notes stay on this device.",
+  "featureSetupDetailsHelp": "Add your own instructions or private notes.",
   "@featureSetupDetailsHelp": {
     "description": "Help for the optional details step."
   },
@@ -7318,7 +7318,7 @@
   "@featureSetupNoDetailsHelp": {
     "description": "Empty state help for substance details."
   },
-  "featureSetupDetailsFormHelp": "These are your own words. The app does not interpret them or suggest a dose.",
+  "featureSetupDetailsFormHelp": "Write your own instructions and notes.",
   "@featureSetupDetailsFormHelp": {
     "description": "Explains that authored details are not medical advice."
   },
@@ -7326,7 +7326,7 @@
   "@featureSetupInstructions": {
     "description": "Label for user-authored instructions."
   },
-  "featureSetupInstructionsHelp": "Kept exactly as written. This is not medical advice.",
+  "featureSetupInstructionsHelp": "Keep your wording, quantities and units.",
   "@featureSetupInstructionsHelp": {
     "description": "Instructions field help that preserves the entered text without advice."
   },

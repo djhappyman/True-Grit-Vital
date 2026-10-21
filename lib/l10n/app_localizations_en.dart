@@ -6305,7 +6305,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featureSetupDetailsHelp =>
-      'Instructions and private notes stay on this device.';
+      'Add your own instructions or private notes.';
 
   @override
   String get featureSetupContinue => 'Continue';
@@ -6337,14 +6337,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featureSetupDetailsFormHelp =>
-      'These are your own words. The app does not interpret them or suggest a dose.';
+      'Write your own instructions and notes.';
 
   @override
   String get featureSetupInstructions => 'Instructions';
 
   @override
   String get featureSetupInstructionsHelp =>
-      'Kept exactly as written. This is not medical advice.';
+      'Keep your wording, quantities and units.';
 
   @override
   String get featureSetupNotes => 'Private notes';

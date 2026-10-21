@@ -81,12 +81,15 @@ part 'report_template_store.dart';
 part 'backup_store.dart';
 part 'restore_store.dart';
 
+/// Current durable record schema, also used by backup and restore validation.
+const currentRecordSchemaVersion = 23;
+
 // No generated table layer is needed for this bounded, explicitly versioned SQL schema.
 final class _Database extends drift.GeneratedDatabase {
   _Database(super.executor, this.initialGeneration);
   final String initialGeneration;
   @override
-  int get schemaVersion => 23;
+  int get schemaVersion => currentRecordSchemaVersion;
   @override
   Iterable<drift.TableInfo<drift.Table, Object?>> get allTables => const [];
   @override
@@ -252,7 +255,7 @@ final class _Database extends drift.GeneratedDatabase {
 
 /// Schema 23 adds optional dose context and an optional skip reason. Every
 /// column is additive with a valid empty default, so existing rows stay
-/// readable and version 22 can be inserted ahead of this step when it lands.
+/// readable after the substance setup migration at version 22.
 Future<void> _migrateDoseContextV23(_Database db) async {
   await db.customStatement('ALTER TABLE revision ADD COLUMN notes TEXT');
   await db.customStatement(

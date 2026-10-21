@@ -421,7 +421,7 @@ final class BackupService implements BackupOperations {
 }
 
 /// The schema version this build can open after a validated restore.
-const schemaVersionCurrent = 21;
+const schemaVersionCurrent = currentRecordSchemaVersion;
 
 Future<void> _deleteQuietly(File file) async {
   try {

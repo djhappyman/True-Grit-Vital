@@ -111,6 +111,7 @@ extension ItemDetailRecords on RecordStore {
   /// any existing row is a stale write rather than an implicit overwrite.
   Future<SubstanceDetail> saveItemDetail({
     required String commandId,
+    String? expectedGeneration,
     required String itemId,
     required String instructions,
     required String notes,
@@ -118,6 +119,9 @@ extension ItemDetailRecords on RecordStore {
     String personId = meId,
     int? expectedPersonRevision,
   }) async {
+    if (expectedGeneration != null && expectedGeneration != generation) {
+      throw const CommandConflict('generation');
+    }
     if (instructions.length > 8000 || notes.length > 8000) {
       throw const FormatException('item_detail_fields');
     }
@@ -196,6 +200,7 @@ extension ItemDetailRecords on RecordStore {
   /// caller completes setup; a saved real record is read separately.
   Future<ItemSetupState> updateItemSetup({
     required String commandId,
+    String? expectedGeneration,
     required String itemId,
     String personId = meId,
     int? expectedPersonRevision,
@@ -204,6 +209,9 @@ extension ItemDetailRecords on RecordStore {
     bool skipDetails = false,
     bool complete = false,
   }) async {
+    if (expectedGeneration != null && expectedGeneration != generation) {
+      throw const CommandConflict('generation');
+    }
     final r = await _command(
       commandId,
       [
@@ -227,7 +235,10 @@ extension ItemDetailRecords on RecordStore {
           'SELECT * FROM item_setup WHERE item=? AND person=?',
           [itemId, personId],
         );
-        final existing = current.isEmpty ? null : current.single;
+        final existing =
+            current.isEmpty || current.single['generation'] != generation
+            ? null
+            : current.single;
         final now = DateTime.now().toUtc().microsecondsSinceEpoch;
         final schedule = skipSchedule || existing?['schedule_skipped'] == 1;
         final stock = skipStock || existing?['stock_skipped'] == 1;

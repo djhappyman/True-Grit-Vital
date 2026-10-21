@@ -15,8 +15,13 @@ import 'substance_detail_providers.dart';
 /// guards as the other editors. It never interprets the text or turns it into
 /// a dose, plan or recommendation.
 class ItemDetailsForm extends ConsumerStatefulWidget {
-  const ItemDetailsForm({super.key, required this.itemId});
+  const ItemDetailsForm({
+    super.key,
+    required this.itemId,
+    this.returnToSetup = false,
+  });
   final String itemId;
+  final bool returnToSetup;
   @override
   ConsumerState<ItemDetailsForm> createState() => _ItemDetailsFormState();
 }
@@ -66,16 +71,21 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
       setState(() => error = t.featureSetupDetailsTooLong);
       return;
     }
-    await commit((command) async {
-      await (await ref.read(recordStoreProvider.future)).saveItemDetail(
-        commandId: command,
-        itemId: widget.itemId,
-        expectedRevision: capturedTargetRevision,
-        expectedPersonRevision: capturedPersonRevision,
-        instructions: instructions.text,
-        notes: notes.text,
-      );
-    }, successPath: '/substance/${widget.itemId}');
+    await commit(
+      (command) async {
+        await (await ref.read(recordStoreProvider.future)).saveItemDetail(
+          commandId: command,
+          expectedGeneration: capturedGeneration,
+          itemId: widget.itemId,
+          expectedRevision: capturedTargetRevision,
+          expectedPersonRevision: capturedPersonRevision,
+          instructions: instructions.text,
+          notes: notes.text,
+        );
+      },
+      successPath:
+          '/substance/${widget.itemId}${widget.returnToSetup ? '/setup' : ''}',
+    );
   }
 
   @override
@@ -121,7 +131,7 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
     final valid =
         !liveOwner.isArchived &&
         liveOwner.revision == capturedPersonRevision &&
-        detail.value?.revision == detailRevision;
+        detail.value?.revision == capturedTargetRevision;
     final enabled = valid && !busy && !uncertain && !conflict;
     return wrap([
       Heading(t.featureSetupDetails),

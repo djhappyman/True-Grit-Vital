@@ -360,6 +360,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           child: StockContainerForm(
             personId: meId,
             itemId: state.uri.queryParameters['item'] ?? '',
+            returnToSetup: state.uri.queryParameters['setup'] == 'true',
           ),
         ),
       ),
@@ -555,6 +556,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           child: DailyPlanForm(
             itemId: state.pathParameters['id']!,
             planId: state.uri.queryParameters['plan'],
+            returnToSetup: state.uri.queryParameters['setup'] == 'true',
           ),
         ),
       ),
@@ -575,7 +577,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       vitalRoute(
         path: '/substance/:id/details',
         builder: (_, state) => StorageGate(
-          child: ItemDetailsForm(itemId: state.pathParameters['id']!),
+          child: ItemDetailsForm(
+            itemId: state.pathParameters['id']!,
+            returnToSetup: state.uri.queryParameters['setup'] == 'true',
+          ),
         ),
       ),
       vitalRoute(

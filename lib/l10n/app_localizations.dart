@@ -9816,7 +9816,7 @@ abstract class AppLocalizations {
   /// Help for the optional details step.
   ///
   /// In en, this message translates to:
-  /// **'Instructions and private notes stay on this device.'**
+  /// **'Add your own instructions or private notes.'**
   String get featureSetupDetailsHelp;
 
   /// Button that resumes optional setup.
@@ -9876,7 +9876,7 @@ abstract class AppLocalizations {
   /// Explains that authored details are not medical advice.
   ///
   /// In en, this message translates to:
-  /// **'These are your own words. The app does not interpret them or suggest a dose.'**
+  /// **'Write your own instructions and notes.'**
   String get featureSetupDetailsFormHelp;
 
   /// Label for user-authored instructions.
@@ -9888,7 +9888,7 @@ abstract class AppLocalizations {
   /// Instructions field help that preserves the entered text without advice.
   ///
   /// In en, this message translates to:
-  /// **'Kept exactly as written. This is not medical advice.'**
+  /// **'Keep your wording, quantities and units.'**
   String get featureSetupInstructionsHelp;
 
   /// Label for user-authored private notes.

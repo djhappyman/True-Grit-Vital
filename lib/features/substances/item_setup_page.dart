@@ -28,6 +28,7 @@ class ItemSetupPage extends ConsumerStatefulWidget {
 class _ItemSetupPageState extends ConsumerState<ItemSetupPage> {
   bool busy = false;
   String? error;
+  String? capturedGeneration;
 
   Future<void> _update({
     bool skipSchedule = false,
@@ -42,8 +43,14 @@ class _ItemSetupPageState extends ConsumerState<ItemSetupPage> {
       error = null;
     });
     try {
-      await (await ref.read(recordStoreProvider.future)).updateItemSetup(
+      final store = await ref.read(recordStoreProvider.future);
+      if (capturedGeneration == null ||
+          capturedGeneration != store.generation) {
+        throw const CommandConflict('generation');
+      }
+      await store.updateItemSetup(
         commandId: newCommandId(),
+        expectedGeneration: capturedGeneration,
         itemId: widget.itemId,
         expectedPersonRevision: owner.revision,
         skipSchedule: skipSchedule,
@@ -148,6 +155,7 @@ class _ItemSetupPageState extends ConsumerState<ItemSetupPage> {
               ref.invalidate(profilesProvider);
               ref.invalidate(itemLookupProvider(widget.itemId));
               ref.invalidate(itemSetupProvider(widget.itemId));
+              ref.invalidate(overviewPlansProvider);
               ref.invalidate(stockContainersProvider);
               ref.invalidate(itemDetailProvider(widget.itemId));
             },
@@ -171,6 +179,13 @@ class _ItemSetupPageState extends ConsumerState<ItemSetupPage> {
       return EntryPage(children: [Text(t.noItem)]);
     }
     final state = setup.value;
+    final generation = ref.watch(recordStoreProvider).value?.generation;
+    capturedGeneration ??= generation;
+    if (generation == null ||
+        capturedGeneration != generation ||
+        owner.isArchived) {
+      return EntryPage(children: [Text(t.draftUnavailable)]);
+    }
     final planAdded = plans.value!.isNotEmpty;
     final stockAdded = stock.value!.isNotEmpty;
     final detailsAdded = detail.value?.isEmpty == false;
@@ -205,7 +220,7 @@ class _ItemSetupPageState extends ConsumerState<ItemSetupPage> {
           skipped: scheduleSkipped && !planAdded,
           addedLabel: planAdded ? t.featureSetupAdded : '',
           skippedLabel: t.featureSetupSkipped,
-          onAdd: () => context.push('/schedule/${saved.id}'),
+          onAdd: () => context.push('/schedule/${saved.id}?setup=true'),
           onSkip: () => _update(skipSchedule: true, owner: owner),
         ),
         const SizedBox(height: 12),
@@ -217,8 +232,9 @@ class _ItemSetupPageState extends ConsumerState<ItemSetupPage> {
           skipped: stockSkipped && !stockAdded,
           addedLabel: stockAdded ? t.featureSetupAdded : '',
           skippedLabel: t.featureSetupSkipped,
-          onAdd: () =>
-              context.push('/stock/${saved.personId}/create?item=${saved.id}'),
+          onAdd: () => context.push(
+            '/stock/${saved.personId}/create?item=${saved.id}&setup=true',
+          ),
           onSkip: () => _update(skipStock: true, owner: owner),
         ),
         const SizedBox(height: 12),
@@ -230,7 +246,8 @@ class _ItemSetupPageState extends ConsumerState<ItemSetupPage> {
           skipped: detailsSkipped && !detailsAdded,
           addedLabel: detailsAdded ? t.featureSetupAdded : '',
           skippedLabel: t.featureSetupSkipped,
-          onAdd: () => context.push('/substance/${saved.id}/details'),
+          onAdd: () =>
+              context.push('/substance/${saved.id}/details?setup=true'),
           onSkip: () => _update(skipDetails: true, owner: owner),
         ),
         if (error != null) ...[

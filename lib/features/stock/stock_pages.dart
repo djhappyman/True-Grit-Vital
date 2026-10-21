@@ -670,8 +670,10 @@ class StockContainerForm extends ConsumerStatefulWidget {
     super.key,
     required this.personId,
     required this.itemId,
+    this.returnToSetup = false,
   });
   final String personId, itemId;
+  final bool returnToSetup;
   @override
   ConsumerState<StockContainerForm> createState() => _StockContainerFormState();
 }
@@ -813,27 +815,32 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
       }
     }
     invalid = null;
-    await commit((command) async {
-      final store = await ref.read(recordStoreProvider.future);
-      await store.createStockContainer(
-        commandId: command,
-        expectedGeneration: capturedGeneration!,
-        personId: widget.personId,
-        expectedPersonRevision: capturedPersonRevision!,
-        itemId: widget.itemId,
-        label: label.text.trim(),
-        unit: unit,
-        strength: LabelledStrength(
-          ingredientId: widget.itemId,
-          label: productLabel == null ? strength.text.trim() : item!.name,
-          mgPerMl: c,
-        ),
-        opening: o,
-        lowThreshold: low,
-        refillEnabled: refill,
-        productLabel: sourceLabel,
-      );
-    }, successPath: '/stock/${widget.personId}?item=${widget.itemId}');
+    await commit(
+      (command) async {
+        final store = await ref.read(recordStoreProvider.future);
+        await store.createStockContainer(
+          commandId: command,
+          expectedGeneration: capturedGeneration!,
+          personId: widget.personId,
+          expectedPersonRevision: capturedPersonRevision!,
+          itemId: widget.itemId,
+          label: label.text.trim(),
+          unit: unit,
+          strength: LabelledStrength(
+            ingredientId: widget.itemId,
+            label: productLabel == null ? strength.text.trim() : item!.name,
+            mgPerMl: c,
+          ),
+          opening: o,
+          lowThreshold: low,
+          refillEnabled: refill,
+          productLabel: sourceLabel,
+        );
+      },
+      successPath: widget.returnToSetup
+          ? '/substance/${widget.itemId}/setup'
+          : '/stock/${widget.personId}?item=${widget.itemId}',
+    );
   }
 
   @override

@@ -137,6 +137,7 @@ void main() {
     );
     expect(staged.inventory.recordCount, 1);
     expect(staged.generation, store.generation);
+    expect(staged.schemaVersion, currentRecordSchemaVersion);
     await staged.discard();
 
     final status = await service.save(creation);
