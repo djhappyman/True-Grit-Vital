@@ -140,65 +140,66 @@ void main() {
     },
   );
 
-  appTest('unknown ingredient strength stays unknown and retains its ml source', (
-    tester,
-  ) async {
-    final f = await launch(tester);
-    final product = (await runIo(
-      tester,
-      () => f.store.createItem(
-        commandId: 'product',
-        expectedPersonRevision: 2,
-        name: 'Saved product',
-        form: 'liquid',
-        unit: 'ml',
-        type: 'Medicine',
-        productComponents: [
-          ProductComponent(
-            ingredientId: 'unknown-ingredient',
-            name: 'Unknown strength ingredient',
-          ),
-          ProductComponent(
-            ingredientId: 'known-ingredient',
-            name: 'Known ingredient',
-            concentrationText: '2',
-          ),
-        ],
-      ),
-    ))!;
-    await runIo(tester, () async {
-      final label = (await f.store.productLabel(
-        personId: meId,
-        itemId: product.id,
-      ))!;
-      await f.store.recordProduct(
-        commandId: 'product-use',
-        personId: meId,
-        expectedPersonRevision: 2,
-        itemId: product.id,
-        actualAt: DateTime.utc(2026, 10, 2, 12),
-        use: ProductUseInput(
-          expectedGeneration: f.store.generation,
-          label: label,
-          enteredVolume: EnteredStockAmount('0.5', 'ml'),
+  appTest(
+    'unknown ingredient strength stays unknown and retains its ml source',
+    (tester) async {
+      final f = await launch(tester);
+      final product = (await runIo(
+        tester,
+        () => f.store.createItem(
+          commandId: 'product',
+          expectedPersonRevision: 2,
+          name: 'Saved product',
+          form: 'liquid',
+          unit: 'ml',
+          type: 'Medicine',
+          productComponents: [
+            ProductComponent(
+              ingredientId: 'unknown-ingredient',
+              name: 'Unknown strength ingredient',
+            ),
+            ProductComponent(
+              ingredientId: 'known-ingredient',
+              name: 'Known ingredient',
+              concentrationText: '2',
+            ),
+          ],
         ),
-      );
-    });
-    f.container
-        .read(routerProvider)
-        .go(
-          '/charts?scope=me&from=2026-10-01T00:00:00Z&before=2026-10-05T00:00:00Z&kind=ingredient&subject=unknown-ingredient&unit=mg&mode=table&sources=true',
+      ))!;
+      await runIo(tester, () async {
+        final label = (await f.store.productLabel(
+          personId: meId,
+          itemId: product.id,
+        ))!;
+        await f.store.recordProduct(
+          commandId: 'product-use',
+          personId: meId,
+          expectedPersonRevision: 2,
+          itemId: product.id,
+          actualAt: DateTime.utc(2026, 10, 2, 12),
+          use: ProductUseInput(
+            expectedGeneration: f.store.generation,
+            label: label,
+            enteredVolume: EnteredStockAmount('0.5', 'ml'),
+          ),
         );
-    await settle(tester);
-    expect(find.text('Unknown'), findsWidgets);
-    expect(find.text('Known total'), findsNothing);
-    expect(find.text('1 ingredient amount'), findsOneWidget);
-    expect(find.text('0 mg'), findsNothing);
-    expect(find.textContaining('0.5 ml'), findsWidgets);
-    expect(find.text('Unknown strength ingredient · mg'), findsOneWidget);
-    expect(find.byType(HistoryEntryCard), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+      });
+      f.container
+          .read(routerProvider)
+          .go(
+            '/charts?scope=me&from=2026-10-01T00:00:00Z&before=2026-10-05T00:00:00Z&kind=ingredient&subject=unknown-ingredient&unit=mg&mode=table&sources=true',
+          );
+      await settle(tester);
+      expect(find.text('Unknown'), findsWidgets);
+      expect(find.text('Known total'), findsNothing);
+      expect(find.text('1 ingredient amount'), findsOneWidget);
+      expect(find.text('0 mg'), findsNothing);
+      expect(find.textContaining('0.5 ml'), findsWidgets);
+      expect(find.text('Unknown strength ingredient · mg'), findsOneWidget);
+      expect(find.byType(HistoryEntryCard), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   appTest(
     'source pages restore the chain after a time correction and focus stable paging targets',

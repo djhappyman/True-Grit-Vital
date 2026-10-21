@@ -152,64 +152,60 @@ void main() {
     );
   });
 
-  test(
-    'a scan cancelled after the first validated batch stops before more batch work',
-    () async {
-      // Revisions beyond one full validation page give the quantity scan more
-      // than one batch, so cancelling after the FIRST completed batch proves
-      // the scan honours cancellation before further batch work rather than
-      // only rejecting the finished result. No attachment, timer, sleep or
-      // pacing is involved: the synchronous observer decides the boundary.
-      for (var v = 0; v < _quantityScanRevisions; v++) {
-        await store.record(
-          commandId: 'quantity-scan-$v',
-          itemId: itemId,
-          amount: '3',
-          actualAt: DateTime.utc(2026, 10, 20, 7, v % 60),
-        );
-      }
-      final source = await Directory(
-        '${directory.path}/quantity-source',
-      ).create();
-      final snapshot = await store.createBackupSnapshot(
-        directory: source,
-        sessionId: 'quant-scans',
+  test('a scan cancelled after the first validated batch stops before more batch work', () async {
+    // Revisions beyond one full validation page give the quantity scan more
+    // than one batch, so cancelling after the FIRST completed batch proves
+    // the scan honours cancellation before further batch work rather than
+    // only rejecting the finished result. No attachment, timer, sleep or
+    // pacing is involved: the synchronous observer decides the boundary.
+    for (var v = 0; v < _quantityScanRevisions; v++) {
+      await store.record(
+        commandId: 'quantity-scan-$v',
+        itemId: itemId,
+        amount: '3',
+        actualAt: DateTime.utc(2026, 10, 20, 7, v % 60),
       );
-      // The uncancelled baseline proves the same snapshot stays valid later.
-      final baseline = await store.inspectOwnSnapshot(snapshot);
-      expect(baseline.recordCount, 1 + _quantityScanRevisions);
-      expect(baseline.attachmentCount, 0);
+    }
+    final source = await Directory('${directory.path}/quantity-source')
+        .create();
+    final snapshot = await store.createBackupSnapshot(
+      directory: source,
+      sessionId: 'quant-scans',
+    );
+    // The uncancelled baseline proves the same snapshot stays valid later.
+    final baseline = await store.inspectOwnSnapshot(snapshot);
+    expect(baseline.recordCount, 1 + _quantityScanRevisions);
+    expect(baseline.attachmentCount, 0);
 
-      final livePage = (await store.records()).length;
-      final batches = <int>[];
-      final token = BackupCancellationToken();
-      await expectLater(
-        store.inspectOwnSnapshot(
-          snapshot,
-          token: token,
-          onValidatedBatch: (validatedRows) {
-            batches.add(validatedRows);
-            if (validatedRows == _validationPageSize) token.cancel();
-          },
-        ),
-        throwsA(_Cancelled()),
-      );
-      // Only the first batch was observed: once the cancelled command is
-      // honoured, no second batch is validated or reported, even though the
-      // dataset spans three batches and the final inventory still re-checks
-      // the token.
-      expect(batches, [_validationPageSize]);
+    final livePage = (await store.records()).length;
+    final batches = <int>[];
+    final token = BackupCancellationToken();
+    await expectLater(
+      store.inspectOwnSnapshot(
+        snapshot,
+        token: token,
+        onValidatedBatch: (validatedRows) {
+          batches.add(validatedRows);
+          if (validatedRows == _validationPageSize) token.cancel();
+        },
+      ),
+      throwsA(_Cancelled()),
+    );
+    // Only the first batch was observed: once the cancelled command is
+    // honoured, no second batch is validated or reported, even though the
+    // dataset spans three batches and the final inventory still re-checks
+    // the token.
+    expect(batches, [_validationPageSize]);
 
-      // The abandoned scan disturbed nothing: the live dataset keeps its
-      // records and the same snapshot still validates identically. No pin or
-      // staging operation belongs to this standalone inspection, so none is
-      // asserted here.
-      expect((await store.records()).length, livePage);
-      final stable = await store.inspectOwnSnapshot(snapshot);
-      expect(stable.recordCount, baseline.recordCount);
-      expect(stable.attachmentCount, baseline.attachmentCount);
-    },
-  );
+    // The abandoned scan disturbed nothing: the live dataset keeps its
+    // records and the same snapshot still validates identically. No pin or
+    // staging operation belongs to this standalone inspection, so none is
+    // asserted here.
+    expect((await store.records()).length, livePage);
+    final stable = await store.inspectOwnSnapshot(snapshot);
+    expect(stable.recordCount, baseline.recordCount);
+    expect(stable.attachmentCount, baseline.attachmentCount);
+  });
 
   test(
     'a capture cancelled at the inspect stage reports no ready archive',

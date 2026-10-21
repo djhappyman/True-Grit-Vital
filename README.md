@@ -25,6 +25,8 @@ Implemented areas include:
 - Settings, your profile, record deletion, local help, bundled licences and bounded redacted diagnostics.
 - Reminder health, bounded reconciliation and release preflight/evidence tools.
 
+The 21 October implementation pass completed 30 focused improvements to history and charts, stock drafts, protected attachments, reports and exports, reminder receipts, settings reloads, and backup/restore cleanup. These changes strengthen the existing app; the release and physical-device checks below remain open.
+
 **Not a finished or clinically validated release.** The new flows are implemented and host tested. Physical-device accessibility, performance, Android lifecycle and destination behaviour, backup-format review and distribution clearance remain open. See [current progress and next work](docs/public/STATUS.md) and the [20 October implementation report](docs/public/IMPLEMENTATION-2026-10-20.md).
 
 There are no remote user accounts or cloud record synchronisation. Watch integrations and a general wellness dashboard are outside the current scope.
@@ -112,7 +114,7 @@ Android integration tests are under `integration_test/`. Use a dedicated disposa
 
 ## Data and security
 
-Android uses a Keystore-backed key; Linux uses the desktop Secret Service keyring. Records and attachment originals use encrypted SQLite storage. Keep the database and its key intact: portable backup/restore is not implemented yet, and losing either may make records unrecoverable.
+Android uses a Keystore-backed key; Linux uses the desktop Secret Service keyring. Records and attachment originals use encrypted SQLite storage. Keep the database and its key intact; losing either may make records unrecoverable. Password-protected backup and staged restore are implemented, with security and recovery review still required before release.
 
 Do not commit real health records, exported files, credentials or signing keys. Security and recovery behaviour are still being tested; use synthetic data when evaluating early builds.
 

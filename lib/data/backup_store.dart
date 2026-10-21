@@ -318,9 +318,8 @@ extension BackupRecordStore on RecordStore {
     final itemCount =
         (await _rows('SELECT count(*) c FROM item')).single['c']! as int;
     final supportingCount =
-        (await _rows(
-              'SELECT count(*) c FROM supporting_record WHERE voided=0',
-            )).single['c']!
+        (await _rows('SELECT count(*) c FROM supporting_record WHERE voided=0'))
+                .single['c']!
             as int;
     final recordCount = recordRange['c']! as int;
     final lo = recordRange['lo'] as int?;

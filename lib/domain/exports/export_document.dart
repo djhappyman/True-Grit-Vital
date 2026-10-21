@@ -341,18 +341,11 @@ final class ExportDocument {
 }
 
 const _semantics = <String, String>{
-  'quantities':
-      'amountExact is numerator/denominator. amountDecimal is an exact decimal only when it terminates within 12 places; otherwise it is null. No rounded value is labelled exact.',
-  'units':
-      'Units are stored as entered. No unit conversion, rounding or inferred concentration is applied.',
-  'times':
-      'Instants are ISO 8601 UTC. fromDay is inclusive and beforeDay is exclusive in selection.timeZone.',
-  'provenance':
-      'source is unspecified, selfReported or recordedOnBehalf. Catalogue, product, strength and site values are immutable snapshots saved with the revision.',
-  'corrections':
-      'Every saved revision is included. Revision 1 enteredAt is the original entry time. Later enteredAt values are correction times. isCurrent marks the revision used by the app.',
-  'privacy':
-      'Only the selected adult is exported. Supporting notes appear only when notesIncluded is true. File attachments and their internal references are never included.',
-  'omissions':
-      'Supporting records whose collection date is unknown or partial have no positionable date inside the selected range and are excluded. omissions.collectionDateUnknownOrPartial discloses how many were omitted, never their content. counted false means they exceeded the bounded counting window and records is null.',
+  'quantities': 'amountExact is numerator/denominator. amountDecimal is an exact decimal only when it terminates within 12 places; otherwise it is null. No rounded value is labelled exact.',
+  'units': 'Units are stored as entered. No unit conversion, rounding or inferred concentration is applied.',
+  'times': 'Instants are ISO 8601 UTC. fromDay is inclusive and beforeDay is exclusive in selection.timeZone.',
+  'provenance': 'source is unspecified, selfReported or recordedOnBehalf. Catalogue, product, strength and site values are immutable snapshots saved with the revision.',
+  'corrections': 'Every saved revision is included. Revision 1 enteredAt is the original entry time. Later enteredAt values are correction times. isCurrent marks the revision used by the app.',
+  'privacy': 'Only the selected adult is exported. Supporting notes appear only when notesIncluded is true. File attachments and their internal references are never included.',
+  'omissions': 'Supporting records whose collection date is unknown or partial have no positionable date inside the selected range and are excluded. omissions.collectionDateUnknownOrPartial discloses how many were omitted, never their content. counted false means they exceeded the bounded counting window and records is null.',
 };
