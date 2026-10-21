@@ -10,12 +10,34 @@ import 'package:true_grit_vital/app/appearance.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/plans/daily_feed.dart';
+import 'package:true_grit_vital/features/stock/stock_providers.dart';
 import 'package:true_grit_vital/ui/vital_ui.dart';
 
 import 'vital_app_test.dart' show appTest, launch, runIo, settle, waitForText;
 
 const snapshots = String.fromEnvironment('VITAL_UI_SNAPSHOTS');
 const snapshotRoutes = String.fromEnvironment('VITAL_UI_ROUTES');
+const fullSnapshots = bool.fromEnvironment('VITAL_UI_FULL_SNAPSHOTS');
+
+Future<void> saveCapture(
+  WidgetTester tester,
+  GlobalKey key,
+  String name,
+) async {
+  final boundary =
+      key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+  await tester.runAsync(() async {
+    final image = await boundary.toImage();
+    try {
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      final file = File('$snapshots/$name.png');
+      await file.parent.create(recursive: true);
+      await file.writeAsBytes(bytes!.buffer.asUint8List());
+    } finally {
+      image.dispose();
+    }
+  });
+}
 
 void main() {
   setUpAll(() async {
@@ -157,6 +179,20 @@ void main() {
             // Personal type choices have their own asynchronous query.
             await waitForText(tester, 'Supplement');
           }
+          if (route.key == 'record') {
+            await waitForText(tester, 'Record dose');
+            await runIo(
+              tester,
+              () => fixture.container.read(
+                stockContainersProvider((
+                  personId: meId,
+                  itemId: items.first.id,
+                  offset: 0,
+                )).future,
+              ),
+            );
+            await settle(tester);
+          }
           if (route.key == 'schedule') {
             await waitForText(tester, 'RECURRENCE');
           }
@@ -205,19 +241,42 @@ void main() {
           expect(rect.top, greaterThanOrEqualTo(28), reason: route.key);
           expect(rect.bottom, lessThanOrEqualTo(820), reason: route.key);
           if (snapshots.isNotEmpty) {
-            final boundary =
-                boundaryKey.currentContext!.findRenderObject()!
-                    as RenderRepaintBoundary;
-            await tester.runAsync(() async {
-              final image = await boundary.toImage();
-              final bytes = await image.toByteData(
-                format: ui.ImageByteFormat.png,
+            await saveCapture(tester, boundaryKey, '${mode.name}-${route.key}');
+            if (fullSnapshots) {
+              final vertical = find.byWidgetPredicate(
+                (w) =>
+                    w is SingleChildScrollView &&
+                    w.scrollDirection == Axis.vertical,
               );
-              final file = File('$snapshots/${mode.name}-${route.key}.png');
-              await file.parent.create(recursive: true);
-              await file.writeAsBytes(bytes!.buffer.asUint8List());
-              image.dispose();
-            });
+              final scroll = find
+                  .descendant(
+                    of: vertical.first,
+                    matching: find.byType(Scrollable),
+                  )
+                  .first;
+              final extent = tester
+                  .state<ScrollableState>(scroll)
+                  .position
+                  .maxScrollExtent;
+              final size = tester.view.physicalSize;
+              tester.view.physicalSize = Size(
+                size.width,
+                size.height + extent.ceil() + 32,
+              );
+              await settle(tester);
+              await saveCapture(
+                tester,
+                boundaryKey,
+                '${mode.name}-${route.key}-full',
+              );
+              tester.view.physicalSize = size;
+              await settle(tester);
+              expect(
+                tester.takeException(),
+                isNull,
+                reason: '${route.key} full capture',
+              );
+            }
           }
         }
       },

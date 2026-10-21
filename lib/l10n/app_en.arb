@@ -252,7 +252,7 @@
   "@historyReady": {
     "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
   },
-  "recordHeading": "Record use",
+  "recordHeading": "Record dose",
   "@recordHeading": {
     "description": "Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word."
   },
@@ -7168,7 +7168,7 @@
   },
   "screenRecordEditTime": "Edit",
   "@screenRecordEditTime": {
-    "description": "One-word action moving focus to the visible actual date and time fields."
+    "description": "One-word action scrolling to the visible actual date and time fields."
   },
   "screenRecordUnitValue": "Unit {unit}",
   "@screenRecordUnitValue": {

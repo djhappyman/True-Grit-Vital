@@ -475,7 +475,7 @@ abstract class AppLocalizations {
   /// Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word.
   ///
   /// In en, this message translates to:
-  /// **'Record use'**
+  /// **'Record dose'**
   String get recordHeading;
 
   /// Vital recording flow. Keep full person, substance, amount, unit and saved-state meaning. Headings use 1–3 words; action buttons use one word.
@@ -9749,6 +9749,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Planned doses'**
   String get screenSchedulePreviewResult;
+
+  /// One-word action scrolling to the visible actual date and time fields.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get screenRecordEditTime;
+
+  /// Accessible label for the unit shown beside the exact quantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit {unit}'**
+  String screenRecordUnitValue(String unit);
+
+  /// Complete item classification under the product name.
+  ///
+  /// In en, this message translates to:
+  /// **'{type} · {form}'**
+  String screenRecordTypeForm(String type, String form);
+
+  /// Chosen actual date and wall time shown in the sheet header.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} at {time}'**
+  String screenRecordTimestamp(String date, String time);
+
+  /// Header state when the entered actual date or time is not valid yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Time not set'**
+  String get screenRecordTimeUnset;
+
+  /// Section heading above the exact amount field and its unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get screenRecordQuantity;
+
+  /// Section heading above the editable actual date and time fields.
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get screenRecordWhen;
+
+  /// Section heading for unavailable food, water and symptom tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Context & conditions'**
+  String get screenRecordContext;
+
+  /// Clearly labelled preview; D10 context tags are not implemented and must not write example data.
+  ///
+  /// In en, this message translates to:
+  /// **'Food, water and symptom tags are not saved yet.'**
+  String get screenRecordContextHelp;
+
+  /// Section heading for unavailable dose-attached vitals and notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitals & observations'**
+  String get screenRecordVitals;
+
+  /// Clearly labelled preview; no invented measurements are shown.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitals and notes are not attached to this dose yet.'**
+  String get screenRecordVitalsHelp;
+
+  /// One-word action opening the existing supporting observation records.
+  ///
+  /// In en, this message translates to:
+  /// **'Observations'**
+  String get screenRecordObservations;
+
+  /// Badge marking a capability that is not saved by this build.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get screenRecordPreview;
+
+  /// Exact stock consequence in the container's own unit. Both amounts include their units.
+  ///
+  /// In en, this message translates to:
+  /// **'Deducts {deducted}, leaving {remaining}.'**
+  String screenRecordStockDeducts(String deducted, String remaining);
+
+  /// The deduction is convertible but the current balance is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Deducts {deducted}. Remaining balance is unknown.'**
+  String screenRecordStockUnknownDeduction(String deducted);
+
+  /// The entered quantity cannot be converted to this source's stock unit, or a replacement choice is still required.
+  ///
+  /// In en, this message translates to:
+  /// **'The stock deduction cannot be calculated for these units.'**
+  String get screenRecordStockNotCalculated;
+
+  /// The aggregate stock calculation limit was reached; the dose itself can still be recorded.
+  ///
+  /// In en, this message translates to:
+  /// **'The stock total is unavailable. Saving still records this dose.'**
+  String get screenRecordStockLimitPreview;
+
+  /// The exact post-dose balance is negative; the recorded use is not blocked.
+  ///
+  /// In en, this message translates to:
+  /// **'This leaves the balance below zero.'**
+  String get screenRecordStockDeficitPreview;
+
+  /// Uses the container's stored threshold rather than a hardcoded count.
+  ///
+  /// In en, this message translates to:
+  /// **'Low stock at or below {threshold}.'**
+  String screenRecordStockLow(String threshold);
+
+  /// Explains that skip belongs to a planned occurrence, not this generic route.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip is available on Today for a scheduled dose.'**
+  String get screenRecordSkipNote;
 }
 
 class _AppLocalizationsDelegate

@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
+import 'package:true_grit_vital/app/display_preferences.dart';
+import 'package:true_grit_vital/features/recording/record_pages.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/recording/dose_sheet.dart';
 import 'package:true_grit_vital/features/supporting/supporting_pages.dart';
@@ -87,7 +89,7 @@ void main() {
     await settle(tester);
 
     expect(find.byType(DoseSheetHeader), findsOneWidget);
-    expect(find.text('Record use'), findsOneWidget);
+    expect(find.text('Record dose'), findsOneWidget);
     expect(find.text('Edit'), findsOneWidget);
     expect(find.text('Telmisartan 40mg complete product name'), findsOneWidget);
     expect(find.text('Prescription · Oral tablet'), findsOneWidget);
@@ -120,7 +122,7 @@ void main() {
     ))!;
     f.container.read(routerProvider).go('/record/${item.id}');
     await settle(tester);
-    expect(find.text('Record use'), findsOneWidget);
+    expect(find.text('Record dose'), findsOneWidget);
     await enterAmount(tester, '1');
     await selectSource(tester, container.id);
     expect(
@@ -196,6 +198,47 @@ void main() {
     );
     expect(page.location, contains('kind=observation'));
     expect(Uri.parse(page.location).queryParameters['item'], item.id);
+  });
+
+  appTest('header respects the chosen clock format without changing entry', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final item = (await runIo(tester, () => createItem(f.store)))!;
+    f.container.read(routerProvider).go('/record/${item.id}');
+    await waitForText(tester, 'Record dose');
+    Finder field(String label) => find.descendant(
+      of: find.widgetWithText(LabelledInput, label),
+      matching: find.byType(TextField),
+    );
+    final time = field('Actual time');
+    await tester.ensureVisible(time);
+    await tester.enterText(time, '20:15');
+    await settle(tester);
+    await runIo(
+      tester,
+      () => f.container
+          .read(displayPreferencesProvider.notifier)
+          .setTimeFormat(TimeFormat.h24),
+    );
+    await settle(tester);
+    expect(
+      tester.widget<DoseSheetHeader>(find.byType(DoseSheetHeader)).timestamp,
+      contains('20:15'),
+    );
+    await runIo(
+      tester,
+      () => f.container
+          .read(displayPreferencesProvider.notifier)
+          .setTimeFormat(TimeFormat.h12),
+    );
+    await settle(tester);
+    final header = tester.widget<DoseSheetHeader>(find.byType(DoseSheetHeader));
+    expect(header.timestamp, contains('8:15'));
+    expect(header.timestamp, contains('PM'));
+    expect(tester.widget<TextField>(time).controller!.text, '20:15');
+    expect(await runIo(tester, f.store.records), isEmpty);
+    expect(tester.takeException(), isNull);
   });
 
   appTest('320/390/430 layouts keep the full dose sheet reachable', (

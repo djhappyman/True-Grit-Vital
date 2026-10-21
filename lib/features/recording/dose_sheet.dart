@@ -18,7 +18,7 @@ class DoseSheet extends StatelessWidget {
     final c = StitchColors(context);
     return LayoutBuilder(
       builder: (context, constraints) => StitchSurface(
-        radius: 32,
+        radius: VitalLayout.sheetRadius,
         padding: EdgeInsets.fromLTRB(
           constraints.maxWidth >= 600 ? 24 : 16,
           8,
@@ -34,7 +34,7 @@ class DoseSheet extends StatelessWidget {
                 height: 6,
                 decoration: BoxDecoration(
                   color: c.line.withValues(alpha: .8),
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: BorderRadius.circular(VitalLayout.pillRadius),
                 ),
               ),
             ),
@@ -147,7 +147,7 @@ class DoseProductCard extends StatelessWidget {
     final c = StitchColors(context);
     return StitchSurface(
       inset: true,
-      radius: 16,
+      radius: VitalLayout.sectionRadius,
       padding: const EdgeInsets.all(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,7 +216,7 @@ class DosePreviewPanel extends StatelessWidget {
     final c = StitchColors(context);
     return StitchSurface(
       inset: true,
-      radius: 16,
+      radius: VitalLayout.sectionRadius,
       padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -353,7 +353,7 @@ class DoseStockEffect extends StatelessWidget {
     final warning = low || deficit;
     return StitchSurface(
       inset: true,
-      radius: 16,
+      radius: VitalLayout.sectionRadius,
       padding: const EdgeInsets.all(12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

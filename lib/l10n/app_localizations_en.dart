@@ -210,7 +210,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyReady => 'Record actual use to start your history.';
 
   @override
-  String get recordHeading => 'Record use';
+  String get recordHeading => 'Record dose';
 
   @override
   String get correctHeading => 'Correct use';
@@ -6227,4 +6227,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get screenSchedulePreviewResult => 'Planned doses';
+
+  @override
+  String get screenRecordEditTime => 'Edit';
+
+  @override
+  String screenRecordUnitValue(String unit) {
+    return 'Unit $unit';
+  }
+
+  @override
+  String screenRecordTypeForm(String type, String form) {
+    return '$type · $form';
+  }
+
+  @override
+  String screenRecordTimestamp(String date, String time) {
+    return '$date at $time';
+  }
+
+  @override
+  String get screenRecordTimeUnset => 'Time not set';
+
+  @override
+  String get screenRecordQuantity => 'Quantity';
+
+  @override
+  String get screenRecordWhen => 'When';
+
+  @override
+  String get screenRecordContext => 'Context & conditions';
+
+  @override
+  String get screenRecordContextHelp =>
+      'Food, water and symptom tags are not saved yet.';
+
+  @override
+  String get screenRecordVitals => 'Vitals & observations';
+
+  @override
+  String get screenRecordVitalsHelp =>
+      'Vitals and notes are not attached to this dose yet.';
+
+  @override
+  String get screenRecordObservations => 'Observations';
+
+  @override
+  String get screenRecordPreview => 'Preview';
+
+  @override
+  String screenRecordStockDeducts(String deducted, String remaining) {
+    return 'Deducts $deducted, leaving $remaining.';
+  }
+
+  @override
+  String screenRecordStockUnknownDeduction(String deducted) {
+    return 'Deducts $deducted. Remaining balance is unknown.';
+  }
+
+  @override
+  String get screenRecordStockNotCalculated =>
+      'The stock deduction cannot be calculated for these units.';
+
+  @override
+  String get screenRecordStockLimitPreview =>
+      'The stock total is unavailable. Saving still records this dose.';
+
+  @override
+  String get screenRecordStockDeficitPreview =>
+      'This leaves the balance below zero.';
+
+  @override
+  String screenRecordStockLow(String threshold) {
+    return 'Low stock at or below $threshold.';
+  }
+
+  @override
+  String get screenRecordSkipNote =>
+      'Skip is available on Today for a scheduled dose.';
 }

@@ -18,7 +18,6 @@ import '../substances/substance_collection.dart';
 import '../../app/settings_toggle_row.dart';
 
 import 'package:flutter/services.dart' show TextInputAction;
-import 'package:flutter/material.dart' as material show TimeOfDay;
 import 'package:flutter/material.dart' show MaterialLocalizations, showDialog;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -1949,6 +1948,8 @@ class DoseForm extends ConsumerStatefulWidget {
 
 class _DoseFormState extends DurableFormState<DoseForm> {
   @override
+  bool get entryPanelled => false;
+  @override
   DraftKind get entryKind =>
       widget.recordId == null ? DraftKind.dose : DraftKind.correction;
   @override
@@ -2133,10 +2134,7 @@ class _DoseFormState extends DurableFormState<DoseForm> {
         at.year == now.year && at.month == now.month && at.day == now.day
         ? t.today
         : localizations.formatMediumDate(at);
-    final time = localizations.formatTimeOfDay(
-      material.TimeOfDay.fromDateTime(at),
-      alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
-    );
+    final time = displayWallTime(context, ref, WallTime(at.hour, at.minute));
     return t.screenRecordTimestamp(date, time);
   }
 
@@ -2911,7 +2909,7 @@ class _DoseFormState extends DurableFormState<DoseForm> {
             width: double.infinity,
             child: StitchButton(
               quiet: true,
-              onPressed: leave,
+              onPressed: busy ? null : leave,
               child: Text(t.cancel),
             ),
           ),

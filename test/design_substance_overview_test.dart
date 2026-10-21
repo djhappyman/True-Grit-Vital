@@ -235,7 +235,7 @@ void main() {
       await tapButton(tester, 'Back');
       expect(find.byType(SubstanceOverviewPage), findsOneWidget);
       await tapButton(tester, 'Record');
-      expect(find.text('Record use'), findsOneWidget);
+      expect(find.text('Record dose'), findsOneWidget);
     },
   );
 
