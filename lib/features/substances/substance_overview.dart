@@ -7,6 +7,7 @@ import '../../app/display_preferences.dart';
 import '../../app/storage.dart';
 import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
+import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 import '../catalogue/catalogue_picker.dart' show CatalogueSource;
 import '../events/event_pages.dart' show eventDateLabel, eventPageProvider;
@@ -51,15 +52,12 @@ class SubstanceOverviewPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context);
-    final back = _BackButton();
     return ref
         .watch(itemLookupProvider(itemId))
         .when(
           data: (item) {
             if (item == null) {
-              return VitalPage(
-                title: t.substances,
-                leading: back,
+              return _StatePage(
                 children: [
                   VitalNotice(
                     tone: VitalTone.danger,
@@ -69,24 +67,38 @@ class SubstanceOverviewPage extends ConsumerWidget {
                 ],
               );
             }
-            return _LoadedOverview(item: item, back: back);
+            return _LoadedOverview(item: item);
           },
-          error: (_, _) => VitalPage(
-            title: t.substances,
-            leading: back,
+          error: (_, _) => _StatePage(
             children: [
               LoadFailure(
                 onRetry: () => ref.invalidate(itemLookupProvider(itemId)),
               ),
             ],
           ),
-          loading: () => VitalPage(
-            title: t.substances,
-            leading: back,
-            children: [Text(t.loadingRecords)],
-          ),
+          loading: () => _StatePage(children: [Text(t.loadingRecords)]),
         );
   }
+}
+
+/// Keeps the canonical secondary page chrome for unavailable and loading
+/// states without introducing a second detail shell.
+class _StatePage extends StatelessWidget {
+  const _StatePage({required this.children});
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => VitalPage(
+    children: [const _BackRow(), const SizedBox(height: 16), ...children],
+  );
+}
+
+class _BackRow extends StatelessWidget {
+  const _BackRow();
+
+  @override
+  Widget build(BuildContext context) =>
+      Align(alignment: AlignmentDirectional.centerStart, child: _BackButton());
 }
 
 class _BackButton extends StatelessWidget {
@@ -102,96 +114,281 @@ class _BackButton extends StatelessWidget {
   }
 }
 
-class _LoadedOverview extends ConsumerWidget {
-  const _LoadedOverview({required this.item, required this.back});
+class _LoadedOverview extends ConsumerStatefulWidget {
+  const _LoadedOverview({required this.item});
 
   final SubstanceItem item;
-  final _BackButton back;
+
+  @override
+  ConsumerState<_LoadedOverview> createState() => _LoadedOverviewState();
+}
+
+class _LoadedOverviewState extends ConsumerState<_LoadedOverview> {
+  final _overviewKey = GlobalKey();
+  final _scheduleKey = GlobalKey();
+  final _stockKey = GlobalKey();
+  final _historyKey = GlobalKey();
+
+  void _jumpTo(GlobalKey key) {
+    final target = key.currentContext;
+    if (target == null) return;
+    Scrollable.ensureVisible(
+      target,
+      alignment: .05,
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 220),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final item = widget.item;
+    return VitalPage(
+      children: [
+        const _BackRow(),
+        const SizedBox(height: 16),
+        KeyedSubtree(
+          key: _overviewKey,
+          child: _SubstanceHero(item: item),
+        ),
+        const SizedBox(height: 16),
+        _OverviewStockAlert(item: item),
+        const SizedBox(height: 16),
+        _OverviewJumpBar(
+          onOverview: () => _jumpTo(_overviewKey),
+          onSchedule: () => _jumpTo(_scheduleKey),
+          onStock: () => _jumpTo(_stockKey),
+          onHistory: () => _jumpTo(_historyKey),
+        ),
+        const SizedBox(height: 24),
+        KeyedSubtree(
+          key: _scheduleKey,
+          child: _OverviewSchedule(item: item),
+        ),
+        const SizedBox(height: 24),
+        KeyedSubtree(
+          key: _stockKey,
+          child: _OverviewStock(item: item),
+        ),
+        const SizedBox(height: 24),
+        KeyedSubtree(
+          key: _historyKey,
+          child: _OverviewHistory(item: item),
+        ),
+        const SizedBox(height: 24),
+        _OverviewContext(item: item),
+      ],
+    );
+  }
+}
+
+/// Identity and the real commands that start from this substance. No inferred
+/// active state, identity editor or refill order is shown.
+class _SubstanceHero extends StatelessWidget {
+  const _SubstanceHero({required this.item});
+
+  final SubstanceItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final muted = Theme.of(context).colorScheme.mutedForeground;
+    return StitchSurface(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              StitchIcon(LucideIcons.pill, size: 56),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [VitalBadge(item.type)],
+                    ),
+                    const SizedBox(height: 8),
+                    Semantics(
+                      header: true,
+                      child: Text(item.name, style: VitalType.detailTitle),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      t.screenOverviewFormUnit(item.form, item.unit),
+                      style: VitalType.body.copyWith(color: muted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          VitalButton(
+            expand: true,
+            leading: const Icon(LucideIcons.check),
+            onPressed: () => context.push('/record/${item.id}'),
+            child: Text(t.record),
+          ),
+          const SizedBox(height: 8),
+          _HeroSecondaryActions(item: item),
+        ],
+      ),
+    );
+  }
+}
+
+/// Two compact destinations where they fit; a deliberate stack when the width
+/// or text scale would otherwise squeeze the labels.
+class _HeroSecondaryActions extends StatelessWidget {
+  const _HeroSecondaryActions({required this.item});
+
+  final SubstanceItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final combine = VitalButton.secondary(
+      key: const ValueKey('overview-combine'),
+      expand: true,
+      leading: const Icon(LucideIcons.packagePlus),
+      onPressed: () =>
+          context.push('/combined/${item.personId}?item=${item.id}'),
+      child: Text(t.combinedAction),
+    );
+    final stock = VitalButton.secondary(
+      key: const ValueKey('overview-stock'),
+      expand: true,
+      leading: const Icon(LucideIcons.boxes),
+      onPressed: () => context.push('/stock/${item.personId}?item=${item.id}'),
+      child: Text(t.stock),
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final stack =
+            constraints.maxWidth < 260 ||
+            MediaQuery.textScalerOf(context).scale(13) > 20;
+        if (stack) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [combine, const SizedBox(height: 8), stock],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: combine),
+            const SizedBox(width: 8),
+            Expanded(child: stock),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// A real low/refill/deficit container notice. It names the container and its
+/// exact balance; no percentage, run-out estimate or on-time judgement.
+class _OverviewStockAlert extends ConsumerWidget {
+  const _OverviewStockAlert({required this.item});
+
+  final SubstanceItem item;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context);
-    return VitalPage(
-      title: t.substances,
-      leading: back,
-      children: [
-        VitalSurface(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              VitalCompactRow(
-                title: item.name,
-                icon: LucideIcons.pill,
-                subtitle: t.itemDetails(item.form, item.type, item.unit),
-              ),
-              Text(t.profileOwner(ownerLabel(ref, t, item.personId))),
-              if (item.catalogueSnapshot != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: CatalogueSource(snapshot: item.catalogueSnapshot!),
-                ),
-              const SizedBox(height: 16),
-              VitalButton(
-                expand: true,
-                onPressed: () => context.push('/record/${item.id}'),
-                child: Text(t.record),
-              ),
-              const SizedBox(height: 12),
-              VitalActions(
-                children: [
-                  VitalButton.secondary(
-                    multiline: true,
-                    onPressed: () => context.push(
-                      '/combined/${item.personId}?item=${item.id}',
-                    ),
-                    child: Text(t.combinedAction),
-                  ),
-                ],
-              ),
-              ProductLabelPanel(item: item),
-            ],
+    final query = (personId: item.personId, itemId: item.id, offset: 0);
+    final containers = ref.watch(stockContainersProvider(query));
+    final container = containers.value
+        ?.where(
+          (candidate) =>
+              candidate.isLow ||
+              candidate.needsRefill ||
+              candidate.balance.isDeficit,
+        )
+        .firstOrNull;
+    if (container == null) return const SizedBox.shrink();
+    final deficit = container.balance.isDeficit;
+    final heading = deficit
+        ? t.stockDeficit
+        : container.isLow
+        ? t.stockLow
+        : t.stockRefillDue;
+    final balance = SubstanceContainerSummary(
+      container: container,
+      detailed: true,
+    ).shortBalance(t);
+    return VitalNotice(
+      tone: deficit ? VitalTone.danger : VitalTone.warning,
+      icon: LucideIcons.triangleAlert,
+      action: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Semantics(
+          label: t.designOverviewStockReview(item.name),
+          child: VitalButton.secondary(
+            key: const ValueKey('overview-stock-alert-review'),
+            onPressed: () =>
+                context.push('/stock/${item.personId}?item=${item.id}'),
+            child: Text(t.review),
           ),
         ),
-        const SizedBox(height: VitalLayout.sectionGap),
-        _OverviewSchedule(item: item),
-        const SizedBox(height: VitalLayout.sectionGap),
-        _OverviewStock(item: item),
-        const SizedBox(height: VitalLayout.sectionGap),
-        _OverviewHistory(item: item),
-        const SizedBox(height: VitalLayout.sectionGap),
-        VitalPanel(
-          title: t.designOverviewContext,
-          children: [
-            VitalActions(
-              children: [
-                VitalButton.secondary(
-                  multiline: true,
-                  onPressed: () => context.push(
-                    supportingLocation(
-                      item.personId,
-                      item: item.id,
-                      back: '/substance/${item.id}',
-                    ),
-                  ),
-                  child: Text(t.supportingTitle),
-                ),
-                VitalButton.secondary(
-                  onPressed: () =>
-                      context.push('/files/${item.personId}/item/${item.id}'),
-                  child: Text(t.attachments),
-                ),
-                VitalButton.secondary(
-                  multiline: true,
-                  onPressed: () =>
-                      context.push('/use/${item.personId}/${item.id}'),
-                  child: Text(t.useHistory),
-                ),
-              ],
-            ),
-            _OverviewEvents(item: item),
-          ],
-        ),
-      ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(heading, style: VitalType.record),
+          const SizedBox(height: 4),
+          Text(t.designSubstancesContainerEntry(container.label, balance)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Section jumps inside this one page. It never creates a second screen, a
+/// fifth dock destination or a hidden duplicate timeline.
+class _OverviewJumpBar extends StatelessWidget {
+  const _OverviewJumpBar({
+    required this.onOverview,
+    required this.onSchedule,
+    required this.onStock,
+    required this.onHistory,
+  });
+
+  final VoidCallback onOverview, onSchedule, onStock, onHistory;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final items = <({String label, VoidCallback onPressed})>[
+      (label: t.screenOverviewSectionOverview, onPressed: onOverview),
+      (label: t.schedule, onPressed: onSchedule),
+      (label: t.stock, onPressed: onStock),
+      (label: t.history, onPressed: onHistory),
+    ];
+    Widget item(({String label, VoidCallback onPressed}) value) => StitchButton(
+      compact: true,
+      quiet: true,
+      onPressed: value.onPressed,
+      child: Text(value.label),
+    );
+    return StitchSurface(
+      inset: true,
+      radius: VitalLayout.pillRadius,
+      padding: const EdgeInsets.all(4),
+      // Natural pill widths spread evenly when they fit; the same wrap turns
+      // into a deliberate two-row stack at narrow widths or large text rather
+      // than breaking a label like "Overview" mid-word.
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        spacing: 4,
+        runSpacing: 4,
+        children: [for (final value in items) item(value)],
+      ),
     );
   }
 }
@@ -218,69 +415,63 @@ class _OverviewSchedule extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context);
-    final plans = ref.watch(
-      overviewPlansProvider((
-        itemId: item.id,
-        scope: FeedScope.person(item.personId),
-      )),
+    final query = (itemId: item.id, scope: FeedScope.person(item.personId));
+    final add = VitalButton.secondary(
+      onPressed: () => context.push('/schedule/${item.id}'),
+      child: Text(t.add),
     );
-    return plans.when(
-      data: (saved) => VitalSection(
-        title: Text(t.schedule),
-        action: saved.isEmpty
-            ? VitalButton.secondary(
-                onPressed: () => context.push('/schedule/${item.id}'),
-                child: Text(t.add),
-              )
-            : null,
-        children: [
-          if (saved.isEmpty)
-            VitalEmptyState(
-              title: t.designOverviewNoPlan,
-              description: t.designOverviewNoPlanHelp,
-              icon: LucideIcons.calendarClock,
-            )
-          else ...[
-            for (final plan in saved.take(50))
-              Padding(
-                key: ValueKey(
-                  'plan-${plan.plan.planId}-${plan.plan.versionId}',
-                ),
-                padding: const EdgeInsets.only(bottom: 16),
-                child: VitalSurface(
-                  child: _PlanRows(
-                    saved: plan,
-                    item: item,
-                    // Per-plan edit targets the displayed plan's own version,
-                    // not just the first saved plan for this substance.
-                    onEdit: () => context.push(
-                      '/schedule/${item.id}?plan=${plan.plan.planId}',
+    return ref
+        .watch(overviewPlansProvider(query))
+        .when(
+          data: (saved) => VitalPanel(
+            title: t.schedule,
+            icon: LucideIcons.alarmClock,
+            action: add,
+            children: [
+              if (saved.isEmpty)
+                _OverviewEmpty(
+                  icon: LucideIcons.calendarClock,
+                  title: t.designOverviewNoPlan,
+                  description: t.designOverviewNoPlanHelp,
+                )
+              else ...[
+                for (final plan in saved.take(50))
+                  VitalSurface(
+                    key: ValueKey(
+                      'plan-${plan.plan.planId}-${plan.plan.versionId}',
+                    ),
+                    role: VitalSurfaceRole.inset,
+                    child: _PlanRows(
+                      saved: plan,
+                      item: item,
+                      // Per-plan edit targets the displayed plan's own version,
+                      // not just the first saved plan for this substance.
+                      onEdit: () => context.push(
+                        '/schedule/${item.id}?plan=${plan.plan.planId}',
+                      ),
                     ),
                   ),
-                ),
-              ),
-            if (saved.length > 50) Text(t.designOverviewPlansBound),
-          ],
-        ],
-      ),
-      error: (_, _) => VitalSection(
-        title: Text(t.schedule),
-        children: [
-          LoadFailure(
-            onRetry: () => ref.invalidate(
-              overviewPlansProvider((
-                itemId: item.id,
-                scope: FeedScope.person(item.personId),
-              )),
-            ),
+                if (saved.length > 50) Text(t.designOverviewPlansBound),
+              ],
+            ],
           ),
-        ],
-      ),
-      loading: () => VitalSection(
-        title: Text(t.schedule),
-        children: [Text(t.loadingRecords)],
-      ),
-    );
+          error: (_, _) => VitalPanel(
+            title: t.schedule,
+            icon: LucideIcons.alarmClock,
+            action: add,
+            children: [
+              LoadFailure(
+                onRetry: () => ref.invalidate(overviewPlansProvider(query)),
+              ),
+            ],
+          ),
+          loading: () => VitalPanel(
+            title: t.schedule,
+            icon: LucideIcons.alarmClock,
+            action: add,
+            children: [Text(t.loadingRecords)],
+          ),
+        );
   }
 }
 
@@ -309,6 +500,23 @@ class _PlanRows extends ConsumerWidget {
       FixedHome home => home.zoneId,
       FollowingLocal() => observedZone,
     };
+    final facts = <Widget>[
+      Text(t.designOverviewStart(plan.start.toString())),
+      if (plan.endExclusive != null)
+        Text(t.planEnds(plan.endExclusive!.addDays(-1).toString())),
+      Text(t.planObserved(shownZone ?? t.planZoneUnknown)),
+      Text(_calendarLine(t, plan.calendar)),
+      if (plan.onOff case final blocks?) ...[
+        Text(
+          t.pauseBlockSummary(
+            blocks.onDays,
+            blocks.offDays,
+            blocks.anchor.toString(),
+          ),
+        ),
+        Text(t.pauseIntersection),
+      ],
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -320,6 +528,7 @@ class _PlanRows extends ConsumerWidget {
             if (paused) VitalBadge(t.pauseState),
           ],
         ),
+        if (plan.timing is AsNeeded || paused) const SizedBox(height: 12),
         if (plan.timing case DailyCount(:final count, :final amount))
           Text(
             t.designSubstancesScheduleCount(
@@ -327,25 +536,29 @@ class _PlanRows extends ConsumerWidget {
               amount.enteredText,
               amount.unit,
             ),
+            style: VitalType.record,
           )
         else
-          ...phaseTimingSummary(context, ref, t, plan),
-        Text(t.designOverviewStart(plan.start.toString())),
-        if (plan.endExclusive != null)
-          Text(t.planEnds(plan.endExclusive!.addDays(-1).toString())),
-        Text(t.planObserved(shownZone ?? t.planZoneUnknown)),
-        Text(_calendarLine(t, plan.calendar)),
-        if (plan.onOff case final blocks?) ...[
-          Text(
-            t.pauseBlockSummary(
-              blocks.onDays,
-              blocks.offDays,
-              blocks.anchor.toString(),
+          DefaultTextStyle.merge(
+            style: VitalType.body,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: phaseTimingSummary(context, ref, t, plan),
             ),
           ),
-          Text(t.pauseIntersection),
-        ],
+        const SizedBox(height: 12),
         _PlanNext(item: item, planId: plan.planId, paused: paused),
+        const SizedBox(height: 12),
+        DefaultTextStyle.merge(
+          style: VitalType.metadata.copyWith(
+            color: Theme.of(context).colorScheme.mutedForeground,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: facts,
+          ),
+        ),
+        const SizedBox(height: 12),
         Align(
           alignment: AlignmentDirectional.centerStart,
           child: VitalButton.secondary(
@@ -402,9 +615,27 @@ class _PlanNext extends ConsumerWidget {
           ] else
             Text(t.designOverviewNextMissing),
         ];
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [const SizedBox(height: 8), ...lines],
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ExcludeSemantics(
+              child: Icon(
+                LucideIcons.clock3,
+                size: 18,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: DefaultTextStyle.merge(
+                style: VitalType.body,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: lines,
+                ),
+              ),
+            ),
+          ],
         );
       },
       error: (_, _) => LoadFailure(
@@ -428,11 +659,18 @@ class _OverviewStock extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context);
     final query = (personId: item.personId, itemId: item.id, offset: 0);
+    Widget add() => VitalButton.secondary(
+      expand: true,
+      onPressed: () =>
+          context.push('/stock/${item.personId}/create?item=${item.id}'),
+      child: Text(t.add),
+    );
     return ref
         .watch(stockContainersProvider(query))
         .when(
-          data: (containers) => VitalSection(
-            title: Text(t.stock),
+          data: (containers) => VitalPanel(
+            title: t.stock,
+            icon: LucideIcons.boxes,
             action: containers.isEmpty
                 ? null
                 : Semantics(
@@ -447,44 +685,38 @@ class _OverviewStock extends ConsumerWidget {
                   ),
             children: [
               if (containers.isEmpty)
-                VitalEmptyState(
+                _OverviewEmpty(
+                  icon: LucideIcons.box,
                   title: t.designOverviewStockEmpty,
                   description: t.designOverviewStockHelp,
-                  icon: LucideIcons.box,
-                  action: VitalButton.secondary(
-                    onPressed: () => context.push(
-                      '/stock/${item.personId}/create?item=${item.id}',
-                    ),
-                    child: Text(t.add),
-                  ),
+                  action: add(),
                 )
               else ...[
                 for (final container in containers.take(50))
-                  Padding(
+                  VitalSurface(
                     key: ValueKey('container-${container.id}'),
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: VitalSurface(
-                      padding: const EdgeInsets.all(16),
-                      child: SubstanceContainerSummary(
-                        container: container,
-                        detailed: true,
-                      ),
+                    role: VitalSurfaceRole.inset,
+                    child: SubstanceContainerSummary(
+                      container: container,
+                      detailed: true,
                     ),
                   ),
                 if (containers.length > 50) Text(t.stockMore),
               ],
             ],
           ),
-          error: (_, _) => VitalSection(
-            title: Text(t.stock),
+          error: (_, _) => VitalPanel(
+            title: t.stock,
+            icon: LucideIcons.boxes,
             children: [
               LoadFailure(
                 onRetry: () => ref.invalidate(stockContainersProvider(query)),
               ),
             ],
           ),
-          loading: () => VitalSection(
-            title: Text(t.stock),
+          loading: () => VitalPanel(
+            title: t.stock,
+            icon: LucideIcons.boxes,
             children: [Text(t.loadingRecords)],
           ),
         );
@@ -512,8 +744,9 @@ class _OverviewHistory extends ConsumerWidget {
     return ref
         .watch(pagedRecordsProvider(query))
         .when(
-          data: (rows) => VitalSection(
-            title: Text(t.history),
+          data: (rows) => VitalPanel(
+            title: t.history,
+            icon: LucideIcons.history,
             action: rows.isEmpty
                 ? null
                 : Semantics(
@@ -526,63 +759,147 @@ class _OverviewHistory extends ConsumerWidget {
                   ),
             children: [
               if (rows.isEmpty)
-                VitalEmptyState(
+                _OverviewEmpty(
+                  icon: LucideIcons.history,
                   title: t.noRecords,
                   description: t.historyReady,
-                  icon: LucideIcons.history,
                 )
               else ...[
                 for (final record in rows.take(20))
-                  Padding(
+                  _RecentRecordRow(
                     key: ValueKey('recent-${record.id}'),
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: VitalSurface(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            t.stockQuantity(
-                              stockRecordAmountNumber(t, record),
-                              record.actualUnit,
-                            ),
-                            style: VitalType.record,
-                          ),
-                          Text(
-                            t.actualStamp(
-                              displayStamp(context, ref, record.actualAt),
-                            ),
-                            style: VitalType.metadata,
-                          ),
-                          if (record.isVoided)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: VitalBadge(
-                                t.voided,
-                                tone: VitalTone.warning,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
+                    record: record,
                   ),
                 if (rows.length > 20) Text(t.designOverviewHistoryHint),
               ],
             ],
           ),
-          error: (_, _) => VitalSection(
-            title: Text(t.history),
+          error: (_, _) => VitalPanel(
+            title: t.history,
+            icon: LucideIcons.history,
             children: [
               LoadFailure(
                 onRetry: () => ref.invalidate(pagedRecordsProvider(query)),
               ),
             ],
           ),
-          loading: () => VitalSection(
-            title: Text(t.history),
+          loading: () => VitalPanel(
+            title: t.history,
+            icon: LucideIcons.history,
             children: [Text(t.loadingRecords)],
           ),
         );
+  }
+}
+
+class _RecentRecordRow extends ConsumerWidget {
+  const _RecentRecordRow({super.key, required this.record});
+
+  final UseRecord record;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
+    return VitalSurface(
+      role: VitalSurfaceRole.inset,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          StitchIcon(
+            record.isVoided ? LucideIcons.circleAlert : LucideIcons.check,
+            size: 36,
+            selected: !record.isVoided,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  t.stockQuantity(
+                    stockRecordAmountNumber(t, record),
+                    record.actualUnit,
+                  ),
+                  style: VitalType.record,
+                ),
+                Text(
+                  t.actualStamp(displayStamp(context, ref, record.actualAt)),
+                  style: VitalType.metadata.copyWith(
+                    color: Theme.of(context).colorScheme.mutedForeground,
+                  ),
+                ),
+                if (record.isVoided)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: VitalBadge(t.voided, tone: VitalTone.warning),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Linked context, product label, source provenance and events. Clinical notes
+/// are not stored by this app and are not fabricated here.
+class _OverviewContext extends StatelessWidget {
+  const _OverviewContext({required this.item});
+
+  final SubstanceItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    return VitalPanel(
+      title: t.designOverviewContext,
+      icon: LucideIcons.tags,
+      children: [
+        VitalActions(
+          children: [
+            VitalButton.secondary(
+              multiline: true,
+              onPressed: () => context.push(
+                supportingLocation(
+                  item.personId,
+                  item: item.id,
+                  back: '/substance/${item.id}',
+                ),
+              ),
+              child: Text(t.supportingTitle),
+            ),
+            VitalButton.secondary(
+              onPressed: () =>
+                  context.push('/files/${item.personId}/item/${item.id}'),
+              child: Text(t.attachments),
+            ),
+            VitalButton.secondary(
+              multiline: true,
+              onPressed: () => context.push('/use/${item.personId}/${item.id}'),
+              child: Text(t.useHistory),
+            ),
+          ],
+        ),
+        if (item.catalogueSnapshot != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            t.catalogue,
+            style: VitalType.label.copyWith(
+              color: Theme.of(context).colorScheme.mutedForeground,
+            ),
+          ),
+          VitalSurface(
+            role: VitalSurfaceRole.inset,
+            padding: const EdgeInsets.all(12),
+            child: CatalogueSource(snapshot: item.catalogueSnapshot!),
+          ),
+        ],
+        ProductLabelPanel(item: item),
+        _OverviewEvents(item: item),
+      ],
+    );
   }
 }
 
@@ -618,9 +935,9 @@ class _OverviewEvents extends ConsumerWidget {
                 for (final event in matches.take(20))
                   Padding(
                     key: ValueKey('event-${event.id}'),
-                    padding: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.only(bottom: 12),
                     child: VitalSurface(
-                      padding: const EdgeInsets.all(16),
+                      role: VitalSurfaceRole.inset,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -676,5 +993,57 @@ class _OverviewEvents extends ConsumerWidget {
           ),
           loading: () => const SizedBox.shrink(),
         );
+  }
+}
+
+/// A compact local empty block; the section itself already owns the card and
+/// the heading, so this does not nest a second surface.
+class _OverviewEmpty extends StatelessWidget {
+  const _OverviewEmpty({
+    required this.icon,
+    required this.title,
+    this.description,
+    this.action,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? description;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = Theme.of(context).colorScheme.mutedForeground;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            StitchIcon(icon, size: 44),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: VitalType.record),
+                  if (description != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      description!,
+                      style: VitalType.metadata.copyWith(color: muted),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+        if (action != null) ...[
+          const SizedBox(height: 12),
+          Align(alignment: AlignmentDirectional.centerStart, child: action),
+        ],
+      ],
+    );
   }
 }

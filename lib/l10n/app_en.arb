@@ -8011,5 +8011,21 @@
   "screenSettingsFhirBody": "Not available yet. Use Exports for structured data.",
   "@screenSettingsFhirBody": {
     "description": "Points to the real structured export instead of implying FHIR or HL7 support."
+  },
+  "screenOverviewFormUnit": "{form} · {unit}",
+  "@screenOverviewFormUnit": {
+    "description": "Complete form and recorded unit beneath the substance name. The type badge already names the type.",
+    "placeholders": {
+      "form": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "screenOverviewSectionOverview": "Overview",
+  "@screenOverviewSectionOverview": {
+    "description": "Section jump back to the identity and commands at the top of the substance overview."
   }
 }

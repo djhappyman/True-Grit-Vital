@@ -869,4 +869,156 @@ void main() {
     expect(find.text('Paused'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  appTest('overview quick actions open combine and stock for this item', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final item = (await runIo(
+      tester,
+      () => f.store.createItem(
+        expectedPersonRevision: fixtureRevision,
+        commandId: 'quick-item',
+        name: 'Synthetic quick action substance',
+        form: 'Tablet',
+        unit: 'mg',
+        type: 'Medicine',
+      ),
+    ))!;
+    f.container.read(routerProvider).push('/substance/${item.id}');
+    await waitForText(tester, item.name);
+    await waitForText(tester, 'Record');
+    await tester.ensureVisible(find.byKey(const ValueKey('overview-combine')));
+    await settle(tester);
+    await tester.tap(find.byKey(const ValueKey('overview-combine')));
+    await settle(tester);
+    var config = f.container
+        .read(routerProvider)
+        .routerDelegate
+        .currentConfiguration;
+    expect(config.last.route.path, '/combined/:person');
+    expect(
+      (config.last as ImperativeRouteMatch).matches.uri.queryParameters['item'],
+      item.id,
+    );
+    f.container.read(routerProvider).pop();
+    await waitForText(tester, item.name);
+    await waitForText(tester, 'Record');
+    await tester.ensureVisible(find.byKey(const ValueKey('overview-stock')));
+    await settle(tester);
+    await tester.tap(find.byKey(const ValueKey('overview-stock')));
+    await settle(tester);
+    config = f.container
+        .read(routerProvider)
+        .routerDelegate
+        .currentConfiguration;
+    expect(config.last.route.path, '/stock/:person');
+    expect(
+      (config.last as ImperativeRouteMatch).matches.uri.queryParameters['item'],
+      item.id,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  appTest('overview names an exact low balance and opens stock', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final item = (await runIo(tester, () async {
+      final created = await f.store.createItem(
+        expectedPersonRevision: fixtureRevision,
+        commandId: 'low-item',
+        name: 'Synthetic low stock substance',
+        form: 'Tablet',
+        unit: 'mg',
+        type: 'Medicine',
+      );
+      await f.store.createStockContainer(
+        commandId: 'low-stock',
+        expectedPersonRevision: fixtureRevision,
+        expectedGeneration: f.store.generation,
+        personId: meId,
+        itemId: created.id,
+        label: 'Synthetic low container',
+        unit: 'mg',
+        strength: LabelledStrength(
+          ingredientId: created.id,
+          label: 'Not known',
+        ),
+        opening: ExactAmount(BigInt.from(3), BigInt.one),
+        lowThreshold: ExactAmount(BigInt.from(5), BigInt.one),
+      );
+      return created;
+    }))!;
+    f.container.read(routerProvider).push('/substance/${item.id}');
+    await waitForText(tester, 'Low stock');
+    // The alert heading and the container badge both name the real state.
+    expect(find.text('Low stock'), findsWidgets);
+    expect(find.text('Synthetic low container · 3 mg'), findsOneWidget);
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('overview-stock-alert-review')),
+    );
+    await settle(tester);
+    await tester.tap(find.byKey(const ValueKey('overview-stock-alert-review')));
+    await settle(tester);
+    final config = f.container
+        .read(routerProvider)
+        .routerDelegate
+        .currentConfiguration;
+    expect(config.last.route.path, '/stock/:person');
+    expect(
+      (config.last as ImperativeRouteMatch).matches.uri.queryParameters['item'],
+      item.id,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  appTest('overview stacks hero actions at 320 and pairs them at 430', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 740);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    final f = await launch(tester);
+    final item = (await runIo(
+      tester,
+      () => f.store.createItem(
+        expectedPersonRevision: fixtureRevision,
+        commandId: 'responsive-item',
+        name: 'Synthetic responsive substance with a complete name',
+        form: 'Extended tablet form',
+        unit: 'count',
+        type: 'Supplement',
+      ),
+    ))!;
+    f.container.read(routerProvider).push('/substance/${item.id}');
+    await waitForText(
+      tester,
+      'Synthetic responsive substance with a complete name',
+    );
+    final combine = find.byKey(const ValueKey('overview-combine'));
+    final stock = find.byKey(const ValueKey('overview-stock'));
+    await tester.ensureVisible(combine);
+    await settle(tester);
+    expect(
+      tester.getTopLeft(stock).dy,
+      greaterThan(tester.getTopLeft(combine).dy),
+    );
+    expect(find.text('Overview'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    tester.platformDispatcher.textScaleFactorTestValue = 1;
+    tester.view.physicalSize = const Size(430, 900);
+    await settle(tester);
+    await tester.ensureVisible(combine);
+    await settle(tester);
+    expect(
+      (tester.getTopLeft(stock).dy - tester.getTopLeft(combine).dy).abs(),
+      lessThan(1),
+    );
+    expect(tester.takeException(), isNull);
+  });
 }
