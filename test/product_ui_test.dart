@@ -303,6 +303,7 @@ void main() {
       );
       f.container.read(routerProvider).go('/today');
       await settle(tester);
+      await tap(tester, 'Details');
       await tap(tester, 'Source');
       await select(tester, c.id);
       expect(find.text('Amount: 4 mg.'), findsOneWidget);

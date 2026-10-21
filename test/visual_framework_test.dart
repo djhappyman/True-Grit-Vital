@@ -19,6 +19,12 @@ const snapshotRoutes = String.fromEnvironment('VITAL_UI_ROUTES');
 
 void main() {
   setUpAll(() async {
+    await (FontLoader('StitchSans')
+          ..addFont(rootBundle.load('assets/fonts/StitchNotoSans-Regular.ttf'))
+          ..addFont(rootBundle.load('assets/fonts/StitchNotoSans-Medium.ttf'))
+          ..addFont(rootBundle.load('assets/fonts/StitchNotoSans-SemiBold.ttf'))
+          ..addFont(rootBundle.load('assets/fonts/StitchNotoSans-Bold.ttf')))
+        .load();
     final loader = FontLoader('NotoSans')
       ..addFont(rootBundle.load('assets/fonts/NotoSans-Regular.ttf'))
       ..addFont(rootBundle.load('assets/fonts/NotoSans-Bold.ttf'));

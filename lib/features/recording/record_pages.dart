@@ -1,6 +1,7 @@
 import '../supporting/supporting_pages.dart';
 import '../../app/display_preferences.dart';
 import '../../ui/vital_ui.dart';
+import '../../ui/stitch_ui.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -257,6 +258,7 @@ class RecordCollection extends ConsumerStatefulWidget {
 }
 
 class _RecordCollectionState extends ConsumerState<RecordCollection> {
+  bool _recordedExpanded = false;
   Destination get destination => widget.destination;
   @override
   Widget build(BuildContext context) {
@@ -291,24 +293,64 @@ class _RecordCollectionState extends ConsumerState<RecordCollection> {
       offset: 0,
     );
 
+    if (destination == Destination.today) {
+      return StitchScrollBody(
+        children: [
+          const DraftList(),
+          const AttachmentJobs(),
+          DailyFeed(scope: scope),
+          const SizedBox(height: 16),
+          StitchSurface(
+            inset: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    const Icon(LucideIcons.circleCheck, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(t.statusRecorded, style: StitchType.name),
+                    ),
+                    Semantics(
+                      label: t.statusRecorded,
+                      expanded: _recordedExpanded,
+                      child: StitchButton(
+                        quiet: true,
+                        compact: true,
+                        onPressed: () => setState(
+                          () => _recordedExpanded = !_recordedExpanded,
+                        ),
+                        child: Icon(
+                          _recordedExpanded
+                              ? LucideIcons.chevronUp
+                              : LucideIcons.chevronDown,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (_recordedExpanded)
+                  PagedRecordList(
+                    key: ValueKey(scope),
+                    query: query,
+                    emptyBody: t.todayReady,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+    if (destination == Destination.substances) {
+      return StitchScrollBody(
+        children: [SubstanceCollection(key: ValueKey(scope), scope: scope)],
+      );
+    }
     return PageContent(
       children: [
-        VitalPageHeader(
-          title: destination.label(t),
-          icon: destination == Destination.substances ? null : destination.icon,
-          inlineActions: destination == Destination.substances,
-          actions: destination == Destination.substances
-              ? [
-                  VitalButton(
-                    leading: const Icon(LucideIcons.plus),
-                    onPressed: () => context.push('/create'),
-                    child: Text(t.create),
-                  ),
-                ]
-              : const [],
-        ),
-        if (destination == Destination.today) const DraftList(),
-        if (destination == Destination.today) const AttachmentJobs(),
+        VitalPageHeader(title: destination.label(t), icon: destination.icon),
         if (notice != null &&
             destination == Destination.history &&
             (scope.isEveryone
@@ -335,25 +377,10 @@ class _RecordCollectionState extends ConsumerState<RecordCollection> {
             ),
           ),
         const SizedBox(height: 16),
-        if (destination == Destination.today) StockNotices(scope: scope),
-        if (destination == Destination.today) DailyFeed(scope: scope),
         if (destination == Destination.history)
           PlannedHistory(key: ValueKey((scope, 'planned')), scope: scope),
         if (destination == Destination.events)
           Text(t.eventsBody)
-        else if (destination == Destination.substances)
-          SubstanceCollection(key: ValueKey(scope), scope: scope)
-        else if (destination == Destination.today)
-          VitalSection(
-            title: Text(t.statusRecorded),
-            children: [
-              PagedRecordList(
-                key: ValueKey(scope),
-                query: query,
-                emptyBody: t.todayReady,
-              ),
-            ],
-          )
         else
           PagedRecordList(
             key: ValueKey(scope),

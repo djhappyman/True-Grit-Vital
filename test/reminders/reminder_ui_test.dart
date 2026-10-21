@@ -386,7 +386,13 @@ void main() {
     fixture.container
         .read(routerProvider)
         .push('/reminders/action/${fixture.action!.envelopeId}');
-    await waitForText(tester, 'Snooze');
+    final reopened = Stopwatch()..start();
+    while (find.byType(TextField).evaluate().isEmpty) {
+      if (reopened.elapsed > const Duration(seconds: 10)) {
+        fail('Snooze field did not reopen');
+      }
+      await settle(tester);
+    }
     expect(
       tester.widget<TextField>(find.byType(TextField)).controller!.text,
       '007x',

@@ -34,7 +34,7 @@ captured timestamp instead of the live file-operation clock.
 
 ## Remaining audit gaps
 
-These are recorded follow-up work, not completed features. Dependencies refer to this roadmap. Detailed behaviour is resolved before its implementation slice; no placeholders or invented data appear in the app.
+These are recorded follow-up work, not completed features. Dependencies refer to this roadmap. Detailed behaviour is resolved before its implementation slice. The owner subsequently requested explicit visual placeholders for missing dashboard capabilities; those previews do not complete the feature backlog and never write invented data.
 
 | ID | Feature gap | Required outcome / dependency | State |
 | --- | --- | --- | --- |
@@ -69,4 +69,12 @@ These are recorded follow-up work, not completed features. Dependencies refer to
 
 Every integrated package records loaded skill paths, changed capabilities, tests, reference comparisons and remaining limits here. Lead integration runs static analysis, relevant regression tests, shared UI checks and a native boot check. Full release acceptance retains the original G01–G08 gates.
 
-Current batch evidence: search/type filters, live summaries, shared rows/metrics and the linked substance overview are integrated. Lead review repaired hidden filters, stale type names, pending counts, silent truncation and timezone uncertainty. The 46 combined overview/collection/summary tests passed; a subsequent 19-test overview/framework run covers the final copy and light/dark captures. Rendered light/dark list and overview screens were inspected. Today review repair, full batch verification and native boot remain pending. Physical device gates remain open. Delegation identities and outcomes are retained locally under `.scratch/vital-implementation/design-parity-2026-10-21/`.
+Current batch evidence: search/type filters, live summaries, shared rows/metrics and the linked substance overview are integrated. Lead review repaired hidden filters, stale type names, pending counts, silent truncation and timezone uncertainty. The 46 combined overview/collection/summary tests passed; a subsequent 19-test overview/framework run covers the final copy and light/dark captures. Rendered light/dark list and overview screens were inspected. The first batch subsequently passed 1,750 tests with one skip, static analysis and a native Linux boot check (commit `5c47400`). Physical device gates remain open. Delegation identities and outcomes are retained locally under `.scratch/vital-implementation/design-parity-2026-10-21/`.
+
+## Closer Stitch layouts
+
+The owner requested a direct rebuild of Dashboard and Substances against the saved Stitch batch, implemented by the lead without delegation. The export's original font weights, text sizes, pill geometry, grouped timeline, week strip, search and collection cards replace the looser first-batch composition. Existing logging, Undo, snooze eligibility, search/type filters, paging, stock, overview, settings and profile routes remain connected.
+
+D06 remains backlog for real weekly browsing and configurable favourites; the week strip and Configure action explain their unavailable states. The recorded section now expands to the existing history controls. The blood-pressure sparkline is labelled Design preview and opens supporting records. The refill card shows an existing stock notice when available and opens real stock management; a days-of-stock forecast remains D14. Status filters (D07), remaining screens (D23) and measured glass (D24) remain open.
+
+See the [native light/dark screen review](reviews/2026-10-21-stitch-rebuild/README.md). Host checks do not close physical-device gates.

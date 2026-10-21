@@ -23,6 +23,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:true_grit_vital/app/appearance.dart';
+import 'package:true_grit_vital/features/plans/today_hero.dart';
 import 'package:true_grit_vital/app/storage.dart';
 import 'package:true_grit_vital/features/recording/record_pages.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
@@ -94,6 +95,7 @@ launch(
   SettingsCapabilities? settingsCapabilities,
   ProfilePrivacyActions? privacyActions,
   Future<String> Function(String asset)? licenceLoader,
+  DateTime Function()? todayClock,
 }) async {
   final directory = await runIo(
     tester,
@@ -120,6 +122,7 @@ launch(
   }
   final container = ProviderContainer(
     overrides: [
+      if (todayClock != null) todayNowProvider.overrideWithValue(todayClock),
       if (combinedWriter != null)
         combinedWriterProvider.overrideWithValue(
           (command) => combinedWriter(store, command),
@@ -185,8 +188,15 @@ Future<void> waitForText(WidgetTester tester, String text) async {
 Future<void> tap(WidgetTester tester, String text) async {
   FocusManager.instance.primaryFocus?.unfocus();
   await settle(tester);
-  await waitForText(tester, text);
-  final target = find.text(text).last;
+  final iconLabel = find.byWidgetPredicate(
+    (widget) => widget is Semantics && widget.properties.label == text,
+  );
+  if (find.text(text).evaluate().isEmpty && iconLabel.evaluate().isEmpty) {
+    await waitForText(tester, text);
+  }
+  final target = find.text(text).evaluate().isNotEmpty
+      ? find.text(text).last
+      : iconLabel.last;
   // Provider replies and keyboard dismissal can change the form's height.
   // Reveal only after those layouts settle, then verify the actual hit target.
   for (var attempt = 0; attempt < 3; attempt++) {
@@ -226,6 +236,7 @@ void main() {
     await tester.enterText(find.byType(TextField).at(2), 'Supplement');
     await tap(tester, 'Create');
     expect(find.text('Synthetic full substance name'), findsOneWidget);
+    await tap(tester, 'Synthetic full substance name');
     await tap(tester, 'Record');
     await tester.enterText(find.byType(TextField).at(0), '0.125000');
     await tap(tester, 'Save');

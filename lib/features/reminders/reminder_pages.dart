@@ -1,5 +1,6 @@
 import '../../app/display_preferences.dart';
 import '../../ui/vital_ui.dart';
+import '../../ui/stitch_ui.dart';
 
 import 'dart:async';
 
@@ -414,9 +415,13 @@ class DailySnoozeButton extends ConsumerStatefulWidget {
     super.key,
     required this.row,
     this.refreshForReview = false,
+    this.stitch = false,
+    this.onUnavailable,
   });
   final DailyRow row;
   final bool refreshForReview;
+  final bool stitch;
+  final VoidCallback? onUnavailable;
   @override
   ConsumerState<DailySnoozeButton> createState() => _DailySnoozeButtonState();
 }
@@ -471,13 +476,25 @@ class _DailySnoozeButtonState extends ConsumerState<DailySnoozeButton> {
             )
             .value ==
         true;
-    if (!enabled) return const SizedBox.shrink();
+    if (!enabled) {
+      if (widget.onUnavailable != null) {
+        return StitchButton(
+          quiet: true,
+          compact: true,
+          icon: LucideIcons.alarmClock,
+          onPressed: widget.onUnavailable,
+          child: Text(t.snooze),
+        );
+      }
+      return const SizedBox.shrink();
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         PlanCommand(
           row: widget.row,
           label: t.snooze,
+          stitch: widget.stitch,
           onPressed: busy || widget.row.isResolved ? null : start,
         ),
         if (failed) Semantics(liveRegion: true, child: Text(t.reminderChanged)),

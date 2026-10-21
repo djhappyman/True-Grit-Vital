@@ -215,10 +215,10 @@ void main() {
       ('Vitamin C', 'Supplement'),
       ('Vitamin D', 'Supplement'),
     ]);
-    expect(find.textContaining('All (5 items)'), findsOneWidget);
-    expect(find.textContaining('Medicine (3 items)'), findsOneWidget);
-    expect(find.textContaining('Supplement (2 items)'), findsOneWidget);
-    await tap(tester, 'Supplement (2 items)');
+    expect(find.textContaining('All (5)'), findsOneWidget);
+    expect(find.textContaining('Medicine (3)'), findsOneWidget);
+    expect(find.textContaining('Supplement (2)'), findsOneWidget);
+    await tap(tester, 'Supplement (2)');
     expect(find.text('Ibuprofen'), findsNothing);
     expect(find.text('Vitamin C'), findsOneWidget);
     expect(find.byType(SubstanceIdentityCard), findsNWidgets(2));
@@ -231,9 +231,9 @@ void main() {
     expect(find.text('No matches'), findsOneWidget);
     await tap(tester, 'Clear');
     expect(find.byType(SubstanceIdentityCard), findsNWidgets(5));
-    expect(find.textContaining('All (5 items)'), findsOneWidget);
+    expect(find.textContaining('All (5)'), findsOneWidget);
     // A second clear stays offered while results remain filtered.
-    await tap(tester, 'Medicine (3 items)');
+    await tap(tester, 'Medicine (3)');
     expect(find.byType(SubstanceIdentityCard), findsNWidgets(3));
     expect(find.text('Clear'), findsWidgets);
   });
@@ -301,11 +301,11 @@ void main() {
       ('Ibuprofen', 'Medicine'),
       ('Vitamin C', 'Supplement'),
     ]);
-    await tap(tester, 'Supplement (1 item)');
+    await tap(tester, 'Supplement (1)');
     await searchFor(tester, 'Ibuprofen');
     expect(find.text('No matches'), findsOneWidget);
-    expect(find.text('Supplement (0 items)'), findsOneWidget);
-    await tap(tester, 'All (1 item)');
+    expect(find.text('Supplement (0)'), findsOneWidget);
+    await tap(tester, 'All (1)');
     expect(find.text('Ibuprofen'), findsWidgets);
     expect(find.byType(SubstanceIdentityCard), findsOneWidget);
   });
@@ -329,7 +329,7 @@ void main() {
     // The search field keeps its accessible label and the Clear control
     // remains reachable without shrinking accessible text.
     await tap(tester, 'Clear');
-    expect(find.textContaining('2 items'), findsOneWidget);
+    expect(find.text('All (2)'), findsOneWidget);
     expect(
       find.text('A very long synthetic substance name for scaling'),
       findsOneWidget,
@@ -344,10 +344,10 @@ void main() {
       ('Vitamin C', 'Supplement'),
       ('Vitamin D', 'Supplement'),
     ]);
-    await tap(tester, 'Supplement (2 items)');
+    await tap(tester, 'Supplement (2)');
     await searchFor(tester, 'Vit');
     expect(find.byType(SubstanceIdentityCard), findsNWidgets(2));
-    expect(find.textContaining('Supplement (2 items)'), findsOneWidget);
+    expect(find.textContaining('Supplement (2)'), findsOneWidget);
     await tap(tester, 'Vitamin C');
     expect(find.text('History'), findsWidgets);
     await tap(tester, 'Back');
@@ -358,11 +358,11 @@ void main() {
       'Vit',
     );
     expect(find.byType(SubstanceIdentityCard), findsNWidgets(2));
-    expect(find.textContaining('Supplement (2 items)'), findsOneWidget);
+    expect(find.textContaining('Supplement (2)'), findsOneWidget);
     // Editing the search keeps the selection visible even at a zero count.
     await searchFor(tester, 'ZZZ none');
     expect(find.text('No matches'), findsOneWidget);
-    expect(find.textContaining('Supplement (0 items)'), findsOneWidget);
+    expect(find.textContaining('Supplement (0)'), findsOneWidget);
   });
   appTest('data failures keep search and filters with a retry in reach', (
     tester,
@@ -385,8 +385,8 @@ void main() {
     );
     // The failure report shares the screen with the mounted search tools and
     // the real filter pills instead of replacing them.
-    expect(find.textContaining('All (1 item)'), findsOneWidget);
-    expect(find.textContaining('Medicine (1 item)'), findsOneWidget);
+    expect(find.textContaining('All (1)'), findsOneWidget);
+    expect(find.textContaining('Medicine (1)'), findsOneWidget);
     expect(
       find.text('The substance list is unavailable right now.'),
       findsOneWidget,
@@ -403,7 +403,7 @@ void main() {
       ('Ibuprofen', 'Medicine'),
       ('Vitamin C', 'Supplement'),
     ]);
-    await tap(tester, 'Supplement (1 item)');
+    await tap(tester, 'Supplement (1)');
     await searchFor(tester, 'Ibuprofen');
     await runIo(tester, () async {
       final item = (await fixture.store.items(search: 'Vitamin C')).single;
@@ -420,8 +420,8 @@ void main() {
       );
     });
     await settle(tester);
-    expect(find.text('Vitamins (0 items)'), findsOneWidget);
-    expect(find.text('Supplement (0 items)'), findsNothing);
+    expect(find.text('Vitamins (0)'), findsOneWidget);
+    expect(find.text('Supplement (0)'), findsNothing);
   });
   appTest('loading type counts stay unknown until the query completes', (
     tester,
@@ -438,16 +438,16 @@ void main() {
         );
       },
     );
-    await tap(tester, 'Supplement (1 item)');
+    await tap(tester, 'Supplement (1)');
     await searchFor(tester, 'Ibuprofen');
     try {
       expect(find.text('Supplement'), findsOneWidget);
-      expect(find.text('Supplement (0 items)'), findsNothing);
+      expect(find.text('Supplement (0)'), findsNothing);
     } finally {
       gate.complete();
     }
     await settle(tester);
-    expect(find.text('Supplement (0 items)'), findsOneWidget);
+    expect(find.text('Supplement (0)'), findsOneWidget);
   });
   appTest('keyboard focus marks the identity row and Enter opens it', (
     tester,

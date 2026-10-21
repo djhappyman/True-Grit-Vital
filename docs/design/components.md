@@ -1,6 +1,6 @@
 # Building Vital screens
 
-Use `lib/ui/vital_ui.dart` as the shared UI entry point. It composes shadcn controls; feature code retains its existing Riverpod state, commands and navigation.
+Use `lib/ui/vital_ui.dart` for existing forms and secondary pages. Dashboard and Substances use the closer reference components in `lib/ui/stitch_ui.dart`. It composes shadcn controls; feature code retains its existing Riverpod state, commands and navigation.
 
 The owner selected the strongest components from the [Stitch references](stitch/2026-10-20/README.md) as a visual vocabulary. Reuse that vocabulary across the implemented features. The light canvas is pure white; dark mode uses the reference's green-black canvas and mint accents. The navigation dock stays fixed at the bottom. Device safe areas apply to every screen.
 
@@ -32,6 +32,12 @@ The owner selected the strongest components from the [Stitch references](stitch/
 `EntryPage`, `Heading` and `PageContent` remain compatibility adapters for existing features. New features should use the shared UI entry point directly. Settings retain their established semantic navigation/toggle rows within `VitalPanel` groups.
 
 `SubstanceSummary(item: ..., detailed: ...)` in `lib/features/substances/substance_summary.dart` supplies bounded live schedule, next-dose and per-container stock information. It renders content inside the caller's container, preserves units and partial states, and uses the existing resolver rather than inventing dates or dose equivalents. `SubstanceContainerSummary` reuses its per-container presentation inside overview sections without duplicating whole schedule or stock sections.
+
+## Stitch screens
+
+`StitchType` transcribes the export's 28/20/17/14/13/12/11 px hierarchy and line heights. `StitchSans` bundles the original archive's Noto Sans weights 400/500/600/700; provenance and licence are in `assets/fonts/STITCH.md`. `StitchColors` provides the green-black/mint dark palette and white-canvas light palette. `StitchSurface`, `StitchButton`, `StitchBadge`, `StitchIcon` and `StitchScrollBody` supply the reference geometry with native shadcn interactions and device insets. Targets remain at least 48 px; text can wrap.
+
+The dashboard composition comes from `dashboard-timeline-velocity-dark-mode--42445af1`; Substances comes from `substances-dark-mode--1ecd8e65`, with saved light variants informing the white theme. These are the only design sources. Preserve complete names and quantities and keep real commands connected. The owner's subsequent direction permits explicit placeholders for missing features: they must identify unavailable behaviour and must never save example data.
 
 ## A feature screen
 
@@ -75,10 +81,12 @@ For an existing ungrouped form, `VitalPage(panelled: true, ...)` supplies one pa
 
 Reference the relevant Stitch screen and explain which shared components it informed. Include light/dark screenshots, with a narrow-screen and large-text check for changed layouts. Preserve full names, amounts and units. Use existing localised strings and the repository's copy rules.
 
-The screenshots contain generated example data and some invented capabilities. Implement controls only for behaviour available in the repo. Review changes against the functional specification as well as the visual references.
+The screenshots contain generated example data and some invented capabilities. Connect implemented controls to the real feature; clearly label unavailable previews. Never display example clinical values or invented stock forecasts as saved data. Review changes against the functional specification as well as the visual references.
 
 Run `./tool/flutterw test --no-pub test/visual_framework_test.dart test/design_system_test.dart` for the shared framework checks. To capture synthetic screen previews, add `--dart-define=VITAL_UI_SNAPSHOTS=output/ui-review` to that command. Native device accessibility and performance require separate verification.
 
 For a focused capture, add `--dart-define=VITAL_UI_ROUTES=substances` (or comma-separated route keys from the visual test). Omitting it checks every listed route; unknown keys fail instead of silently skipping the check.
 
-Today uses `VitalProgress` for measured dose totals and its no-total variant when calculation or action history is incomplete. `VitalCompactRow` keeps the substance identity and exact expectation visible; available Taken, Skip, Source and Undo actions remain direct, while Details reveals Extra, Edit and optional help. Preserve the stock, interval, stale-data and clock-review guards around those actions.
+Today uses a measured daily completion ring, the next actionable dose card and compact time groups. Taken and Undo call the existing durable commands. The hero activity icon opens Details, including stock source, Extra and editing; stock/interval/stale-data/clock guards retain their complete review UI. Manage reveals full stock notices and schedule controls. Substances uses live bounded summaries; tapping a card opens the existing unified overview, including Record, schedule, stock and history.
+
+Regenerate this closer reference review with `./tool/flutterw test --no-pub test/stitch_reference_screens_test.dart --dart-define=VITAL_STITCH_CAPTURES=output/stitch-review`. The fixture uses synthetic records only and captures loaded light/dark viewport and full-content screens. Physical-device accessibility and performance remain separate gates.

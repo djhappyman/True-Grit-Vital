@@ -19,6 +19,8 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/recording/record_pages.dart';
+import 'package:true_grit_vital/features/profiles/profile_pages.dart'
+    show profilesProvider;
 import 'package:true_grit_vital/features/supporting/supporting_pages.dart';
 import 'package:true_grit_vital/features/supporting/supporting_trends.dart';
 
@@ -186,6 +188,20 @@ void main() {
           adultConfirmed: true,
         ),
       ))!;
+      // Wait for the saved revision before the form captures its owner revision.
+      final profileWait = Stopwatch()..start();
+      while (f.container
+              .read(profilesProvider)
+              .value
+              ?.where((p) => p.id == adult.id)
+              .firstOrNull
+              ?.revision !=
+          adult.revision) {
+        if (profileWait.elapsed > const Duration(seconds: 10)) {
+          fail('The saved profile revision did not reach the form fixture');
+        }
+        await settle(tester);
+      }
       f.container.read(routerProvider).go('/supporting/${adult.id}/add-panel');
       await settle(tester);
       expect(find.text('Person: Morgan'), findsOneWidget);

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart' show Semantics;
 import 'package:true_grit_vital/app/device_zone.dart';
 import 'package:true_grit_vital/app/storage.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
@@ -107,7 +108,13 @@ void main() {
     );
     await settle(tester);
 
-    expect(find.text('True Grit: Vital'), findsOneWidget);
+    expect(find.text('TRUE GRIT: VITAL'), findsOneWidget);
+    final recorded = find.byWidgetPredicate(
+      (w) => w is Semantics && w.properties.label == 'Recorded',
+    );
+    await tester.ensureVisible(recorded);
+    await tester.tap(recorded);
+    await settle(tester);
     expect(
       find.text(
         'Actual use recorded today appears here. Earlier use stays in History.',

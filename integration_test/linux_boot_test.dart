@@ -104,7 +104,12 @@ void main() {
       fail('Native boot UI did not appear: $finder');
     }
 
-    await waitFor(find.text('True Grit: Vital'));
+    await waitFor(find.text('TRUE GRIT: VITAL'));
+    final recorded = find.byWidgetPredicate(
+      (w) => w is Semantics && w.properties.label == 'Recorded',
+    );
+    await tester.ensureVisible(recorded);
+    await tester.tap(recorded);
     await waitFor(find.text('Synthetic substance'));
     await tester.tap(find.text('Substances').last);
     await waitFor(find.text('Synthetic substance'));

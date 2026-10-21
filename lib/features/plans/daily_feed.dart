@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart' show showDialog;
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -18,112 +19,19 @@ import 'interval_clock.dart';
 import 'plan_providers.dart';
 import 'today_hero.dart';
 import 'today_model.dart';
-import 'today_plan_rows.dart';
-import 'today_prn.dart';
+import 'stitch_dashboard.dart';
+import '../../ui/stitch_ui.dart';
 import '../reminders/reminder_pages.dart';
 
-class DailyFeed extends ConsumerStatefulWidget {
+class DailyFeed extends ConsumerWidget {
   const DailyFeed({super.key, required this.scope});
   final FeedScope scope;
   @override
-  ConsumerState<DailyFeed> createState() => _DailyFeedState();
+  Widget build(BuildContext context, WidgetRef ref) =>
+      StitchDashboard(scope: scope);
 }
 
-class _DailyFeedState extends ConsumerState<DailyFeed> {
-  @override
-  Widget build(BuildContext context) {
-    final scope = widget.scope;
-    final t = AppLocalizations.of(context);
-    final zone = ref.watch(observedDeviceZoneProvider);
-    final rows = ref.watch(dailyFeedProvider(scope));
-    final plans = ref.watch(scopePlansProvider(scope));
-    final next = ref.watch(nextDailyPlansProvider(scope));
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (zone.value?.zoneId == null) ...[
-          Text(t.planZoneUnavailable),
-          VitalButton.secondary(
-            onPressed: () => ref.invalidate(observedDeviceZoneProvider),
-            child: Text(t.retry),
-          ),
-        ],
-        rows.when(
-          data: (result) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TodayHero(
-                  result: result,
-                  next: next,
-                  observedZone: zone.value?.zoneId,
-                  onRollover: () => ref.invalidate(dailyFeedProvider(scope)),
-                ),
-                // Compact groups, ordered by each expectation's own start.
-                // Untimed doses stay in their own group and rows keep stable
-                // keys, so an action never moves an Undo under another card.
-                for (final group in groupTodayRows(
-                  result.rows,
-                  timeLabel: (row, start) =>
-                      _rowTimeLabel(context, ref, row, start),
-                  untimedTitle: t.todayDue,
-                ))
-                  VitalSection(
-                    title: Text(group.title),
-                    children: [
-                      for (final row in group.rows)
-                        DailyRowCard(
-                          key: ValueKey(row.expectation.identity),
-                          row: row,
-                        ),
-                    ],
-                  ),
-                if (result.rows.isEmpty && result.complete)
-                  VitalEmptyState(
-                    title: t.today,
-                    description: t.planNothingToday,
-                    icon: LucideIcons.calendarCheck,
-                  ),
-                if (!result.complete)
-                  Text(
-                    result.issue == null
-                        ? t.planIncomplete
-                        : result.issue ==
-                              DailyCalculationIssue.observedZoneUnavailable
-                        ? t.planZoneUnavailable
-                        : t.planCalculationIssue,
-                  ),
-              ],
-            );
-          },
-          error: (_, _) => LoadFailure(
-            onRetry: () => ref.invalidate(dailyFeedProvider(scope)),
-          ),
-          loading: () => Text(t.loadingRecords),
-        ),
-        TodayPrnPanel(plans: plans, scope: scope),
-        TodayPlanRows(scope: scope, next: next),
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-}
-
-TodayTimeLabel _rowTimeLabel(
-  BuildContext context,
-  WidgetRef ref,
-  DailyRow row,
-  DateTime start,
-) {
-  final instant = DisplayTime().instant(start, row.expectation.zoneId);
-  return TodayTimeLabel(
-    key: '${row.expectation.zoneId}|${instant.time24}',
-    title: displayFormatter(
-      context,
-      ref.watch(displayPreferencesProvider).timeFormat,
-    ).wallTime(instant.hour, instant.minute),
-  );
-}
+enum DailyCardPresentation { standard, hero, timeline }
 
 class DailyRowCard extends ConsumerStatefulWidget {
   const DailyRowCard({
@@ -132,9 +40,11 @@ class DailyRowCard extends ConsumerStatefulWidget {
     this.showActions = true,
     this.historyMode = false,
     this.reminderTarget,
+    this.presentation = DailyCardPresentation.standard,
   });
   final DailyRow row;
   final bool showActions, historyMode;
+  final DailyCardPresentation presentation;
   final ReminderTarget? reminderTarget;
   @override
   ConsumerState<DailyRowCard> createState() => _DailyRowCardState();
@@ -352,6 +262,218 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
     }
   }
 
+  Widget compactCard(
+    BuildContext context, {
+    required bool currentlyPaused,
+    required bool resolved,
+    required DailyAction? undoAction,
+  }) {
+    final t = AppLocalizations.of(context), c = StitchColors(context);
+    final row = widget.row, e = row.expectation;
+    final hero = widget.presentation == DailyCardPresentation.hero;
+    final item = ref.watch(itemLookupProvider(e.itemId)).value;
+    final amount = '${e.amount.enteredText} ${e.amount.unit}';
+    final subtitle = item == null
+        ? amount
+        : t.stitchAmountForm(e.amount.enteredText, e.amount.unit, item.form);
+    final start = todayRowStart(row);
+    final time = start == null ? null : DisplayTime().instant(start, e.zoneId);
+    final disabled = busy || currentlyPaused || resolved;
+    Widget command(
+      String label,
+      VoidCallback? action, {
+      bool primary = false,
+    }) => PlanCommand(
+      row: row,
+      label: label,
+      onPressed: action,
+      primary: primary,
+      stitch: true,
+    );
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (hero) ...[
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 11,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: c.accentSurface,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: DefaultTextStyle.merge(
+                  style: StitchType.small.copyWith(
+                    color: c.accent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  child: start == null
+                      ? Text(t.stitchUntimed)
+                      : TodayCountdown(target: start),
+                ),
+              ),
+              if (time != null)
+                Text(
+                  displayWallTime(
+                    context,
+                    ref,
+                    WallTime(time.hour, time.minute),
+                  ),
+                  style: StitchType.small.copyWith(color: c.muted),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (!hero) ...[
+              StitchIcon(
+                resolved ? LucideIcons.check : LucideIcons.circle,
+                size: 32,
+                selected: resolved,
+              ),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: Clickable(
+                onPressed: hero
+                    ? null
+                    : () => setState(() => showDetails = true),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      row.itemName,
+                      style: hero ? StitchType.heading : StitchType.name,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: (hero ? StitchType.body : StitchType.caption)
+                          .copyWith(color: c.muted),
+                    ),
+                    if (ref.watch(observedDeviceZoneProvider).value?.zoneId !=
+                        e.zoneId)
+                      Text(
+                        e.zoneId,
+                        style: StitchType.small.copyWith(color: c.muted),
+                      ),
+                    if (currentlyPaused)
+                      Text(
+                        t.pauseState,
+                        style: StitchType.small.copyWith(color: c.amber),
+                      ),
+                    if (!hero && row.plannedCount > 1)
+                      Text(
+                        t.planProgress(
+                          row.takenCount,
+                          row.skippedCount,
+                          row.plannedCount,
+                        ),
+                        style: StitchType.small.copyWith(color: c.muted),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            if (hero) ...[
+              const SizedBox(width: 8),
+              Semantics(
+                label: t.details,
+                button: true,
+                child: Clickable(
+                  onPressed: busy
+                      ? null
+                      : () => setState(() => showDetails = true),
+                  child: const StitchIcon(LucideIcons.activity, selected: true),
+                ),
+              ),
+            ] else ...[
+              const SizedBox(width: 6),
+              if (undoAction != null)
+                command(t.undo, busy ? null : () => undo(undoAction))
+              else
+                command(
+                  t.taken,
+                  disabled ? null : () => act(DailyActionKind.taken),
+                ),
+            ],
+          ],
+        ),
+        if (hero) ...[
+          const SizedBox(height: 16),
+          command(
+            t.taken,
+            disabled ? null : () => act(DailyActionKind.taken),
+            primary: true,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              if (!resolved && !currentlyPaused)
+                Expanded(
+                  child: DailySnoozeButton(
+                    row: row,
+                    stitch: true,
+                    onUnavailable: () => showDialog<void>(
+                      context: context,
+                      builder: (context) => VitalDialog(
+                        title: Text(t.snooze),
+                        content: Text(t.stitchSnoozeUnavailable),
+                        actions: [
+                          StitchButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text(t.done),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: command(
+                  t.skip,
+                  disabled ? null : () => act(DailyActionKind.skip),
+                ),
+              ),
+              if (undoAction != null)
+                command(t.undo, busy ? null : () => undo(undoAction)),
+            ],
+          ),
+        ],
+        if (currentlyPaused) ...[
+          Text(
+            t.pauseRecordHelp,
+            style: StitchType.caption.copyWith(color: c.muted),
+          ),
+          StitchButton(
+            onPressed: () => context.push('/record/${e.itemId}'),
+            child: Text(t.record),
+          ),
+        ],
+      ],
+    );
+    return Padding(
+      padding: EdgeInsets.only(bottom: hero ? 0 : 8),
+      child: StitchSurface(
+        radius: hero ? 16 : 32,
+        inset: !hero,
+        padding: EdgeInsets.all(hero ? 16 : 12),
+        child: content,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context), r = widget.row, e = r.expectation;
@@ -374,6 +496,35 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
     final boundaryBlocked = e.eligibilityConflict != null;
     final resolved = r.takenCount + r.skippedCount >= (e.plannedCount ?? 1);
     final undoAction = r.actions.where((a) => !a.isUndone).firstOrNull;
+    final clockReview =
+        e.resolution == DailyResolution.missingClock ||
+        e.resolution == DailyResolution.repeatedClock ||
+        e.windowEndpoints.any(
+          (end) =>
+              end.resolution == DailyResolution.missingClock ||
+              end.resolution == DailyResolution.repeatedClock,
+        );
+    final compact =
+        widget.presentation != DailyCardPresentation.standard &&
+        !widget.historyMode &&
+        widget.showActions &&
+        !showDetails &&
+        error == null &&
+        pending == null &&
+        !actionConflict &&
+        !intervalReviewNeeded &&
+        r.actionsComplete &&
+        r.productLabel == null &&
+        !boundaryBlocked &&
+        !clockReview;
+    if (compact) {
+      return compactCard(
+        context,
+        currentlyPaused: currentlyPaused,
+        resolved: resolved,
+        undoAction: undoAction,
+      );
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: VitalSurface(
@@ -918,11 +1069,12 @@ class PlanCommand extends ConsumerWidget {
     required this.label,
     required this.onPressed,
     this.primary = false,
+    this.stitch = false,
   });
   final DailyRow row;
   final String label;
   final VoidCallback? onPressed;
-  final bool primary;
+  final bool primary, stitch;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final e = row.expectation;
@@ -946,7 +1098,24 @@ class PlanCommand extends ConsumerWidget {
       child: ExcludeSemantics(
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 48),
-          child: primary
+          child: stitch
+              ? StitchButton(
+                  primary: primary,
+                  icon: primary ? LucideIcons.circleCheck : null,
+                  quiet:
+                      label == AppLocalizations.of(context).skip ||
+                      label == AppLocalizations.of(context).snooze,
+                  destructive: label == AppLocalizations.of(context).skip,
+                  compact: !primary,
+                  onPressed: onPressed,
+                  child: Text(
+                    label,
+                    style: StitchType.label.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                )
+              : primary
               ? VitalButton(onPressed: onPressed, child: Text(label))
               : VitalButton.secondary(onPressed: onPressed, child: Text(label)),
         ),

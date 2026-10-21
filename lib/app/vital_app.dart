@@ -3,6 +3,7 @@ import '../features/supporting/supporting_form.dart';
 import '../features/supporting/supporting_trends.dart';
 import '../features/backup/backup_pages.dart';
 import '../ui/vital_ui.dart';
+import '../ui/stitch_ui.dart';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -643,33 +644,77 @@ class VitalShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
+    final c = StitchColors(context);
+    final destination = Destination.values
+        .where((d) => d.path == path)
+        .firstOrNull;
     return Scaffold(
       headers: [
         const RestoreRecoveryBanner(),
         SafeArea(
           bottom: false,
           child: VitalPageBody(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-            child: Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 12,
-              runSpacing: 8,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const VitalIconTile(LucideIcons.scanLine, size: 40),
-                    const SizedBox(width: 12),
-                    Flexible(
-                      child: Text(text.appTitle, style: VitalType.label),
-                    ),
-                  ],
+                Expanded(
+                  child: Row(
+                    children: [
+                      const StitchMark(),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              text.appTitle.toUpperCase(),
+                              style: StitchType.small.copyWith(color: c.muted),
+                            ),
+                            Text(
+                              destination?.label(text) ?? text.today,
+                              style: StitchType.name.copyWith(color: c.ink),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                VitalButton.secondary(
-                  leading: const Icon(LucideIcons.settings, size: 20),
-                  onPressed: () => context.push('/settings'),
-                  child: Text(text.settings),
+                Tooltip(
+                  tooltip: (_) => TooltipContainer(child: Text(text.settings)),
+                  child: Semantics(
+                    label: text.settings,
+                    button: true,
+                    child: StitchButton(
+                      onPressed: () => context.push('/settings'),
+                      quiet: true,
+                      compact: true,
+                      child: ExcludeSemantics(
+                        child: Icon(
+                          LucideIcons.settings,
+                          size: 22,
+                          color: c.muted,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Semantics(
+                  label: text.profile,
+                  button: true,
+                  child: StitchButton(
+                    onPressed: () => context.push('/profile'),
+                    compact: true,
+                    child: ExcludeSemantics(
+                      child: Icon(
+                        LucideIcons.userRound,
+                        size: 18,
+                        color: c.accent,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -755,25 +800,23 @@ class ShellNavigation extends StatelessWidget {
               style: ButtonVariance.ghost,
               onPressed: () => context.go(destination.path),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+                constraints: const BoxConstraints(minHeight: 36, minWidth: 48),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ExcludeSemantics(
                       child: Icon(
                         destination.icon,
-                        size: 22,
+                        size: 20,
                         color: path == destination.path
                             ? colors.accentForeground
                             : colors.mutedForeground,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       destination.label(text),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                      style: StitchType.small.copyWith(
                         color: path == destination.path
                             ? colors.accentForeground
                             : colors.mutedForeground,

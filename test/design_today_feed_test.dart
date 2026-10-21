@@ -141,20 +141,46 @@ void main() {
         timings: [DailyCount(2, _oneMg())],
         todayNow: () => DateTime.now().toUtc(),
       );
-      expect(find.text('Daily schedule'), findsOneWidget);
+      expect(find.text('Today’s sequence'), findsOneWidget);
       expect(find.text('0 of 2 doses recorded, 0 skipped.'), findsOneWidget);
-      expect(find.text('2 remaining'), findsOneWidget);
+      expect(find.text('0%'), findsOneWidget);
       // A pending untimed expectation never offers a countdown or guess.
-      expect(find.text('The next dose has no expected time.'), findsOneWidget);
+      expect(find.text('Anytime'), findsOneWidget);
       expect(find.text('Due'), findsOneWidget);
       expect(find.text('Upcoming'), findsNothing);
-      expect(find.byType(DailyRowCard), findsOneWidget);
-      final rowState = tester.state(find.byType(DailyRowCard).first);
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is DailyRowCard &&
+              w.presentation == DailyCardPresentation.timeline,
+        ),
+        findsOneWidget,
+      );
+      final rowState = tester.state(
+        find
+            .byWidgetPredicate(
+              (w) =>
+                  w is DailyRowCard &&
+                  w.presentation == DailyCardPresentation.timeline,
+            )
+            .first,
+      );
       await tap(tester, 'Taken');
       await waitForText(tester, '1 recorded, 0 skipped, 2 planned');
       expect(find.text('1 of 2 doses recorded, 0 skipped.'), findsOneWidget);
       // The planned row keeps its element identity across recording.
-      expect(tester.state(find.byType(DailyRowCard).first), same(rowState));
+      expect(
+        tester.state(
+          find
+              .byWidgetPredicate(
+                (w) =>
+                    w is DailyRowCard &&
+                    w.presentation == DailyCardPresentation.timeline,
+              )
+              .first,
+        ),
+        same(rowState),
+      );
       await tap(tester, 'Skip');
       await waitForText(tester, '1 recorded, 1 skipped, 2 planned');
       expect(find.text('1 of 2 doses recorded, 1 skipped.'), findsOneWidget);
@@ -188,7 +214,8 @@ void main() {
         .civilDate;
     final fakedNow = DailyResolver().clock
         .candidates(shownDate, WallTime(9, 0), _zone)
-        .first;
+        .first
+        .add(const Duration(milliseconds: 500));
     final (store, container, item) = await launchToday(
       tester,
       timings: [
@@ -203,7 +230,7 @@ void main() {
       ],
       todayNow: () => fakedNow,
     );
-    expect(find.text('Daily schedule'), findsOneWidget);
+    expect(find.text('Today’s sequence'), findsOneWidget);
     expect(find.text('0 of 1 doses recorded, 0 skipped.'), findsOneWidget);
     // The group title uses the plan zone's shown wall time. The full app keeps
     // the 12/24-hour system preference, so both renderings stay valid here.
@@ -211,14 +238,14 @@ void main() {
         find.text('9:30 AM').evaluate().isNotEmpty ||
         find.text('09:30').evaluate().isNotEmpty;
     expect(group, isTrue);
-    expect(find.textContaining('Next planned dose:'), findsOneWidget);
+    expect(find.text('Synthetic full substance name 0'), findsWidgets);
     expect(find.text('Next dose in 30 minutes.'), findsOneWidget);
     expect(find.text('Due'), findsNothing);
     expect(find.text('Upcoming'), findsNothing);
     // Recording resolves the slot row inside its group.
     await tap(tester, 'Taken');
     await settle(tester);
-    await waitForText(tester, '1 recorded, 0 skipped, 1 planned');
+    await waitForText(tester, '1 of 1 doses recorded, 0 skipped.');
     final plans = (await runIo(
       tester,
       () => store.dailyPlans(itemId: item.id),
@@ -239,10 +266,13 @@ void main() {
     expect(find.text('Due'), findsNothing);
     expect(find.byType(DailyRowCard), findsNothing);
     expect(find.text('As needed'), findsOneWidget);
-    expect(find.textContaining('no expected times'), findsOneWidget);
-    expect(find.text('Record'), findsOneWidget);
-    expect(find.text('Pause'), findsOneWidget);
-    expect(find.text('Phases'), findsOneWidget);
+    expect(find.text('Synthetic full substance name 0'), findsOneWidget);
+    final chip = find.text('Synthetic full substance name 0');
+    await tester.ensureVisible(chip);
+    await settle(tester);
+    await tester.tap(chip);
+    await settle(tester);
+    expect(find.byType(TextField), findsWidgets);
   });
 
   appTest(
@@ -253,7 +283,10 @@ void main() {
         timings: [DailyCount(2, _oneMg())],
         todayNow: () => DateTime.now().toUtc(),
       );
-      final card = find.byType(DailyRowCard);
+      final card = find.byWidgetPredicate(
+        (w) =>
+            w is DailyRowCard && w.presentation == DailyCardPresentation.hero,
+      );
       expect(card, findsOneWidget);
       // The compact reference row keeps the logging pair and the stock source
       // reachable immediately; advanced management stays disclosed.
@@ -267,7 +300,7 @@ void main() {
       );
       expect(
         find.descendant(of: card, matching: find.text('Source')),
-        findsOneWidget,
+        findsNothing,
       );
       expect(
         find.descendant(of: card, matching: find.text('Undo')),
@@ -281,7 +314,15 @@ void main() {
         find.descendant(of: card, matching: find.text('Edit')),
         findsNothing,
       );
-      await tap(tester, 'Details');
+      await tester.tap(
+        find.descendant(
+          of: card,
+          matching: find.byWidgetPredicate(
+            (w) => w is Semantics && w.properties.label == 'Details',
+          ),
+        ),
+      );
+      await settle(tester);
       expect(
         find.descendant(of: card, matching: find.text('Extra')),
         findsOneWidget,
@@ -327,9 +368,16 @@ void main() {
       ],
       todayNow: () => DateTime.now().toUtc(),
     );
-    expect(find.text('Daily schedule'), findsOneWidget);
+    expect(find.text('Today’s sequence'), findsOneWidget);
     expect(find.text('0 of 3 doses recorded, 0 skipped.'), findsOneWidget);
-    expect(find.byType(DailyRowCard), findsNWidgets(2));
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is DailyRowCard &&
+            w.presentation == DailyCardPresentation.timeline,
+      ),
+      findsNWidgets(2),
+    );
     expect(tester.takeException(), isNull);
   });
 }

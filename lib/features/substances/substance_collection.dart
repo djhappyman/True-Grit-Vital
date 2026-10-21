@@ -10,7 +10,8 @@ import '../../l10n/app_localizations.dart';
 import '../recording/record_pages.dart' show LoadFailure;
 import '../../ui/vital_ui.dart';
 import '../catalogue/item_types.dart' show itemTypeProvider;
-import 'substance_summary.dart';
+import '../../ui/stitch_ui.dart';
+import 'stitch_substance_card.dart';
 
 /// One page key of the bounded Substances list. The 51st row of a page only
 /// reveals the next page; search and the type filter run over the whole stored
@@ -125,6 +126,13 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
     final summaries = ref.watch(
       substanceTypesProvider((scope: widget.scope, search: search)),
     );
+    final allTypes = search.isEmpty
+        ? summaries
+        : ref.watch(substanceTypesProvider((scope: widget.scope, search: '')));
+    final total = allTypes.value?.fold<int>(
+      0,
+      (sum, entry) => sum + entry.count,
+    );
     final personId = widget.scope.personId;
     final selectedType = _typeId.isEmpty || personId == null
         ? null
@@ -145,15 +153,83 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        VitalField(
-          label: t.designSubstancesSearchLabel,
-          child: TextField(
-            controller: _search,
-            placeholder: Text(t.designSubstancesSearchHint),
-            textInputAction: TextInputAction.search,
-          ),
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 10,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(t.substances, style: StitchType.title),
+                const SizedBox(height: 3),
+                if (total != null)
+                  StitchBadge(t.stitchSubstanceCount(total), dot: true),
+              ],
+            ),
+            SizedBox(
+              width: 156,
+              child: StitchButton(
+                primary: true,
+                icon: LucideIcons.plus,
+                onPressed: () => context.push('/create'),
+                child: Text(t.create),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            Expanded(
+              child: Semantics(
+                label: t.designSubstancesSearchLabel,
+                child: TextField(
+                  controller: _search,
+                  placeholder: Text(t.stitchSearch, style: StitchType.body),
+                  style: StitchType.body,
+                  decoration: BoxDecoration(
+                    color: StitchColors(context).inset,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  border: Border.all(color: Colors.transparent),
+                  borderRadius: BorderRadius.circular(999),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  features: [
+                    InputFeature.leading(
+                      Icon(
+                        LucideIcons.search,
+                        size: 19,
+                        color: StitchColors(context).muted,
+                      ),
+                    ),
+                  ],
+                  textInputAction: TextInputAction.search,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Semantics(
+              label: t.stitchFilter,
+              button: true,
+              child: StitchButton(
+                compact: true,
+                onPressed: () =>
+                    context.push('/types/${widget.scope.personId ?? meId}'),
+                child: Icon(
+                  LucideIcons.slidersHorizontal,
+                  size: 20,
+                  color: StitchColors(context).muted,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
         SubstanceTypeFilters(
           summaries: summaries.value ?? const [],
           selectedTypeId: _typeId,
@@ -162,7 +238,7 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
               summaries.hasValue && !summaries.isLoading && !summaries.hasError,
           onSelected: _selectType,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         if (failed)
           LoadFailure(message: t.designSubstancesUnavailable, onRetry: _retry)
         else if (pages.every((p) => !p.hasValue))
@@ -206,6 +282,29 @@ class _SubstanceCollectionState extends ConsumerState<SubstanceCollection> {
             ),
           ],
         ],
+        const SizedBox(height: 16),
+        StitchSurface(
+          inset: true,
+          child: Column(
+            children: [
+              const StitchIcon(
+                LucideIcons.shieldCheck,
+                size: 32,
+                selected: true,
+              ),
+              const SizedBox(height: 6),
+              Text(t.stitchStored, style: StitchType.small),
+              const SizedBox(height: 4),
+              Text(
+                t.stitchLocalBody,
+                textAlign: TextAlign.center,
+                style: StitchType.caption.copyWith(
+                  color: StitchColors(context).muted,
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -261,15 +360,29 @@ class SubstanceTypeFilters extends StatelessWidget {
       final count = typeId.isEmpty
           ? total
           : pills.firstWhere((pill) => pill.typeId == typeId).count;
-      return '$name (${t.designSubstancesItemCount(count)})';
+      return t.stitchFilterCount(name, count);
     }
 
-    return VitalSegments<String>(
-      values: ['', ...pills.map((pill) => pill.typeId!)],
-      selected: selectedTypeId,
-      onChanged: (typeId) =>
-          onSelected(typeId, typeId.isEmpty ? '' : names[typeId]!),
-      label: label,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final typeId in ['', ...pills.map((pill) => pill.typeId!)])
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: Semantics(
+                selected: selectedTypeId == typeId,
+                child: StitchButton(
+                  primary: selectedTypeId == typeId,
+                  compact: true,
+                  onPressed: () =>
+                      onSelected(typeId, typeId.isEmpty ? '' : names[typeId]!),
+                  child: Text(label(typeId), style: StitchType.small),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -281,40 +394,6 @@ class SubstanceIdentityCard extends StatelessWidget {
   const SubstanceIdentityCard({super.key, required this.item});
   final SubstanceItem item;
 
-  void _open(BuildContext context) => context.push('/substance/${item.id}');
-
   @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: VitalSurface(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            VitalCompactRow(
-              title: item.name,
-              subtitle: t.itemDetails(item.form, item.type, item.unit),
-              trailing: const Icon(LucideIcons.chevronRight),
-              icon: LucideIcons.pill,
-              onPressed: () => _open(context),
-            ),
-            const SizedBox(height: 12),
-            SubstanceSummary(item: item),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                VitalButton(
-                  onPressed: () => context.push('/record/${item.id}'),
-                  child: Text(t.record),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => StitchSubstanceCard(item: item);
 }

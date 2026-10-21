@@ -9371,6 +9371,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Next dose in under a minute.'**
   String get designTodayUnderMinute;
+
+  /// Stitch dashboard and substance layout. Placeholder state for a feature that is not implemented.
+  ///
+  /// In en, this message translates to:
+  /// **'This feature is not available yet.'**
+  String get stitchPlaceholderBody;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily progress'**
+  String get stitchDailyProgress;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial'**
+  String get stitchPartial;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly overview'**
+  String get stitchWeek;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Next dose'**
+  String get stitchNextDose;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming dose'**
+  String get stitchNoNext;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a substance and schedule to see your next dose here.'**
+  String get stitchNextHelp;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure'**
+  String get stitchConfigure;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Today’s sequence'**
+  String get stitchSequence;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get stitchScheduleManage;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood pressure'**
+  String get stitchBloodPressure;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Refill buffer'**
+  String get stitchRefillBuffer;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Forecast not available yet'**
+  String get stitchForecastPending;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted on device'**
+  String get stitchStored;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Your records stay on this device unless you export or share them.'**
+  String get stitchLocalBody;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get stitchPaused;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Design preview'**
+  String get stitchPreview;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get stitchFilter;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Anytime'**
+  String get stitchUntimed;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'As needed'**
+  String get stitchPrn;
+
+  /// Stitch dashboard and substance layout. Short visible label or explanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name…'**
+  String get stitchSearch;
+
+  /// Complete localisable Stitch screen message.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 substance} other{{count} substances}}'**
+  String stitchSubstanceCount(int count);
+
+  /// Complete localisable Stitch screen message.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 planned} other{{count} planned}}'**
+  String stitchGroupCount(int count);
+
+  /// Complete localisable Stitch screen message.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} {unit} · {form}'**
+  String stitchAmountForm(String amount, String unit, String form);
+
+  /// Complete localisable Stitch screen message.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily at {time}'**
+  String stitchDailyAt(String time);
+
+  /// Complete localisable Stitch screen message.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({count})'**
+  String stitchFilterCount(String name, int count);
+
+  /// Complete localisable Stitch screen message.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} {unit} remaining'**
+  String stitchStockRemaining(String amount, String unit);
+
+  /// Complete localisable Stitch screen message.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {time}'**
+  String stitchNextAt(String time);
+
+  /// One-word action opening the existing supporting records.
+  ///
+  /// In en, this message translates to:
+  /// **'Observation'**
+  String get stitchObservation;
+
+  /// Truthful unavailable-state explanation; does not promise native delivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze is available when reminders are enabled for this schedule.'**
+  String get stitchSnoozeUnavailable;
 }
 
 class _AppLocalizationsDelegate

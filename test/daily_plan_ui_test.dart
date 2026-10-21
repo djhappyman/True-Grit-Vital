@@ -144,7 +144,16 @@ void main() {
       expect(find.text('Due'), findsOneWidget);
       expect(find.text('Upcoming'), findsNothing);
       expect(find.text('Recorded'), findsOneWidget);
-      final plannedRowState = tester.state(find.byType(DailyRowCard).first);
+      final plannedRowState = tester.state(
+        find
+            .byWidgetPredicate(
+              (w) =>
+                  w is DailyRowCard &&
+                  w.presentation == DailyCardPresentation.timeline,
+            )
+            .first,
+      );
+      await tap(tester, 'Manage');
       expect(
         find.text(
           'Next planned date: ${CivilDate.fromDateTime(DateTime.now())}',
@@ -156,7 +165,15 @@ void main() {
       await tap(tester, 'Skip');
       expect(find.text('1 recorded, 1 skipped, 2 planned'), findsOneWidget);
       expect(
-        tester.state(find.byType(DailyRowCard).first),
+        tester.state(
+          find
+              .byWidgetPredicate(
+                (w) =>
+                    w is DailyRowCard &&
+                    w.presentation == DailyCardPresentation.timeline,
+              )
+              .first,
+        ),
         same(plannedRowState),
       );
       // Undo is offered on the stable planned row, separately from actual history.
@@ -295,7 +312,7 @@ void main() {
     );
     await settle(tester);
     await settle(tester);
-    expect(find.textContaining('Other Adult'), findsWidgets);
+    expect(find.text(f.item.name), findsWidgets);
     await tap(tester, 'Taken');
     final records = (await runIo(
       tester,
@@ -459,8 +476,17 @@ void main() {
       await tester.enterText(find.byType(TextField).last, 'Europe/London');
       await tap(tester, 'Preview');
       await tap(tester, 'Save');
-      expect(find.text('Taken'), findsOneWidget);
+      expect(find.text('Taken'), findsWidgets);
+      await tester.tap(
+        find
+            .byWidgetPredicate(
+              (w) => w is Semantics && w.properties.label == 'Details',
+            )
+            .first,
+      );
+      await settle(tester);
       expect(find.textContaining('untimed in Europe/London'), findsOneWidget);
+      await tap(tester, 'Manage');
       expect(
         find.text(
           'Next planned date: ${CivilDate.fromDateTime(DateTime.now())}',

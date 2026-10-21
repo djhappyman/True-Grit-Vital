@@ -6856,5 +6856,172 @@
   "designTodayUnderMinute": "Next dose in under a minute.",
   "@designTodayUnderMinute": {
     "description": "Less than one minute remains before the expected start. The dose is not due yet."
+  },
+  "stitchPlaceholderBody": "This feature is not available yet.",
+  "@stitchPlaceholderBody": {
+    "description": "Stitch dashboard and substance layout. Placeholder state for a feature that is not implemented."
+  },
+  "stitchDailyProgress": "Daily progress",
+  "@stitchDailyProgress": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchPartial": "Partial",
+  "@stitchPartial": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchWeek": "Weekly overview",
+  "@stitchWeek": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchNextDose": "Next dose",
+  "@stitchNextDose": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchNoNext": "No upcoming dose",
+  "@stitchNoNext": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchNextHelp": "Add a substance and schedule to see your next dose here.",
+  "@stitchNextHelp": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchConfigure": "Configure",
+  "@stitchConfigure": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchSequence": "Today’s sequence",
+  "@stitchSequence": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchScheduleManage": "Manage",
+  "@stitchScheduleManage": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchBloodPressure": "Blood pressure",
+  "@stitchBloodPressure": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchRefillBuffer": "Refill buffer",
+  "@stitchRefillBuffer": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchForecastPending": "Forecast not available yet",
+  "@stitchForecastPending": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchStored": "Encrypted on device",
+  "@stitchStored": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchLocalBody": "Your records stay on this device unless you export or share them.",
+  "@stitchLocalBody": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchPaused": "Paused",
+  "@stitchPaused": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchPreview": "Design preview",
+  "@stitchPreview": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchFilter": "Filters",
+  "@stitchFilter": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchUntimed": "Anytime",
+  "@stitchUntimed": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchPrn": "As needed",
+  "@stitchPrn": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchSearch": "Search by name…",
+  "@stitchSearch": {
+    "description": "Stitch dashboard and substance layout. Short visible label or explanation."
+  },
+  "stitchSubstanceCount": "{count, plural, =1{1 substance} other{{count} substances}}",
+  "@stitchSubstanceCount": {
+    "description": "Complete localisable Stitch screen message.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stitchGroupCount": "{count, plural, =1{1 planned} other{{count} planned}}",
+  "@stitchGroupCount": {
+    "description": "Complete localisable Stitch screen message.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stitchAmountForm": "{amount} {unit} · {form}",
+  "@stitchAmountForm": {
+    "description": "Complete localisable Stitch screen message.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "form": {
+        "type": "String"
+      }
+    }
+  },
+  "stitchDailyAt": "Daily at {time}",
+  "@stitchDailyAt": {
+    "description": "Complete localisable Stitch screen message.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "stitchFilterCount": "{name} ({count})",
+  "@stitchFilterCount": {
+    "description": "Complete localisable Stitch screen message.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stitchStockRemaining": "{amount} {unit} remaining",
+  "@stitchStockRemaining": {
+    "description": "Complete localisable Stitch screen message.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "stitchNextAt": "Next: {time}",
+  "@stitchNextAt": {
+    "description": "Complete localisable Stitch screen message.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "stitchObservation": "Observation",
+  "@stitchObservation": {
+    "description": "One-word action opening the existing supporting records."
+  },
+  "stitchSnoozeUnavailable": "Snooze is available when reminders are enabled for this schedule.",
+  "@stitchSnoozeUnavailable": {
+    "description": "Truthful unavailable-state explanation; does not promise native delivery."
   }
 }

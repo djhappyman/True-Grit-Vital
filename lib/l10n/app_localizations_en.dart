@@ -5982,4 +5982,123 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get designTodayUnderMinute => 'Next dose in under a minute.';
+
+  @override
+  String get stitchPlaceholderBody => 'This feature is not available yet.';
+
+  @override
+  String get stitchDailyProgress => 'Daily progress';
+
+  @override
+  String get stitchPartial => 'Partial';
+
+  @override
+  String get stitchWeek => 'Weekly overview';
+
+  @override
+  String get stitchNextDose => 'Next dose';
+
+  @override
+  String get stitchNoNext => 'No upcoming dose';
+
+  @override
+  String get stitchNextHelp =>
+      'Add a substance and schedule to see your next dose here.';
+
+  @override
+  String get stitchConfigure => 'Configure';
+
+  @override
+  String get stitchSequence => 'Today’s sequence';
+
+  @override
+  String get stitchScheduleManage => 'Manage';
+
+  @override
+  String get stitchBloodPressure => 'Blood pressure';
+
+  @override
+  String get stitchRefillBuffer => 'Refill buffer';
+
+  @override
+  String get stitchForecastPending => 'Forecast not available yet';
+
+  @override
+  String get stitchStored => 'Encrypted on device';
+
+  @override
+  String get stitchLocalBody =>
+      'Your records stay on this device unless you export or share them.';
+
+  @override
+  String get stitchPaused => 'Paused';
+
+  @override
+  String get stitchPreview => 'Design preview';
+
+  @override
+  String get stitchFilter => 'Filters';
+
+  @override
+  String get stitchUntimed => 'Anytime';
+
+  @override
+  String get stitchPrn => 'As needed';
+
+  @override
+  String get stitchSearch => 'Search by name…';
+
+  @override
+  String stitchSubstanceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count substances',
+      one: '1 substance',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String stitchGroupCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planned',
+      one: '1 planned',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String stitchAmountForm(String amount, String unit, String form) {
+    return '$amount $unit · $form';
+  }
+
+  @override
+  String stitchDailyAt(String time) {
+    return 'Daily at $time';
+  }
+
+  @override
+  String stitchFilterCount(String name, int count) {
+    return '$name ($count)';
+  }
+
+  @override
+  String stitchStockRemaining(String amount, String unit) {
+    return '$amount $unit remaining';
+  }
+
+  @override
+  String stitchNextAt(String time) {
+    return 'Next: $time';
+  }
+
+  @override
+  String get stitchObservation => 'Observation';
+
+  @override
+  String get stitchSnoozeUnavailable =>
+      'Snooze is available when reminders are enabled for this schedule.';
 }
