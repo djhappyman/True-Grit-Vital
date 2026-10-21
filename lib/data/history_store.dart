@@ -440,27 +440,27 @@ extension HistoryRecordStore on RecordStore {
   ) async {
     _requireWritable();
     return _db.transaction(() async {
-    final branches = await _historyBranches(query);
-    Map<String, Object?>? found;
-    for (final b in branches) {
-      final row = await _timelineRow(b, id.sortKey);
-      if (row != null) {
-        found = row;
-        break;
+      final branches = await _historyBranches(query);
+      Map<String, Object?>? found;
+      for (final b in branches) {
+        final row = await _timelineRow(b, id.sortKey);
+        if (row != null) {
+          found = row;
+          break;
+        }
       }
-    }
-    if (found == null) return null;
-    final entry = (await _historyLoad([found], query)).single;
-    if (entry.id.sortKey != id.sortKey) {
-      throw const TimelineModelException('page_duplicate');
-    }
-    return ResolvedHistoryEntry(
-      entry: entry,
-      queryIdentity: query.identity,
-      schemaVersion: _db.schemaVersion,
-      datasetGeneration: generation,
-    );
-  });
+      if (found == null) return null;
+      final entry = (await _historyLoad([found], query)).single;
+      if (entry.id.sortKey != id.sortKey) {
+        throw const TimelineModelException('page_duplicate');
+      }
+      return ResolvedHistoryEntry(
+        entry: entry,
+        queryIdentity: query.identity,
+        schemaVersion: _db.schemaVersion,
+        datasetGeneration: generation,
+      );
+    });
   }
 
   /// One bounded read that resolves [anchor] inside the current filtered
