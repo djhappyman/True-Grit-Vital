@@ -9551,6 +9551,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Snooze is available when reminders are enabled for this schedule.'**
   String get stitchSnoozeUnavailable;
+
+  /// Create substance screen. A local encrypted draft is kept while this form is unfinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Drafting'**
+  String get screenCreateDrafting;
+
+  /// Create substance screen. Group label above the saved personal type choices.
+  ///
+  /// In en, this message translates to:
+  /// **'Classification'**
+  String get screenCreateClassification;
+
+  /// Create substance screen. Card heading for the name, form, unit and type controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity'**
+  String get screenCreateIdentity;
+
+  /// Create substance screen. Form chips fill the free-text form field; they are not dose advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a common form or enter your own.'**
+  String get screenCreateFormHelp;
+
+  /// Create substance screen. Form choice written to the item's existing form field.
+  ///
+  /// In en, this message translates to:
+  /// **'Capsule'**
+  String get screenCreateFormCapsule;
+
+  /// Create substance screen. Form choice written to the item's existing form field.
+  ///
+  /// In en, this message translates to:
+  /// **'Softgel'**
+  String get screenCreateFormSoftgel;
+
+  /// Create substance screen. Form choice written to the item's existing form field.
+  ///
+  /// In en, this message translates to:
+  /// **'Powder'**
+  String get screenCreateFormPowder;
+
+  /// Create substance screen. The item record has no strength field; do not imply one was saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength belongs to a stock container. Add it from the substance overview after you save.'**
+  String get screenCreateStrengthLater;
+
+  /// Create substance screen. Schedule editing needs the saved item identity.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency and dose times are added from the substance overview after you save.'**
+  String get screenCreateScheduleLater;
+
+  /// Create substance screen. Stock editing needs the saved item identity.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening quantity, low-stock threshold and strength are added from the substance overview after you save.'**
+  String get screenCreateStockLater;
+
+  /// Create substance screen. Heading for unavailable free-text substance notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get screenCreateNotes;
+
+  /// Create substance screen. Truthful unavailable state; no note is saved or invented.
+  ///
+  /// In en, this message translates to:
+  /// **'Substance notes are not available in this version.'**
+  String get screenCreateNotesUnavailable;
+
+  /// Create substance screen. Badge marking a section that opens only once the item exists.
+  ///
+  /// In en, this message translates to:
+  /// **'After save'**
+  String get screenCreateAfterSave;
+
+  /// Create substance screen. Badge for a feature this version does not record.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get screenCreateUnavailable;
 }
 
 class _AppLocalizationsDelegate

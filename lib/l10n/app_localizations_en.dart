@@ -6101,4 +6101,50 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get stitchSnoozeUnavailable =>
       'Snooze is available when reminders are enabled for this schedule.';
+
+  @override
+  String get screenCreateDrafting => 'Drafting';
+
+  @override
+  String get screenCreateClassification => 'Classification';
+
+  @override
+  String get screenCreateIdentity => 'Identity';
+
+  @override
+  String get screenCreateFormHelp => 'Tap a common form or enter your own.';
+
+  @override
+  String get screenCreateFormCapsule => 'Capsule';
+
+  @override
+  String get screenCreateFormSoftgel => 'Softgel';
+
+  @override
+  String get screenCreateFormPowder => 'Powder';
+
+  @override
+  String get screenCreateStrengthLater =>
+      'Strength belongs to a stock container. Add it from the substance overview after you save.';
+
+  @override
+  String get screenCreateScheduleLater =>
+      'Frequency and dose times are added from the substance overview after you save.';
+
+  @override
+  String get screenCreateStockLater =>
+      'Opening quantity, low-stock threshold and strength are added from the substance overview after you save.';
+
+  @override
+  String get screenCreateNotes => 'Notes';
+
+  @override
+  String get screenCreateNotesUnavailable =>
+      'Substance notes are not available in this version.';
+
+  @override
+  String get screenCreateAfterSave => 'After save';
+
+  @override
+  String get screenCreateUnavailable => 'Unavailable';
 }
