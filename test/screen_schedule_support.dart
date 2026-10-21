@@ -18,6 +18,7 @@ openSchedule(
   WidgetTester tester, {
   DailyTiming timing = const AsNeeded(),
   bool saved = false,
+  List<PlanPause> pauses = const [],
 }) async {
   final f = await launch(tester);
   final item = (await runIo(
@@ -48,6 +49,7 @@ openSchedule(
           timing: timing,
           zoneBasis: const FollowingLocal(),
           calendar: const EveryDay(),
+          pauses: pauses,
         ),
       ),
     ))!;

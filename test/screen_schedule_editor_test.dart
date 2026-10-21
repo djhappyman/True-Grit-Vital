@@ -131,6 +131,28 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  for (final future in [true, false]) {
+    appTest('pause action reflects the current interval, future=$future', (
+      tester,
+    ) async {
+      final now = DateTime.now().toUtc();
+      await openSchedule(
+        tester,
+        saved: true,
+        timing: slotsTiming(),
+        pauses: [
+          PlanPause(
+            start: now.add(Duration(days: future ? 1 : -1)),
+            resume: future ? null : now.add(const Duration(days: 1)),
+          ),
+        ],
+      );
+      expect(find.text(future ? 'Pause' : 'Resume'), findsOneWidget);
+      expect(find.text(future ? 'Resume' : 'Pause'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   appTest('a changed plan revision blocks the stale save', (tester) async {
     final f = await openSchedule(
       tester,

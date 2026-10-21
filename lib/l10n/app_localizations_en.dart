@@ -6147,4 +6147,84 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get screenCreateUnavailable => 'Unavailable';
+
+  @override
+  String get screenScheduleSubtitle =>
+      'Set the days, times and amounts for this plan. Preview before saving.';
+
+  @override
+  String get screenScheduleNew => 'New plan';
+
+  @override
+  String get screenScheduleRecurrence => 'Recurrence';
+
+  @override
+  String get screenScheduleDates => 'Plan dates';
+
+  @override
+  String get screenScheduleDoseWindows => 'Dose windows';
+
+  @override
+  String get screenScheduleChosenTimes => 'Chosen times';
+
+  @override
+  String screenScheduleSlotCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count times',
+      one: '1 time',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String screenScheduleWindowCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count windows',
+      one: '1 window',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get screenScheduleTolerancePreview =>
+      'Timing tolerance is not available yet. This plan saves only the chosen time.';
+
+  @override
+  String get screenScheduleRequirements => 'Requirements';
+
+  @override
+  String get screenScheduleRequirementsBody =>
+      'Food and timing requirements are not available yet. Nothing from this preview is saved.';
+
+  @override
+  String get screenScheduleSaveFirst =>
+      'Save this plan before using pause or reminders.';
+
+  @override
+  String get screenScheduleAlerts => 'Reminders';
+
+  @override
+  String get screenScheduleAlertsMeta => 'Device support applies.';
+
+  @override
+  String get screenScheduleRemindersAfterSave =>
+      'Save this plan to set reminders. Alerts also depend on device support.';
+
+  @override
+  String get screenScheduleFollowUp => 'Follow-up';
+
+  @override
+  String get screenScheduleFollowUpBody =>
+      'Follow-up alerts are not available yet.';
+
+  @override
+  String get screenSchedulePreviewHelp =>
+      'Preview checks the next planned doses before saving.';
+
+  @override
+  String get screenSchedulePreviewResult => 'Planned doses';
 }

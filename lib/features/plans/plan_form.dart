@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-import '../../app/app_lock.dart';
 import '../../app/device_zone.dart';
 import '../../app/settings_toggle_row.dart';
 import '../../app/storage.dart';
@@ -75,7 +74,6 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
   DailyPlanVersion? preview;
   String? previewZone;
   ReminderClockSample? intervalClockSample;
-  String? _resumePath;
 
   @override
   DraftKind get entryKind => DraftKind.dailyPlan;
@@ -350,12 +348,6 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       ref.invalidate(itemPlansProvider);
       ref.invalidate(scopePlansProvider);
     }, successPath: '/today');
-    // commit keeps the completed path while locked writes are suspended. Mirror
-    // that resume point for this screen's own chrome.
-    if (mounted && !dirty && error == null) {
-      final store = await ref.read(recordStoreProvider.future);
-      if (store.writesSuspended) _resumePath = '/today';
-    }
   }
 
   void loadPlan(SavedDailyPlan saved) {
@@ -496,8 +488,9 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
           p.revision == capturedPersonRevision,
     );
     final enabled = valid && !busy && !uncertain && !conflict;
+    final now = DateTime.now().toUtc();
     final paused =
-        original?.plan.pauses.any((pause) => pause.resume == null) == true;
+        original?.plan.pauses.any((pause) => pause.contains(now)) == true;
     final strength = item!.catalogueSnapshot?.product.strength.trim() ?? '';
     final modeLabel = switch (mode) {
       'count' => t.planCount,
@@ -528,17 +521,11 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
           ],
         ),
       ),
-      Padding(
-        padding: const EdgeInsets.only(top: 8),
-        child: Text(
-          t.profileOwner(ownerLabel(ref, t, owner!.id)),
-          style: caption,
-        ),
-      ),
       if (!valid)
         Padding(
           padding: const EdgeInsets.only(top: 12),
           child: StitchSurface(
+            radius: VitalLayout.sectionRadius,
             inset: true,
             padding: const EdgeInsets.all(12),
             child: Semantics(
@@ -586,6 +573,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       const SizedBox(height: 16),
       if (mode == 'interval')
         StitchSurface(
+          radius: VitalLayout.sectionRadius,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -609,6 +597,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
         ),
       if (mode == 'count' || mode == 'mixed')
         StitchSurface(
+          radius: VitalLayout.sectionRadius,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -662,6 +651,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
             key: ValueKey(s.id),
             padding: const EdgeInsets.only(bottom: 12),
             child: StitchSurface(
+              radius: VitalLayout.sectionRadius,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -757,6 +747,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
         meta: original == null ? t.screenScheduleNew : t.saved,
       ),
       StitchSurface(
+        radius: VitalLayout.sectionRadius,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -780,6 +771,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       if (mode != 'prn' && mode != 'interval') ...[
         const SizedBox(height: 12),
         StitchSurface(
+          radius: VitalLayout.sectionRadius,
           child: CalendarEditor(
             fields: calendar,
             enabled: enabled,
@@ -790,6 +782,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       if (mode != 'prn') ...[
         const SizedBox(height: 12),
         StitchSurface(
+          radius: VitalLayout.sectionRadius,
           child: OnOffEditor(
             fields: blocks,
             enabled: enabled,
@@ -832,6 +825,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
         )
       else
         StitchSurface(
+          radius: VitalLayout.sectionRadius,
           inset: true,
           padding: const EdgeInsets.all(12),
           child: Text(
@@ -850,6 +844,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       SchedulePreviewNote(body: t.screenScheduleRequirementsBody),
       const SizedBox(height: 20),
       StitchSurface(
+        radius: VitalLayout.sectionRadius,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -916,6 +911,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       ),
       if (valid && original != null)
         StitchSurface(
+          radius: VitalLayout.sectionRadius,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -955,6 +951,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
         Padding(
           padding: const EdgeInsets.only(top: 12),
           child: StitchSurface(
+            radius: VitalLayout.sectionRadius,
             inset: true,
             child: preview!.timing is ElapsedInterval
                 ? IntervalPlanPreview(
@@ -991,72 +988,18 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     ]);
   }
 
-  /// Keeps the durable draft, lock and generation guards from the base form
-  /// while replacing the generic panelled page with the schedule composition.
   @override
-  Widget wrap(List<Widget> children) {
+  Widget buildEntryPage(List<Widget> children) {
     final t = AppLocalizations.of(context);
-    final operation = commandId == null
-        ? null
-        : ref.watch(draftOperationStatusProvider(commandId!)).value;
-    if (operation == DraftOperationStatus.invalidated) {
-      dirty = false;
-      conflict = true;
-      return _scheduleUnavailable(draftUnavailableMessage);
-    }
-    final currentGeneration = ref.watch(recordStoreProvider).value?.generation;
-    if (capturedGeneration != null &&
-        currentGeneration != null &&
-        currentGeneration != capturedGeneration) {
-      dirty = false;
-      conflict = true;
-      return _scheduleUnavailable(draftUnavailableMessage);
-    }
-    ref.listen(appLockProvider, (previous, next) {
-      if (!next.locked && _resumePath != null) {
-        final path = _resumePath!;
-        _resumePath = null;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) context.go(path);
-        });
-      }
-    });
-    return PopScope(
-      canPop: !dirty && !busy && !uncertain,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) leave();
-      },
-      child: SchedulePageScaffold(
-        onBack: leave,
-        badge: StitchBadge(
-          original == null ? t.screenScheduleNew : t.saved,
-          dot: original != null,
-        ),
-        children: [
-          if (draftFailed)
-            Semantics(
-              liveRegion: true,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(draftFailureMessage),
-              ),
-            ),
-          if (draftFailed)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: VitalButton.secondary(
-                onPressed: busy ? null : persistEntry,
-                child: Text(t.retry),
-              ),
-            ),
-          ...children,
-        ],
+    return SchedulePageScaffold(
+      onBack: leave,
+      badge: StitchBadge(
+        original == null ? t.screenScheduleNew : t.saved,
+        dot: original != null,
       ),
+      children: children,
     );
   }
-
-  Widget _scheduleUnavailable(String message) =>
-      SchedulePageScaffold(onBack: leave, children: [Text(message)]);
 }
 
 String wallLabel(WallTime time) =>

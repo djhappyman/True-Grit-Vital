@@ -17,6 +17,11 @@ import 'package:true_grit_vital/platform/app_auth.dart';
 
 import 'vital_app_test.dart' show appTest, settle, tap, runIo;
 
+Finder createField(String label) => find.descendant(
+  of: find.widgetWithText(LabelledInput, label),
+  matching: find.byType(TextField),
+);
+
 class FakeAuth implements AppAuthGateway {
   AppAuthAvailability capability = AppAuthAvailability.available;
   AppAuthResult result = AppAuthResult.authenticated;
@@ -150,13 +155,13 @@ void main() {
       await tap(tester, 'Substances');
       await tap(tester, 'Create');
       await tester.enterText(
-        find.byType(TextField).first,
+        createField('Full name'),
         'Private unfinished substance',
       );
       await settle(tester);
       final command = (await runIo(tester, f.store.drafts))!.single.operationId;
       await tester.enterText(
-        find.byType(TextField).first,
+        createField('Full name'),
         'Private unfinished substance latest',
       );
       f.container
@@ -183,9 +188,11 @@ void main() {
         (await runIo(tester, f.store.drafts))!.single.operationId,
         command,
       );
-      await tester.enterText(find.byType(TextField).at(1), 'tablet');
+      await tester.ensureVisible(createField('Form'));
+      await tester.enterText(createField('Form'), 'tablet');
       await tap(tester, 'mg');
-      await tester.enterText(find.byType(TextField).at(2), 'medicine');
+      await tester.ensureVisible(createField('Type'));
+      await tester.enterText(createField('Type'), 'medicine');
       await tap(tester, 'Create');
       expect(
         (await runIo(tester, f.store.items))!.single.name,
@@ -225,7 +232,7 @@ void main() {
       await tap(tester, 'Substances');
       await tap(tester, 'Create');
       await tester.enterText(
-        find.byType(TextField).first,
+        createField('Full name'),
         'Survives router restart',
       );
       await settle(tester);
@@ -309,10 +316,7 @@ void main() {
       final f = await fixture(tester);
       await tap(tester, 'Substances');
       await tap(tester, 'Create');
-      await tester.enterText(
-        find.byType(TextField).first,
-        'Deleted private draft',
-      );
+      await tester.enterText(createField('Full name'), 'Deleted private draft');
       await settle(tester);
       await runIo(
         tester,

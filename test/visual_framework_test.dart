@@ -157,6 +157,9 @@ void main() {
             // Personal type choices have their own asynchronous query.
             await waitForText(tester, 'Supplement');
           }
+          if (route.key == 'schedule') {
+            await waitForText(tester, 'RECURRENCE');
+          }
           if (route.key == 'today') {
             final loaded = Stopwatch()..start();
             while (find.byType(DailyRowCard).evaluate().length < items.length) {

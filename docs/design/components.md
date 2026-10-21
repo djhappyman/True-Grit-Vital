@@ -29,7 +29,7 @@ The owner selected the strongest components from the [Stitch references](stitch/
 | `VitalDialog` | Bounded dialog with scrolling content and reachable actions. |
 | `VitalType`, `VitalLayout` | Semantic typography and shared spacing/geometry. |
 
-`EntryPage`, `Heading` and `PageContent` remain compatibility adapters for existing features. New features should use the shared UI entry point directly. Settings retain their established semantic navigation/toggle rows within `VitalPanel` groups.
+`EntryPage`, `Heading` and `PageContent` remain compatibility adapters for existing features. Durable forms can override `buildEntryPage(children)` to compose their page chrome while keeping draft, lock, generation, safe-exit and deferred post-save navigation in `DurableFormState.wrap`; do not copy those guards into a screen. New features should use the shared UI entry point directly. Settings retain their established semantic navigation/toggle rows within `VitalPanel` groups.
 
 `VitalComponentThemes` gives native shadcn text fields the shared inset fill and section radius. Input borders and focus rings remain visible; screens should inherit this styling rather than set their own field decoration.
 

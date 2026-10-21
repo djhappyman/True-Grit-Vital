@@ -9635,6 +9635,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unavailable'**
   String get screenCreateUnavailable;
+
+  /// Schedule editor subline. Describes the task without clinical claims.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the days, times and amounts for this plan. Preview before saving.'**
+  String get screenScheduleSubtitle;
+
+  /// Status badge for a schedule that has no saved version yet.
+  ///
+  /// In en, this message translates to:
+  /// **'New plan'**
+  String get screenScheduleNew;
+
+  /// Section heading for the six real cadence choices.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurrence'**
+  String get screenScheduleRecurrence;
+
+  /// Section heading for the effective start and optional end.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan dates'**
+  String get screenScheduleDates;
+
+  /// Section heading for the explicitly chosen planned times.
+  ///
+  /// In en, this message translates to:
+  /// **'Dose windows'**
+  String get screenScheduleDoseWindows;
+
+  /// Section heading for explicitly entered times within a partly timed plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Chosen times'**
+  String get screenScheduleChosenTimes;
+
+  /// The number of entered planned times, not recorded doses.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 time} other{{count} times}}'**
+  String screenScheduleSlotCount(int count);
+
+  /// The number of entered time windows.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 window} other{{count} windows}}'**
+  String screenScheduleWindowCount(int count);
+
+  /// Labelled preview inside a time slot. No tolerance rule is stored or promised.
+  ///
+  /// In en, this message translates to:
+  /// **'Timing tolerance is not available yet. This plan saves only the chosen time.'**
+  String get screenScheduleTolerancePreview;
+
+  /// Section heading for the unavailable food and timing requirements.
+  ///
+  /// In en, this message translates to:
+  /// **'Requirements'**
+  String get screenScheduleRequirements;
+
+  /// Explicit preview state. Does not offer clinical advice or save example requirements.
+  ///
+  /// In en, this message translates to:
+  /// **'Food and timing requirements are not available yet. Nothing from this preview is saved.'**
+  String get screenScheduleRequirementsBody;
+
+  /// Explains why pause and reminder actions are unavailable on a new plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this plan before using pause or reminders.'**
+  String get screenScheduleSaveFirst;
+
+  /// Section heading for plan reminder controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get screenScheduleAlerts;
+
+  /// Short caveat beside the reminder section. Does not promise delivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Device support applies.'**
+  String get screenScheduleAlertsMeta;
+
+  /// Reminder placeholder before a plan has a saved revision.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this plan to set reminders. Alerts also depend on device support.'**
+  String get screenScheduleRemindersAfterSave;
+
+  /// Label for the unavailable follow-up reminder preview row.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up'**
+  String get screenScheduleFollowUp;
+
+  /// Truthful preview state for a capability that is not implemented.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up alerts are not available yet.'**
+  String get screenScheduleFollowUpBody;
+
+  /// Explains the required preview step before saving a schedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview checks the next planned doses before saving.'**
+  String get screenSchedulePreviewHelp;
+
+  /// Heading for the preview result, distinct from the Preview action.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned doses'**
+  String get screenSchedulePreviewResult;
 }
 
 class _AppLocalizationsDelegate

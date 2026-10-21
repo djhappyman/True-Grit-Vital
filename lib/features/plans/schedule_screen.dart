@@ -177,6 +177,7 @@ class ScheduleIdentityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = StitchColors(context);
     return StitchSurface(
+      radius: VitalLayout.sectionRadius,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -186,7 +187,7 @@ class ScheduleIdentityCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: StitchType.heading.copyWith(color: c.ink)),
+                Text(name, style: StitchType.name.copyWith(color: c.ink)),
                 const SizedBox(height: 4),
                 Text(detail, style: StitchType.body.copyWith(color: c.muted)),
                 if (badge case final value?) ...[
@@ -220,6 +221,7 @@ class SchedulePreviewNote extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = StitchColors(context);
     return StitchSurface(
+      radius: VitalLayout.sectionRadius,
       inset: true,
       padding: const EdgeInsets.all(12),
       child: Column(

@@ -985,6 +985,10 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
   /// Whether the compatibility page supplies its own panel around [wrap]'s
   /// children. A composition that provides explicit cards sets this false.
   bool get entryPanelled => true;
+
+  /// Override page composition while retaining the shared draft and lock guards.
+  Widget buildEntryPage(List<Widget> children) =>
+      EntryPage(onBack: leave, panelled: entryPanelled, children: children);
   int? get entryTargetRevision => null;
 
   /// Optional mode suffix of a form that hosts more than one command over the
@@ -1238,20 +1242,16 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) leave();
       },
-      child: EntryPage(
-        onBack: leave,
-        panelled: entryPanelled,
-        children: [
-          if (draftFailed)
-            Semantics(liveRegion: true, child: Text(draftFailureMessage)),
-          if (draftFailed)
-            VitalButton.secondary(
-              onPressed: busy ? null : persistEntry,
-              child: Text(AppLocalizations.of(context).retry),
-            ),
-          ...children,
-        ],
-      ),
+      child: buildEntryPage([
+        if (draftFailed)
+          Semantics(liveRegion: true, child: Text(draftFailureMessage)),
+        if (draftFailed)
+          VitalButton.secondary(
+            onPressed: busy ? null : persistEntry,
+            child: Text(AppLocalizations.of(context).retry),
+          ),
+        ...children,
+      ]),
     );
   }
 
