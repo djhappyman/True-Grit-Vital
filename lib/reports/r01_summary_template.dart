@@ -433,7 +433,10 @@ final class R01SummaryRenderer implements ReportTemplateRenderer {
 
   List<pw.Widget> _contextBlock(ReportSnapshot snapshot, bool use24Hour) {
     final selection = snapshot.selection;
-    if (!selection.includeSupporting && !selection.includeAttachments) {
+    final details = ReportText.itemDetailLines(snapshot);
+    if (!selection.includeSupporting &&
+        !selection.includeAttachments &&
+        details.isEmpty) {
       return [
         pw.Text(
           'Supporting records and source files were not included in this report.',
@@ -505,6 +508,22 @@ final class R01SummaryRenderer implements ReportTemplateRenderer {
               style: pw.TextStyle(fontSize: 8.5, color: _graphite),
             ),
           );
+      }
+    }
+    if (details.isNotEmpty) {
+      content
+        ..add(pw.SizedBox(height: 10))
+        ..add(
+          pw.Text(
+            details.first,
+            style: pw.TextStyle(fontSize: 10, color: _graphite),
+          ),
+        )
+        ..add(pw.SizedBox(height: 4));
+      for (final line in details.skip(1)) {
+        content.add(
+          pw.Text(line, style: pw.TextStyle(fontSize: 8.5, color: _graphite)),
+        );
       }
     }
     if (selection.includeAttachments) {

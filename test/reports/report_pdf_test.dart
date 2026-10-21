@@ -123,6 +123,65 @@ void main() {
     }
   });
 
+  test('R01 renders authored details only when notes are selected', () async {
+    final record = ReportRecord.fromUseRecord(
+      _record(
+        id: 'detail',
+        name: 'Detail substance',
+        type: 'Medicine',
+        unit: 'mg',
+        at: DateTime.utc(2026, 10, 1, 8),
+      ),
+    );
+    const instructions = 'Use the labelled amount: 0.125 mg.';
+    const notes = 'Private note kept word for word.';
+    final shown = ReportSnapshot.build(
+      selection: ReportSelection(
+        personId: 'me',
+        fromDate: CivilDate(2026, 10, 1),
+        beforeDate: CivilDate(2026, 11, 1),
+        displayZone: 'UTC',
+        includeNotes: true,
+      ),
+      cutoff: _cutoff(DateTime.utc(2026, 10, 20, 12)),
+      person: const ReportPerson(id: 'me', name: 'Synthetic Person'),
+      records: [record],
+      itemDetails: {
+        record.itemId: const ReportItemDetail(
+          instructions: instructions,
+          notes: notes,
+        ),
+      },
+    );
+    final rendered = await const R01SummaryRenderer().render(
+      shown,
+      use24Hour: true,
+    );
+    final shownText = (await _pageTexts(rendered.bytes)).join('\n');
+    expect(shownText, contains('Substance details'));
+    expect(shownText, contains(instructions));
+    expect(shownText, contains(notes));
+
+    final hidden = ReportSnapshot.build(
+      selection: ReportSelection(
+        personId: 'me',
+        fromDate: CivilDate(2026, 10, 1),
+        beforeDate: CivilDate(2026, 11, 1),
+        displayZone: 'UTC',
+      ),
+      cutoff: _cutoff(DateTime.utc(2026, 10, 20, 12)),
+      person: const ReportPerson(id: 'me', name: 'Synthetic Person'),
+      records: [record],
+    );
+    final hiddenRender = await const R01SummaryRenderer().render(
+      hidden,
+      use24Hour: true,
+    );
+    final hiddenText = (await _pageTexts(hiddenRender.bytes)).join('\n');
+    expect(hiddenText, isNot(contains(instructions)));
+    expect(hiddenText, isNot(contains(notes)));
+  });
+
   test(
     'R01 repeats ledger headings on each page of long wrapped rows',
     () async {

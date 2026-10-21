@@ -7241,6 +7241,111 @@
   "@stitchSnoozeUnavailable": {
     "description": "Truthful unavailable-state explanation; does not promise native delivery."
   },
+  "featureSetupTitle": "Setup",
+  "@featureSetupTitle": {
+    "description": "Heading for the optional steps after identity creation."
+  },
+  "featureSetupNextTitle": "Next steps",
+  "@featureSetupNextTitle": {
+    "description": "Identity form card heading for the optional setup steps."
+  },
+  "featureSetupNextBody": "Save this identity first. Schedule, stock and details are separate optional steps and nothing is assumed.",
+  "@featureSetupNextBody": {
+    "description": "Explains that identity saves first and no plan, stock or note is created automatically."
+  },
+  "featureSetupOptional": "Optional",
+  "@featureSetupOptional": {
+    "description": "Badge for optional setup steps."
+  },
+  "featureSetupIdentitySaved": "{detail} saved.",
+  "@featureSetupIdentitySaved": {
+    "description": "Confirms the identity is committed before optional steps.",
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "featureSetupIdentityHelp": "The substance is saved. The next steps are optional and can be resumed later.",
+  "@featureSetupIdentityHelp": {
+    "description": "Explains that identity is committed and later steps are optional."
+  },
+  "featureSetupScheduleHelp": "Add a schedule now or skip this step.",
+  "@featureSetupScheduleHelp": {
+    "description": "Help for the optional schedule step."
+  },
+  "featureSetupStockHelp": "Add opening stock now or skip this step.",
+  "@featureSetupStockHelp": {
+    "description": "Help for the optional opening stock step."
+  },
+  "featureSetupDetailsHelp": "Instructions and private notes stay on this device.",
+  "@featureSetupDetailsHelp": {
+    "description": "Help for the optional details step."
+  },
+  "featureSetupContinue": "Continue",
+  "@featureSetupContinue": {
+    "description": "Button that resumes optional setup."
+  },
+  "featureSetupContinueHelp": "Continue where you left off.",
+  "@featureSetupContinueHelp": {
+    "description": "Explains the resumable setup card on the overview."
+  },
+  "featureSetupSkip": "Skip",
+  "@featureSetupSkip": {
+    "description": "Explicitly skips one optional setup step."
+  },
+  "featureSetupSkipped": "Skipped",
+  "@featureSetupSkipped": {
+    "description": "Badge for an explicitly skipped step."
+  },
+  "featureSetupAdded": "Added",
+  "@featureSetupAdded": {
+    "description": "Badge for a step whose real record exists."
+  },
+  "featureSetupFinish": "Finish",
+  "@featureSetupFinish": {
+    "description": "Completes the optional setup marker."
+  },
+  "featureSetupDetails": "Details",
+  "@featureSetupDetails": {
+    "description": "Heading for authored instructions and private notes."
+  },
+  "featureSetupNoDetails": "No details added",
+  "@featureSetupNoDetails": {
+    "description": "Empty state for substance details."
+  },
+  "featureSetupNoDetailsHelp": "Add your own instructions or a private note.",
+  "@featureSetupNoDetailsHelp": {
+    "description": "Empty state help for substance details."
+  },
+  "featureSetupDetailsFormHelp": "These are your own words. The app does not interpret them or suggest a dose.",
+  "@featureSetupDetailsFormHelp": {
+    "description": "Explains that authored details are not medical advice."
+  },
+  "featureSetupInstructions": "Instructions",
+  "@featureSetupInstructions": {
+    "description": "Label for user-authored instructions."
+  },
+  "featureSetupInstructionsHelp": "Kept exactly as written. This is not medical advice.",
+  "@featureSetupInstructionsHelp": {
+    "description": "Instructions field help that preserves the entered text without advice."
+  },
+  "featureSetupNotes": "Private notes",
+  "@featureSetupNotes": {
+    "description": "Label for user-authored private notes."
+  },
+  "featureSetupNotesHelp": "Included in reports and exports only when notes are selected.",
+  "@featureSetupNotesHelp": {
+    "description": "Explains the explicit private-content selection for notes."
+  },
+  "featureSetupSave": "Save",
+  "@featureSetupSave": {
+    "description": "Saves substance details."
+  },
+  "featureSetupDetailsTooLong": "Keep instructions and notes within 8000 characters each.",
+  "@featureSetupDetailsTooLong": {
+    "description": "Validation when authored details exceed the stored bound."
+  },
   "screenCreateDrafting": "Drafting",
   "@screenCreateDrafting": {
     "description": "Create substance screen. A local encrypted draft is kept while this form is unfinished."

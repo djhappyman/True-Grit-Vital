@@ -9765,6 +9765,156 @@ abstract class AppLocalizations {
   /// **'Snooze is available when reminders are enabled for this schedule.'**
   String get stitchSnoozeUnavailable;
 
+  /// Heading for the optional steps after identity creation.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup'**
+  String get featureSetupTitle;
+
+  /// Identity form card heading for the optional setup steps.
+  ///
+  /// In en, this message translates to:
+  /// **'Next steps'**
+  String get featureSetupNextTitle;
+
+  /// Explains that identity saves first and no plan, stock or note is created automatically.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this identity first. Schedule, stock and details are separate optional steps and nothing is assumed.'**
+  String get featureSetupNextBody;
+
+  /// Badge for optional setup steps.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get featureSetupOptional;
+
+  /// Confirms the identity is committed before optional steps.
+  ///
+  /// In en, this message translates to:
+  /// **'{detail} saved.'**
+  String featureSetupIdentitySaved(String detail);
+
+  /// Explains that identity is committed and later steps are optional.
+  ///
+  /// In en, this message translates to:
+  /// **'The substance is saved. The next steps are optional and can be resumed later.'**
+  String get featureSetupIdentityHelp;
+
+  /// Help for the optional schedule step.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a schedule now or skip this step.'**
+  String get featureSetupScheduleHelp;
+
+  /// Help for the optional opening stock step.
+  ///
+  /// In en, this message translates to:
+  /// **'Add opening stock now or skip this step.'**
+  String get featureSetupStockHelp;
+
+  /// Help for the optional details step.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructions and private notes stay on this device.'**
+  String get featureSetupDetailsHelp;
+
+  /// Button that resumes optional setup.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get featureSetupContinue;
+
+  /// Explains the resumable setup card on the overview.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue where you left off.'**
+  String get featureSetupContinueHelp;
+
+  /// Explicitly skips one optional setup step.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get featureSetupSkip;
+
+  /// Badge for an explicitly skipped step.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get featureSetupSkipped;
+
+  /// Badge for a step whose real record exists.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get featureSetupAdded;
+
+  /// Completes the optional setup marker.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get featureSetupFinish;
+
+  /// Heading for authored instructions and private notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get featureSetupDetails;
+
+  /// Empty state for substance details.
+  ///
+  /// In en, this message translates to:
+  /// **'No details added'**
+  String get featureSetupNoDetails;
+
+  /// Empty state help for substance details.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your own instructions or a private note.'**
+  String get featureSetupNoDetailsHelp;
+
+  /// Explains that authored details are not medical advice.
+  ///
+  /// In en, this message translates to:
+  /// **'These are your own words. The app does not interpret them or suggest a dose.'**
+  String get featureSetupDetailsFormHelp;
+
+  /// Label for user-authored instructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructions'**
+  String get featureSetupInstructions;
+
+  /// Instructions field help that preserves the entered text without advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Kept exactly as written. This is not medical advice.'**
+  String get featureSetupInstructionsHelp;
+
+  /// Label for user-authored private notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Private notes'**
+  String get featureSetupNotes;
+
+  /// Explains the explicit private-content selection for notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Included in reports and exports only when notes are selected.'**
+  String get featureSetupNotesHelp;
+
+  /// Saves substance details.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get featureSetupSave;
+
+  /// Validation when authored details exceed the stored bound.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep instructions and notes within 8000 characters each.'**
+  String get featureSetupDetailsTooLong;
+
   /// Create substance screen. A local encrypted draft is kept while this form is unfinished.
   ///
   /// In en, this message translates to:

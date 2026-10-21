@@ -210,7 +210,7 @@ void main() {
           db.select('SELECT count(*) c FROM attachment_chunk').single['c'],
           1,
         );
-        expect(db.select('PRAGMA user_version').single.values.single, 21);
+        expect(db.select('PRAGMA user_version').single.values.single, 22);
       } finally {
         db.close();
       }
@@ -251,6 +251,65 @@ void main() {
     expect(live.generation, generation);
     expect(await live.records(), isNotEmpty);
   });
+
+  test(
+    'restore keeps authored details and retires local setup progress',
+    () async {
+      final person = (await live.profileById(meId))!;
+      const instructions = 'Keep the labelled amount: 0.125 mg.';
+      const notes = 'Private note inside the restored archive.';
+      final item = await live.createItem(
+        commandId: 'detail-restore-item',
+        personId: meId,
+        expectedPersonRevision: person.revision,
+        name: 'Restored detail substance',
+        form: 'Tablet',
+        unit: 'mg',
+        type: 'Medicine',
+      );
+      await live.saveItemDetail(
+        commandId: 'detail-restore-save',
+        itemId: item.id,
+        instructions: instructions,
+        notes: notes,
+        expectedRevision: null,
+        expectedPersonRevision: person.revision,
+      );
+      await live.updateItemSetup(
+        commandId: 'detail-restore-setup',
+        itemId: item.id,
+        expectedPersonRevision: person.revision,
+        skipSchedule: true,
+      );
+
+      final snapshot = await live.createBackupSnapshot(
+        directory: Directory('${directory.path}/details-backup'),
+        sessionId: 'detail-restore',
+      );
+      await live.releaseBackupPins('detail-restore');
+      await live.close();
+      live = await openFixtureStore(livePath);
+      await live.prepareRestoredDatabase(
+        stagedPath: snapshot.path,
+        rekeyTo: (_) async {},
+      );
+
+      final restored = await openFixtureStore(snapshot.path);
+      try {
+        final detail = (await restored.itemDetail(item.id))!;
+        expect(detail.instructions, instructions);
+        expect(detail.notes, notes);
+        expect(detail.revision, 1);
+        expect(
+          await restored.itemSetup(item.id),
+          isNull,
+          reason: 'unfinished local setup is not portable archive content',
+        );
+      } finally {
+        await restored.close();
+      }
+    },
+  );
 
   test('rejects a staged snapshot with broken ownership or links', () async {
     final before = live.generation;

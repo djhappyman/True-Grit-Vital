@@ -41,6 +41,8 @@ import '../features/profiles/profile_pages.dart';
 import '../features/recording/record_pages.dart';
 import '../features/recording/combined_pages.dart';
 import '../features/substances/substance_overview.dart';
+import '../features/substances/item_details_form.dart';
+import '../features/substances/item_setup_page.dart';
 import '../features/settings/diagnostic_pages.dart';
 import '../features/settings/help_pages.dart';
 import '../features/settings/privacy_pages.dart';
@@ -568,6 +570,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/substance/:id',
         builder: (_, state) => StorageGate(
           child: SubstanceOverviewPage(itemId: state.pathParameters['id']!),
+        ),
+      ),
+      vitalRoute(
+        path: '/substance/:id/details',
+        builder: (_, state) => StorageGate(
+          child: ItemDetailsForm(itemId: state.pathParameters['id']!),
+        ),
+      ),
+      vitalRoute(
+        path: '/substance/:id/setup',
+        builder: (_, state) => StorageGate(
+          child: ItemSetupPage(itemId: state.pathParameters['id']!),
         ),
       ),
     ],

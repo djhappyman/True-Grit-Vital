@@ -24,6 +24,7 @@ enum DraftKind {
   labPanel,
   supportingObservation,
   supportingVoid,
+  itemDetails,
 }
 
 final class OrdinaryDraft {
@@ -41,6 +42,7 @@ final class OrdinaryDraft {
   }) : fields = Map.unmodifiable(fields) {
     final allowed = switch (kind) {
       DraftKind.supportingVoid => {'isVoided'},
+      DraftKind.itemDetails => {'instructions', 'notes'},
       DraftKind.attachmentRename => {'name', 'frozen'},
       DraftKind.labPanel ||
       DraftKind.supportingObservation => {'payload', 'frozen'},
@@ -316,6 +318,7 @@ final class OrdinaryDraft {
     DraftKind.combinedCorrection =>
       '/combined/$personId/edit/$targetId${fields['voided'] == 'true' ? '?undo=true' : ''}',
     DraftKind.item => '/create?person=$personId',
+    DraftKind.itemDetails => '/substance/$targetId/details',
     DraftKind.productLabel => '/products/$personId/label/$targetId',
     DraftKind.itemType =>
       '/types/$personId/edit${targetId == null ? '' : '?type=$targetId'}',

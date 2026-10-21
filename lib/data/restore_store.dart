@@ -144,6 +144,7 @@ extension RestoreRecordStore on RecordStore {
           'UPDATE operation SET payload=\'[]\',result=\'{"invalidated":true}\'',
         );
         await staged._db.customStatement('DELETE FROM ordinary_draft');
+        await staged._db.customStatement('DELETE FROM item_setup');
         await staged._db.customStatement('DELETE FROM reminder_pending');
         await staged._db.customStatement('DELETE FROM reminder_request');
         await staged._db.customStatement('DELETE FROM event_pending');

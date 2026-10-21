@@ -124,12 +124,21 @@ extension ExportRecordStore on RecordStore {
       return (a['revision'] as int).compareTo(b['revision'] as int);
     });
     final revisions = <ExportDoseRevision>[];
+    final details = selection.includeNotes
+        ? await _itemDetailsFor(
+            result.map((row) => row['item'] as String),
+            selection.personId,
+          )
+        : const <String, SubstanceDetail>{};
     var estimated = 4096;
     for (final row in result) {
       cancellation?.throwIfCancelled();
+      final detail = details[row['item'] as String];
       final revision = ExportDoseRevision.fromRecord(
         _record(row),
         currentRevision: row['current_revision'] as int,
+        itemInstructions: detail?.instructions,
+        itemNotes: detail?.notes,
       );
       estimated += utf8.encode(jsonEncode(revision.toJson())).length + 2;
       if (estimated > limits.maxBytes) {

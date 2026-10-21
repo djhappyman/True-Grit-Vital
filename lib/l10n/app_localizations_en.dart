@@ -6274,6 +6274,93 @@ class AppLocalizationsEn extends AppLocalizations {
       'Snooze is available when reminders are enabled for this schedule.';
 
   @override
+  String get featureSetupTitle => 'Setup';
+
+  @override
+  String get featureSetupNextTitle => 'Next steps';
+
+  @override
+  String get featureSetupNextBody =>
+      'Save this identity first. Schedule, stock and details are separate optional steps and nothing is assumed.';
+
+  @override
+  String get featureSetupOptional => 'Optional';
+
+  @override
+  String featureSetupIdentitySaved(String detail) {
+    return '$detail saved.';
+  }
+
+  @override
+  String get featureSetupIdentityHelp =>
+      'The substance is saved. The next steps are optional and can be resumed later.';
+
+  @override
+  String get featureSetupScheduleHelp =>
+      'Add a schedule now or skip this step.';
+
+  @override
+  String get featureSetupStockHelp =>
+      'Add opening stock now or skip this step.';
+
+  @override
+  String get featureSetupDetailsHelp =>
+      'Instructions and private notes stay on this device.';
+
+  @override
+  String get featureSetupContinue => 'Continue';
+
+  @override
+  String get featureSetupContinueHelp => 'Continue where you left off.';
+
+  @override
+  String get featureSetupSkip => 'Skip';
+
+  @override
+  String get featureSetupSkipped => 'Skipped';
+
+  @override
+  String get featureSetupAdded => 'Added';
+
+  @override
+  String get featureSetupFinish => 'Finish';
+
+  @override
+  String get featureSetupDetails => 'Details';
+
+  @override
+  String get featureSetupNoDetails => 'No details added';
+
+  @override
+  String get featureSetupNoDetailsHelp =>
+      'Add your own instructions or a private note.';
+
+  @override
+  String get featureSetupDetailsFormHelp =>
+      'These are your own words. The app does not interpret them or suggest a dose.';
+
+  @override
+  String get featureSetupInstructions => 'Instructions';
+
+  @override
+  String get featureSetupInstructionsHelp =>
+      'Kept exactly as written. This is not medical advice.';
+
+  @override
+  String get featureSetupNotes => 'Private notes';
+
+  @override
+  String get featureSetupNotesHelp =>
+      'Included in reports and exports only when notes are selected.';
+
+  @override
+  String get featureSetupSave => 'Save';
+
+  @override
+  String get featureSetupDetailsTooLong =>
+      'Keep instructions and notes within 8000 characters each.';
+
+  @override
   String get screenCreateDrafting => 'Drafting';
 
   @override

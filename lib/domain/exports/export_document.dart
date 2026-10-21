@@ -65,11 +65,15 @@ final class ExportDoseRevision {
     this.productSnapshot,
     this.labelledStrength,
     this.replacement,
+    this.itemInstructions,
+    this.itemNotes,
   });
 
   factory ExportDoseRevision.fromRecord(
     UseRecord record, {
     required int currentRevision,
+    String? itemInstructions,
+    String? itemNotes,
   }) => ExportDoseRevision(
     recordId: record.id,
     itemId: record.itemId,
@@ -93,6 +97,8 @@ final class ExportDoseRevision {
     productSnapshot: record.product,
     labelledStrength: record.labelledStrength,
     replacement: record.replacement,
+    itemInstructions: itemInstructions,
+    itemNotes: itemNotes,
   );
 
   final String recordId, itemId, itemName, itemForm, itemType, primaryUnit;
@@ -107,6 +113,10 @@ final class ExportDoseRevision {
   final ProductAdministrationSnapshot? productSnapshot;
   final LabelledStrength? labelledStrength;
   final StockReplacement? replacement;
+
+  /// Authored item detail. Both stay null unless private notes were selected
+  /// for this export and the substance has saved text.
+  final String? itemInstructions, itemNotes;
 
   bool get isCurrent => revision == currentRevision;
   DateTime? get correctedAt => revision == 1 ? null : enteredAt;
@@ -130,6 +140,8 @@ final class ExportDoseRevision {
       'form': itemForm,
       'type': itemType,
       'primaryUnit': primaryUnit,
+      'instructions': itemInstructions,
+      'notes': itemNotes,
     },
     'revision': revision,
     'isCurrent': isCurrent,
@@ -346,6 +358,6 @@ const _semantics = <String, String>{
   'times': 'Instants are ISO 8601 UTC. fromDay is inclusive and beforeDay is exclusive in selection.timeZone.',
   'provenance': 'source is unspecified, selfReported or recordedOnBehalf. Catalogue, product, strength and site values are immutable snapshots saved with the revision.',
   'corrections': 'Every saved revision is included. Revision 1 enteredAt is the original entry time. Later enteredAt values are correction times. isCurrent marks the revision used by the app.',
-  'privacy': 'Only the selected adult is exported. Supporting notes appear only when notesIncluded is true. File attachments and their internal references are never included.',
+  'privacy': 'Only the selected adult is exported. Supporting notes and authored substance instructions and notes appear only when notesIncluded is true. File attachments and their internal references are never included.',
   'omissions': 'Supporting records whose collection date is unknown or partial have no positionable date inside the selected range and are excluded. omissions.collectionDateUnknownOrPartial discloses how many were omitted, never their content. counted false means they exceeded the bounded counting window and records is null.',
 };

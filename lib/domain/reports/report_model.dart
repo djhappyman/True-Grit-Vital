@@ -148,6 +148,13 @@ final class ReportSupportingValue {
   final String? unit, referenceRange;
 }
 
+/// Authored substance text captured only when private notes are selected.
+final class ReportItemDetail {
+  const ReportItemDetail({this.instructions = '', this.notes = ''});
+  final String instructions, notes;
+  bool get isEmpty => instructions.isEmpty && notes.isEmpty;
+}
+
 /// Truthful disclosure of the supporting records left out of the selected
 /// collection-date window because their collection date is unknown or partial.
 ///
@@ -210,11 +217,13 @@ final class ReportSnapshot {
     required Iterable<ReportSupportingEntry> supporting,
     required Iterable<ReportAttachmentRef> attachments,
     required this.supportingTruncated,
+    Map<String, ReportItemDetail> itemDetails = const {},
     this.supportingOmission,
     this.templateData,
   }) : records = List.unmodifiable(records),
        supporting = List.unmodifiable(supporting),
        attachments = List.unmodifiable(attachments),
+       itemDetails = Map.unmodifiable(itemDetails),
        totals = ReportTotals.build(records);
 
   factory ReportSnapshot.build({
@@ -225,6 +234,7 @@ final class ReportSnapshot {
     Iterable<ReportSupportingEntry> supporting = const [],
     Iterable<ReportAttachmentRef> attachments = const [],
     bool supportingTruncated = false,
+    Map<String, ReportItemDetail> itemDetails = const {},
     ReportSupportingOmission? supportingOmission,
     ReportTemplateData? templateData,
   }) {
@@ -237,7 +247,14 @@ final class ReportSnapshot {
     if (supportingOmission != null && !selection.includeSupporting) {
       throw const ReportSelectionFailure('report_supporting_omission');
     }
+    if (itemDetails.isNotEmpty && !selection.includeNotes) {
+      throw const ReportSelectionFailure('report_item_details');
+    }
     final all = records.toList();
+    final recordItems = all.map((record) => record.itemId).toSet();
+    if (itemDetails.keys.any((itemId) => !recordItems.contains(itemId))) {
+      throw const ReportSelectionFailure('report_item_details');
+    }
     return ReportSnapshot._(
       selection: selection,
       cutoff: cutoff,
@@ -246,6 +263,7 @@ final class ReportSnapshot {
       supporting: supporting,
       attachments: attachments,
       supportingTruncated: supportingTruncated,
+      itemDetails: itemDetails,
       supportingOmission: supportingOmission,
       templateData: templateData,
     );
@@ -258,6 +276,10 @@ final class ReportSnapshot {
   final List<ReportSupportingEntry> supporting;
   final List<ReportAttachmentRef> attachments;
   final bool supportingTruncated;
+
+  /// Authored instructions and private notes for recorded items. Empty unless
+  /// [ReportSelection.includeNotes] was selected at capture.
+  final Map<String, ReportItemDetail> itemDetails;
 
   /// Truthful count of omitted unknown/partial collection dates. Set exactly
   /// when supporting context is selected; null when it is not.
@@ -281,6 +303,7 @@ final class ReportSnapshot {
       supporting: supporting,
       attachments: attachments,
       supportingTruncated: supportingTruncated,
+      itemDetails: itemDetails,
       supportingOmission: supportingOmission,
       templateData: data,
     );
@@ -714,7 +737,9 @@ final class ReportText {
   /// original unit and reference range.
   static List<String> contextLines(ReportSnapshot snapshot) {
     final selection = snapshot.selection;
-    if (!selection.includeSupporting && !selection.includeAttachments) {
+    if (!selection.includeSupporting &&
+        !selection.includeAttachments &&
+        snapshot.itemDetails.isEmpty) {
       return const [
         'Supporting records and source files: not included.',
         'Private notes: not included.',
@@ -754,6 +779,11 @@ final class ReportText {
       final omission = supportingOmissionNotice(snapshot);
       if (omission != null) lines.add(omission);
     }
+    final details = itemDetailLines(snapshot);
+    if (details.isNotEmpty) {
+      lines.add('');
+      lines.addAll(details);
+    }
     if (selection.includeAttachments) {
       lines.add('');
       if (snapshot.attachments.isEmpty) {
@@ -767,6 +797,46 @@ final class ReportText {
       }
     }
     return lines;
+  }
+
+  /// Shared authored-detail lines for accessible text and rendered reports.
+  /// Empty unless notes were selected at capture.
+  static List<String> itemDetailLines(ReportSnapshot snapshot) {
+    if (!snapshot.selection.includeNotes || snapshot.itemDetails.isEmpty) {
+      return const [];
+    }
+    final lines = <String>['Substance details'];
+    for (final entry in snapshot.itemDetails.entries) {
+      final record = snapshot.records
+          .where((record) => record.itemId == entry.key)
+          .firstOrNull;
+      if (record == null) continue;
+      lines.add(record.name);
+      if (entry.value.instructions.isNotEmpty) {
+        lines.add('Instructions: ${entry.value.instructions}');
+      }
+      if (entry.value.notes.isNotEmpty) {
+        lines.add('Private note: ${entry.value.notes}');
+      }
+    }
+    return lines.length == 1 ? const [] : lines;
+  }
+
+  static void _addItemDetails(
+    List<String> lines,
+    ReportSnapshot snapshot,
+    String itemId,
+    bool includeNotes,
+  ) {
+    if (!includeNotes) return;
+    final detail = snapshot.itemDetails[itemId];
+    if (detail == null) return;
+    if (detail.instructions.isNotEmpty) {
+      lines.add('  Instructions: ${detail.instructions}');
+    }
+    if (detail.notes.isNotEmpty) {
+      lines.add('  Private note: ${detail.notes}');
+    }
   }
 
   static String build({
@@ -809,11 +879,18 @@ final class ReportText {
           '${item.name} · ${item.form} · ${_doseCount(item.count)} · '
           '${item.total == null ? 'Total unavailable' : 'Total ${formatAmount(item.total!)} ${item.unit}'}',
         );
+        _addItemDetails(lines, snapshot, item.itemId, selection.includeNotes);
       }
       for (final product in group.products) {
         lines.add(
           '${product.name} · ${product.form} · ${_doseCount(product.administrations)} · '
           'Volume ${product.volume == null ? 'Total unavailable' : '${formatAmount(product.volume!)} ${product.volumeUnit}'}',
+        );
+        _addItemDetails(
+          lines,
+          snapshot,
+          product.itemId,
+          selection.includeNotes,
         );
         for (final ingredient in product.ingredients) {
           lines.add(

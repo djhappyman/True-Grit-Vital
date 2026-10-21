@@ -153,7 +153,7 @@ void main() {
 
     expect(document.personName, 'Alex');
     expect(document.reportName, 'A. Example');
-    expect(document.recordSchemaVersion, 21);
+    expect(document.recordSchemaVersion, 22);
     expect(document.doseRecords, 1, reason: 'only the selected adult');
     expect(document.doses.map((row) => row.revision), [1, 2, 3]);
     expect(document.doses.map((row) => row.isCurrent), [false, false, true]);
@@ -190,6 +190,48 @@ void main() {
       isEmpty,
       reason: 'file references never enter a structured export',
     );
+  });
+
+  test('authored item details follow the explicit notes selection', () async {
+    final mine = await item(meId);
+    await store.record(
+      commandId: 'dose-details',
+      itemId: mine.id,
+      amount: '0.125',
+      actualAt: DateTime.utc(2026, 10, 5, 10),
+      expectedPersonRevision: 2,
+    );
+    const instructions = 'Use the labelled amount: 0.125 mg, <0.10.';
+    const notes = 'Private note kept word for word.';
+    await store.saveItemDetail(
+      commandId: 'detail-save',
+      itemId: mine.id,
+      instructions: instructions,
+      notes: notes,
+      expectedRevision: null,
+      expectedPersonRevision: 2,
+    );
+
+    final hidden = await store.captureExport(selection());
+    expect(hidden.doses.single.itemInstructions, isNull);
+    expect(hidden.doses.single.itemNotes, isNull);
+    final hiddenText = utf8.decode(ExportArtifact.build(hidden).bytes);
+    expect(hiddenText, isNot(contains('0.125 mg')));
+    expect(hiddenText, isNot(contains('word for word')));
+
+    final shown = await store.captureExport(selection(includeNotes: true));
+    expect(shown.doses.single.itemInstructions, instructions);
+    expect(shown.doses.single.itemNotes, notes);
+    final json = utf8.decode(ExportArtifact.build(shown).bytes);
+    expect(json, contains('0.125 mg'));
+    expect(json, contains('word for word'));
+    final csv = await store.captureExport(
+      selection(format: ExportFormat.csv, includeNotes: true),
+    );
+    final csvText = utf8.decode(ExportArtifact.build(csv).bytes);
+    expect(csvText.split('\r\n').first, contains('item_instructions'));
+    expect(csvText, contains('0.125 mg'));
+    expect(csvText, contains('word for word'));
   });
 
   test(

@@ -311,7 +311,10 @@ CivilDate ledgerCivil(DateTime instant, String zone) {
 /// Selected supporting records and source files, shared by R01-style context.
 pw.Widget reportContextBlock(ReportSnapshot snapshot) {
   final selection = snapshot.selection;
-  if (!selection.includeSupporting && !selection.includeAttachments) {
+  final details = ReportText.itemDetailLines(snapshot);
+  if (!selection.includeSupporting &&
+      !selection.includeAttachments &&
+      details.isEmpty) {
     return reportNote(
       'Supporting records and source files were not included in this report.',
     );
@@ -378,6 +381,16 @@ pw.Widget reportContextBlock(ReportSnapshot snapshot) {
               style: pw.TextStyle(fontSize: 8.5, color: ReportPalette.graphite),
             ),
           ],
+      ],
+      if (details.isNotEmpty) ...[
+        pw.SizedBox(height: 10),
+        reportSectionHeading(details.first),
+        pw.SizedBox(height: 4),
+        for (final line in details.skip(1))
+          pw.Text(
+            line,
+            style: pw.TextStyle(fontSize: 8.5, color: ReportPalette.graphite),
+          ),
       ],
       if (selection.includeAttachments) ...[
         pw.SizedBox(height: 10),

@@ -159,6 +159,20 @@ extension ReportStore on RecordStore {
 
     final pins = <AttachmentPin>[];
     final attachmentRefs = <ReportAttachmentRef>[];
+    final itemDetails = <String, ReportItemDetail>{};
+    if (selection.includeNotes) {
+      final captured = await _itemDetailsFor(
+        records.map((record) => record.itemId),
+        selection.personId,
+      );
+      for (final entry in captured.entries) {
+        itemDetails[entry.key] = ReportItemDetail(
+          instructions: entry.value.instructions,
+          notes: entry.value.notes,
+        );
+      }
+      if (cancellation.isCancelled) throw const ReportCancelled();
+    }
     if (selection.includeAttachments) {
       final itemIds = records.map((record) => record.itemId).toSet();
       final recordIds = records.map((record) => record.id).toSet();
@@ -249,6 +263,7 @@ extension ReportStore on RecordStore {
         supporting: supporting,
         attachments: attachmentRefs,
         supportingTruncated: supportingTruncated,
+        itemDetails: itemDetails,
         supportingOmission: supportingOmission,
       );
       return ReportCapture(

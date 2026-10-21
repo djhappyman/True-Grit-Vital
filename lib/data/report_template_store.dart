@@ -171,6 +171,9 @@ extension ReportTemplateStore on RecordStore {
               (pin) => !attachmentIds.contains(pin.attachment.id),
             ),
           );
+          final scopedItemIds = scopedRecords
+              .map((record) => record.itemId)
+              .toSet();
           final snapshot = ReportSnapshot.build(
             selection: selection,
             cutoff: base.snapshot.cutoff,
@@ -179,6 +182,10 @@ extension ReportTemplateStore on RecordStore {
             supporting: base.snapshot.supporting,
             attachments: scopedAttachments,
             supportingTruncated: base.snapshot.supportingTruncated,
+            itemDetails: {
+              for (final entry in base.snapshot.itemDetails.entries)
+                if (scopedItemIds.contains(entry.key)) entry.key: entry.value,
+            },
             supportingOmission: base.snapshot.supportingOmission,
           );
           final skipped = await _skippedEntries(

@@ -29,9 +29,12 @@ void main() {
     await waitForText(tester, 'New substance');
     expect(find.text('Drafting'), findsOneWidget);
     expect(find.text('Person: Me'), findsNothing);
+    expect(find.text('Next steps'), findsOneWidget);
+    expect(find.text('Optional'), findsOneWidget);
     expect(
       find.text(
-        'Frequency and dose times are added from the substance overview after you save.',
+        'Save this identity first. Schedule, stock and details are separate '
+        'optional steps and nothing is assumed.',
       ),
       findsOneWidget,
     );
@@ -42,20 +45,13 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.text('After save'), findsNWidgets(2));
-    expect(find.text('Unavailable'), findsOneWidget);
-    expect(
-      find.text(
-        'Opening quantity, low-stock threshold and strength are added from the substance overview after you save.',
-      ),
-      findsOneWidget,
-    );
 
     await enter(tester, 'Full name', 'Invented complete substance');
     await tap(tester, 'Tablet');
     await tap(tester, 'mg');
     await enter(tester, 'Type', 'Invented category');
     await tap(tester, 'Create');
+    await waitForText(tester, 'Setup');
     await waitForText(tester, 'Invented complete substance');
 
     final items = (await runIo(tester, f.store.items))!;
@@ -70,7 +66,16 @@ void main() {
       isEmpty,
     );
     expect(await runIo(tester, f.store.dailyPlans), isEmpty);
+    expect(
+      await runIo(tester, () => f.store.itemDetail(items.single.id)),
+      isNull,
+    );
+    final setup = await runIo(tester, () => f.store.itemSetup(items.single.id));
+    expect(setup, isNotNull);
+    expect(setup!.isComplete, isFalse);
     expect(await runIo(tester, f.store.drafts), isEmpty);
+    expect(find.text('Skip'), findsNWidgets(3));
+    expect(find.text('Finish'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

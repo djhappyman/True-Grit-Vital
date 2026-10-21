@@ -37,6 +37,8 @@ export '../domain/scheduling/stored_daily.dart';
 import '../domain/drafts/ordinary_draft.dart';
 export '../domain/drafts/ordinary_draft.dart';
 export '../domain/records.dart';
+import '../domain/substance_detail.dart';
+export '../domain/substance_detail.dart';
 import '../domain/combined_use.dart';
 export '../domain/combined_use.dart';
 import '../domain/events/events.dart';
@@ -73,6 +75,7 @@ part 'chart_store.dart';
 part 'export_store.dart';
 part 'supporting_store.dart';
 part 'supporting_void_store.dart';
+part 'item_detail_store.dart';
 part 'report_store.dart';
 part 'report_template_store.dart';
 part 'backup_store.dart';
@@ -83,7 +86,7 @@ final class _Database extends drift.GeneratedDatabase {
   _Database(super.executor, this.initialGeneration);
   final String initialGeneration;
   @override
-  int get schemaVersion => 21;
+  int get schemaVersion => 22;
   @override
   Iterable<drift.TableInfo<drift.Table, Object?>> get allTables => const [];
   @override
@@ -140,9 +143,10 @@ final class _Database extends drift.GeneratedDatabase {
       await _migrateSupportingV19(this);
       await _migrateSupportingV20(this);
       await _migrateSupportingVoidV21(this);
+      await _migrateItemDetailV22(this);
     }),
     onUpgrade: (_, from, to) => transaction(() async {
-      if (from < 1 || from > 20 || to != 21) {
+      if (from < 1 || from > 21 || to != 22) {
         throw StateError('unsupported_schema');
       }
       if (from == 1) {
@@ -219,6 +223,7 @@ final class _Database extends drift.GeneratedDatabase {
       if (from < 19) await _migrateSupportingV19(this);
       if (from < 20) await _migrateSupportingV20(this);
       if (from < 21) await _migrateSupportingVoidV21(this);
+      if (from < 22) await _migrateItemDetailV22(this);
     }),
   );
   Future<void> _addProfiles() async {
@@ -788,6 +793,12 @@ final class RecordStore {
           'DELETE FROM combined_action WHERE person=?',
           [personId],
         );
+        await _db.customStatement('DELETE FROM item_setup WHERE person=?', [
+          personId,
+        ]);
+        await _db.customStatement('DELETE FROM item_detail WHERE person=?', [
+          personId,
+        ]);
         await _db.customStatement('DELETE FROM revision WHERE person=?', [
           personId,
         ]);
@@ -941,6 +952,11 @@ final class RecordStore {
             ),
           );
         }
+        final now = DateTime.now().toUtc().microsecondsSinceEpoch;
+        await _db.customStatement(
+          'INSERT INTO item_setup(item,person,generation,created_at,updated_at) VALUES (?,?,?,?,?)',
+          [id, personId, generation, now, now],
+        );
         return {
           'id': id,
           'person': personId,
@@ -969,6 +985,7 @@ final class RecordStore {
     revision: r['item_revision'] as int? ?? 1,
     catalogueSnapshot: _catalogueSnapshot(r['catalogue_snapshot']),
   );
+
   /// Keeps SQL wildcard input literal for `LIKE`: `\\`, `%` and `_` are
   /// escaped and the query runs with `ESCAPE '\'`. Other characters (including
   /// apostrophes) stay bound as a parameter.
@@ -1018,11 +1035,7 @@ final class RecordStore {
     _pageBounds(limit, offset);
     return (await _rows(
       'SELECT * FROM item WHERE ${_itemFilterSql(personId, scope, search, typeId)} ORDER BY name,id LIMIT ? OFFSET ?',
-      [
-        ..._itemFilterArgs(personId, scope, search, typeId),
-        limit,
-        offset,
-      ],
+      [..._itemFilterArgs(personId, scope, search, typeId), limit, offset],
     )).map(_item).toList();
   }
 
@@ -1624,6 +1637,7 @@ final class RecordStore {
       await queue;
     };
   });
+
   /// Whole-scoped item counts grouped by actual item type, under the same
   /// search the collection list uses. Counts are bounded by distinct types and
   /// say how many items share each type; no status or schedule is involved.

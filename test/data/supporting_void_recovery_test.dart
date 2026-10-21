@@ -396,7 +396,7 @@ void main() {
 
     test('populated v19 keeps every draft and supporting revision', () async {
       final db = raw();
-      expect(db.select('PRAGMA user_version').single.values.single, 21);
+      expect(db.select('PRAGMA user_version').single.values.single, 22);
       expect(db.select('PRAGMA integrity_check').single.values.single, 'ok');
       expect(db.select('PRAGMA foreign_key_check'), isEmpty);
       final drafts = db.select(
@@ -484,7 +484,7 @@ void main() {
       seeded.close();
       store = await RecordStore.open(path: path, key: key, isNew: false);
       final upgraded = raw();
-      expect(upgraded.select('PRAGMA user_version').single.values.single, 21);
+      expect(upgraded.select('PRAGMA user_version').single.values.single, 22);
       expect(
         upgraded
             .select('SELECT * FROM ordinary_draft ORDER BY id')

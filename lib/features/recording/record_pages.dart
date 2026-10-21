@@ -1213,6 +1213,7 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
   Future<void> commit(
     Future<void> Function(String command) save, {
     required String successPath,
+    Future<String> Function()? successPathAfterSave,
   }) async {
     if (busy || conflict || !draftReady) return;
     commandId ??= newCommandId();
@@ -1234,10 +1235,12 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
       if (mounted) {
         dirty = false;
         uncertain = false;
+        final destination = await successPathAfterSave?.call() ?? successPath;
+        if (!mounted) return;
         if (!store.writesSuspended) {
-          context.go(successPath);
+          context.go(destination);
         } else {
-          _completedPath = successPath;
+          _completedPath = destination;
         }
       }
     } catch (e) {
@@ -1424,24 +1427,37 @@ class _ItemFormState extends DurableFormState<ItemForm> {
         return;
       }
     }
-    await commit((command) async {
-      await (await ref.read(recordStoreProvider.future)).createItem(
-        commandId: command,
-        personId: owner!.id,
-        expectedPersonRevision: capturedPersonRevision,
-        name: selection?.product.name ?? name.text.trim(),
-        form: selection?.product.form.isNotEmpty == true
-            ? selection!.product.form
-            : form.text.trim(),
-        unit: unit.text.trim(),
-        type: type.text.trim(),
-        typeId: selectedTypeId,
-        expectedTypeRevision: selectedTypeRevision,
-        catalogueSnapshot: selection,
-        productComponents: components,
-      );
-    }, successPath: '/substances');
+    await commit(
+      (command) async {
+        final created = await (await ref.read(recordStoreProvider.future))
+            .createItem(
+              commandId: command,
+              personId: owner!.id,
+              expectedPersonRevision: capturedPersonRevision,
+              name: selection?.product.name ?? name.text.trim(),
+              form: selection?.product.form.isNotEmpty == true
+                  ? selection!.product.form
+                  : form.text.trim(),
+              unit: unit.text.trim(),
+              type: type.text.trim(),
+              typeId: selectedTypeId,
+              expectedTypeRevision: selectedTypeRevision,
+              catalogueSnapshot: selection,
+              productComponents: components,
+            );
+        setupPath = '/substance/${created.id}/setup';
+      },
+      successPath: '/substances',
+      successPathAfterSave: () async {
+        if (setupPath != null) return setupPath!;
+        final created = await (await ref.read(recordStoreProvider.future))
+            .itemIdForOperation(commandId!);
+        return created == null ? '/substances' : '/substance/$created/setup';
+      },
+    );
   }
+
+  String? setupPath;
 
   bool _editable(bool ownerValid) => !busy && !uncertain && ownerValid;
 
@@ -1947,27 +1963,10 @@ class _ItemFormState extends DurableFormState<ItemForm> {
       const SizedBox(height: 16),
       _afterSaveCard(
         context,
-        t.schedule,
-        t.screenCreateScheduleLater,
-        icon: LucideIcons.calendarDays,
-        badge: t.screenCreateAfterSave,
-      ),
-      const SizedBox(height: 12),
-      _afterSaveCard(
-        context,
-        t.stock,
-        t.screenCreateStockLater,
-        icon: LucideIcons.package,
-        badge: t.screenCreateAfterSave,
-      ),
-      const SizedBox(height: 12),
-      _afterSaveCard(
-        context,
-        t.screenCreateNotes,
-        t.screenCreateNotesUnavailable,
-        icon: LucideIcons.notebookPen,
-        badge: t.screenCreateUnavailable,
-        warning: true,
+        t.featureSetupNextTitle,
+        t.featureSetupNextBody,
+        icon: LucideIcons.listChecks,
+        badge: t.featureSetupOptional,
       ),
       const SizedBox(height: 20),
       if (error != t.detailsRequired && error != t.productIngredientInvalid)
@@ -3084,6 +3083,7 @@ class _DraftListState extends ConsumerState<DraftList> {
                   DraftKind.usePeriod => t.useHistory,
                   DraftKind.eventReview => t.eventEndReview,
                   DraftKind.item => t.newSubstance,
+                  DraftKind.itemDetails => t.featureSetupDetails,
                   DraftKind.itemType => t.itemTypes,
                   DraftKind.productLabel => t.productLabelHeading,
                   DraftKind.stockContainer => t.stockCreate,

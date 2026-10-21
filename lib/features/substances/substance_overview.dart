@@ -21,6 +21,7 @@ import '../recording/record_pages.dart' show LoadFailure, pagedRecordsProvider;
 import '../stock/stock_providers.dart' show stockContainersProvider;
 import '../stock/stock_widgets.dart' show stockRecordAmountNumber;
 import '../supporting/supporting_pages.dart' show supportingLocation;
+import 'substance_detail_providers.dart';
 import 'substance_summary.dart' show SubstanceContainerSummary;
 
 /// This overview's own schedule stream. A scoped watch on the store keeps the
@@ -178,6 +179,10 @@ class _LoadedOverviewState extends ConsumerState<_LoadedOverview> {
                 _SubstanceHero(item: item),
                 const SizedBox(height: 16),
                 _OverviewStockAlert(item: item),
+                const SizedBox(height: 16),
+                _OverviewSetup(item: item),
+                const SizedBox(height: 16),
+                _OverviewDetails(item: item),
                 const SizedBox(height: 16),
                 _OverviewContext(item: item),
               ],
@@ -781,6 +786,100 @@ class _RecentRecordRow extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// A resumable invitation to the optional steps after identity creation. The
+/// marker is local progress only; completed steps are read from the real plan,
+/// stock and detail records.
+class _OverviewSetup extends ConsumerWidget {
+  const _OverviewSetup({required this.item});
+  final SubstanceItem item;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
+    final setup = ref.watch(itemSetupProvider(item.id)).value;
+    if (setup == null || setup.isComplete) return const SizedBox.shrink();
+    return VitalPanel(
+      title: t.featureSetupTitle,
+      icon: LucideIcons.listChecks,
+      children: [
+        Text(
+          t.featureSetupContinueHelp,
+          style: VitalType.metadata.copyWith(
+            color: Theme.of(context).colorScheme.mutedForeground,
+          ),
+        ),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: VitalButton.secondary(
+            onPressed: () => context.push('/substance/${item.id}/setup'),
+            child: Text(t.featureSetupContinue),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Concise, full-text details. Instructions and private notes are shown exactly
+/// as authored; the app adds no dosing advice or interpretation.
+class _OverviewDetails extends ConsumerWidget {
+  const _OverviewDetails({required this.item});
+  final SubstanceItem item;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
+    final muted = Theme.of(context).colorScheme.mutedForeground;
+    final detail = ref.watch(itemDetailProvider(item.id)).value;
+    final hasInstructions = detail?.instructions.isNotEmpty == true;
+    final hasNotes = detail?.notes.isNotEmpty == true;
+    return VitalPanel(
+      title: t.featureSetupDetails,
+      icon: LucideIcons.notebookPen,
+      action: detail == null
+          ? null
+          : VitalButton.secondary(
+              onPressed: () => context.push('/substance/${item.id}/details'),
+              child: Text(t.edit),
+            ),
+      children: [
+        if (!hasInstructions && !hasNotes)
+          _OverviewEmpty(
+            icon: LucideIcons.notebookPen,
+            title: t.featureSetupNoDetails,
+            description: t.featureSetupNoDetailsHelp,
+            action: VitalButton.secondary(
+              onPressed: () => context.push('/substance/${item.id}/details'),
+              child: Text(t.add),
+            ),
+          )
+        else ...[
+          if (hasInstructions) ...[
+            Text(
+              t.featureSetupInstructions,
+              style: VitalType.label.copyWith(color: muted),
+            ),
+            Text(detail!.instructions, style: VitalType.body),
+          ],
+          if (hasInstructions && hasNotes) const SizedBox(height: 12),
+          if (hasNotes) ...[
+            Text(
+              t.featureSetupNotes,
+              style: VitalType.label.copyWith(color: muted),
+            ),
+            Text(detail!.notes, style: VitalType.body),
+            const SizedBox(height: 6),
+            Text(
+              t.featureSetupNotesHelp,
+              style: VitalType.metadata.copyWith(color: muted),
+            ),
+          ],
+        ],
+      ],
     );
   }
 }
