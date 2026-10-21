@@ -39,7 +39,7 @@ final class _LifecycleOperations implements BackupOperations {
   /// the create must stay observable while an old discard is still pending.
   BackupCreation nextCreation;
   Completer<BackupCreation>? createGate;
-  int creates = 0, discards = 0;
+  int creates = 0, discards = 0, saves = 0;
   final List<_PendingDiscard> pending = [];
   List<bool> discardOutcomes;
 
@@ -80,8 +80,10 @@ final class _LifecycleOperations implements BackupOperations {
   }
 
   @override
-  Future<BackupSaveStatus> save(BackupCreation creation) async =>
-      BackupSaveStatus.saved;
+  Future<BackupSaveStatus> save(BackupCreation creation) async {
+    saves++;
+    return BackupSaveStatus.saved;
+  }
 
   @override
   Future<StagedBackup> validateArchive({
@@ -240,24 +242,33 @@ void main() {
       expect(identical(_stateOf(container).creation, newer), isTrue);
     });
 
-    test('delayed success cannot clear a newer save', () async {
-      final operations = _LifecycleOperations(nextCreation: older!);
-      final (:container, holder: _) = _harness(operations);
-      await _readyWith(container, older!);
+    test(
+      'a deletion owning the archive blocks a save of the same artifact',
+      () async {
+        final operations = _LifecycleOperations(nextCreation: older!);
+        final (:container, holder: _) = _harness(operations);
+        await _readyWith(container, older!);
 
-      final oldDiscard = _controllerOf(container).discard();
-      operations.takePending();
+        final oldDiscard = _controllerOf(container).discard();
+        final held = operations.takePending();
 
-      await _controllerOf(container).save();
-      expect(_stateOf(container).phase, BackupPhase.saved);
-      expect(_stateOf(container).savedName, older!.fileName);
+        // The save cannot start reading an archive the controller is
+        // already deleting: nothing is handed off or falsely claimed
+        // saved, and the delayed deletion still completes truthfully.
+        await _controllerOf(container).save();
+        expect(operations.saves, 0);
+        expect(_stateOf(container).phase, BackupPhase.ready);
+        expect(_stateOf(container).savedName, isNull);
 
-      operations.pending.single.completion.complete();
-      await oldDiscard;
+        held.completion.complete();
+        await oldDiscard;
 
-      expect(_stateOf(container).phase, BackupPhase.saved);
-      expect(_stateOf(container).savedName, older!.fileName);
-    });
+        expect(_stateOf(container).phase, BackupPhase.idle);
+        expect(_stateOf(container).creation, isNull);
+        expect(_stateOf(container).errorCode, isNull);
+        expect(operations.discards, 1);
+      },
+    );
 
     test('delayed failure cannot resurrect the form after reset', () async {
       final operations = _LifecycleOperations(

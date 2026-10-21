@@ -97,7 +97,7 @@ enum BackupRelease {
 /// settled failure is retained so the next release can retry it truthfully
 /// instead of treating it as safely done.
 final class _PendingDeletion {
-  _PendingDeletion(this.creation, this.operations);
+  _PendingDeletion(this.creation, this.operations, {this.gate});
 
   final BackupCreation creation;
 
@@ -105,10 +105,38 @@ final class _PendingDeletion {
   /// a rebuilt backend.
   final BackupOperations operations;
 
+  /// The save handoff still reading the archive when the deletion was
+  /// released, if any. The deletion waits for it so a reset, lock or
+  /// rebuild never deletes the file underneath an in-flight OS save.
+  final Future<void>? gate;
+
   Completer<bool> settled = Completer<bool>();
   bool failed = false;
 
   Future<bool> get future => settled.future;
+}
+
+/// The OS handoff this controller owns for its staged archive. While it
+/// runs, the archive is being saved: cleanup of staged work refuses, and a
+/// released deletion waits through [future] instead of racing the save.
+final class _ActiveSave {
+  _ActiveSave(this.creation, this.operations);
+
+  final BackupCreation creation;
+  final BackupOperations operations;
+  final Completer<void> settled = Completer<void>();
+
+  Future<void> get future => settled.future;
+}
+
+/// One create attempt from start to its final hand-off: reaching the panel,
+/// or a stale or cancelled outcome releasing its staged artifact through
+/// the tracker. Retained until then so a data change cannot claim the
+/// capture's staged work is safe while the capture is still live.
+final class _ActiveCapture {
+  final Completer<void> settled = Completer<void>();
+
+  Future<void> get future => settled.future;
 }
 
 final class BackupState {
@@ -183,6 +211,17 @@ class BackupController extends Notifier<BackupState> {
   /// panel as proof that its artifact is gone.
   final List<_PendingDeletion> _pendingDeletions = [];
 
+  /// The save handoff the controller currently owns for its staged
+  /// archive, if any. A released deletion waits for it instead of
+  /// deleting the file underneath the OS save.
+  _ActiveSave? _activeSave;
+
+  /// Create attempts the controller owns from start to final hand-off.
+  /// A capture that lock or rebuild cleared from the panel is still live
+  /// here, so a data change cannot treat a null panel as proof that the
+  /// captured artifact is settled.
+  final List<_ActiveCapture> _activeCaptures = [];
+
   @override
   BackupState build() {
     _token?.cancel();
@@ -231,12 +270,18 @@ class BackupController extends Notifier<BackupState> {
   }
 
   /// Starts the deletion for [creation] on exactly [operations] and keeps
-  /// it observable until it settles.
+  /// it observable until it settles. When a save handoff is still reading
+  /// the same archive, the deletion is gated on that handoff instead of
+  /// deleting the file underneath it.
   _PendingDeletion _startDeletion(
     BackupCreation creation,
     BackupOperations operations,
   ) {
-    final pending = _PendingDeletion(creation, operations);
+    final activeSave = _activeSave;
+    final gate = activeSave != null && identical(activeSave.creation, creation)
+        ? activeSave.future
+        : null;
+    final pending = _PendingDeletion(creation, operations, gate: gate);
     _pendingDeletions.add(pending);
     unawaited(_run(pending));
     return pending;
@@ -271,6 +316,12 @@ class BackupController extends Notifier<BackupState> {
   /// success clears the panel and a failure keeps the creation retryable
   /// with the normal backup error state; a newer attempt is never touched.
   Future<void> _run(_PendingDeletion pending) async {
+    final gate = pending.gate;
+    if (gate != null) {
+      // The OS handoff owns the file until it settles; the deletion waits
+      // for it and stays observable as unsettled the whole time.
+      await gate;
+    }
     final epoch = _epoch;
     bool deleted;
     try {
@@ -339,6 +390,11 @@ class BackupController extends Notifier<BackupState> {
     final epoch = ++_epoch;
     final token = BackupCancellationToken();
     _token = token;
+    // The capture is owned from here to its final hand-off: even when a
+    // lock or rebuild clears the panel while it runs, a data change waits
+    // for it instead of treating the staged artifact as settled.
+    final capture = _ActiveCapture();
+    _activeCaptures.add(capture);
     state = const BackupState(phase: BackupPhase.preparing);
     _releaseCreation(previous);
     try {
@@ -361,11 +417,17 @@ class BackupController extends Notifier<BackupState> {
         },
       );
       if (!_current(epoch)) {
-        await operations.discard(creation);
+        // A stale capture cannot keep the panel: release its staged
+        // artifact through the tracked path and finish the attempt. The
+        // deletion stays observable, so a data change waits for it instead
+        // of claiming the capture's work is safe.
+        _shareDeletion(creation, operations);
         return;
       }
       if (token.isCancelled) {
-        await operations.discard(creation);
+        // Same tracked release; the failure stays retained for a truthful
+        // retry while the attempt reports cancellation to the panel.
+        _shareDeletion(creation, operations);
         throw const BackupFailure('backup_cancelled');
       }
       state = state.copyWith(
@@ -396,21 +458,37 @@ class BackupController extends Notifier<BackupState> {
       );
     } finally {
       if (_current(epoch)) _token = null;
+      // The capture's final hand-off is done: either the panel owns the
+      // creation or the staged artifact settled through the tracker.
+      _activeCaptures.remove(capture);
+      capture.settled.complete();
     }
   }
 
   void cancel() => _token?.cancel();
 
+  /// True while this controller still owns a deletion for [creation],
+  /// running or retained after a failure. The archive is being deleted or
+  /// left over from a failed deletion, so saving it would read a file the
+  /// controller is destroying.
+  bool _ownsDeletion(BackupCreation creation) =>
+      _pendingDeletions.any((pending) => identical(pending.creation, creation));
+
   Future<void> save() async {
     final creation = state.creation;
-    final operations = _operations;
+    // The save always runs on the operations that staged the artifact: a
+    // replaced backend must never be handed an archive it did not create.
+    final operations = _creationOperations ?? _operations;
     if (creation == null ||
         operations == null ||
         state.busy ||
-        ref.read(appLockProvider).locked) {
+        ref.read(appLockProvider).locked ||
+        _ownsDeletion(creation)) {
       return;
     }
     final epoch = ++_epoch;
+    final activeSave = _ActiveSave(creation, operations);
+    _activeSave = activeSave;
     state = state.copyWith(phase: BackupPhase.saving, clearError: true);
     try {
       final result = await operations.save(creation);
@@ -433,6 +511,11 @@ class BackupController extends Notifier<BackupState> {
         phase: BackupPhase.ready,
         errorCode: 'backup_save_failed',
       );
+    } finally {
+      // The handoff no longer reads the archive: released deletions may
+      // run, and a new data change stops being refused on its account.
+      if (identical(_activeSave, activeSave)) _activeSave = null;
+      activeSave.settled.complete();
     }
   }
 
@@ -456,6 +539,13 @@ class BackupController extends Notifier<BackupState> {
   /// the operations that originated the creation, and one already running
   /// is shared rather than duplicated.
   ///
+  /// [BackupRelease.busy] also covers live owned work outside the panel:
+  /// an in-flight create capture, an in-flight save handoff, and any
+  /// deletion released while the drain was running (including a later
+  /// reset of a newer capture). None of it is discarded by this release
+  /// and none of it is claimed safe; a repeated call may drain what was
+  /// refused here.
+  ///
   /// [BackupRelease.released] is only returned once the panel no longer
   /// owns a staged artifact and every originated deletion settled
   /// truthfully. [BackupRelease.failed] keeps the panel's creation exactly
@@ -466,7 +556,13 @@ class BackupController extends Notifier<BackupState> {
   Future<BackupRelease> releaseForDataChange() async {
     if (!ref.mounted) return BackupRelease.busy;
     if (state.busy) return BackupRelease.busy;
+    if (_activeSave != null || _activeCaptures.isNotEmpty) {
+      // A capture or save handoff still owns staged work; the change must
+      // not claim safety while it is live, even if the panel was cleared.
+      return BackupRelease.busy;
+    }
     final target = state.creation;
+    final epoch = _epoch;
     if (target == null && _pendingDeletions.isEmpty) {
       return BackupRelease.released;
     }
@@ -486,6 +582,17 @@ class BackupController extends Notifier<BackupState> {
     ]);
     if (!ref.mounted) return BackupRelease.busy;
     if (state.busy) return BackupRelease.busy;
+    if (epoch != _epoch) {
+      return BackupRelease.busy;
+    }
+    if (_activeSave != null || _activeCaptures.isNotEmpty) {
+      return BackupRelease.busy;
+    }
+    // Work released while this drain ran is newer owned work: it is never
+    // discarded here and never claimed safe; a repeated call may drain it.
+    for (final pending in _pendingDeletions) {
+      if (!entries.contains(pending)) return BackupRelease.busy;
+    }
     final current = state.creation;
     final allDeleted = outcomes.every((outcome) => outcome);
     if (current == null) {

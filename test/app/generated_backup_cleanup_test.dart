@@ -860,5 +860,247 @@ void main() {
         expect(identical(holder.single, operations), isTrue);
       },
     );
+
+    test('a later reset deletion refuses a draining preparation', () async {
+      final older = await _creation(directory!, 'old', 'a' * 64);
+      final newer = await _creation(directory!, 'new', 'b' * 64);
+      final operations = _HarnessOperations(nextCreation: older);
+      final (:container, :gateway, :holder) = _harness(operations);
+      await _readyWith(container, operations, older);
+
+      final notifier = container.read(backupProvider.notifier);
+      notifier.reset();
+      final release = notifier.releaseForDataChange();
+      operations.nextCreation = newer;
+      await notifier.create(password: _password, confirmation: _password);
+      notifier.reset();
+      expect(
+        operations.discards,
+        2,
+        reason: 'the newer release starts its own deletion',
+      );
+
+      _pending(operations, older).completion.complete();
+      await _flush();
+      expect(
+        _cleanups(gateway),
+        0,
+        reason: 'the newer deletion still blocks downstream cleanup',
+      );
+
+      // The drain refuses instead of claiming the newer release safe or
+      // discarding it. A later deletion is never pre-consumed or claimed
+      // done by the old drain either.
+      expect(await release, BackupRelease.busy);
+
+      _pending(operations, newer).completion.complete();
+      await _flush();
+      // A repeated call may then drain what this one refused.
+      expect(await notifier.releaseForDataChange(), BackupRelease.released);
+
+      expect(_cleanups(gateway), 0, reason: 'direct release, not the helper');
+      expect(operations.discards, 2);
+      expect(_stateOf(container).phase, BackupPhase.idle);
+      expect(identical(holder.single, operations), isTrue);
+    });
+
+    test('a save cannot hand off an artifact a deletion owns', () async {
+      final creation = await _creation(directory!, 'own', 'a' * 64);
+      final operations = _HarnessOperations(nextCreation: creation);
+      final (:container, :gateway, :holder) = _harness(operations);
+      await _readyWith(container, operations, creation);
+      final notifier = container.read(backupProvider.notifier);
+
+      final deletion = notifier.discard();
+      await _flush();
+      await notifier.save();
+
+      expect(operations.saves, 0, reason: 'the deletion owns the archive');
+      expect(_stateOf(container).phase, BackupPhase.ready);
+      expect(_stateOf(container).savedName, isNull);
+
+      operations.held.completion.complete();
+      await deletion;
+
+      expect(_stateOf(container).phase, BackupPhase.idle);
+      expect(operations.discards, 1);
+      expect(identical(holder.single, operations), isTrue);
+    });
+
+    test('a retained failed deletion blocks a save until retried', () async {
+      final creation = await _creation(directory!, 'own', 'a' * 64);
+      final operations = _HarnessOperations(
+        nextCreation: creation,
+        discardOutcomes: [true, false],
+      );
+      final (:container, :gateway, :holder) = _harness(operations);
+      await _readyWith(container, operations, creation);
+      final notifier = container.read(backupProvider.notifier);
+
+      final deletion = notifier.discard();
+      operations.held.completion.complete();
+      await deletion;
+      expect(_stateOf(container).errorCode, 'backup_failed');
+
+      await notifier.save();
+      expect(
+        operations.saves,
+        0,
+        reason: 'the failed deletion still owns the archive',
+      );
+      expect(_stateOf(container).phase, BackupPhase.ready);
+      expect(_stateOf(container).savedName, isNull);
+
+      final retry = container.read(_prepareForDataChange)();
+      expect(operations.discards, 2, reason: 'the failure is retried');
+      operations.pending.single.completion.complete();
+      await retry;
+
+      expect(_cleanups(gateway), 1);
+      expect(_stateOf(container).phase, BackupPhase.idle);
+      expect(identical(holder.single, operations), isTrue);
+    });
+
+    test('a lock defers cleanup until an in-flight save settles', () async {
+      final creation = await _creation(directory!, 'lock', 'a' * 64);
+      final operations = _HarnessOperations(nextCreation: creation);
+      final (:container, :gateway, :holder) = _harness(operations);
+      await _readyWith(container, operations, creation);
+      final notifier = container.read(backupProvider.notifier);
+
+      operations.saveGate = Completer<BackupSaveStatus>();
+      final pendingSave = notifier.save();
+      await _flush();
+      expect(_stateOf(container).phase, BackupPhase.saving);
+
+      container.read(appLockProvider.notifier).lock();
+      await _flush();
+      expect(
+        operations.discards,
+        0,
+        reason: 'the OS save still owns the archive',
+      );
+      expect(_stateOf(container).phase, BackupPhase.idle);
+
+      await expectLater(
+        container.read(_prepareForDataChange)(),
+        _throwsWorkBusy,
+        reason: 'the handoff must finish before a data change',
+      );
+      expect(_cleanups(gateway), 0);
+
+      operations.saveGate!.complete(BackupSaveStatus.saved);
+      await pendingSave;
+      await _flush();
+      expect(operations.discards, 1, reason: 'the deferred release runs now');
+
+      operations.pending.single.completion.complete();
+      await container.read(_prepareForDataChange)();
+
+      expect(_cleanups(gateway), 1);
+      expect(gateway.includedOffered, isTrue);
+      expect(operations.saves, 1);
+      expect(_stateOf(container).phase, BackupPhase.idle);
+      expect(identical(holder.single, operations), isTrue);
+    });
+
+    test('a rebuild defers cleanup until an in-flight save settles', () async {
+      final older = await _creation(directory!, 'holder', 'a' * 64);
+      final operations = _HarnessOperations(nextCreation: older);
+      final (:container, :gateway, :holder) = _harness(operations);
+      await _readyWith(container, operations, older);
+      final notifier = container.read(backupProvider.notifier);
+
+      operations.saveGate = Completer<BackupSaveStatus>();
+      final pendingSave = notifier.save();
+      await _flush();
+
+      final replaced = _HarnessOperations(
+        nextCreation: await _creation(directory!, 'repl', 'b' * 64),
+      );
+      holder[0] = replaced;
+      container.refresh(backupProvider);
+      await _flush();
+      expect(
+        operations.discards,
+        0,
+        reason: 'the OS save still owns the archive',
+      );
+      expect(replaced.discards, 0, reason: 'the origin backend keeps cleanup');
+
+      await expectLater(
+        container.read(_prepareForDataChange)(),
+        _throwsWorkBusy,
+      );
+
+      operations.saveGate!.complete(BackupSaveStatus.saved);
+      await pendingSave;
+      await _flush();
+      expect(operations.discards, 1, reason: 'the deferred release runs now');
+      expect(replaced.discards, 0);
+
+      operations.pending.single.completion.complete();
+      await container.read(_prepareForDataChange)();
+
+      expect(_cleanups(gateway), 1);
+      expect(replaced.discards, 0);
+      expect(replaced.pending, isEmpty);
+      expect(identical(holder.single, replaced), isTrue);
+    });
+
+    test('a cancelled capture cleanup failure blocks the preparation', () async {
+      final creation = await _creation(directory!, 'cap', 'a' * 64);
+      final operations = _HarnessOperations(
+        nextCreation: creation,
+        discardOutcomes: [true, false],
+      );
+      final (:container, :gateway, :holder) = _harness(operations);
+      final createGate = Completer<BackupCreation>();
+      operations.createGate = createGate;
+      final pendingCreate = container.read(backupProvider.notifier).create(
+        password: _password,
+        confirmation: _password,
+      );
+      await _flush();
+      expect(_stateOf(container).phase, BackupPhase.preparing);
+
+      // The data change cancels the capture and is refused.
+      await expectLater(
+        container.read(_prepareForDataChange)(),
+        _throwsWorkBusy,
+      );
+      expect(operations.creates, 1);
+      expect(operations.discards, 0);
+
+      createGate.complete(creation);
+      await _flush();
+      expect(
+        operations.discards,
+        1,
+        reason: 'the cancelled capture self-releases through the tracker',
+      );
+
+      final prepare = container.read(_prepareForDataChange)();
+      await _flush();
+      expect(_cleanups(gateway), 0, reason: 'the deletion is unsettled');
+      operations.pending.single.completion.complete();
+      await expectLater(prepare, _throwsCleanupFailed);
+
+      // The attempt itself still reports cancellation truthfully while the
+      // retained failed cleanup blocks erasure for the next release.
+      await pendingCreate;
+      expect(_stateOf(container).phase, BackupPhase.cancelled);
+      expect(_stateOf(container).errorCode, 'backup_cancelled');
+      expect(_cleanups(gateway), 0);
+
+      final retry = container.read(_prepareForDataChange)();
+      expect(operations.discards, 2, reason: 'the retained failure retries');
+      operations.pending.single.completion.complete();
+      await retry;
+
+      expect(_cleanups(gateway), 1);
+      expect(gateway.includedOffered, isTrue);
+      expect(identical(holder.single, operations), isTrue);
+    });
   });
 }
