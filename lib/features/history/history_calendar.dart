@@ -1,3 +1,4 @@
+import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 
 import 'dart:math' as math;
@@ -51,7 +52,8 @@ class HistoryMonthGrid extends StatelessWidget {
           context,
           MaterialLocalizations,
         )!,
-        t = AppLocalizations.of(context);
+        t = AppLocalizations.of(context),
+        c = StitchColors(context);
     final dates = historyCalendarDates(month, locale.firstDayOfWeekIndex);
     final scale = MediaQuery.textScalerOf(context).scale(16) / 16;
     final cell = math.max(48.0, 48.0 * scale);
@@ -82,6 +84,7 @@ class HistoryMonthGrid extends StatelessWidget {
                 child: Text(
                   locale.formatMonthYear(month.calendarValue),
                   textAlign: TextAlign.center,
+                  style: StitchType.name.copyWith(color: c.ink),
                 ),
               ),
             ),
@@ -115,6 +118,10 @@ class HistoryMonthGrid extends StatelessWidget {
                                 locale.narrowWeekdays[(i +
                                         locale.firstDayOfWeekIndex) %
                                     7],
+                                style: StitchType.small.copyWith(
+                                  color: c.muted,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
@@ -161,21 +168,51 @@ class HistoryMonthGrid extends StatelessWidget {
                                       children: [
                                         Text(
                                           '${date.day}',
-                                          style: TextStyle(
+                                          style: StitchType.label.copyWith(
+                                            color: date.month == month.month
+                                                ? c.ink
+                                                : c.muted,
                                             fontWeight:
                                                 date.month == month.month
                                                 ? FontWeight.w600
-                                                : FontWeight.normal,
+                                                : FontWeight.w400,
                                           ),
                                         ),
                                         if (marker.recorded +
                                                 marker.skipped +
                                                 marker.voided >
                                             0)
-                                          Text(
-                                            '${marker.recorded > 0 ? '●' : ''}${marker.skipped > 0 ? '−' : ''}${marker.voided > 0 ? '×' : ''}',
-                                            style: const TextStyle(
-                                              fontSize: 12,
+                                          ExcludeSemantics(
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                if (marker.recorded > 0)
+                                                  Text(
+                                                    '●',
+                                                    style: StitchType.small
+                                                        .copyWith(
+                                                          color: c.accent,
+                                                        ),
+                                                  ),
+                                                if (marker.skipped > 0)
+                                                  Text(
+                                                    '−',
+                                                    style: StitchType.small
+                                                        .copyWith(
+                                                          color: c.amber,
+                                                        ),
+                                                  ),
+                                                if (marker.voided > 0)
+                                                  Text(
+                                                    '×',
+                                                    style: StitchType.small
+                                                        .copyWith(
+                                                          color: c.muted,
+                                                        ),
+                                                  ),
+                                              ],
                                             ),
                                           ),
                                       ],
@@ -192,7 +229,10 @@ class HistoryMonthGrid extends StatelessWidget {
             ),
           ),
         ),
-        Text(t.historyMarkerLegend),
+        Text(
+          t.historyMarkerLegend,
+          style: StitchType.small.copyWith(color: c.muted),
+        ),
       ],
     );
   }

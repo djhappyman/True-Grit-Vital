@@ -7344,5 +7344,70 @@
   "screenStockUnknown": "Unknown",
   "@screenStockUnknown": {
     "description": "Stock screen. The remaining balance is unknown; this is not zero."
+  },
+  "screenHistorySubtitle": "Recorded use and skipped plans kept on this device.",
+  "@screenHistorySubtitle": {
+    "description": "History subtitle. Local storage is factual; no sync or integrity claim."
+  },
+  "screenHistoryLastSevenDays": "Last 7 days",
+  "@screenHistoryLastSevenDays": {
+    "description": "Heading for the seven real day markers ending today."
+  },
+  "screenHistoryRecordedCount": "{count, plural, =0{No recorded entries} one{1 recorded} other{{count} recorded}}",
+  "@screenHistoryRecordedCount": {
+    "description": "Factual count of recorded entries in the seven-day strip. Not an adherence percentage.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenHistoryEntryCount": "{count, plural, one{1 entry} other{{count} entries}}",
+  "@screenHistoryEntryCount": {
+    "description": "Number of history entries shown for one day.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "screenHistoryRecordedAt": "Recorded at {time}",
+  "@screenHistoryRecordedAt": {
+    "description": "Recorded time for one history entry.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "screenHistoryScheduledAt": "Scheduled {time}",
+  "@screenHistoryScheduledAt": {
+    "description": "Planned time for a skipped occurrence. Does not imply a recorded dose.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "screenHistoryReportsHelp": "Build a report or open related records.",
+  "@screenHistoryReportsHelp": {
+    "description": "Supporting line for the real reports, charts and supporting actions."
+  },
+  "screenHistoryAudit": "Audit",
+  "@screenHistoryAudit": {
+    "description": "Heading for the clearly labelled audit preview."
+  },
+  "screenHistoryAuditPreview": "Adherence and integrity measures are not available yet. Your records are unchanged.",
+  "@screenHistoryAuditPreview": {
+    "description": "Explicit preview. Does not invent adherence, integrity, hash or delivery claims."
+  },
+  "screenHistoryViewEntry": "View {name}",
+  "@screenHistoryViewEntry": {
+    "description": "Accessible name for one entry's View action.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

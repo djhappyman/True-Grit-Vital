@@ -1,3 +1,4 @@
+import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,34 +91,62 @@ class HistorySourcePage extends ConsumerWidget {
           ),
         ],
         if (entry != null) ...[
-          if (entry.dateOnly)
-            Text(
-              t.historyDateZone(
-                formatter.date(
-                  DisplayTime().instant(
-                    entry.occurredAt,
-                    entry.planZone ?? zone,
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: VitalBadge(
+              switch (entry.status) {
+                TimelineEntryStatus.recorded => t.statusRecorded,
+                TimelineEntryStatus.skipped => t.statusSkipped,
+                TimelineEntryStatus.voided => t.statusVoided,
+              },
+              tone: entry.status == TimelineEntryStatus.recorded
+                  ? VitalTone.positive
+                  : entry.status == TimelineEntryStatus.skipped
+                  ? VitalTone.warning
+                  : VitalTone.neutral,
+              compact: true,
+            ),
+          ),
+          const SizedBox(height: 8),
+          StitchSurface(
+            inset: true,
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (entry.dateOnly)
+                  Text(
+                    t.historyDateZone(
+                      formatter.date(
+                        DisplayTime().instant(
+                          entry.occurredAt,
+                          entry.planZone ?? zone,
+                        ),
+                        full: true,
+                      ),
+                      entry.planZone ?? zone,
+                    ),
+                  )
+                else ...[
+                  Text(
+                    formatter.format(
+                      DisplayTime().instant(entry.occurredAt, zone),
+                      includeSeconds: true,
+                      includeOffset: true,
+                    ),
                   ),
-                  full: true,
-                ),
-                entry.planZone ?? zone,
-              ),
-            )
-          else ...[
-            Text(
-              formatter.format(
-                DisplayTime().instant(entry.occurredAt, zone),
-                includeSeconds: true,
-                includeOffset: true,
-              ),
+                  Text(
+                    t.shownInZone(
+                      DisplayTime().instant(entry.occurredAt, zone).zoneId,
+                    ),
+                  ),
+                  Text(
+                    t.historyExactInstant(entry.occurredAt.toIso8601String()),
+                  ),
+                ],
+              ],
             ),
-            Text(
-              t.shownInZone(
-                DisplayTime().instant(entry.occurredAt, zone).zoneId,
-              ),
-            ),
-            Text(t.historyExactInstant(entry.occurredAt.toIso8601String())),
-          ],
+          ),
           if (entry is RecordTimelineEntry) ...[
             RecordCard(record: entry.record, showActions: false),
             if (owner != null && !owner.isArchived && !entry.record.isVoided)
