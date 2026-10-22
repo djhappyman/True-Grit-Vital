@@ -11781,11 +11781,245 @@ abstract class AppLocalizations {
   /// **'Capacity not set'**
   String get featureStockCapacityUnknown;
 
+  /// Exact remaining amount against exact pack capacity.
+  ///
+  /// In en, this message translates to:
+  /// **'{balance} of {capacity}'**
+  String featureStockCapacityProgress(String balance, String capacity);
+
+  /// Factual note when the exact balance exceeds the descriptive capacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Above pack capacity'**
+  String get featureStockAboveCapacity;
+
   /// Explains that restocking the same container never changes its lot or strength snapshots.
   ///
   /// In en, this message translates to:
   /// **'Adds supply to this container and keeps its lot and strength. Add a container when the lot or strength changes.'**
   String get featureStockRestockHelp;
+
+  /// Accessible label for the inventory search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search stock'**
+  String get featureStockSearchLabel;
+
+  /// Placeholder example for the inventory search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search containers'**
+  String get featureStockSearchHint;
+
+  /// Accessible label for the inventory state filter group.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock filters'**
+  String get featureStockFilters;
+
+  /// Inventory filter showing every container.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get featureStockFilterAll;
+
+  /// Inventory filter for a known balance at or below its low or refill state.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get featureStockFilterLow;
+
+  /// Inventory filter for a known positive balance above its low or refill state.
+  ///
+  /// In en, this message translates to:
+  /// **'Adequate'**
+  String get featureStockFilterAdequate;
+
+  /// Inventory filter for a container whose substance schedule is paused or mixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get featureStockFilterPaused;
+
+  /// Inventory filter for an unknown or aggregate-limited stock balance.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get featureStockFilterUnknown;
+
+  /// Explains overlapping paused and balance filter counts.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused counts the schedule, so a container can also count as low, adequate or unknown.'**
+  String get featureStockFilterOverlapHelp;
+
+  /// Filtered-empty heading for the stock inventory.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches'**
+  String get featureStockFilterEmptyTitle;
+
+  /// Recovery guidance when no container matches the current search and filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another name or clear the stock filter.'**
+  String get featureStockFilterEmptyBody;
+
+  /// Disclosure when the bounded inventory read cannot guarantee whole-collection totals.
+  ///
+  /// In en, this message translates to:
+  /// **'Some stock totals are unavailable. Narrow the search.'**
+  String get featureStockCountsIncomplete;
+
+  /// Counts containers deliberately left out of paused and unscheduled totals because their plan could not be read.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 container has a plan that could not be read.} other{{count} containers have a plan that could not be read.}}'**
+  String featureStockUnresolvedHelp(int count);
+
+  /// Factual schedule badge for a container whose substance plan is paused.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan paused'**
+  String get featureStockPlanPaused;
+
+  /// Factual schedule badge when paused and active plans both apply to the substance.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed plans'**
+  String get featureStockPlanMixed;
+
+  /// Factual schedule badge when the substance has no current plan.
+  ///
+  /// In en, this message translates to:
+  /// **'No schedule'**
+  String get featureStockPlanUnscheduled;
+
+  /// Factual schedule badge when the stored plan could not be read.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan unavailable'**
+  String get featureStockPlanUnresolved;
+
+  /// Label for the conditional schedule-based run-out projection.
+  ///
+  /// In en, this message translates to:
+  /// **'Run-out'**
+  String get featureStockRunOut;
+
+  /// Conditional run-out date. The date is exact; 'around' acknowledges untimed daily plans.
+  ///
+  /// In en, this message translates to:
+  /// **'Around {date}'**
+  String featureStockRunOutEstimate(String date);
+
+  /// Essential assumption behind the run-out estimate. No dose is shared across containers.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned doses only. Starts tomorrow, so today\'s remaining planned use is excluded. Assumes this container supplies all of them.'**
+  String get featureStockRunOutHelp;
+
+  /// Heading when the conditional run-out projection cannot be calculated.
+  ///
+  /// In en, this message translates to:
+  /// **'Run-out unavailable'**
+  String get featureStockRunOutUnavailable;
+
+  /// Unavailable reason for a PRN-only schedule.
+  ///
+  /// In en, this message translates to:
+  /// **'As-needed use has no run-out date.'**
+  String get featureStockRunOutAsNeeded;
+
+  /// Unavailable reason when the substance has no current plan.
+  ///
+  /// In en, this message translates to:
+  /// **'No schedule gives a run-out estimate.'**
+  String get featureStockRunOutUnscheduled;
+
+  /// Unavailable reason for an indefinite pause.
+  ///
+  /// In en, this message translates to:
+  /// **'The schedule is paused.'**
+  String get featureStockRunOutPaused;
+
+  /// Unavailable reason when the balance is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Measure the remaining amount to estimate run-out.'**
+  String get featureStockRunOutUnknown;
+
+  /// Unavailable reason when the stored balance is a deficit.
+  ///
+  /// In en, this message translates to:
+  /// **'The balance is below zero.'**
+  String get featureStockRunOutDeficit;
+
+  /// Unavailable reason when the exact remaining balance is zero.
+  ///
+  /// In en, this message translates to:
+  /// **'The balance is empty.'**
+  String get featureStockRunOutEmpty;
+
+  /// Unavailable reason when the exact aggregate reached its calculation limit.
+  ///
+  /// In en, this message translates to:
+  /// **'The stock total is unavailable.'**
+  String get featureStockRunOutLimit;
+
+  /// Unavailable reason for a planned dose without a usable amount.
+  ///
+  /// In en, this message translates to:
+  /// **'A planned dose has no amount.'**
+  String get featureStockRunOutMissingAmount;
+
+  /// Unavailable reason when exact unit conversion is not possible.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan units do not convert to this container\'s unit.'**
+  String get featureStockRunOutIncompatible;
+
+  /// Unavailable reason when the plan zone is missing or invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan time zone could not be resolved.'**
+  String get featureStockRunOutZone;
+
+  /// Unavailable reason for a missing or repeated local clock time.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan clock could not be resolved.'**
+  String get featureStockRunOutClock;
+
+  /// Unavailable reason for an unsupported or ambiguous schedule composition.
+  ///
+  /// In en, this message translates to:
+  /// **'This schedule cannot be forecast reliably.'**
+  String get featureStockRunOutUnsupported;
+
+  /// Unavailable reason for elapsed interval schedules.
+  ///
+  /// In en, this message translates to:
+  /// **'Interval schedules have no fixed dates to forecast.'**
+  String get featureStockRunOutInterval;
+
+  /// No run-out occurs before a finite plan ends.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned doses end on {date}.'**
+  String featureStockRunOutPlanEnds(String date);
+
+  /// Unavailable reason when the bounded forecast window is exceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'The balance covers more than a year of planned doses.'**
+  String get featureStockRunOutHorizon;
+
+  /// Unavailable reason when the saved schedule has no planned doses in the bounded window.
+  ///
+  /// In en, this message translates to:
+  /// **'No planned doses in the next year.'**
+  String get featureStockRunOutNoPlanned;
 }
 
 class _AppLocalizationsDelegate

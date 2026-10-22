@@ -7602,6 +7602,149 @@ class AppLocalizationsEn extends AppLocalizations {
   String get featureStockCapacityUnknown => 'Capacity not set';
 
   @override
+  String featureStockCapacityProgress(String balance, String capacity) {
+    return '$balance of $capacity';
+  }
+
+  @override
+  String get featureStockAboveCapacity => 'Above pack capacity';
+
+  @override
   String get featureStockRestockHelp =>
       'Adds supply to this container and keeps its lot and strength. Add a container when the lot or strength changes.';
+
+  @override
+  String get featureStockSearchLabel => 'Search stock';
+
+  @override
+  String get featureStockSearchHint => 'Search containers';
+
+  @override
+  String get featureStockFilters => 'Stock filters';
+
+  @override
+  String get featureStockFilterAll => 'All';
+
+  @override
+  String get featureStockFilterLow => 'Low';
+
+  @override
+  String get featureStockFilterAdequate => 'Adequate';
+
+  @override
+  String get featureStockFilterPaused => 'Paused';
+
+  @override
+  String get featureStockFilterUnknown => 'Unknown';
+
+  @override
+  String get featureStockFilterOverlapHelp =>
+      'Paused counts the schedule, so a container can also count as low, adequate or unknown.';
+
+  @override
+  String get featureStockFilterEmptyTitle => 'No matches';
+
+  @override
+  String get featureStockFilterEmptyBody =>
+      'Try another name or clear the stock filter.';
+
+  @override
+  String get featureStockCountsIncomplete =>
+      'Some stock totals are unavailable. Narrow the search.';
+
+  @override
+  String featureStockUnresolvedHelp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count containers have a plan that could not be read.',
+      one: '1 container has a plan that could not be read.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get featureStockPlanPaused => 'Plan paused';
+
+  @override
+  String get featureStockPlanMixed => 'Mixed plans';
+
+  @override
+  String get featureStockPlanUnscheduled => 'No schedule';
+
+  @override
+  String get featureStockPlanUnresolved => 'Plan unavailable';
+
+  @override
+  String get featureStockRunOut => 'Run-out';
+
+  @override
+  String featureStockRunOutEstimate(String date) {
+    return 'Around $date';
+  }
+
+  @override
+  String get featureStockRunOutHelp =>
+      'Planned doses only. Starts tomorrow, so today\'s remaining planned use is excluded. Assumes this container supplies all of them.';
+
+  @override
+  String get featureStockRunOutUnavailable => 'Run-out unavailable';
+
+  @override
+  String get featureStockRunOutAsNeeded => 'As-needed use has no run-out date.';
+
+  @override
+  String get featureStockRunOutUnscheduled =>
+      'No schedule gives a run-out estimate.';
+
+  @override
+  String get featureStockRunOutPaused => 'The schedule is paused.';
+
+  @override
+  String get featureStockRunOutUnknown =>
+      'Measure the remaining amount to estimate run-out.';
+
+  @override
+  String get featureStockRunOutDeficit => 'The balance is below zero.';
+
+  @override
+  String get featureStockRunOutEmpty => 'The balance is empty.';
+
+  @override
+  String get featureStockRunOutLimit => 'The stock total is unavailable.';
+
+  @override
+  String get featureStockRunOutMissingAmount => 'A planned dose has no amount.';
+
+  @override
+  String get featureStockRunOutIncompatible =>
+      'The plan units do not convert to this container\'s unit.';
+
+  @override
+  String get featureStockRunOutZone =>
+      'The plan time zone could not be resolved.';
+
+  @override
+  String get featureStockRunOutClock => 'The plan clock could not be resolved.';
+
+  @override
+  String get featureStockRunOutUnsupported =>
+      'This schedule cannot be forecast reliably.';
+
+  @override
+  String get featureStockRunOutInterval =>
+      'Interval schedules have no fixed dates to forecast.';
+
+  @override
+  String featureStockRunOutPlanEnds(String date) {
+    return 'Planned doses end on $date.';
+  }
+
+  @override
+  String get featureStockRunOutHorizon =>
+      'The balance covers more than a year of planned doses.';
+
+  @override
+  String get featureStockRunOutNoPlanned =>
+      'No planned doses in the next year.';
 }

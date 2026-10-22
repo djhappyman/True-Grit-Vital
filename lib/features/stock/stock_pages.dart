@@ -1,12 +1,14 @@
 import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../app/device_zone.dart';
 import '../../app/display_preferences.dart';
 import '../../app/storage.dart';
 import '../../app/settings_toggle_row.dart';
@@ -27,11 +29,40 @@ class StockPage extends ConsumerStatefulWidget {
 }
 
 class _StockPageState extends ConsumerState<StockPage> {
-  int offset = 0;
+  final _search = TextEditingController();
+  StockInventoryFilter _filter = StockInventoryFilter.all;
+  int _pages = 1;
+  Timer? _clockTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _search.addListener(() {
+      if (mounted) setState(() => _pages = 1);
+    });
+    // Plan pauses, plan ends and the conditional run-out date change with the
+    // clock. One conservative minute refresh keeps the whole page truthful.
+    _clockTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _clockTimer?.cancel();
+    _search.dispose();
+    super.dispose();
+  }
+
+  void _clearFilters() => setState(() {
+    _search.clear();
+    _filter = StockInventoryFilter.all;
+    _pages = 1;
+  });
+
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context),
-        q = (personId: widget.personId, itemId: widget.itemId, offset: offset);
+    final t = AppLocalizations.of(context);
     final people = ref.watch(profilesProvider);
     final owner = people.value
         ?.where((p) => p.id == widget.personId)
@@ -46,6 +77,29 @@ class _StockPageState extends ConsumerState<StockPage> {
     }
     if (owner == null) return EntryPage(children: [Text(t.profileUnavailable)]);
     final archived = owner.isArchived;
+    final search = _search.text.trim();
+    final zone = ref.watch(observedDeviceZoneProvider).value?.zoneId;
+    final now = DateTime.now().toUtc();
+    final asOf = DateTime.utc(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+      now.minute,
+    );
+    final query = (
+      personId: owner.id,
+      itemId: widget.itemId,
+      search: search,
+      filter: _filter,
+      asOf: asOf,
+      zone: zone,
+    );
+    final inventory = ref.watch(stockInventoryProvider(query));
+    final filtered = search.isNotEmpty || _filter != StockInventoryFilter.all;
+    final snapshot = inventory.value;
+    final rows = snapshot?.containers ?? const <StoredStockContainer>[];
+    final shown = rows.take(_pages * 50).toList();
     return EntryPage(
       panelled: false,
       children: [
@@ -56,26 +110,142 @@ class _StockPageState extends ConsumerState<StockPage> {
           _StockAttention(personId: owner.id),
           const SizedBox(height: 24),
         ],
-        ref
-            .watch(stockContainersProvider(q))
-            .when(
-              loading: () => Text(t.loadingRecords),
-              error: (_, _) => LoadFailure(
-                onRetry: () => ref.invalidate(stockContainersProvider(q)),
+        if (!archived || rows.isNotEmpty) ...[
+          Row(
+            children: [
+              Expanded(
+                child: Semantics(
+                  label: t.featureStockSearchLabel,
+                  child: TextField(
+                    controller: _search,
+                    enabled: !archived,
+                    placeholder: Text(
+                      t.featureStockSearchHint,
+                      style: StitchType.body,
+                    ),
+                    style: StitchType.body,
+                    decoration: BoxDecoration(
+                      color: StitchColors(context).inset,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    border: Border.all(color: Colors.transparent),
+                    borderRadius: BorderRadius.circular(999),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    features: [
+                      InputFeature.leading(
+                        Icon(
+                          LucideIcons.search,
+                          size: 19,
+                          color: StitchColors(context).muted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              data: (rows) => _StockContainerList(
-                rows: rows,
-                personRevision: owner.revision,
-                archived: archived,
-                offset: offset,
-                onPrevious: offset == 0
-                    ? null
-                    : () => setState(() => offset -= 50),
-                onNext: rows.length > 50
-                    ? () => setState(() => offset += 50)
-                    : null,
+              const SizedBox(width: 6),
+              VitalLocalOptions(
+                label: t.featureStockFilters,
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(t.featureStockFilters, style: VitalType.section),
+                    const SizedBox(height: 12),
+                    StockInventoryFilters(
+                      counts: snapshot?.complete == true
+                          ? snapshot!.counts
+                          : null,
+                      selected: _filter,
+                      onSelected: (filter) => setState(() {
+                        _filter = filter;
+                        _pages = 1;
+                      }),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(t.featureStockFilterOverlapHelp),
+                    if ((snapshot?.counts.unresolved ?? 0) > 0) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        t.featureStockUnresolvedHelp(
+                          snapshot!.counts.unresolved,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    VitalButton.secondary(
+                      onPressed: _clearFilters,
+                      child: Text(t.clear),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          StockInventoryFilters(
+            counts: snapshot?.complete == true ? snapshot!.counts : null,
+            selected: _filter,
+            onSelected: (filter) => setState(() {
+              _filter = filter;
+              _pages = 1;
+            }),
+          ),
+          if (snapshot != null && !snapshot.complete) ...[
+            const SizedBox(height: 6),
+            Text(
+              t.featureStockCountsIncomplete,
+              style: StitchType.caption.copyWith(
+                color: StitchColors(context).amber,
               ),
             ),
+          ],
+          if ((snapshot?.counts.unresolved ?? 0) > 0 &&
+              snapshot?.complete == true) ...[
+            const SizedBox(height: 6),
+            Text(
+              t.featureStockUnresolvedHelp(snapshot!.counts.unresolved),
+              style: StitchType.caption.copyWith(
+                color: StitchColors(context).amber,
+              ),
+            ),
+          ],
+          const SizedBox(height: 14),
+        ],
+        if (inventory.hasError)
+          LoadFailure(onRetry: () => ref.invalidate(stockInventoryProvider))
+        else if (!inventory.hasValue)
+          Text(t.loadingRecords)
+        else if (rows.isEmpty && !filtered && !archived)
+          VitalEmptyState(
+            title: t.screenStockNoContainers,
+            description: t.screenStockNoContainersHelp,
+            icon: LucideIcons.boxes,
+          )
+        else if (rows.isEmpty)
+          VitalEmptyState(
+            title: t.featureStockFilterEmptyTitle,
+            description: t.featureStockFilterEmptyBody,
+            icon: LucideIcons.search,
+            action: VitalButton.secondary(
+              onPressed: _clearFilters,
+              child: Text(t.clear),
+            ),
+          )
+        else
+          _StockContainerList(
+            rows: shown,
+            counts: snapshot!.counts,
+            complete: snapshot.complete,
+            personRevision: owner.revision,
+            archived: archived,
+            inventory: snapshot,
+            onNext: rows.length > shown.length
+                ? () => setState(() => _pages++)
+                : null,
+          ),
         if (!archived) ...[
           const SizedBox(height: 24),
           _StockAdd(personId: owner.id, itemId: widget.itemId),
@@ -220,6 +390,8 @@ class _StockNoticeCard extends StatelessWidget {
           const SizedBox(height: 12),
           _StockBalanceLine(container: c),
           StockPackFacts(container: c),
+          const SizedBox(height: 6),
+          StockForecastLine(container: c),
           if (c.lowThreshold != null) ...[
             const SizedBox(height: 6),
             Text(
@@ -229,8 +401,6 @@ class _StockNoticeCard extends StatelessWidget {
               style: caption,
             ),
           ],
-          const SizedBox(height: 6),
-          Text(t.stitchForecastPending, style: caption),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -258,65 +428,125 @@ class _StockNoticeCard extends StatelessWidget {
   }
 }
 
-/// Bounded container page with truthful paging. The trailing caption states
-/// that no whole-collection status filter is applied.
+/// Bounded container page with truthful paging. Counts come from the whole
+/// store-backed inventory snapshot, never only the visible page.
 class _StockContainerList extends StatelessWidget {
   const _StockContainerList({
     required this.rows,
+    required this.counts,
+    required this.complete,
     required this.personRevision,
     required this.archived,
-    required this.offset,
-    required this.onPrevious,
+    required this.inventory,
     required this.onNext,
   });
   final List<StoredStockContainer> rows;
+  final StockInventoryCounts counts;
+  final bool complete;
   final int personRevision;
   final bool archived;
-  final int offset;
-  final VoidCallback? onPrevious, onNext;
+  final StockInventorySnapshot inventory;
+  final VoidCallback? onNext;
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final visible = rows.take(50).toList();
-    final paging = offset > 0 || rows.length > 50;
+    final paging = onNext != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _StockSectionTitle(
-          label: t.screenStockContainers,
+          label: complete
+              ? t.stitchFilterCount(t.screenStockContainers, counts.all)
+              : t.screenStockContainers,
           trailing: paging ? t.screenStockLoadedOnly : null,
         ),
         const SizedBox(height: 12),
-        if (visible.isEmpty)
+        if (rows.isEmpty)
           VitalEmptyState(
             title: t.screenStockNoContainers,
             description: t.screenStockNoContainersHelp,
             icon: LucideIcons.boxes,
           )
         else
-          for (final c in visible) ...[
+          for (final c in rows) ...[
             _StockContainerCard(
               key: ValueKey('stock-card-${c.id}'),
               container: c,
               personRevision: personRevision,
               archived: archived,
+              planState: inventory.planStateFor(c.id),
+              balanceState: inventory.balanceFor(c.id),
             ),
             const SizedBox(height: 12),
           ],
         if (paging) ...[
-          if (visible.isEmpty) const SizedBox(height: 12),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              if (onPrevious != null)
-                StitchButton(onPressed: onPrevious, child: Text(t.previous)),
-              if (onNext != null)
-                StitchButton(onPressed: onNext, child: Text(t.next)),
-            ],
+          const SizedBox(height: 4),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: StitchButton(onPressed: onNext, child: Text(t.more)),
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Whole-collection balance and plan filters. Balance values and pause state
+/// may overlap, so the labels stay factual rather than exclusive.
+class StockInventoryFilters extends StatelessWidget {
+  const StockInventoryFilters({
+    super.key,
+    required this.counts,
+    required this.selected,
+    required this.onSelected,
+  });
+  final StockInventoryCounts? counts;
+  final StockInventoryFilter selected;
+  final ValueChanged<StockInventoryFilter> onSelected;
+
+  String _name(AppLocalizations t, StockInventoryFilter filter) =>
+      switch (filter) {
+        StockInventoryFilter.all => t.featureStockFilterAll,
+        StockInventoryFilter.low => t.featureStockFilterLow,
+        StockInventoryFilter.adequate => t.featureStockFilterAdequate,
+        StockInventoryFilter.paused => t.featureStockFilterPaused,
+        StockInventoryFilter.unknown => t.featureStockFilterUnknown,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    return Semantics(
+      container: true,
+      label: t.featureStockFilters,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (final filter in StockInventoryFilter.values)
+              Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Semantics(
+                  selected: selected == filter,
+                  child: StitchButton(
+                    primary: selected == filter,
+                    compact: true,
+                    onPressed: () => onSelected(filter),
+                    child: Text(
+                      counts == null
+                          ? _name(t, filter)
+                          : t.stitchFilterCount(
+                              _name(t, filter),
+                              counts!.count(filter),
+                            ),
+                      style: StitchType.small,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -327,10 +557,14 @@ class _StockContainerCard extends ConsumerWidget {
     required this.container,
     required this.personRevision,
     required this.archived,
+    required this.planState,
+    required this.balanceState,
   });
   final StoredStockContainer container;
   final int personRevision;
   final bool archived;
+  final StockInventoryPlanState planState;
+  final StockInventoryBalance balanceState;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context), c = StitchColors(context);
@@ -354,6 +588,12 @@ class _StockContainerCard extends ConsumerWidget {
           StockPackFacts(container: container),
           const SizedBox(height: 12),
           _StockBalanceLine(container: container),
+          const SizedBox(height: 10),
+          StockCapacityProgress(container: container),
+          const SizedBox(height: 6),
+          StockForecastLine(container: container),
+          const SizedBox(height: 8),
+          StockPlanStateLine(state: planState),
           if (!archived) ...[
             const SizedBox(height: 12),
             Container(height: 1, color: c.line),
@@ -391,6 +631,58 @@ class _StockContainerCard extends ConsumerWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Factual schedule state shown beside the balance, so Paused is never
+/// inferred from stock or item type and unscheduled/mixed stay explicit.
+class StockPlanStateLine extends StatelessWidget {
+  const StockPlanStateLine({super.key, required this.state});
+  final StockInventoryPlanState state;
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final colors = StitchColors(context);
+    final (label, tone) = switch (state) {
+      StockInventoryPlanState.paused => (
+        t.featureStockPlanPaused,
+        VitalTone.warning,
+      ),
+      StockInventoryPlanState.mixed => (
+        t.featureStockPlanMixed,
+        VitalTone.warning,
+      ),
+      StockInventoryPlanState.unscheduled => (
+        t.featureStockPlanUnscheduled,
+        VitalTone.neutral,
+      ),
+      StockInventoryPlanState.unresolved => (
+        t.featureStockPlanUnresolved,
+        VitalTone.warning,
+      ),
+      StockInventoryPlanState.active => (null, VitalTone.neutral),
+      StockInventoryPlanState.asNeeded => (t.planAsNeeded, VitalTone.neutral),
+    };
+    if (label == null) return const SizedBox.shrink();
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          state == StockInventoryPlanState.unresolved
+              ? LucideIcons.circleAlert
+              : LucideIcons.calendarClock,
+          size: 15,
+          color: tone == VitalTone.warning ? colors.amber : colors.muted,
+        ),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            label,
+            style: StitchType.caption.copyWith(color: colors.muted),
+          ),
+        ),
+      ],
     );
   }
 }

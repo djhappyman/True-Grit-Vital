@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import '../../app/device_zone.dart';
 import '../../app/display_preferences.dart';
 import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
@@ -132,6 +135,183 @@ class StockPackFacts extends StatelessWidget {
         children: rows,
       ),
     );
+  }
+}
+
+/// A visually bounded exact proportion. Unknown capacity or balance never
+/// assumes 100 percent; the full exact values stay in the text.
+class StockCapacityProgress extends StatelessWidget {
+  const StockCapacityProgress({
+    super.key,
+    required this.container,
+    this.detailed = false,
+  });
+  final StoredStockContainer container;
+  final bool detailed;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final capacity = container.capacity;
+    final balance = container.balance;
+    if (capacity == null) {
+      return detailed
+          ? Text(
+              t.featureStockCapacityUnknown,
+              style: StitchType.caption.copyWith(
+                color: StitchColors(context).muted,
+              ),
+            )
+          : const SizedBox.shrink();
+    }
+    final value = balance.value;
+    if (value == null || balance.limitReached) {
+      return VitalProgress.unknown(
+        label: t.featureStockCapacity,
+        annotation: balance.limitReached ? t.stockLimit : t.stockUnknownValue,
+      );
+    }
+    final fraction = stockCapacityFraction(value, capacity);
+    final above = value > capacity;
+    return VitalProgress(
+      label: t.featureStockCapacity,
+      valueText: stockAmountText(t, value, container.unit),
+      totalText: stockAmountText(t, capacity, container.unit),
+      fraction: fraction,
+      annotation: above
+          ? t.featureStockAboveCapacity
+          : balance.isDeficit
+          ? t.stockDeficit
+          : null,
+    );
+  }
+}
+
+/// Conditional run-out estimate shared by the stock inventory, container
+/// notices and the substance summary. It always names its assumption.
+class StockForecastLine extends ConsumerStatefulWidget {
+  const StockForecastLine({
+    super.key,
+    required this.container,
+    this.detailed = false,
+  });
+  final StoredStockContainer container;
+  final bool detailed;
+
+  @override
+  ConsumerState<StockForecastLine> createState() => _StockForecastLineState();
+}
+
+class _StockForecastLineState extends ConsumerState<StockForecastLine> {
+  late DateTime _asOf = _roundedNow();
+  Timer? _timer;
+
+  static DateTime _roundedNow() {
+    final now = DateTime.now().toUtc();
+    return DateTime.utc(now.year, now.month, now.day, now.hour, now.minute);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() => _asOf = _roundedNow());
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String _reason(
+    AppLocalizations t,
+    StockRunOutForecast forecast,
+  ) => switch (forecast.reason) {
+    StockForecastReason.asNeeded => t.featureStockRunOutAsNeeded,
+    StockForecastReason.unscheduled => t.featureStockRunOutUnscheduled,
+    StockForecastReason.paused => t.featureStockRunOutPaused,
+    StockForecastReason.unknownBalance => t.featureStockRunOutUnknown,
+    StockForecastReason.deficit => t.featureStockRunOutDeficit,
+    StockForecastReason.emptyBalance => t.featureStockRunOutEmpty,
+    StockForecastReason.aggregateLimit => t.featureStockRunOutLimit,
+    StockForecastReason.missingAmount => t.featureStockRunOutMissingAmount,
+    StockForecastReason.incompatibleUnits => t.featureStockRunOutIncompatible,
+    StockForecastReason.unresolvedZone => t.featureStockRunOutZone,
+    StockForecastReason.unresolvedClock => t.featureStockRunOutClock,
+    StockForecastReason.unsupportedSchedule => t.featureStockRunOutUnsupported,
+    StockForecastReason.intervalSchedule => t.featureStockRunOutInterval,
+    StockForecastReason.planEndsFirst => t.featureStockRunOutPlanEnds(
+      forecast.throughDate?.toString() ?? '',
+    ),
+    StockForecastReason.completeAfterHorizon => t.featureStockRunOutHorizon,
+    StockForecastReason.noPlannedUse => t.featureStockRunOutNoPlanned,
+    null => '',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final zone = ref.watch(observedDeviceZoneProvider).value?.zoneId;
+    final query = (
+      personId: widget.container.personId,
+      containerId: widget.container.id,
+      asOf: _asOf,
+      zone: zone,
+    );
+    return ref
+        .watch(stockForecastProvider(query))
+        .when(
+          loading: () => const SizedBox.shrink(),
+          error: (_, _) =>
+              Text(t.featureStockRunOutUnavailable, style: StitchType.caption),
+          data: (forecast) {
+            if (forecast == null) return const SizedBox.shrink();
+            final colors = StitchColors(context);
+            return Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (forecast.isAvailable) ...[
+                    Text(
+                      t.featureStockRunOut,
+                      style: StitchType.caption.copyWith(
+                        color: colors.muted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      t.featureStockRunOutEstimate(forecast.date.toString()),
+                      style: StitchType.body.copyWith(
+                        color: colors.ink,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      t.featureStockRunOutHelp,
+                      style: StitchType.caption.copyWith(color: colors.muted),
+                    ),
+                  ] else ...[
+                    Text(
+                      t.featureStockRunOutUnavailable,
+                      style: StitchType.caption.copyWith(
+                        color: colors.muted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      _reason(t, forecast),
+                      style: StitchType.caption.copyWith(color: colors.muted),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          },
+        );
   }
 }
 

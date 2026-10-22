@@ -293,4 +293,152 @@ void main() {
     );
     expect(find.text('4'), findsNothing);
   });
+
+  appTest('whole-collection filters and search reach later cards', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final (pausedItem, lastItem) = (await runIo(tester, () async {
+      final paused = await makeItem(f.store, 'Zzz paused item');
+      final last = await makeItem(f.store, 'Zzz cabinet item');
+      for (var index = 0; index < 55; index++) {
+        final row = await makeItem(f.store, 'A item $index');
+        await makeContainer(
+          f.store,
+          row,
+          label: 'Bottle $index',
+          opening: '40',
+        );
+      }
+      await makeContainer(
+        f.store,
+        paused,
+        label: 'Paused bottle',
+        opening: '40',
+      );
+      await makePlan(f.store, paused, paused: true);
+      await makeContainer(
+        f.store,
+        last,
+        label: 'Cabinet bottle',
+        opening: '40',
+      );
+      return (paused, last);
+    }))!;
+    f.container.read(routerProvider).go('/stock/$meId');
+    await settle(tester);
+    await waitForText(tester, 'Bottle 0');
+    expect(find.text('Paused bottle'), findsNothing);
+
+    await tester.tap(find.byIcon(LucideIcons.listFilter).first);
+    await settle(tester);
+    expect(find.text('Stock filters'), findsWidgets);
+    await tap(tester, 'Done');
+    await settle(tester);
+    await tester.tap(find.text('Paused (1)'));
+    await settle(tester);
+    await waitForText(tester, 'Paused bottle');
+    expect(find.text('Bottle 0'), findsNothing);
+    expect(find.text('Plan paused'), findsWidgets);
+    await runIo(tester, () async {
+      final snapshot = await f.store.stockInventory(
+        personId: meId,
+        now: DateTime.utc(2026, 10, 22, 12),
+        observedZone: 'UTC',
+        filter: StockInventoryFilter.paused,
+      );
+      expect(snapshot.containers.single.itemId, pausedItem.id);
+    });
+
+    await tester.tap(find.text('All (57)'));
+    await settle(tester);
+    await tester.enterText(find.byType(TextField).first, 'cabinet');
+    await settle(tester);
+    await waitForText(tester, 'Cabinet bottle');
+    expect(find.text('Paused bottle'), findsNothing);
+    expect(lastItem.name, 'Zzz cabinet item');
+  });
+
+  appTest('exact capacity and conditional run-out share the card', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final item = (await runIo(tester, () async {
+      final item = await makeItem(f.store, 'Vitamin D3 + K2');
+      await makePlan(f.store, item);
+      return item;
+    }))!;
+    await runIo(
+      tester,
+      () => makeContainer(
+        f.store,
+        item,
+        label: 'Vitamin bottle',
+        opening: '3',
+        capacity: '10',
+      ),
+    );
+    f.container.read(routerProvider).go('/stock/$meId');
+    await settle(tester);
+    await waitForText(tester, 'Pack capacity');
+    expect(find.text('3 ml'), findsWidgets);
+    expect(find.text('10 ml'), findsWidgets);
+    await waitForText(tester, 'Run-out');
+    expect(find.textContaining('Around '), findsOneWidget);
+    expect(
+      find.text(
+        'Planned doses only. Starts tomorrow, so today\'s remaining planned use is excluded. Assumes this container supplies all of them.',
+      ),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  appTest('stock details and forecast survive 320px double text', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 740);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    final f = await launch(tester);
+    final item = (await runIo(tester, () async {
+      final item = await makeItem(
+        f.store,
+        'Magnesium Glycinate Extra Strength',
+      );
+      await makePlan(f.store, item);
+      return item;
+    }))!;
+    final container = (await runIo(
+      tester,
+      () => makeContainer(
+        f.store,
+        item,
+        label: 'Original amber bottle from the pharmacy cabinet',
+        opening: '3',
+        lot: 'LOT-320-NARROW',
+        expiry: CivilDate(2027, 12, 31),
+        capacity: '10',
+      ),
+    ))!;
+    f.container.read(routerProvider).go('/stock/$meId');
+    await settle(tester);
+    await waitForText(tester, 'Lot: LOT-320-NARROW');
+    for (final width in [320.0, 390.0, 430.0]) {
+      tester.view.physicalSize = Size(width, 740);
+      await settle(tester);
+      expect(tester.takeException(), isNull, reason: '$width at double text');
+      expect(
+        find.text('Original amber bottle from the pharmacy cabinet'),
+        findsWidgets,
+      );
+    }
+    await tester.ensureVisible(
+      find.byKey(ValueKey('stock-details-${container.id}')),
+    );
+    await settle(tester);
+    expect(tester.takeException(), isNull);
+  });
 }

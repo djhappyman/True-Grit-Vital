@@ -40,8 +40,30 @@ not required). All paths below were opened successfully unless marked otherwise.
 The `.scratch` and `docs/specification` trees exist only in the root checkout, so
 those required documents were read there. No missing-file failure was hidden.
 
+## Commits
+
+- `fcec27b` D13: stock lot, expiry, capacity and metadata history.
+- `5450338` D14: whole-collection filters, capacity display and bounded run-out.
+
+## Final verification
+
+Run from this worktree with `./tool/flutterw` (Flutter 3.47.7, Dart 3.13.5):
+
+- `./tool/flutterw analyze --no-pub` -> `No issues found!`
+- Focused stock/export/backup suites -> 102 tests passed in the combined final
+  run before the D14 split, and 42 focused stock/migration/forecast/restore/UI
+  tests passed after the split.
+- `./tool/flutterw test --no-pub test/screen_stock_inventory_test.dart
+  --dart-define=VITAL_STOCK_CAPTURES=docs/design/reviews/2026-10-22-five-features/d13-d14-stock/captures`
+  -> 8 tests passed and rewrote the committed light/dark, full and 320px 2x
+  captures.
+
+The final worktree is clean. No whole-suite, Android or cross-platform build
+was run in this lane.
+
 This note is extended during the work with graph coverage, test commands and
 visual evidence.
+
 
 ## D13: lots, expiry and pack capacity
 
@@ -109,4 +131,70 @@ read directly. Best-effort coverage is not proof of completeness.
   was invented.
 - Physical device accessibility, native boot and measured performance remain
   root/integration gates. This lane ran focused host tests only.
+
+## D14: inventory filters, capacity and bounded run-out
+
+### What changed
+
+- The stock page now searches the whole stored collection and filters by All,
+  Low, Adequate, Paused and Unknown. Counts come from one store-backed snapshot,
+  not the loaded page. Paused is plan state and may overlap a balance state; the
+  filter popover says so. Unknown and unresolved plans stay explicit.
+- A known balance is Low at or below its refill/low state (including zero and
+  deficits), Adequate only when positive and above that state, and Unknown when
+  the balance or exact aggregate is unavailable. Paused is never inferred from
+  stock or item type.
+- Pack capacity is shown as an exact proportion. The visual ratio uses a bounded
+  integer ratio before one double conversion, so large exact pairs cannot
+  produce Infinity or NaN. Unknown balance shows no invented bar; capacity above
+  or below the pack is stated.
+- Run-out is a bounded, conditional schedule projection in the container unit.
+  It starts tomorrow, names that today's remaining planned use is excluded, and
+  states that this container supplies every planned dose. It uses saved plans,
+  phases, calendar, pauses, ends, zone and clock through the existing resolver.
+- PRN-only, mixed PRN/scheduled, unscheduled, paused, unknown, empty, deficit,
+  aggregate-limit, missing amount, incompatible units, unresolved zone/clock,
+  interval, unsupported composition, plan ending first and more-than-a-year
+  outcomes each have an explicit reason. No daily average, rounding or
+  multi-container distribution is inferred.
+- The same capacity and forecast presentation is mounted on stock cards, notice
+  cards and the detailed substance stock summary. No new screen was added.
+
+### Review fixes applied
+
+- PRN and scheduled phases in one plan are conservatively unavailable.
+- A zero balance reports empty, never tomorrow's date.
+- Plan-end wording is only used when the saved end is inside the calculation
+  horizon; otherwise the horizon/unsupported boundary is reported.
+- Inventory and forecast reads run in one transaction with lock guards at the
+  start and end. The providers swallow only the `app_locked` cancellation; all
+  other errors keep their visible failure and Retry action.
+- Exact capacity fractions survive details editing and draft restore.
+
+### Evidence
+
+- `test/data/stock_inventory_store_test.dart`: whole-collection counts beyond one
+  page, search on name and label with literal wildcards, item scope, paused
+  state with adequate stock, unresolved plan exclusion and lock cancellation.
+- `test/domain/stock_forecast_test.dart`: exact daily/weekday/unit cases, pauses,
+  PRN, mixed phases, empty/deficit/unknown/limit, interval, missing clock,
+  incompatible units, plan end, horizon, multiple plans and capacity ratio.
+- `test/screen_stock_metadata_test.dart`: filter count/search beyond the first
+  page, exact capacity and run-out text, and 320/390/430px at double text.
+- `test/screen_stock_inventory_test.dart`: real-font light/dark capture pass with
+  lot, expiry, capacity, run-out and plan state. Captures are committed under
+  `captures/`: viewport, full-content, 320px 2x and bottom states for both themes.
+- Commands run with `./tool/flutterw` and the pinned Flutter 3.47.7 / Dart 3.13.5:
+  focused stock data, migration, forecast, restore, export, backup and widget
+  suites passed; `./tool/flutterw analyze --no-pub` reported no issues.
+
+### Remaining limits
+
+- Forecast is deliberately unavailable for interval schedules, mixed PRN phases
+  and ambiguous zone/clock cases rather than guessing.
+- Today's already-recorded doses are not subtracted from tomorrow's projection;
+  the visible help names that boundary instead.
+- PDF reports still carry no stock provenance section.
+- Physical-device and native gates remain root responsibilities.
+
 

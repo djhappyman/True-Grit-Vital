@@ -23,6 +23,8 @@ import '../domain/reminders/reminders.dart';
 export '../domain/reminders/reminders.dart';
 import '../domain/stock/stored_stock.dart';
 export '../domain/stock/stored_stock.dart';
+import '../domain/stock/stock_forecast.dart';
+export '../domain/stock/stock_forecast.dart';
 import '../domain/scheduling/daily_plan.dart';
 import '../domain/scheduling/phase_plan.dart';
 export '../domain/scheduling/phase_plan.dart';

@@ -140,6 +140,53 @@ final stockNoticeProvider = StreamProvider.autoDispose
       },
     );
 
+typedef StockInventoryQuery = ({
+  String personId,
+  String? itemId,
+  String search,
+  StockInventoryFilter filter,
+  DateTime asOf,
+  String? zone,
+});
+
+/// Whole-collection inventory state, composed from one store-backed search,
+/// item scope and clock snapshot. The loaded page is sliced by the page.
+final stockInventoryProvider = StreamProvider.autoDispose
+    .family<StockInventorySnapshot, StockInventoryQuery>(
+      retry: (_, _) => null,
+      (ref, q) async* {
+        yield* (await ref.watch(recordStoreProvider.future))
+            .watchStockInventory(
+              personId: q.personId,
+              itemId: q.itemId,
+              search: q.search,
+              filter: q.filter,
+              now: q.asOf,
+              observedZone: q.zone,
+            );
+      },
+    );
+
+typedef StockForecastQuery = ({
+  String personId,
+  String containerId,
+  DateTime asOf,
+  String? zone,
+});
+
+final stockForecastProvider = StreamProvider.autoDispose
+    .family<StockRunOutForecast?, StockForecastQuery>(retry: (_, _) => null, (
+      ref,
+      q,
+    ) async* {
+      yield* (await ref.watch(recordStoreProvider.future)).watchStockForecast(
+        personId: q.personId,
+        containerId: q.containerId,
+        now: q.asOf,
+        observedZone: q.zone,
+      );
+    });
+
 final stockMetadataHistoryProvider = StreamProvider.autoDispose
     .family<
       List<StoredStockMetadataRevision>,

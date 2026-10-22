@@ -517,6 +517,229 @@ extension StockRecordStore on RecordStore {
       limit: limit,
     ),
   );
+
+  static const _stockInventoryBound = 2000;
+
+  StockInventoryBalance _stockInventoryBalance(StoredStockContainer c) {
+    final value = c.balance.value;
+    if (value == null || c.balance.limitReached) {
+      return StockInventoryBalance.unknown;
+    }
+    if (value < ExactAmount.zero) return StockInventoryBalance.low;
+    if (c.refillEnabled && value <= ExactAmount.zero) {
+      return StockInventoryBalance.low;
+    }
+    final threshold = c.lowThreshold;
+    if (threshold != null && value <= threshold) {
+      return StockInventoryBalance.low;
+    }
+    if (value > ExactAmount.zero) return StockInventoryBalance.adequate;
+    // A known zero without a refill rule is still not adequate.
+    return StockInventoryBalance.low;
+  }
+
+  /// Whole-collection inventory read. Search, the item scope, the inventory
+  /// filter and every count use this one store-backed snapshot, never only the
+  /// first loaded page. The plan state comes from the same bounded status
+  /// projection used by the Substances list.
+  Future<StockInventorySnapshot> stockInventory({
+    required String personId,
+    required DateTime now,
+    String? observedZone,
+    String? itemId,
+    String search = '',
+    StockInventoryFilter filter = StockInventoryFilter.all,
+  }) async {
+    _requireWritable();
+    return _db.transaction(() async {
+      _requireWritable();
+      final query = search.trim();
+      final conditions = <String>['c.person=?', 'o.archived=0'];
+      final args = <Object?>[personId];
+      if (itemId != null) {
+        conditions.add('c.item=?');
+        args.add(itemId);
+      }
+      if (query.isNotEmpty) {
+        conditions.add(
+          r"(i.name LIKE ? ESCAPE '\' OR c.label LIKE ? ESCAPE '\')",
+        );
+        final escaped = '%${RecordStore._escapeLike(query)}%';
+        args
+          ..add(escaped)
+          ..add(escaped);
+      }
+      final rows = await _rows(
+        'SELECT c.*,i.name AS item_name FROM stock_container c JOIN item i ON i.id=c.item AND i.person=c.person JOIN person o ON o.id=c.person WHERE ${conditions.join(' AND ')} ORDER BY i.name,c.id LIMIT ?',
+        [...args, _stockInventoryBound + 1],
+      );
+      final complete = rows.length <= _stockInventoryBound;
+      final candidates = rows
+          .take(_stockInventoryBound)
+          .map(_stockContainer)
+          .toList();
+
+      final statuses = await substanceStatusSnapshot(
+        personId: personId,
+        scope: FeedScope.person(personId),
+        now: now,
+        observedZone: observedZone,
+      );
+
+      final balances = <String, StockInventoryBalance>{};
+      final planStates = <String, StockInventoryPlanState>{};
+      var low = 0, adequate = 0, unknown = 0, paused = 0, unresolved = 0;
+      for (final container in candidates) {
+        final balance = _stockInventoryBalance(container);
+        balances[container.id] = balance;
+        switch (balance) {
+          case StockInventoryBalance.low:
+            low++;
+          case StockInventoryBalance.adequate:
+            adequate++;
+          case StockInventoryBalance.unknown:
+            unknown++;
+        }
+        final itemStatuses = statuses.statusesFor(container.itemId);
+        final itemUnresolved = statuses.isUnresolved(container.itemId);
+        final planState = itemUnresolved
+            ? StockInventoryPlanState.unresolved
+            : itemStatuses.contains(SubstancePlanStatus.paused)
+            ? (itemStatuses.contains(SubstancePlanStatus.active) ||
+                      itemStatuses.contains(SubstancePlanStatus.asNeeded)
+                  ? StockInventoryPlanState.mixed
+                  : StockInventoryPlanState.paused)
+            : itemStatuses.contains(SubstancePlanStatus.active)
+            ? StockInventoryPlanState.active
+            : itemStatuses.contains(SubstancePlanStatus.asNeeded)
+            ? StockInventoryPlanState.asNeeded
+            : StockInventoryPlanState.unscheduled;
+        planStates[container.id] = planState;
+        if (planState == StockInventoryPlanState.paused ||
+            planState == StockInventoryPlanState.mixed) {
+          paused++;
+        }
+        if (itemUnresolved) unresolved++;
+      }
+
+      final filtered = candidates.where((container) {
+        return switch (filter) {
+          StockInventoryFilter.all => true,
+          StockInventoryFilter.low =>
+            balances[container.id] == StockInventoryBalance.low,
+          StockInventoryFilter.adequate =>
+            balances[container.id] == StockInventoryBalance.adequate,
+          StockInventoryFilter.unknown =>
+            balances[container.id] == StockInventoryBalance.unknown,
+          StockInventoryFilter.paused =>
+            planStates[container.id] == StockInventoryPlanState.paused ||
+                planStates[container.id] == StockInventoryPlanState.mixed,
+        };
+      }).toList();
+
+      _requireWritable();
+      return StockInventorySnapshot(
+        containers: filtered,
+        balances: balances,
+        planStates: planStates,
+        complete: complete,
+        counts: StockInventoryCounts(
+          all: candidates.length,
+          low: low,
+          adequate: adequate,
+          paused: paused,
+          unknown: unknown,
+          unresolved: unresolved,
+        ),
+      );
+    });
+  }
+
+  Stream<StockInventorySnapshot> watchStockInventory({
+    required String personId,
+    required DateTime now,
+    String? observedZone,
+    String? itemId,
+    String search = '',
+    StockInventoryFilter filter = StockInventoryFilter.all,
+  }) => _watch(
+    () => stockInventory(
+      personId: personId,
+      now: now,
+      observedZone: observedZone,
+      itemId: itemId,
+      search: search,
+      filter: filter,
+    ),
+  );
+
+  /// One container's bounded schedule projection. It reads the same saved
+  /// versions, phases, pauses and ends as the occurrence resolver.
+  Future<StockRunOutForecast?> stockForecastForContainer({
+    required String personId,
+    required String containerId,
+    required DateTime now,
+    String? observedZone,
+  }) async {
+    _requireWritable();
+    return _db.transaction(() async {
+      _requireWritable();
+      final row = (await _rows(
+        'SELECT * FROM stock_container WHERE id=? AND person=?',
+        [containerId, personId],
+      )).firstOrNull;
+      if (row == null) return null;
+      final container = _stockContainer(row);
+      final saved = await dailyPlans(
+        scope: FeedScope.person(personId),
+        itemId: container.itemId,
+        limit: 101,
+      );
+      if (saved.length > 100) {
+        return const StockRunOutForecast.unavailable(
+          StockForecastReason.unsupportedSchedule,
+        );
+      }
+      final plans = <PhasePlan>[];
+      for (final entry in saved) {
+        try {
+          final phase = await phasePlan(
+            planId: entry.plan.planId,
+            personId: personId,
+          );
+          plans.add(phase ?? PhasePlan(phases: [entry.plan]));
+        } on Object {
+          return const StockRunOutForecast.unavailable(
+            StockForecastReason.unsupportedSchedule,
+          );
+        }
+      }
+      _requireWritable();
+      return forecastStockRunOut(
+        balance: container.balance,
+        unit: container.unit,
+        strength: container.strength,
+        plans: plans,
+        now: now,
+        observedZone: observedZone,
+      );
+    });
+  }
+
+  Stream<StockRunOutForecast?> watchStockForecast({
+    required String personId,
+    required String containerId,
+    required DateTime now,
+    String? observedZone,
+  }) => _watch(
+    () => stockForecastForContainer(
+      personId: personId,
+      containerId: containerId,
+      now: now,
+      observedZone: observedZone,
+    ),
+  );
+
   Future<StoredStockContainer> configureStockNotices({
     required String commandId,
     required String personId,

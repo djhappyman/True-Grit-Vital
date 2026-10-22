@@ -9,7 +9,12 @@ import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
 import '../plans/plan_providers.dart';
 import '../products/product_widgets.dart' show ProductLabelView;
-import '../stock/stock_widgets.dart' show stockAmountNumber;
+import '../stock/stock_widgets.dart'
+    show
+        stockAmountNumber,
+        StockCapacityProgress,
+        StockForecastLine,
+        StockPackFacts;
 import 'substance_summary_providers.dart';
 
 /// Reusable live summary for one stored substance.
@@ -637,6 +642,17 @@ class SubstanceContainerSummary extends StatelessWidget {
             Text(t.stockStrengthValue(container.strength.label)),
           ],
           Wrap(spacing: 12, runSpacing: 8, children: _badges(context)),
+          if (container.capacity != null || detailed)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: StockCapacityProgress(
+                container: container,
+                detailed: detailed,
+              ),
+            ),
+          StockPackFacts(container: container, detailed: detailed),
+          if (detailed && !container.balance.limitReached)
+            StockForecastLine(container: container, detailed: true),
           if (detailed && container.productLabel != null)
             ProductLabelView(label: container.productLabel!),
           if (detailed && container.balance.limitReached) Text(t.stockLimit),

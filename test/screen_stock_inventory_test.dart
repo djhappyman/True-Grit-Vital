@@ -12,7 +12,7 @@ import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/substances/substance_collection.dart';
 
-import 'vital_app_test.dart' show appTest, launch, runIo, settle, waitForText;
+import 'vital_app_test.dart' show appTest, launch, runIo, settle, tap, waitForText;
 
 const captures = String.fromEnvironment('VITAL_STOCK_CAPTURES');
 
@@ -36,6 +36,9 @@ Future<StoredStockContainer> makeContainer(
   String? opening,
   String? threshold,
   bool refill = false,
+  String? lot,
+  CivilDate? expiry,
+  String? capacity,
 }) async => store.createStockContainer(
   commandId: newCommandId(),
   personId: meId,
@@ -52,7 +55,35 @@ Future<StoredStockContainer> makeContainer(
       : ExactAmount.parseEntry(opening),
   lowThreshold: threshold == null ? null : ExactAmount.parseEntry(threshold),
   refillEnabled: refill,
+  lot: lot,
+  expiryDate: expiry,
+  capacity: capacity == null ? null : ExactAmount.parseEntry(capacity),
 );
+
+Future<void> makePlan(RecordStore store, SubstanceItem item) async {
+  final revision = (await store.profileById(meId))!.revision;
+  await store.saveDailyPlan(
+    commandId: newCommandId(),
+    expectedPersonRevision: revision,
+    expectedGeneration: store.generation,
+    plan: DailyPlanVersion(
+      personId: meId,
+      planId: 'plan-${item.id}',
+      itemId: item.id,
+      versionId: 'version-${item.id}',
+      start: CivilDate(2020, 1, 1),
+      timing: DailyCount(
+        1,
+        PlannedAmount(
+          quantity: ExactQuantity.parse('1'),
+          enteredText: '1',
+          unit: item.unit,
+        ),
+      ),
+      zoneBasis: const FollowingLocal(),
+    ),
+  );
+}
 
 void main() {
   setUpAll(() async {
@@ -129,7 +160,11 @@ void main() {
     expect(find.text('Low stock'), findsWidgets);
     expect(find.text('Remaining: 0 ml'), findsWidgets);
     expect(find.text('Remaining: 1 ml'), findsWidgets);
-    expect(find.text('Forecast not available yet'), findsWidgets);
+    expect(find.text('Run-out unavailable'), findsWidgets);
+    expect(
+      find.text('No schedule gives a run-out estimate.'),
+      findsWidgets,
+    );
     expect(find.text('No notice'), findsOneWidget);
 
     await tester.ensureVisible(find.byKey(ValueKey('stock-adjust-${low.id}')));
@@ -219,6 +254,13 @@ void main() {
       await tester.scrollUntilVisible(
         find.byKey(const ValueKey('stock-add-action')),
         300,
+        scrollable: find
+            .byWidgetPredicate(
+              (widget) =>
+                  widget is Scrollable &&
+                  widget.axisDirection == AxisDirection.down,
+            )
+            .first,
       );
       await settle(tester);
       expect(tester.takeException(), isNull, reason: '$width at double text');
@@ -269,12 +311,8 @@ void main() {
     await settle(tester);
     await waitForText(tester, 'Only the loaded page is shown.');
     expect(find.text(secondPage.label), findsNothing);
-    await tester.ensureVisible(find.text('Next'));
-    await settle(tester);
-    await tester.tap(find.text('Next'));
-    await settle(tester);
+    await tap(tester, 'More');
     expect(find.text(secondPage.label), findsOneWidget);
-    expect(find.text('Previous'), findsOneWidget);
   });
 
   appTest('zero without notice rules is not described as stocked', (
@@ -326,19 +364,27 @@ void main() {
           opening: '3',
           threshold: '5',
           refill: true,
+          lot: 'TEL-2409',
+          expiry: CivilDate(2027, 4, 30),
+          capacity: '28',
         );
         await makeContainer(
           f.store,
           items[1],
           label: 'Vitamin bottle 60ct',
           opening: '54',
+          capacity: '60',
         );
+        await makePlan(f.store, items[1]);
         await makeContainer(
           f.store,
           items[2],
           label: 'Magnesium bottle',
           opening: '22',
           threshold: '30',
+          lot: 'MG-118',
+          expiry: CivilDate(2026, 10, 22),
+          capacity: '30',
         );
         await makeContainer(
           f.store,
@@ -418,6 +464,13 @@ void main() {
         await tester.scrollUntilVisible(
           find.byKey(const ValueKey('stock-add-action')),
           300,
+          scrollable: find
+              .byWidgetPredicate(
+                (widget) =>
+                    widget is Scrollable &&
+                    widget.axisDirection == AxisDirection.down,
+              )
+              .first,
         );
         await settle(tester);
         expect(tester.takeException(), isNull);

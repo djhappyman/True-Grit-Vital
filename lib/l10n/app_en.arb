@@ -8950,8 +8950,187 @@
   "@featureStockCapacityUnknown": {
     "description": "Shown when no pack capacity is recorded. No proportion is invented."
   },
+  "featureStockCapacityProgress": "{balance} of {capacity}",
+  "@featureStockCapacityProgress": {
+    "description": "Exact remaining amount against exact pack capacity.",
+    "placeholders": {
+      "balance": {
+        "type": "String"
+      },
+      "capacity": {
+        "type": "String"
+      }
+    }
+  },
+  "featureStockAboveCapacity": "Above pack capacity",
+  "@featureStockAboveCapacity": {
+    "description": "Factual note when the exact balance exceeds the descriptive capacity."
+  },
   "featureStockRestockHelp": "Adds supply to this container and keeps its lot and strength. Add a container when the lot or strength changes.",
   "@featureStockRestockHelp": {
     "description": "Explains that restocking the same container never changes its lot or strength snapshots."
+  },
+  "featureStockSearchLabel": "Search stock",
+  "@featureStockSearchLabel": {
+    "description": "Accessible label for the inventory search field."
+  },
+  "featureStockSearchHint": "Search containers",
+  "@featureStockSearchHint": {
+    "description": "Placeholder example for the inventory search field."
+  },
+  "featureStockFilters": "Stock filters",
+  "@featureStockFilters": {
+    "description": "Accessible label for the inventory state filter group."
+  },
+  "featureStockFilterAll": "All",
+  "@featureStockFilterAll": {
+    "description": "Inventory filter showing every container."
+  },
+  "featureStockFilterLow": "Low",
+  "@featureStockFilterLow": {
+    "description": "Inventory filter for a known balance at or below its low or refill state."
+  },
+  "featureStockFilterAdequate": "Adequate",
+  "@featureStockFilterAdequate": {
+    "description": "Inventory filter for a known positive balance above its low or refill state."
+  },
+  "featureStockFilterPaused": "Paused",
+  "@featureStockFilterPaused": {
+    "description": "Inventory filter for a container whose substance schedule is paused or mixed."
+  },
+  "featureStockFilterUnknown": "Unknown",
+  "@featureStockFilterUnknown": {
+    "description": "Inventory filter for an unknown or aggregate-limited stock balance."
+  },
+  "featureStockFilterOverlapHelp": "Paused counts the schedule, so a container can also count as low, adequate or unknown.",
+  "@featureStockFilterOverlapHelp": {
+    "description": "Explains overlapping paused and balance filter counts."
+  },
+  "featureStockFilterEmptyTitle": "No matches",
+  "@featureStockFilterEmptyTitle": {
+    "description": "Filtered-empty heading for the stock inventory."
+  },
+  "featureStockFilterEmptyBody": "Try another name or clear the stock filter.",
+  "@featureStockFilterEmptyBody": {
+    "description": "Recovery guidance when no container matches the current search and filter."
+  },
+  "featureStockCountsIncomplete": "Some stock totals are unavailable. Narrow the search.",
+  "@featureStockCountsIncomplete": {
+    "description": "Disclosure when the bounded inventory read cannot guarantee whole-collection totals."
+  },
+  "featureStockUnresolvedHelp": "{count, plural, =1{1 container has a plan that could not be read.} other{{count} containers have a plan that could not be read.}}",
+  "@featureStockUnresolvedHelp": {
+    "description": "Counts containers deliberately left out of paused and unscheduled totals because their plan could not be read.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "featureStockPlanPaused": "Plan paused",
+  "@featureStockPlanPaused": {
+    "description": "Factual schedule badge for a container whose substance plan is paused."
+  },
+  "featureStockPlanMixed": "Mixed plans",
+  "@featureStockPlanMixed": {
+    "description": "Factual schedule badge when paused and active plans both apply to the substance."
+  },
+  "featureStockPlanUnscheduled": "No schedule",
+  "@featureStockPlanUnscheduled": {
+    "description": "Factual schedule badge when the substance has no current plan."
+  },
+  "featureStockPlanUnresolved": "Plan unavailable",
+  "@featureStockPlanUnresolved": {
+    "description": "Factual schedule badge when the stored plan could not be read."
+  },
+  "featureStockRunOut": "Run-out",
+  "@featureStockRunOut": {
+    "description": "Label for the conditional schedule-based run-out projection."
+  },
+  "featureStockRunOutEstimate": "Around {date}",
+  "@featureStockRunOutEstimate": {
+    "description": "Conditional run-out date. The date is exact; 'around' acknowledges untimed daily plans.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "featureStockRunOutHelp": "Planned doses only. Starts tomorrow, so today's remaining planned use is excluded. Assumes this container supplies all of them.",
+  "@featureStockRunOutHelp": {
+    "description": "Essential assumption behind the run-out estimate. No dose is shared across containers."
+  },
+  "featureStockRunOutUnavailable": "Run-out unavailable",
+  "@featureStockRunOutUnavailable": {
+    "description": "Heading when the conditional run-out projection cannot be calculated."
+  },
+  "featureStockRunOutAsNeeded": "As-needed use has no run-out date.",
+  "@featureStockRunOutAsNeeded": {
+    "description": "Unavailable reason for a PRN-only schedule."
+  },
+  "featureStockRunOutUnscheduled": "No schedule gives a run-out estimate.",
+  "@featureStockRunOutUnscheduled": {
+    "description": "Unavailable reason when the substance has no current plan."
+  },
+  "featureStockRunOutPaused": "The schedule is paused.",
+  "@featureStockRunOutPaused": {
+    "description": "Unavailable reason for an indefinite pause."
+  },
+  "featureStockRunOutUnknown": "Measure the remaining amount to estimate run-out.",
+  "@featureStockRunOutUnknown": {
+    "description": "Unavailable reason when the balance is unknown."
+  },
+  "featureStockRunOutDeficit": "The balance is below zero.",
+  "@featureStockRunOutDeficit": {
+    "description": "Unavailable reason when the stored balance is a deficit."
+  },
+  "featureStockRunOutEmpty": "The balance is empty.",
+  "@featureStockRunOutEmpty": {
+    "description": "Unavailable reason when the exact remaining balance is zero."
+  },
+  "featureStockRunOutLimit": "The stock total is unavailable.",
+  "@featureStockRunOutLimit": {
+    "description": "Unavailable reason when the exact aggregate reached its calculation limit."
+  },
+  "featureStockRunOutMissingAmount": "A planned dose has no amount.",
+  "@featureStockRunOutMissingAmount": {
+    "description": "Unavailable reason for a planned dose without a usable amount."
+  },
+  "featureStockRunOutIncompatible": "The plan units do not convert to this container's unit.",
+  "@featureStockRunOutIncompatible": {
+    "description": "Unavailable reason when exact unit conversion is not possible."
+  },
+  "featureStockRunOutZone": "The plan time zone could not be resolved.",
+  "@featureStockRunOutZone": {
+    "description": "Unavailable reason when the plan zone is missing or invalid."
+  },
+  "featureStockRunOutClock": "The plan clock could not be resolved.",
+  "@featureStockRunOutClock": {
+    "description": "Unavailable reason for a missing or repeated local clock time."
+  },
+  "featureStockRunOutUnsupported": "This schedule cannot be forecast reliably.",
+  "@featureStockRunOutUnsupported": {
+    "description": "Unavailable reason for an unsupported or ambiguous schedule composition."
+  },
+  "featureStockRunOutInterval": "Interval schedules have no fixed dates to forecast.",
+  "@featureStockRunOutInterval": {
+    "description": "Unavailable reason for elapsed interval schedules."
+  },
+  "featureStockRunOutPlanEnds": "Planned doses end on {date}.",
+  "@featureStockRunOutPlanEnds": {
+    "description": "No run-out occurs before a finite plan ends.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "featureStockRunOutHorizon": "The balance covers more than a year of planned doses.",
+  "@featureStockRunOutHorizon": {
+    "description": "Unavailable reason when the bounded forecast window is exceeded."
+  },
+  "featureStockRunOutNoPlanned": "No planned doses in the next year.",
+  "@featureStockRunOutNoPlanned": {
+    "description": "Unavailable reason when the saved schedule has no planned doses in the bounded window."
   }
 }

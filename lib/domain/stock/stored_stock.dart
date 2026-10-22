@@ -100,6 +100,22 @@ final class StoredStockContainer {
   bool get needsRefill => notice == StockNoticeState.refill;
 }
 
+/// A bounded visual proportion of exact values. The ratio is computed with
+/// integers before one conversion to double, so large exact pairs cannot
+/// overflow or become NaN. Values below zero show empty; values at or above
+/// capacity show full. The full exact text remains the accessible value.
+double stockCapacityFraction(ExactAmount balance, ExactAmount capacity) {
+  if (capacity <= ExactAmount.zero) {
+    throw ArgumentError('capacity_must_be_positive');
+  }
+  if (balance <= ExactAmount.zero) return 0;
+  if (balance.compareTo(capacity) >= 0) return 1;
+  final scaled =
+      (balance.numerator * capacity.denominator * BigInt.from(1000000)) ~/
+      (balance.denominator * capacity.numerator);
+  return scaled.toDouble() / 1000000;
+}
+
 final class StoredStockMovement {
   const StoredStockMovement({
     required this.id,
@@ -168,4 +184,82 @@ final class StoredStockMetadataRevision {
   final String? lot;
   final CivilDate? expiryDate;
   final ExactAmount? capacity;
+}
+
+/// Balance-based inventory state. A known zero or deficit is Low, never
+/// Adequate; an unknown or aggregate-limited balance stays its own state.
+enum StockInventoryBalance { low, adequate, unknown }
+
+/// Whole-collection inventory filters. Paused is plan-based and may overlap a
+/// balance state; the popover states that overlap rather than hiding it.
+enum StockInventoryFilter { all, low, adequate, paused, unknown }
+
+/// The item's current plan shape, kept separate from its stock balance.
+enum StockInventoryPlanState {
+  active,
+  paused,
+  mixed,
+  asNeeded,
+  unscheduled,
+  unresolved,
+}
+
+final class StockInventoryCounts {
+  const StockInventoryCounts({
+    required this.all,
+    required this.low,
+    required this.adequate,
+    required this.paused,
+    required this.unknown,
+    required this.unresolved,
+  });
+  const StockInventoryCounts.empty()
+    : all = 0,
+      low = 0,
+      adequate = 0,
+      paused = 0,
+      unknown = 0,
+      unresolved = 0;
+  final int all, low, adequate, paused, unknown, unresolved;
+
+  int count(StockInventoryFilter filter) => switch (filter) {
+    StockInventoryFilter.all => all,
+    StockInventoryFilter.low => low,
+    StockInventoryFilter.adequate => adequate,
+    StockInventoryFilter.paused => paused,
+    StockInventoryFilter.unknown => unknown,
+  };
+}
+
+/// One whole-collection inventory read under one search and clock snapshot.
+/// [containers] is the filtered list before the UI's page slice.
+final class StockInventorySnapshot {
+  StockInventorySnapshot({
+    required Iterable<StoredStockContainer> containers,
+    required Map<String, StockInventoryBalance> balances,
+    required Map<String, StockInventoryPlanState> planStates,
+    required this.counts,
+    required this.complete,
+  }) : containers = List.unmodifiable(containers),
+       balances = Map.unmodifiable(balances),
+       planStates = Map.unmodifiable(planStates);
+  StockInventorySnapshot.empty()
+    : containers = const [],
+      balances = const {},
+      planStates = const {},
+      counts = const StockInventoryCounts.empty(),
+      complete = true;
+  final List<StoredStockContainer> containers;
+  final Map<String, StockInventoryBalance> balances;
+  final Map<String, StockInventoryPlanState> planStates;
+  final StockInventoryCounts counts;
+
+  /// False when the bounded whole-collection read hit its row bound. Counts
+  /// and filters then stay visibly incomplete rather than claiming a total.
+  final bool complete;
+
+  StockInventoryBalance balanceFor(String containerId) =>
+      balances[containerId] ?? StockInventoryBalance.unknown;
+  StockInventoryPlanState planStateFor(String containerId) =>
+      planStates[containerId] ?? StockInventoryPlanState.unscheduled;
 }
