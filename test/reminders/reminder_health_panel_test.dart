@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:true_grit_vital/app/app_lock.dart';
 import 'package:true_grit_vital/app/device_zone.dart';
 import 'package:true_grit_vital/app/reminder_health.dart';
 import 'package:true_grit_vital/app/reminder_reconciler.dart'
@@ -21,6 +22,12 @@ const _capabilities = ReminderCapabilities(
   bootIdentityAvailable: true,
   fingerprint: 'test-adapter',
 );
+
+class _UnlockedLock extends AppLockController {
+  @override
+  AppLockState build() =>
+      const AppLockState(ready: true, enabled: true, locked: false);
+}
 
 ReminderProjection _projection({
   required List<ReminderCoverage> coverage,
@@ -60,6 +67,7 @@ Future<void> _pump(WidgetTester tester, ReminderHealthSummary summary) async {
     ProviderScope(
       overrides: [
         reminderHealthProvider.overrideWithValue(summary),
+        appLockProvider.overrideWith(_UnlockedLock.new),
         observedDeviceZoneProvider.overrideWith(
           (ref) => Stream.value(DeviceZoneObservation.fromId('Europe/London')),
         ),

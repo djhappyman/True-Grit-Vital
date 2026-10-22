@@ -8660,4 +8660,55 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get batch15T11PlanPreviewTotalsHelp =>
       'Planned amounts for these seven days only. This is not a record of doses taken.';
+
+  @override
+  String batch15T14CancellationsPending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count alert cancellations are awaiting confirmation.',
+      one: '1 alert cancellation is awaiting confirmation.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String batch15T14CancellationsUnconfirmed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count alert cancellations were not confirmed.',
+      one: '1 alert cancellation was not confirmed.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String batch15T14PendingCount(int count) {
+    return 'Awaiting confirmation: $count.';
+  }
+
+  @override
+  String batch15T14UnconfirmedCount(int count) {
+    return 'Not confirmed: $count.';
+  }
+
+  @override
+  String get batch15T14SeparateCounts => 'These counts can overlap.';
+
+  @override
+  String get batch15T14PendingHelp =>
+      'Android has not confirmed these cancellations, so an alert may still appear or sound. Vital checks again when you reopen the app.';
+
+  @override
+  String get batch15T14UnconfirmedHelp =>
+      'Android did not confirm these cancellations, so an alert may still appear or sound.';
+
+  @override
+  String batch15T14LastCheck(String time) {
+    return 'Last check: $time.';
+  }
+
+  @override
+  String get batch15T14LastCheckUnknown => 'Last check: unknown.';
 }

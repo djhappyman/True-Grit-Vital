@@ -10191,5 +10191,66 @@
   "batch15T11PlanPreviewTotalsHelp": "Planned amounts for these seven days only. This is not a record of doses taken.",
   "@batch15T11PlanPreviewTotalsHelp": {
     "description": "Clarifies that exact preview totals are planned amounts, not recorded use or adherence."
+  },
+  "batch15T14CancellationsPending": "{count, plural, one{1 alert cancellation is awaiting confirmation.} other{{count} alert cancellations are awaiting confirmation.}}",
+  "@batch15T14CancellationsPending": {
+    "description": "Compact reminder-health line. The device has not yet confirmed that these outstanding alerts were stopped, so they may still appear or sound. Counts are facts from the last check, never a success claim.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "batch15T14CancellationsUnconfirmed": "{count, plural, one{1 alert cancellation was not confirmed.} other{{count} alert cancellations were not confirmed.}}",
+  "@batch15T14CancellationsUnconfirmed": {
+    "description": "Compact reminder-health line shown only when no cancellation is still awaiting confirmation. The device did not confirm the stop, so an alert may still appear or sound.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "batch15T14PendingCount": "Awaiting confirmation: {count}.",
+  "@batch15T14PendingCount": {
+    "description": "Reminder cancellation detail. Number of outstanding alerts the device has not confirmed as stopped and that Vital retries on the next check.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "batch15T14UnconfirmedCount": "Not confirmed: {count}.",
+  "@batch15T14UnconfirmedCount": {
+    "description": "Reminder cancellation detail. Number of cancellations whose receipt did not confirm a stop. This is a separate observation from the awaiting-confirmation count, not a subset total.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "batch15T14SeparateCounts": "These counts can overlap.",
+  "@batch15T14SeparateCounts": {
+    "description": "Reminder cancellation detail shown only when both counts are above zero. One obsolete alert can still be awaiting a stop and also lack a confirmation receipt, so the two counts must not be added together."
+  },
+  "batch15T14PendingHelp": "Android has not confirmed these cancellations, so an alert may still appear or sound. Vital checks again when you reopen the app.",
+  "@batch15T14PendingHelp": {
+    "description": "Explains an awaited operating-system cancellation confirmation. Do not claim the alert stopped or was delivered. Vital retries on the next foreground check."
+  },
+  "batch15T14UnconfirmedHelp": "Android did not confirm these cancellations, so an alert may still appear or sound.",
+  "@batch15T14UnconfirmedHelp": {
+    "description": "Explains a cancellation the system did not confirm. Do not promise a stop or a retry for this separate case."
+  },
+  "batch15T14LastCheck": "Last check: {time}.",
+  "@batch15T14LastCheck": {
+    "description": "Reminder cancellation detail. Time of the last completed check that reported these counts. Keep the full offset and zone supplied in the placeholder.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "batch15T14LastCheckUnknown": "Last check: unknown.",
+  "@batch15T14LastCheckUnknown": {
+    "description": "Reminder cancellation detail shown when the last completed check reported counts without a readable time. Never substitute the current time or imply a fresh check."
   }
 }

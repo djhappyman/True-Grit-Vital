@@ -13472,6 +13472,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Planned amounts for these seven days only. This is not a record of doses taken.'**
   String get batch15T11PlanPreviewTotalsHelp;
+
+  /// Compact reminder-health line. The device has not yet confirmed that these outstanding alerts were stopped, so they may still appear or sound. Counts are facts from the last check, never a success claim.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 alert cancellation is awaiting confirmation.} other{{count} alert cancellations are awaiting confirmation.}}'**
+  String batch15T14CancellationsPending(int count);
+
+  /// Compact reminder-health line shown only when no cancellation is still awaiting confirmation. The device did not confirm the stop, so an alert may still appear or sound.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 alert cancellation was not confirmed.} other{{count} alert cancellations were not confirmed.}}'**
+  String batch15T14CancellationsUnconfirmed(int count);
+
+  /// Reminder cancellation detail. Number of outstanding alerts the device has not confirmed as stopped and that Vital retries on the next check.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting confirmation: {count}.'**
+  String batch15T14PendingCount(int count);
+
+  /// Reminder cancellation detail. Number of cancellations whose receipt did not confirm a stop. This is a separate observation from the awaiting-confirmation count, not a subset total.
+  ///
+  /// In en, this message translates to:
+  /// **'Not confirmed: {count}.'**
+  String batch15T14UnconfirmedCount(int count);
+
+  /// Reminder cancellation detail shown only when both counts are above zero. One obsolete alert can still be awaiting a stop and also lack a confirmation receipt, so the two counts must not be added together.
+  ///
+  /// In en, this message translates to:
+  /// **'These counts can overlap.'**
+  String get batch15T14SeparateCounts;
+
+  /// Explains an awaited operating-system cancellation confirmation. Do not claim the alert stopped or was delivered. Vital retries on the next foreground check.
+  ///
+  /// In en, this message translates to:
+  /// **'Android has not confirmed these cancellations, so an alert may still appear or sound. Vital checks again when you reopen the app.'**
+  String get batch15T14PendingHelp;
+
+  /// Explains a cancellation the system did not confirm. Do not promise a stop or a retry for this separate case.
+  ///
+  /// In en, this message translates to:
+  /// **'Android did not confirm these cancellations, so an alert may still appear or sound.'**
+  String get batch15T14UnconfirmedHelp;
+
+  /// Reminder cancellation detail. Time of the last completed check that reported these counts. Keep the full offset and zone supplied in the placeholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Last check: {time}.'**
+  String batch15T14LastCheck(String time);
+
+  /// Reminder cancellation detail shown when the last completed check reported counts without a readable time. Never substitute the current time or imply a fresh check.
+  ///
+  /// In en, this message translates to:
+  /// **'Last check: unknown.'**
+  String get batch15T14LastCheckUnknown;
 }
 
 class _AppLocalizationsDelegate

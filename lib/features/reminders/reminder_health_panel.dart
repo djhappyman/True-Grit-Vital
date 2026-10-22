@@ -1,10 +1,13 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../app/app_lock.dart';
 import '../../app/display_preferences.dart';
 import '../../app/reminder_health.dart';
 import '../../l10n/app_localizations.dart';
+import '../../ui/vital_ui.dart' show VitalDisclosure;
 import '../recording/record_pages.dart' show Heading;
+import 'reminder_cancellations.dart';
 
 /// Reusable reminder health and limit disclosure.
 ///
@@ -28,6 +31,10 @@ class ReminderHealthPanel extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context);
     final health = ref.watch(reminderHealthProvider);
+    final notice = ReminderCancellationNotice.of(health);
+    // Hide cancellation details while locked. After unlock the timestamp still
+    // describes the last reported check; dataset replacement clears the summary.
+    final locked = ref.watch(appLockProvider.select((state) => state.locked));
     final label = scopeLabel ?? (scope) => _fallbackLabel(t, scope);
     String scopeText(String scope) => label(scope);
 
@@ -89,10 +96,42 @@ class ReminderHealthPanel extends ConsumerWidget {
               ),
             ),
         ],
-        if (health.pendingCancellations > 0 ||
-            health.unconfirmedCancellations > 0) ...[
+        if (notice.visible && !locked) ...[
           const SizedBox(height: 12),
-          Semantics(liveRegion: true, child: Text(t.reminderIncomplete)),
+          // Compact by default: one factual line names the state, and the
+          // separate counts, check time and explanation stay in Details.
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              notice.hasPending
+                  ? t.batch15T14CancellationsPending(notice.pending)
+                  : t.batch15T14CancellationsUnconfirmed(notice.unconfirmed),
+            ),
+          ),
+          const SizedBox(height: 8),
+          VitalDisclosure(
+            title: t.details,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(t.batch15T14PendingCount(notice.pending)),
+                Text(t.batch15T14UnconfirmedCount(notice.unconfirmed)),
+                // The two observations are not a partition, so a reader who
+                // sees a reminder in both counts is not seeing a mistake.
+                if (notice.hasPending && notice.hasUnconfirmed)
+                  Text(t.batch15T14SeparateCounts),
+                Text(
+                  notice.checkedAt == null
+                      ? t.batch15T14LastCheckUnknown
+                      : t.batch15T14LastCheck(
+                          displayStamp(context, ref, notice.checkedAt!),
+                        ),
+                ),
+                if (notice.hasPending) Text(t.batch15T14PendingHelp),
+                if (notice.hasUnconfirmed) Text(t.batch15T14UnconfirmedHelp),
+              ],
+            ),
+          ),
         ],
         if (showLimits) ...[
           const SizedBox(height: 20),
