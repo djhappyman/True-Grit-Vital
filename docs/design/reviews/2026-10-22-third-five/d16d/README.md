@@ -182,3 +182,24 @@ All records, names, quantities and dates in the captures are synthetic.
 - The existing EventDetail and History loading/error presentations were not
   re-simulated with a forced database failure; those paths are unchanged by this
   slice. Missing, empty, locked, filtered, paged and Back states are covered.
+
+## Lead integration
+
+The lead inspected the saved source and confirmed that canonical History uses
+saved effective-dated item memberships intersecting resolved event boundaries.
+There is no separate per-dose event identifier to bypass those bounds. The
+initial task brief assumed such a link; it was corrected in the local contract.
+This shortcut preserves the established filter semantics and adds no extra URL
+date restriction, record reassignment or inferred association. Records outside
+the saved event bounds remain outside that event view.
+
+The lead added a truthful loading/error/Retry state for the event-name lookup,
+while ledger queries retain the exact event filter. Return links are now checked
+against registered local routes as well as URI shape. Added checks cover those
+lookup states, invalid local/external returns, and Back after leaving the retained
+History branch. Source and light/dark narrow captures were reviewed.
+
+Final lead verification: all 14 event-History checks passed in the successful
+108-test combined feature/motion/navigation run. Whole-project analysis was clean
+and native Linux build/boot/persistence/export/backup smoke passed. Physical
+Android/accessibility/delivery/performance evidence remains open.

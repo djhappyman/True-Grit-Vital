@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
@@ -12,6 +13,8 @@ import 'package:true_grit_vital/app/history.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/events/event_history_location.dart';
+import 'package:true_grit_vital/features/events/event_pages.dart'
+    show eventLookupProvider;
 import 'package:true_grit_vital/features/history/history_pages.dart';
 import 'package:true_grit_vital/features/recording/record_pages.dart';
 
@@ -514,6 +517,103 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  appTest('event name loading and failure keep the exact History scope', (
+    tester,
+  ) async {
+    final f = await launch(tester, todayClock: _now);
+    final item = await _item(tester, f.store, 'Lookup medicine');
+    final event = await _event(
+      tester,
+      f.store,
+      id: 'lookup-event',
+      name: 'Lookup Course',
+      item: item,
+      actualStart: _day(10, 1),
+      actualEnd: _day(10, 31),
+      membershipFrom: DateTime.utc(2026, 1, 1),
+    );
+    await _record(tester, f.store, item, DateTime.utc(2026, 10, 20));
+    final streams = <StreamController<EventRecord?>>[];
+    final scoped = ProviderContainer(
+      parent: f.container,
+      overrides: [
+        eventLookupProvider.overrideWith((ref, id) {
+          final stream = StreamController<EventRecord?>();
+          streams.add(stream);
+          ref.onDispose(stream.close);
+          return stream.stream;
+        }),
+      ],
+    );
+    addTearDown(scoped.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(container: scoped, child: const VitalApp()),
+    );
+    final location = eventHistoryLocation(eventId: event.id);
+    scoped.read(routerProvider).go(location);
+    await waitForText(tester, 'Loading event.');
+    await waitForText(tester, item.name);
+    expect(
+      scoped.read(historyControllerProvider(location)).query!.filter.eventIds,
+      [event.id],
+    );
+    streams.last.addError(StateError('synthetic name lookup failure'));
+    await waitForText(
+      tester,
+      'The event name could not be loaded. Retry to check it.',
+    );
+    expect(find.text(item.name), findsWidgets);
+    await tap(tester, 'Retry');
+    await waitForText(tester, 'Loading event.');
+    streams.last.add(event);
+    await waitForText(tester, event.name);
+    expect(
+      find.text('The event name could not be loaded. Retry to check it.'),
+      findsNothing,
+    );
+    expect(
+      scoped.read(historyControllerProvider(location)).query!.filter.eventIds,
+      [event.id],
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  appTest('History ignores invalid return destinations', (tester) async {
+    final f = await launch(tester, todayClock: _now);
+    for (final target in [
+      'https://example.com',
+      '//example.com',
+      '/not-a-vital-route',
+      '/history',
+      'relative',
+    ]) {
+      final location = Uri(
+        path: '/history',
+        queryParameters: {'return': target},
+      ).toString();
+      f.container.read(routerProvider).go(location);
+      await settle(tester);
+      expect(
+        find.byKey(const ValueKey('history-back')),
+        findsNothing,
+        reason: target,
+      );
+      expect(tester.takeException(), isNull);
+    }
+    f.container.read(routerProvider).go('/history?return=/event/known-event');
+    await settle(tester);
+    expect(find.byKey(const ValueKey('history-back')), findsOneWidget);
+    f.container.read(routerProvider).go('/today');
+    await settle(tester);
+    await tester.binding.handlePopRoute();
+    await settle(tester);
+    expect(
+      f.container.read(routerProvider).routerDelegate.state.uri.path,
+      '/today',
+    );
+    expect(tester.takeException(), isNull);
+  });
 
   appTest('a retained History filter does not leak into the event seed', (
     tester,

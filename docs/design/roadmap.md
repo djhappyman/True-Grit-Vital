@@ -11,12 +11,14 @@ timing, scanning, automatic-backup and release decisions remain open.
 | D13g | Explicit Name/Expiry inventory sorting before paging | DeepSeek | Host verified |
 | D13h | Inspect the saved dose behind a stock movement | DeepSeek | Host verified |
 | D20b | Review a report scoped to one substance from its overview | DeepSeek | Host verified |
-| D16d | Open complete explicitly linked event History | DeepSeek | Assigned |
+| D16d | Open canonical event History with saved membership/boundary semantics | DeepSeek | Host verified |
 | D21c | Inspect saved/check-only backup receipts with consistent latest-save facts | Lead | Host verified |
 
 Acceptance briefs and task identities are retained under
-`.scratch/vital-implementation/third-five-2026-10-22/`. Each slice needs lead
-review, focused verification and theme/layout evidence before integration.
+`.scratch/vital-implementation/third-five-2026-10-22/`. All five slices are host verified after lead review, focused checks and
+theme/layout inspection. Final combined verification passed 108 tests, clean
+analysis and a real Secret Service Linux build/boot/persistence/navigation/export
+check. [Batch evidence](reviews/2026-10-22-third-five/README.md). Device gates remain open.
 
 Owner direction, 21 October 2026: implement the audited design and feature gaps with GLM Flash agents, five at a time, beginning with Today, Substances and a unified substance overview. This roadmap supplements the original 28-ticket implementation plan; it does not declare its device/release gates complete.
 

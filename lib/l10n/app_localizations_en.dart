@@ -8614,4 +8614,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String receiptCreated(String date) {
     return 'Archive created: $date';
   }
+
+  @override
+  String get eventHistoryScopeLoading => 'Loading event.';
+
+  @override
+  String get eventHistoryScopeFailed =>
+      'The event name could not be loaded. Retry to check it.';
 }

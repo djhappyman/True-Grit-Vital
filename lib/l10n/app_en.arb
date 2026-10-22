@@ -10138,5 +10138,13 @@
         "type": "String"
       }
     }
+  },
+  "eventHistoryScopeLoading": "Loading event.",
+  "@eventHistoryScopeLoading": {
+    "description": "Pending event-name lookup in filtered History. Does not imply pending ledger data."
+  },
+  "eventHistoryScopeFailed": "The event name could not be loaded. Retry to check it.",
+  "@eventHistoryScopeFailed": {
+    "description": "Failed event-name lookup in filtered History. Records retain the exact event filter."
   }
 }

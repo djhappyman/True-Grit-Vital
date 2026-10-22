@@ -264,7 +264,14 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         preferences = ref.watch(displayPreferencesProvider),
         people = ref.watch(profilesProvider),
         state = ref.watch(historyControllerProvider(widget.location));
-    final returnLocation = _historyReturnLocation(seed['return']);
+    final returnCandidate = _historyReturnLocation(seed['return']);
+    final returnLocation =
+        returnCandidate != null &&
+            !GoRouter.of(context).configuration
+                .findMatch(Uri.parse(returnCandidate))
+                .isError
+        ? returnCandidate
+        : null;
     if (!people.hasValue) {
       return PageContent(children: [Text(t.loadingRecords)]);
     }
@@ -415,7 +422,9 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         events.length != 1 ||
         (selected == null && (appliedFrom != null || appliedBefore != null));
     final showGenericFilter = eventScopeId != null
-        ? extraFilters
+        ? extraFilters ||
+              (eventScope?.hasError ?? false) ||
+              (eventScope?.isLoading ?? false)
         : activeFilters;
     final eventScopeChip = eventName != null
         ? Semantics(
@@ -576,6 +585,20 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       ],
       if (eventScopeChip != null) ...[
         Align(alignment: AlignmentDirectional.centerEnd, child: eventScopeChip),
+        const SizedBox(height: 8),
+      ],
+      if (eventScope?.isLoading ?? false) ...[
+        Text(t.eventHistoryScopeLoading),
+        const SizedBox(height: 8),
+      ] else if (eventScope?.hasError ?? false) ...[
+        VitalNotice(
+          tone: VitalTone.warning,
+          action: VitalButton.secondary(
+            onPressed: () => ref.invalidate(eventLookupProvider(eventScopeId!)),
+            child: Text(t.retry),
+          ),
+          child: Text(t.eventHistoryScopeFailed),
+        ),
         const SizedBox(height: 8),
       ],
       if (calendar)

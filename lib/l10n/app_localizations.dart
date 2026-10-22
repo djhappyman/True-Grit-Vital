@@ -13412,6 +13412,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Archive created: {date}'**
   String receiptCreated(String date);
+
+  /// Pending event-name lookup in filtered History. Does not imply pending ledger data.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading event.'**
+  String get eventHistoryScopeLoading;
+
+  /// Failed event-name lookup in filtered History. Records retain the exact event filter.
+  ///
+  /// In en, this message translates to:
+  /// **'The event name could not be loaded. Retry to check it.'**
+  String get eventHistoryScopeFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -18,8 +18,11 @@ Flutter/copy skills and interaction blueprint. No new dependencies or schema.
   Open resolves single/combined saved-dose identity and preserves nested stock
   context. Delayed lookup, lock, departure and duplicate-navigation guards apply.
 
-The event-History package remains assigned;
-this checkpoint is not a completion or release claim. Task briefs, identities
+- [Event History](d16d/README.md), DeepSeek and lead integration: open canonical
+  event-filtered History, retain the named scope and return to the same event.
+  Existing dated membership/event bounds are preserved, with no extra date window.
+
+All five implementations are integrated and host verified. Task briefs, identities
 and original results are retained locally under
 `.scratch/vital-implementation/third-five-2026-10-22/`.
 
@@ -49,3 +52,23 @@ Stock source integration: after correcting the spinner caught during review, all
 16 affected source/deferred-lookup checks passed. The 23 unchanged stock/history
 regression cases passed in the earlier run that exposed that spinner failure.
 Final project analysis was clean. No failed mixed run is counted as a suite pass.
+
+## Final combined result
+
+- 108 tests passed across the five feature slices, shared filter options, History
+  date entry, event reports and motion. This is focused host evidence, not a
+  whole-application suite claim.
+- Final `./tool/flutterw analyze --no-pub`: no issues found.
+- Native Linux debug build and real Secret Service boot/persistence/navigation/
+  export/backup smoke passed. The unique secret was cleared and the temporary
+  dataset directory removed. [Result](native-boot-result.json).
+- The existing Drift debug warning during backup snapshot inspection also occurs
+  in the previous batch's native log. It remains visible and was not suppressed.
+- Real Flutter synthetic captures were reviewed in both themes, including narrow
+  double text, full names/units, contextual commands and source/return paths.
+
+The worker reported 154 event/History regression checks; lead integration added
+name-lookup error/retry and registered-return validation, then verified all 14
+focused event checks in the successful 108-test combined run. Existing dated
+membership/event bounds remain authoritative. This run adds no inferred record
+association and does not close physical-device or unresolved policy gates.

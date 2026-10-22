@@ -192,3 +192,10 @@ movement reversals never become record IDs. Pending lookup has lock/departure
 and duplicate-navigation guards, with the spinner limited to resolution. Back
 retains the stock history page and underlying inventory context.
 [Host evidence](reviews/2026-10-22-third-five/stock-source/README.md).
+
+D16d adds the compact Open command beside the existing event-history preview,
+using canonical History filtering and a visible event-name chip. Loading/error/
+Retry affects that label only; exact ledger scope stays selected. Local return
+links are checked against registered routes, and inactive History does not
+capture Back after a tab switch. Existing dated membership and event bounds
+retain their meaning. [Host evidence](reviews/2026-10-22-third-five/d16d/README.md).
