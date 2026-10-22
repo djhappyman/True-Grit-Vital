@@ -16,12 +16,14 @@ private class Effects : ReminderEffects {
     var wall = 1000L; var elapsed = 100L; var boot: String? = "boot1"; var unavailable: String? = null
     var scheduled = mutableMapOf<String, ReminderRequest>(); var posts = 0; var cancels = 0
     var lastAlert: ReminderAlert? = null
+    var allowAlertChange = true
     var scheduleFailure = false; var postFailure = false; var cancelFailure = false
     var beforeSchedule: (() -> Unit)? = null
     override fun nowWall() = wall
     override fun nowElapsed() = elapsed
     override fun bootId(installation: String) = boot
     override fun unavailableReason(alert: ReminderAlert) = unavailable
+    override fun alertChangeAllowed(current: ReminderAlert) = allowAlertChange
     override fun schedule(request: ReminderRequest) {
         beforeSchedule?.invoke()
         if (scheduleFailure) throw IllegalStateException()
@@ -271,6 +273,24 @@ fun main() {
         e.applyAlert(ReminderAlert(sound = false, vibration = true))
         check(j.value.sequence == 1L && j.value.epoch == "epoch1")
         check(f.scheduled.keys == setOf("r1") && f.cancels == 0)
+    }
+    test("native selection cannot bypass an OS mute during restore or a stale UI read") {
+        val j = MemoryJournal(); val f = Effects(); val e = ReminderEngine(j, f)
+        e.apply("epoch1", 1, listOf(request()), emptyList())
+        f.allowAlertChange = false
+        check(runCatching { e.applyAlert(ReminderAlert(sound = false, vibration = false)) }.isFailure)
+        check(e.alert() == ReminderAlert.LEGACY)
+        check(f.scheduled.keys == setOf("r1") && f.cancels == 0)
+        check(e.applyAlert(ReminderAlert.LEGACY))
+        f.allowAlertChange = true
+        check(e.applyAlert(ReminderAlert(sound = false, vibration = false)))
+    }
+    test("missing channels allow repair but blocked channels and apps reject selection") {
+        check(ReminderChannels.changeAllowed(true, null))
+        check(ReminderChannels.changeAllowed(true, 3))
+        check(!ReminderChannels.changeAllowed(true, 0))
+        check(!ReminderChannels.changeAllowed(false, null))
+        check(!ReminderChannels.changeAllowed(false, 3))
     }
     test("failed alert preference write is not reported as applied") {
         val j = MemoryJournal(); val f = Effects(); val e = ReminderEngine(j, f)

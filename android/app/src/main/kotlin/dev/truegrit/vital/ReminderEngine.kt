@@ -26,6 +26,7 @@ internal interface ReminderEffects {
     fun nowElapsed(): Long
     fun bootId(installation: String): String?
     fun unavailableReason(alert: ReminderAlert): String?
+    fun alertChangeAllowed(current: ReminderAlert): Boolean
     fun schedule(request: ReminderRequest)
     fun cancel(request: ReminderRequest)
     fun post(request: ReminderRequest, alert: ReminderAlert)
@@ -67,7 +68,13 @@ internal class ReminderEngine(private val journal: ReminderJournal, private val 
     fun alert(): ReminderAlert = state().alert
     /** Persists the choice before the adapter creates or selects a channel. */
     fun applyAlert(alert: ReminderAlert): Boolean {
-        journal.save(state().copy(alert = alert))
+        val current = state()
+        // Enforce the OS mute at the native boundary as well as in the UI.
+        // Restore/startup and a stale capability read can also reach here.
+        if (current.alert != alert && !effects.alertChangeAllowed(current.alert)) {
+            throw ReminderFailure("channel_blocked")
+        }
+        journal.save(current.copy(alert = alert))
         return true
     }
     /** The epoch currently installed, so a restored dataset can hand it over. */

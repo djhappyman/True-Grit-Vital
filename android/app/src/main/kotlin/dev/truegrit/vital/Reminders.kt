@@ -67,6 +67,9 @@ internal class AndroidReminderEffects(private val context: Context) : ReminderEf
         ReminderChannels.enabled(notifications.getNotificationChannel(ReminderChannels.id(alert))?.importance)
     fun channelExists(alert: ReminderAlert): Boolean = Build.VERSION.SDK_INT < 26 ||
         notifications.getNotificationChannel(ReminderChannels.id(alert)) != null
+    override fun alertChangeAllowed(current: ReminderAlert): Boolean =
+        ReminderChannels.changeAllowed(appEnabled(),
+            if (Build.VERSION.SDK_INT >= 26) notifications.getNotificationChannel(ReminderChannels.id(current))?.importance else null)
     fun protected(): Boolean = !context.isDeviceProtectedStorage && (context.getSystemService(Context.USER_SERVICE) as UserManager).isUserUnlocked
     override fun unavailableReason(alert: ReminderAlert): String? = when {
         !protected() -> "protected_storage_unavailable"

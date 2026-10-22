@@ -38,6 +38,11 @@ internal object ReminderChannels {
 
     /** A channel that does not exist is unknown, never "known enabled". */
     fun enabled(importance: Int?): Boolean = importance != null && importance != 0
+
+    /** A missing channel can be repaired; an explicit OS mute cannot be
+     * bypassed by selecting a fresh channel variant. */
+    fun changeAllowed(appEnabled: Boolean, importance: Int?): Boolean =
+        appEnabled && importance != 0
 }
 
 /** Closed, forward-compatible storage record for the opaque journal. */

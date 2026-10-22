@@ -122,6 +122,16 @@ source, including `reminder_store.dart` and `record_store.dart`.
 
 ## Remaining limits
 
+Lead integration review added the OS-mute check at the native selection boundary,
+as well as the visible settings controls. A startup/restore apply or stale UI
+capability read cannot switch away from a blocked active channel. Missing
+channels can still be repaired; selecting an already active choice does not
+invent a new effect. The native suite now passes 37 engine checks, including
+rejection before journal mutation and preservation of scheduled reminders.
+Android channel creation/override rules were checked against the official page
+above during lead review. Host integration verification is recorded in the
+batch review after all five packages are merged.
+
 Physical-device notification sound, vibration, channel creation, system mute,
 lock-screen presentation and TalkBack were not exercised; no emulator or APK
 build was run. Delivery remains platform-controlled. Variant channels remain
