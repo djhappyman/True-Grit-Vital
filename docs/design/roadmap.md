@@ -81,8 +81,11 @@ records focused checks and light/dark captures. Automatic backup lifecycle work
 remains open. D12a is also integrated and host verified: encrypted alert choices,
 real Android channel variants and a native OS-mute guard, with 126 focused Flutter
 checks, 37 native engine checks, clean analysis and a successful Android Kotlin
-compile. Physical sound/vibration delivery remains unverified. The remaining
-three packages await lead review and integration.
+compile. Physical sound/vibration delivery remains unverified. D13b is integrated:
+stock details are an explicit default-off report choice, with exact chosen-source
+facts in all three PDF/text templates and reviewed-capture isolation after edits.
+The [review](reviews/2026-10-22-next-five/report-stock/README.md) records 86 focused
+checks and theme/layout evidence. History and schedule instructions await review.
 
 ## Claims requiring decisions
 

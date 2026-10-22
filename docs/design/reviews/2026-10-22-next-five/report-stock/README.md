@@ -80,3 +80,9 @@ captures use the real Reports route and device-safe insets:
 
 Physical-device screen readers, measured performance, real product authenticity
 and historical container state at dose time remain outside this evidence.
+
+Lead integration passed 86 focused report and stock-metadata checks and clean
+project analysis. An additional regression confirms that an already-reviewed
+capture keeps its exact lot/capacity after metadata edits, while a later capture
+uses the updated values. Selection helper copy explicitly identifies report
+capture as the source of those values; fresh light/dark captures verify it.

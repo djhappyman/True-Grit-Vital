@@ -5672,9 +5672,9 @@
   "@featureReportStock": {
     "description": "Toggle label for optional chosen-container details in reports."
   },
-  "featureReportStockHelp": "Include the saved container label, lot, expiry and exact capacity when a dose used a chosen container.",
+  "featureReportStockHelp": "Include the chosen container’s label, lot, expiry and exact capacity as saved when this report is captured.",
   "@featureReportStockHelp": {
-    "description": "Explains that stock details come from the container chosen when a dose was recorded."
+    "description": "Explains that the dose links the chosen container, whose displayed values are captured when the report is prepared."
   },
   "featureReportStockIncluded": "Stock details: included",
   "@featureReportStockIncluded": {

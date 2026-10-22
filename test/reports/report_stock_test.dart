@@ -270,6 +270,68 @@ void main() {
       },
     );
 
+    test(
+      'a reviewed capture keeps its source facts after container edits',
+      () async {
+        final chosen = await container(
+          command: 'source',
+          lot: 'BEFORE',
+          capacity: ExactAmount.parseEntry('0.125'),
+        );
+        await take(chosen, command: 'dose', at: DateTime.utc(2026, 10, 5, 9));
+        final selection = _selection(
+          from: DateTime.utc(2026, 10, 1),
+          before: DateTime.utc(2026, 11, 1),
+        );
+        final first = await store.captureReport(
+          selection: selection,
+          now: () => DateTime.utc(2026, 10, 20, 12),
+        );
+        final current = (await store.stockContainerById(
+          personId: meId,
+          containerId: chosen.id,
+        ))!;
+        await store.updateStockMetadata(
+          commandId: 'edit-source',
+          personId: meId,
+          expectedPersonRevision: (await store.profileById(meId))!.revision,
+          expectedGeneration: store.generation,
+          containerId: chosen.id,
+          expectedContainerRevision: current.revision,
+          lot: 'AFTER',
+          expiryDate: CivilDate(2027, 1, 2),
+          capacity: ExactAmount(BigInt.one, BigInt.from(3)),
+        );
+        final second = await store.captureReport(
+          selection: selection,
+          now: () => DateTime.utc(2026, 10, 20, 13),
+        );
+        expect(first.snapshot.records.single.stockSource!.lot, 'BEFORE');
+        expect(first.snapshot.records.single.stockSource!.expiryDate, isNull);
+        expect(
+          first.snapshot.records.single.stockSource!.capacity,
+          ExactAmount.parseEntry('0.125'),
+        );
+        expect(second.snapshot.records.single.stockSource!.lot, 'AFTER');
+        expect(
+          second.snapshot.records.single.stockSource!.capacity,
+          ExactAmount(BigInt.one, BigInt.from(3)),
+        );
+        expect(
+          first.snapshot.structuredText(use24Hour: true),
+          contains('Lot BEFORE'),
+        );
+        expect(
+          first.snapshot.structuredText(use24Hour: true),
+          isNot(contains('Lot AFTER')),
+        );
+        expect(
+          second.snapshot.structuredText(use24Hour: true),
+          contains('Lot AFTER'),
+        );
+      },
+    );
+
     test('missing metadata and a stockless dose stay truthful', () async {
       final bare = await container(command: 'bare-container');
       await take(bare, command: 'bare-take', at: DateTime.utc(2026, 10, 5, 9));

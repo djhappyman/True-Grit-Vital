@@ -30,7 +30,7 @@ final class ReportSelectionFailure implements Exception {
 /// every recorded item in the period; a non-empty set is an exact inclusion.
 /// [eventId] scopes R03 to one recorded event. [includeSkipped] and
 /// [includeUnrecorded] control R02 ledger rows only; R01 ignores them.
-/// [includeStock] adds the chosen container facts captured with each dose. It
+/// [includeStock] adds report-capture facts for each dose's chosen container. It
 /// stays off by default and never infers a source from a balance.
 final class ReportSelection {
   ReportSelection({

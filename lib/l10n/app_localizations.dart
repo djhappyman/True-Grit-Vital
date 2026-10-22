@@ -8112,10 +8112,10 @@ abstract class AppLocalizations {
   /// **'Stock details'**
   String get featureReportStock;
 
-  /// Explains that stock details come from the container chosen when a dose was recorded.
+  /// Explains that the dose links the chosen container, whose displayed values are captured when the report is prepared.
   ///
   /// In en, this message translates to:
-  /// **'Include the saved container label, lot, expiry and exact capacity when a dose used a chosen container.'**
+  /// **'Include the chosen container’s label, lot, expiry and exact capacity as saved when this report is captured.'**
   String get featureReportStockHelp;
 
   /// Review summary when stock details are selected.
