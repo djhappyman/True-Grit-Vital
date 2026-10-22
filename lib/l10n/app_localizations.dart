@@ -11769,6 +11769,12 @@ abstract class AppLocalizations {
   /// **'Value'**
   String get screenLabsSparklineValue;
 
+  /// Accessible name for opening the saved supporting record behind one exact trend-table row.
+  ///
+  /// In en, this message translates to:
+  /// **'Open source record {title} from {date}, value {value}.'**
+  String directLabSourceAction(String title, String date, String value);
+
   /// Lab categories, factual trends and source comparison.
   ///
   /// In en, this message translates to:

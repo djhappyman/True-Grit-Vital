@@ -231,7 +231,11 @@ class ScreenLabsLatestCard extends ConsumerWidget {
           ),
           if (value.sparkline case final series? when series.hasPoints) ...[
             const SizedBox(height: 10),
-            ScreenLabsSparkline(series: series, unit: unit),
+            ScreenLabsSparkline(
+              series: series,
+              unit: unit,
+              returnLocation: returnLocation,
+            ),
           ],
           if (previous != null) ...[
             const SizedBox(height: 10),

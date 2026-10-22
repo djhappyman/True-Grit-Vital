@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../domain/stock/exact_amount.dart';
@@ -9,6 +10,7 @@ import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 import '../../ui/vital_motion.dart';
 import 'screen_labs_latest.dart';
+import 'supporting_source_link.dart';
 import 'supporting_widgets.dart';
 
 /// A bounded, factual trend through exact numeric points from the same saved
@@ -19,9 +21,11 @@ class ScreenLabsSparkline extends ConsumerStatefulWidget {
     super.key,
     required this.series,
     required this.unit,
+    required this.returnLocation,
   });
   final ScreenLabsSparkSeries series;
   final String? unit;
+  final String returnLocation;
 
   @override
   ConsumerState<ScreenLabsSparkline> createState() =>
@@ -103,36 +107,15 @@ class _ScreenLabsSparklineState extends ConsumerState<ScreenLabsSparkline> {
                 for (final point in points)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final date = Text(
-                          supportingDateLabel(
-                            context,
-                            ref,
-                            point.record.snapshot.collectionDate,
-                          ),
-                          style: StitchType.caption,
-                        );
-                        final value = Text(
-                          supportingValueLabel(t, point.result),
-                          style: StitchType.caption,
-                        );
-                        if (constraints.maxWidth < 280 ||
-                            MediaQuery.textScalerOf(context).scale(1) > 1.4) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [date, const SizedBox(height: 4), value],
-                          );
-                        }
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(child: date),
-                            const SizedBox(width: 12),
-                            Expanded(child: value),
-                          ],
-                        );
-                      },
+                    child: _ScreenLabsSparkTableRow(
+                      point: point,
+                      date: supportingDateLabel(
+                        context,
+                        ref,
+                        point.record.snapshot.collectionDate,
+                      ),
+                      value: supportingValueLabel(t, point.result),
+                      returnLocation: widget.returnLocation,
                     ),
                   ),
               ],
@@ -140,6 +123,69 @@ class _ScreenLabsSparklineState extends ConsumerState<ScreenLabsSparkline> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// One disclosed exact point. Its source command uses the saved record and
+/// owner identity, never the displayed date, value or title, and it only pushes
+/// the existing canonical detail route so the Labs collection stays beneath it.
+class _ScreenLabsSparkTableRow extends StatelessWidget {
+  const _ScreenLabsSparkTableRow({
+    required this.point,
+    required this.date,
+    required this.value,
+    required this.returnLocation,
+  });
+  final ScreenLabsSparkPoint point;
+  final String date, value, returnLocation;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final source = Semantics(
+      key: ValueKey('spark-source-${point.record.id.id}-${point.result.id}'),
+      label: t.directLabSourceAction(point.record.snapshot.title, date, value),
+      child: StitchButton(
+        quiet: true,
+        compact: true,
+        onPressed: () => context.push(
+          supportingSourceLocation(
+            point.record.id,
+            returnLocation: returnLocation,
+          ),
+        ),
+        child: Text(t.supportingOpen),
+      ),
+    );
+    final dateText = Text(date, style: StitchType.caption);
+    final valueText = Text(value, style: StitchType.caption);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 280 ||
+            MediaQuery.textScalerOf(context).scale(1) > 1.4) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              dateText,
+              const SizedBox(height: 4),
+              valueText,
+              const SizedBox(height: 4),
+              Align(alignment: AlignmentDirectional.centerStart, child: source),
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: dateText),
+            const SizedBox(width: 12),
+            Expanded(child: valueText),
+            const SizedBox(width: 8),
+            source,
+          ],
+        );
+      },
     );
   }
 }

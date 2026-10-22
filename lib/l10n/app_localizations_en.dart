@@ -7593,6 +7593,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get screenLabsSparklineValue => 'Value';
 
   @override
+  String directLabSourceAction(String title, String date, String value) {
+    return 'Open source record $title from $date, value $value.';
+  }
+
+  @override
   String get featureLabsEarlier => 'Previous result';
 
   @override

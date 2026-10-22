@@ -8942,6 +8942,21 @@
   "@screenLabsSparklineValue": {
     "description": "Lab categories, factual trends and source comparison."
   },
+  "directLabSourceAction": "Open source record {title} from {date}, value {value}.",
+  "@directLabSourceAction": {
+    "description": "Accessible name for opening the saved supporting record behind one exact trend-table row.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "featureLabsEarlier": "Previous result",
   "@featureLabsEarlier": {
     "description": "Lab categories, factual trends and source comparison."
