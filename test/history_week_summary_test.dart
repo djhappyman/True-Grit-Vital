@@ -10,7 +10,7 @@ import 'package:true_grit_vital/features/history/history_calendar.dart';
 import 'package:true_grit_vital/features/history/history_pages.dart';
 
 import 'design_system_test.dart' show host;
-import 'history_mobile_ui_test.dart' show historyItem, historyRecord, today;
+import 'history_mobile_ui_test.dart' show historyItem, historyRecord;
 import 'vital_app_test.dart' show appTest, launch, runIo, settle;
 
 final _selected = CivilDate(2026, 10, 7);
@@ -293,6 +293,39 @@ void main() {
     expect(find.text('Week counts unavailable. Try again.'), findsNothing);
   });
 
+  testWidgets(
+    'refreshing and failed refresh never present retained counts as current',
+    (tester) async {
+      final query = _query();
+      var initial = true;
+      final pending = Completer<HistoryCalendar?>();
+      await _pumpWeek(
+        tester,
+        query: query,
+        load: (_) => initial ? Future.value(_calendar(query)) : pending.future,
+      );
+      expect(
+        find.byKey(const ValueKey('history-week-recorded')),
+        findsOneWidget,
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(HistoryWeekStrip)),
+      );
+      initial = false;
+      container.invalidate(historyCalendarProvider);
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey('history-week-loading')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const ValueKey('history-week-recorded')), findsNothing);
+      pending.completeError(StateError('synthetic refresh failure'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('history-week-failed')), findsOneWidget);
+      expect(find.byKey(const ValueKey('history-week-recorded')), findsNothing);
+    },
+  );
+
   testWidgets('locked summary hides range, counts and day targets', (
     tester,
   ) async {
@@ -365,7 +398,9 @@ void main() {
       tester,
       () => historyItem(f.store, 'Week medicine'),
     ))!;
-    final day = today();
+    // A Wednesday keeps both seeded days in the same locale week. The test
+    // must not change its expected total on Mondays or across midnight.
+    final day = CivilDate(2026, 10, 7);
     await runIo(tester, () async {
       for (var i = 0; i < 26; i++) {
         await historyRecord(f.store, item, day);
@@ -374,7 +409,7 @@ void main() {
         await historyRecord(f.store, item, day.addDays(-1), amount: '2');
       }
     });
-    f.container.read(routerProvider).go('/history');
+    f.container.read(routerProvider).go('/history?selected=$day');
     await settle(tester);
     expect(find.text('Selected week'), findsOneWidget);
     expect(

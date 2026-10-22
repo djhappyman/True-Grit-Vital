@@ -85,7 +85,11 @@ compile. Physical sound/vibration delivery remains unverified. D13b is integrate
 stock details are an explicit default-off report choice, with exact chosen-source
 facts in all three PDF/text templates and reviewed-capture isolation after edits.
 The [review](reviews/2026-10-22-next-five/report-stock/README.md) records 86 focused
-checks and theme/layout evidence. History and schedule instructions await review.
+checks and theme/layout evidence. D19a is integrated: the selected locale week's
+indexed recorded/skipped/voided counts follow calendar selection and active
+filters, with explicit pending/error/lock states. Its [review](reviews/2026-10-22-next-five/history/README.md)
+records history/motion checks and theme/layout evidence. Timing classifications
+remain open. Schedule instructions are the last package awaiting review.
 
 ## Claims requiring decisions
 

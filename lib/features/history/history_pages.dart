@@ -858,7 +858,9 @@ class _HistoryWeekStripState extends ConsumerState<HistoryWeekStrip> {
     final dates = historyWeekDates(selected, locale.firstDayOfWeekIndex);
     final request = CalendarRequest(widget.query, dates);
     final result = ref.watch(historyCalendarProvider(request));
-    final calendar = locked ? null : result.value;
+    final calendar = locked || result.isLoading || result.hasError
+        ? null
+        : result.value;
     final available = calendar != null;
     final cells = {
       for (final cell in calendar?.cells ?? <HistoryCalendarCell>[])
