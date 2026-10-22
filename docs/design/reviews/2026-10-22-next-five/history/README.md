@@ -12,6 +12,9 @@ refresh or after a failed refresh. The focused regression fails without the fix
 and passes with it. Its selected-day fixture now uses a fixed Wednesday, avoiding
 Monday/midnight-dependent totals. The existing date-boundary, full indexed count,
 status semantics, retry, lock, narrow layout and calendar navigation checks pass.
+The selected-day heading now stacks its Today action at narrow widths or large
+text sizes, preserving whole date words. The updated narrow capture and focused
+layout assertion cover this arrangement.
 
 Verification: 39 focused history/calendar/motion checks passed, followed by the
 11-test weekly-summary run after stabilising its date fixture. Counts overlap.

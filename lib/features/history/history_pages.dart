@@ -544,35 +544,31 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           ),
       ],
       if (selected != null) ...[
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Semantics(
-                    header: true,
-                    child: Text(
-                      DateFormat(
-                        'EEEE, MMM d',
-                        Localizations.localeOf(context).toString(),
-                      ).format(selected!.calendarValue),
-                      style: VitalType.section,
-                    ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final heading = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Semantics(
+                  header: true,
+                  child: Text(
+                    DateFormat(
+                      'EEEE, MMM d',
+                      Localizations.localeOf(context).toString(),
+                    ).format(selected!.calendarValue),
+                    style: VitalType.section,
                   ),
-                  if (!state.loading && state.error == null)
-                    Text(
-                      state.next != null
-                          ? t.historyShowing(state.entries.length)
-                          : t.screenHistoryEntryCount(state.entries.length),
-                      style: StitchType.caption.copyWith(color: c.muted),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            StitchButton(
+                ),
+                if (!state.loading && state.error == null)
+                  Text(
+                    state.next != null
+                        ? t.historyShowing(state.entries.length)
+                        : t.screenHistoryEntryCount(state.entries.length),
+                    style: StitchType.caption.copyWith(color: c.muted),
+                  ),
+              ],
+            );
+            final todayAction = StitchButton(
               compact: true,
               icon: LucideIcons.calendarDays,
               onPressed: () {
@@ -580,8 +576,30 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 selectDay(today, zone);
               },
               child: Text(t.today),
-            ),
-          ],
+            );
+            if (constraints.maxWidth < 340 ||
+                MediaQuery.textScalerOf(context).scale(16) > 21) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  heading,
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: todayAction,
+                  ),
+                ],
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: heading),
+                const SizedBox(width: 8),
+                todayAction,
+              ],
+            );
+          },
         ),
         const SizedBox(height: 16),
       ],

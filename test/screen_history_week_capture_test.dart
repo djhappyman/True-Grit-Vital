@@ -10,6 +10,7 @@ import 'package:true_grit_vital/app/appearance.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/history/history_pages.dart';
+import 'package:true_grit_vital/ui/stitch_ui.dart' show StitchButton;
 
 import 'history_mobile_ui_test.dart' show historyItem, historyRecord, today;
 import 'vital_app_test.dart' show appTest, launch, runIo, settle, waitForText;
@@ -152,6 +153,22 @@ void main() {
         tester.view.physicalSize = const Size(320, 740);
         addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
         await settle(tester);
+        final dateHeading = find.descendant(
+          of: find.byType(HistoryPage),
+          matching: find.textContaining(
+            RegExp(
+              r'^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday), ',
+            ),
+          ),
+        );
+        final todayAction = find.descendant(
+          of: find.byType(HistoryPage),
+          matching: find.widgetWithText(StitchButton, 'Today'),
+        );
+        expect(
+          tester.getRect(todayAction).top,
+          greaterThanOrEqualTo(tester.getRect(dateHeading).bottom),
+        );
         final scrollable = tester.state<ScrollableState>(
           find
               .descendant(
