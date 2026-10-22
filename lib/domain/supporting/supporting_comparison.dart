@@ -93,6 +93,7 @@ SupportingEarlierComparison supportingEarlierComparison({
     }
   }
   var ambiguous = false;
+  var dayHasUnknownTime = false;
   for (final candidate in current.values) {
     if (candidate.id.id == viewed.id.id || candidate.isVoided) continue;
     final date = candidate.snapshot.collectionDate;
@@ -129,7 +130,15 @@ SupportingEarlierComparison supportingEarlierComparison({
           date.instant == bestInstant &&
           (bestRecord == null ||
               candidate.id.id.compareTo(bestRecord.id.id) > 0);
-      if (newer) ambiguous = false;
+      if (newer) {
+        ambiguous = false;
+        dayHasUnknownTime = date.instant == null;
+      } else if (sameDay) {
+        dayHasUnknownTime = dayHasUnknownTime || date.instant == null;
+        // Ties at an older instant cannot make a later, unique result
+        // ambiguous. A day-only result still prevents ranking that day.
+        if (laterInstant && !dayHasUnknownTime) ambiguous = false;
+      }
       if (sameDay &&
           (date.instant == null ||
               bestInstant == null ||
