@@ -14,6 +14,7 @@ import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
+import 'supporting_source_link.dart';
 import 'supporting_widgets.dart';
 
 class SupportingTrendsPage extends ConsumerStatefulWidget {
@@ -30,15 +31,13 @@ class SupportingTrendsPage extends ConsumerStatefulWidget {
 
 class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage>
     with WidgetsBindingObserver {
-  late final from = TextEditingController(
-        text: CivilDate.fromDateTime(DateTime.now()).addDays(-365).toString(),
-      ),
-      before = TextEditingController(
-        text: CivilDate.fromDateTime(DateTime.now()).addDays(1).toString(),
-      );
-  late CivilDate start = CivilDate.parse(from.text),
-      end = CivilDate.parse(before.text);
+  /// The applied range and basis are initialised once from the route. A return
+  /// link can then rebuild the exact comparison view after a direct open.
+  late TextEditingController from, before;
+  late CivilDate start, end;
   SupportingDateBasis basis = SupportingDateBasis.collection;
+  bool _restoredRoute = false;
+  bool _routeRangeInvalid = false, _openingSource = false;
 
   /// Whether the app window is foreground. The route below covers the page
   /// while a record is open; both states detach the expensive trend watcher.
@@ -57,9 +56,106 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage>
   @override
   void initState() {
     super.initState();
+    final today = CivilDate.fromDateTime(DateTime.now());
+    start = today.addDays(-365);
+    end = today.addDays(1);
+    from = TextEditingController(text: start.toString());
+    before = TextEditingController(text: end.toString());
     final lifecycle = WidgetsBinding.instance.lifecycleState;
     _foreground = lifecycle == null || lifecycle == AppLifecycleState.resumed;
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  /// Reads the applied comparison and its browsing position from this route.
+  ///
+  /// Only a complete, increasing range is restored. Explicit malformed dates
+  /// remain editable and block querying until Apply validates them.
+  /// Entry time cannot position a measurement, so it is not restored as a
+  /// trend basis.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_restoredRoute) return;
+    _restoredRoute = true;
+    final params = GoRouterState.of(context).uri.queryParameters;
+    final today = CivilDate.fromDateTime(DateTime.now());
+    var restoredFrom = today.addDays(-365), restoredBefore = today.addDays(1);
+    final fromText = params['from'], beforeText = params['before'];
+    if (fromText != null || beforeText != null) {
+      try {
+        final a = CivilDate.parse(fromText ?? ''),
+            b = CivilDate.parse(beforeText ?? '');
+        if (b.compareTo(a) <= 0) throw const FormatException();
+        restoredFrom = a;
+        restoredBefore = b;
+      } catch (_) {
+        _routeRangeInvalid = true;
+      }
+    }
+    start = restoredFrom;
+    end = restoredBefore;
+    from.text = _routeRangeInvalid ? fromText ?? '' : start.toString();
+    before.text = _routeRangeInvalid ? beforeText ?? '' : end.toString();
+    basis = params['basis'] == SupportingDateBasis.report.name
+        ? SupportingDateBasis.report
+        : SupportingDateBasis.collection;
+    final group = params['group'];
+    selectedGroupIdentity = group == null || group.isEmpty ? null : group;
+    groupPage = _restoredPage(params['groupPage']);
+    tablePage = _restoredPage(params['table']);
+    undatedPage = _restoredPage(params['undated']);
+  }
+
+  static int _restoredPage(String? value) {
+    final page = int.tryParse(value ?? '');
+    return page == null || page < 0 ? 0 : page;
+  }
+
+  /// The exact comparison view currently on screen. Its own date basis, chosen
+  /// identity and table pages are carried, not a default Labs destination.
+  String _returnLocation() => supportingTrendsLocation(
+    personId: widget.personId,
+    metricId: widget.metricId,
+    from: start,
+    before: end,
+    basis: basis,
+    group: selectedGroupIdentity,
+    groupPage: groupPage,
+    tablePage: tablePage,
+    undatedPage: undatedPage,
+  );
+
+  /// Opens the exact saved revision summarised by this row.
+  ///
+  /// The location is built from the record's captured owner and identity, never
+  /// from the page's current filter or a displayed name. A lock or an already
+  /// covered route therefore cannot open a source from a stale frame.
+  Future<void> _openSource(
+    SupportingTrendEntry entry,
+    String generation,
+  ) async {
+    if (!mounted ||
+        _openingSource ||
+        ref.read(appLockProvider).locked ||
+        ref.read(recordStoreProvider).value?.generation != generation) {
+      return;
+    }
+    // A trend entry belongs to this owner's dataset. Never turn a mismatched
+    // or missing identity into a source route for someone else.
+    if (entry.record.id.personId != widget.personId) return;
+    if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+    _openingSource = true;
+    try {
+      await context.push(
+        supportingSourceLocation(
+          entry.record.id,
+          revision: entry.record.revision,
+          returnLocation: _returnLocation(),
+        ),
+      );
+    } finally {
+      if (mounted) _openingSource = false;
+    }
   }
 
   @override
@@ -155,7 +251,10 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage>
     // store subscription open. The route dependency and the lifecycle observer
     // rebuild this page on return, which watches the current query afresh
     // without changing the chosen comparison identity.
-    final visible = _foreground && (ModalRoute.of(context)?.isCurrent ?? true);
+    final visible =
+        !_routeRangeInvalid &&
+        _foreground &&
+        (ModalRoute.of(context)?.isCurrent ?? true);
     AsyncValue<SupportingTrendPage?>? result;
     String? liveGeneration;
     if (visible) {
@@ -215,6 +314,19 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage>
     final positioned = <SupportingTrendEntry>[
       for (final g in groups) ...g.entries,
     ]..sort(_compareEntry);
+    if (model != null) {
+      // Clamp only after the current dataset answers. Loading must not erase
+      // a restored page before its rows arrive.
+      groupPage = visibleGroupPage;
+      tablePage = tablePage.clamp(
+        0,
+        positioned.isEmpty ? 0 : (positioned.length - 1) ~/ 25,
+      );
+      undatedPage = undatedPage.clamp(
+        0,
+        undated.isEmpty ? 0 : (undated.length - 1) ~/ 25,
+      );
+    }
     return EntryPage(
       children: [
         Heading(t.supportingTrends),
@@ -239,7 +351,8 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage>
         ),
         LabelledInput(label: t.supportingFrom, controller: from),
         LabelledInput(label: t.supportingBefore, controller: before),
-        Text(t.chartRangeSummary(start.toString(), end.toString())),
+        if (!_routeRangeInvalid)
+          Text(t.chartRangeSummary(start.toString(), end.toString())),
         Text(t.supportingDisplayZone(query.displayZone)),
         VitalButton.secondary(
           onPressed: () {
@@ -252,6 +365,7 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage>
                 end = b;
                 resetPages();
                 error = null;
+                _routeRangeInvalid = false;
               });
             } catch (_) {
               setState(() => error = t.supportingFilterInvalid);
@@ -260,6 +374,8 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage>
           child: Text(t.supportingApply),
         ),
         if (error != null) Semantics(liveRegion: true, child: Text(error!)),
+        if (_routeRangeInvalid)
+          Semantics(liveRegion: true, child: Text(t.supportingFilterInvalid)),
         if (result != null && result.hasError) ...[
           Text(
             result.error is SupportingLimitException
@@ -288,9 +404,7 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage>
                   ),
                   groupSummary: groupSummaries[entry.groupKey.identity] ?? '',
                   ref: ref,
-                  onOpen: () => context.push(
-                    '/supporting/${widget.personId}/${entry.record.id.id}?revision=${entry.record.revision}',
-                  ),
+                  onOpen: () => _openSource(entry, model!.datasetGeneration),
                 ),
               if (positioned.length > 25)
                 _pager(
@@ -312,9 +426,7 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage>
                   groupLabel: t.supportingUndatedGroup,
                   groupSummary: undatedSummaries[entry.identity] ?? '',
                   ref: ref,
-                  onOpen: () => context.push(
-                    '/supporting/${widget.personId}/${entry.record.id.id}?revision=${entry.record.revision}',
-                  ),
+                  onOpen: () => _openSource(entry, model!.datasetGeneration),
                 ),
               if (undated.length > 25)
                 _pager(
