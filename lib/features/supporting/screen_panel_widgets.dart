@@ -14,47 +14,37 @@ import 'supporting_widgets.dart';
 
 typedef ScreenPanelAttachmentRequest = ({String personId, String id});
 
-/// Bounded current records before one viewed collection date. The page keeps
-/// only records that are comparable with each viewed result.
-final class ScreenPanelEarlierWindow {
-  const ScreenPanelEarlierWindow({
-    required this.records,
-    required this.limited,
-  });
-  final List<SupportingRevision> records;
-  final bool limited;
-}
-
+/// One viewed result's complete earlier-comparable lookup. The store selects
+/// candidates by the exact comparison identity and newest earlier day, so the
+/// page never receives a page of unrelated panels.
 typedef ScreenPanelEarlierRequest = ({
   String personId,
-  CivilDate beforeDay,
+  String id,
+  int revision,
+  String resultId,
   String displayZone,
 });
 
 final screenPanelEarlierProvider = StreamProvider.autoDispose
-    .family<ScreenPanelEarlierWindow, ScreenPanelEarlierRequest>(
+    .family<SupportingEarlierComparison, ScreenPanelEarlierRequest>(
       retry: (_, _) => null,
       (ref, request) async* {
         if (ref.watch(appLockProvider.select((state) => state.locked))) {
-          yield const ScreenPanelEarlierWindow(records: [], limited: false);
+          yield const SupportingEarlierComparison(
+            status: SupportingEarlierStatus.none,
+          );
           return;
         }
         final store = await ref.watch(recordStoreProvider.future);
-        final query = SupportingQuery(
-          personId: request.personId,
-          dateBasis: SupportingDateBasis.collection,
-          beforeDate: request.beforeDay.addDays(1),
-          includeUnknownDates: false,
-          includeVoided: false,
-          limit: 50,
-          displayZone: request.displayZone,
-        );
         try {
-          await for (final page in store.watchSupportingRecords(query)) {
-            yield ScreenPanelEarlierWindow(
-              records: page.entries,
-              limited: page.next != null,
-            );
+          await for (final comparison in store.watchSupportingEarlierComparison(
+            personId: request.personId,
+            recordId: request.id,
+            recordRevision: request.revision,
+            resultId: request.resultId,
+            displayZone: request.displayZone,
+          )) {
+            yield comparison;
           }
         } on CommandConflict catch (error) {
           if (error.code != 'app_locked') rethrow;
@@ -673,7 +663,7 @@ class _ScreenPanelFilesState extends ConsumerState<ScreenPanelFiles> {
   }
 }
 
-/// Shares one bounded live query between all results in the viewed panel.
+/// Shows the complete store-backed earlier comparison for one viewed result.
 class ScreenPanelComparison extends ConsumerWidget {
   const ScreenPanelComparison({
     super.key,
@@ -689,19 +679,11 @@ class ScreenPanelComparison extends ConsumerWidget {
     }
     final t = AppLocalizations.of(context);
     final zone = ref.watch(displayZoneProvider);
-    final date = viewed.snapshot.collectionDate;
-    final day = switch (date.precision) {
-      SupportingDatePrecision.day => date.civilDate,
-      SupportingDatePrecision.exact =>
-        DisplayTime().instant(date.instant!, zone).civilDate,
-      _ => null,
-    };
-    if (day == null) {
-      return Text(t.featureLabsEarlierIncomplete, style: VitalType.metadata);
-    }
     final request = (
       personId: viewed.id.personId,
-      beforeDay: day,
+      id: viewed.id.id,
+      revision: viewed.revision,
+      resultId: result.id,
       displayZone: zone,
     );
     final window = ref.watch(screenPanelEarlierProvider(request));
@@ -718,18 +700,14 @@ class ScreenPanelComparison extends ConsumerWidget {
         ],
       );
     }
-    final loaded = window.value;
-    if (loaded == null) {
+    final comparison = window.value;
+    if (comparison == null) {
       return Text(t.featureLabsEarlierLoading, style: VitalType.metadata);
     }
-    final comparison = supportingEarlierComparison(
-      viewed: viewed,
-      result: result,
-      candidates: loaded.records,
-      displayZone: zone,
-      windowLimited: loaded.limited,
-    );
     final earlier = comparison.earlier;
+    final searched =
+        comparison.status == SupportingEarlierStatus.found ||
+        comparison.status == SupportingEarlierStatus.none;
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Column(
@@ -757,10 +735,9 @@ class ScreenPanelComparison extends ConsumerWidget {
                 t.featureLabsEarlierIncomplete,
               SupportingEarlierStatus.incompatible =>
                 t.featureLabsEarlierIncompatible,
-              _ => t.featureLabsNoEarlier,
+              _ => t.featurePanelNoEarlier,
             }, style: VitalType.metadata),
-          if (loaded.limited)
-            Text(t.featureLabsEarlierLimited, style: VitalType.metadata),
+          if (searched) Text(t.featurePanelCoverage, style: VitalType.metadata),
         ],
       ),
     );

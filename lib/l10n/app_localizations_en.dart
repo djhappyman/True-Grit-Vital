@@ -7564,6 +7564,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get featureLabsEarlierLoading => 'Loading previous results.';
 
   @override
+  String get featurePanelNoEarlier => 'No comparable earlier result.';
+
+  @override
+  String get featurePanelCoverage =>
+      'Checks every saved result before this panel.';
+
+  @override
   String get featureLabsMetadataHelp =>
       'Selected lab records include saved categories and accession or report identifiers. Notes stay private unless selected.';
 

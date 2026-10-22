@@ -47,10 +47,12 @@ void main() {
     final viewed = point('viewed', 15, value: '2');
     final request = (
       personId: meId,
-      beforeDay: CivilDate(2026, 10, 15),
+      id: 'viewed',
+      revision: 1,
+      resultId: 'result-viewed',
       displayZone: 'UTC',
     );
-    final controller = StreamController<ScreenPanelEarlierWindow>();
+    final controller = StreamController<SupportingEarlierComparison>();
     addTearDown(controller.close);
     var reads = 0;
     await tester.pumpWidget(
@@ -62,7 +64,9 @@ void main() {
             (ref) => reads++ == 0
                 ? controller.stream
                 : Stream.value(
-                    const ScreenPanelEarlierWindow(records: [], limited: true),
+                    const SupportingEarlierComparison(
+                      status: SupportingEarlierStatus.none,
+                    ),
                   ),
           ),
         ],
@@ -88,8 +92,11 @@ void main() {
     );
     await tester.tap(find.text('Retry'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('No comparable earlier'), findsOneWidget);
-    expect(find.textContaining('limited to 50 saved records'), findsOneWidget);
+    expect(find.text('No comparable earlier result.'), findsOneWidget);
+    expect(
+      find.text('Checks every saved result before this panel.'),
+      findsOneWidget,
+    );
     expect(reads, 2);
     expect(tester.takeException(), isNull);
   });

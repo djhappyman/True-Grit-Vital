@@ -8885,6 +8885,14 @@
   "@featureLabsEarlierLoading": {
     "description": "Lab categories, factual trends and source comparison."
   },
+  "featurePanelNoEarlier": "No comparable earlier result.",
+  "@featurePanelNoEarlier": {
+    "description": "Panel detail prior comparison. States that the complete prior search found no comparable result."
+  },
+  "featurePanelCoverage": "Checks every saved result before this panel.",
+  "@featurePanelCoverage": {
+    "description": "Panel detail prior comparison. Discloses that the comparison searched all saved records before the viewed panel, not a bounded window."
+  },
   "featureLabsMetadataHelp": "Selected lab records include saved categories and accession or report identifiers. Notes stay private unless selected.",
   "@featureLabsMetadataHelp": {
     "description": "Discloses source metadata included with selected lab records in reports and exports."

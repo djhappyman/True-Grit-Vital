@@ -36,6 +36,29 @@ Future<void> saveCapture(
   });
 }
 
+LabPanelSnapshot priorVisualPanel() => LabPanelSnapshot(
+  id: SupportingRecordId(id: 'visual-prior', personId: meId),
+  title: 'Prior source panel',
+  collectionDate: SupportingDate.day(CivilDate(2026, 9, 14)),
+  reportDate: SupportingDate.day(CivilDate(2026, 9, 20)),
+  provenance: SupportingProvenance(
+    mode: SupportingProvenanceMode.manualTranscription,
+    laboratoryName: 'Source laboratory',
+    methodText: 'Immunoassay',
+    specimenText: 'Serum',
+  ),
+  results: [
+    LabResultSnapshot(
+      id: 'visual-prior-result-1',
+      metricId: 'visual-metric-1',
+      markerName: 'Apolipoprotein B',
+      originalMarkerText: 'Apolipoprotein B (ApoB)',
+      value: SupportingValue.numeric('60'),
+      unit: 'mg/dL',
+    ),
+  ],
+);
+
 LabPanelSnapshot visualPanel(
   String id, {
   required String itemId,
@@ -149,6 +172,17 @@ void main() {
           ),
         ),
       ))!;
+      await runIo(
+        tester,
+        () => f.store.saveLabPanel(
+          SaveLabPanelCommand(
+            commandId: 'visual-prior',
+            generation: f.store.generation,
+            expectedPersonRevision: 2,
+            panel: priorVisualPanel(),
+          ),
+        ),
+      );
       final saved = (await runIo(
         tester,
         () => f.store.saveLabPanel(

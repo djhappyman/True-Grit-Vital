@@ -11697,6 +11697,18 @@ abstract class AppLocalizations {
   /// **'Loading previous results.'**
   String get featureLabsEarlierLoading;
 
+  /// Panel detail prior comparison. States that the complete prior search found no comparable result.
+  ///
+  /// In en, this message translates to:
+  /// **'No comparable earlier result.'**
+  String get featurePanelNoEarlier;
+
+  /// Panel detail prior comparison. Discloses that the comparison searched all saved records before the viewed panel, not a bounded window.
+  ///
+  /// In en, this message translates to:
+  /// **'Checks every saved result before this panel.'**
+  String get featurePanelCoverage;
+
   /// Discloses source metadata included with selected lab records in reports and exports.
   ///
   /// In en, this message translates to:
