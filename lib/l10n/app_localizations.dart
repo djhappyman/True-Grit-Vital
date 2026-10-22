@@ -4008,6 +4008,48 @@ abstract class AppLocalizations {
   /// **'Site history'**
   String get combinedSites;
 
+  /// Optional collapsed history of saved dose sites on the site form. A disclosure label, not a command.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent sites'**
+  String get batch15T10RecentSites;
+
+  /// Explains the order of the read-only saved dose site history.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved dose sites, newest first.'**
+  String get batch15T10RecentSitesHelp;
+
+  /// Empty state when no saved dose has a current site label.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved sites.'**
+  String get batch15T10NoSites;
+
+  /// The original label from this saved dose's site audit when the current label differs.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier site: {site}.'**
+  String batch15T10EarlierSite(String site);
+
+  /// Factual current state of a saved dose whose revision is above one. Not a site label.
+  ///
+  /// In en, this message translates to:
+  /// **'Corrected dose, revision {revision}'**
+  String batch15T10CorrectedDose(int revision);
+
+  /// One-word command that opens the read-only source for one saved dose site entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get batch15T10Open;
+
+  /// Accessible name for the Open command beside one saved site entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Open saved dose {name}.'**
+  String batch15T10OpenDose(String name);
+
   /// Combined recording or optional site context. Fixed adult ownership, exact independent source amounts and explicit stock consequences.
   ///
   /// In en, this message translates to:

@@ -89,6 +89,10 @@ extension CombinedRecordStore on RecordStore {
     );
   }
 
+  /// Distinct saved site labels, most recently used first.
+  ///
+  /// This is the quick-choice list. It is not dated dose history: a label can
+  /// appear once after many doses, and it carries no saved dose identity.
   Future<List<String>> siteHistory({
     required String personId,
     int limit = 100,
@@ -99,6 +103,59 @@ extension CombinedRecordStore on RecordStore {
       'SELECT label,MAX(recorded_at) AS latest FROM site_event WHERE person=? AND label IS NOT NULL GROUP BY label ORDER BY latest DESC,label LIMIT ? OFFSET ?',
       [personId, limit, offset],
     )).map((r) => r['label'] as String).toList();
+  }
+
+  Stream<List<SavedSiteEntry>> watchSavedSiteHistory({
+    required String personId,
+    int limit = 21,
+    int offset = 0,
+  }) => _watch(
+    () => savedSiteHistory(personId: personId, limit: limit, offset: offset),
+  );
+
+  /// Recent saved doses that still have a site label, newest dose first.
+  ///
+  /// Each row keeps the exact saved dose identity (and its combined action when
+  /// present), the current saved site label, the first label from that dose's
+  /// site audit when it differs, and the current revision/voided state. The
+  /// order is the saved actual time descending, then record id descending, so
+  /// paging is stable. A cleared site has no current label and is omitted here;
+  /// the full label choice list remains [siteHistory].
+  Future<List<SavedSiteEntry>> savedSiteHistory({
+    required String personId,
+    int limit = 21,
+    int offset = 0,
+  }) async {
+    _pageBounds(limit, offset);
+    const currentLabel =
+        '(SELECT label FROM site_event s WHERE s.record=a.id AND s.person=a.person ORDER BY s.sequence DESC LIMIT 1)';
+    return (await _rows(
+      'SELECT a.id,r.name,r.actual,r.revision,r.voided,$currentLabel AS label,'
+      '(SELECT label FROM site_event s WHERE s.record=a.id AND s.person=a.person ORDER BY s.sequence LIMIT 1) AS original_label,'
+      '(SELECT action FROM combined_member m WHERE m.record=a.id AND m.person=a.person) AS combined_action '
+      'FROM administration a JOIN revision r ON r.record=a.id AND r.person=a.person AND r.revision=a.revision '
+      'WHERE a.person=? AND $currentLabel IS NOT NULL '
+      'ORDER BY r.actual DESC,a.id DESC LIMIT ? OFFSET ?',
+      [personId, limit, offset],
+    )).map((r) {
+      final label = r['label'] as String;
+      final original = r['original_label'] as String?;
+      return SavedSiteEntry(
+        recordId: r['id'] as String,
+        itemName: r['name'] as String,
+        actualAt: DateTime.fromMicrosecondsSinceEpoch(
+          r['actual'] as int,
+          isUtc: true,
+        ),
+        siteLabel: label,
+        earlierSiteLabel: original == null || original == label
+            ? null
+            : original,
+        revision: r['revision'] as int,
+        isVoided: r['voided'] == 1,
+        combinedActionId: r['combined_action'] as String?,
+      );
+    }).toList();
   }
 
   Future<CombinedUseResult?> combinedById({
@@ -376,6 +433,38 @@ extension CombinedRecordStore on RecordStore {
     );
     return _combinedResult(result);
   }
+}
+
+/// One current saved dose/site fact used by the read-only site history.
+///
+/// [actualAt] is the saved dose time, never a fabricated site date. A site
+/// edit changes only the label audit and leaves [revision] untouched; a dose
+/// correction advances [revision]. A voided record keeps its saved label and
+/// stays visible with [isVoided] true.
+final class SavedSiteEntry {
+  const SavedSiteEntry({
+    required this.recordId,
+    required this.itemName,
+    required this.actualAt,
+    required this.siteLabel,
+    required this.revision,
+    required this.isVoided,
+    this.earlierSiteLabel,
+    this.combinedActionId,
+  });
+
+  final String recordId, itemName, siteLabel;
+  final DateTime actualAt;
+  final int revision;
+  final bool isVoided;
+  final String? earlierSiteLabel, combinedActionId;
+
+  /// The canonical History source identity: the combined action when this
+  /// saved dose belongs to one, otherwise the single record.
+  TimelineEntryKind get sourceKind => combinedActionId == null
+      ? TimelineEntryKind.record
+      : TimelineEntryKind.combined;
+  String get sourceId => combinedActionId ?? recordId;
 }
 
 Map<String, Object?> encodeCombinedUse(CombinedUseCommand c) => {

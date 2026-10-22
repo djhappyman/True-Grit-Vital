@@ -4,6 +4,7 @@ import '../../ui/vital_ui.dart';
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/app_lock.dart';
@@ -17,6 +18,7 @@ import '../products/product_widgets.dart';
 import '../profiles/profile_pages.dart';
 import '../stock/stock_widgets.dart';
 import '../stock/stock_providers.dart';
+import '../stock/stock_source_link.dart';
 import 'record_pages.dart';
 
 final combinedLookupProvider = StreamProvider.autoDispose
@@ -41,6 +43,21 @@ final siteLabelsProvider = FutureProvider.autoDispose
           (await ref.watch(recordStoreProvider.future))
               .siteHistory(personId: person),
     );
+
+/// One bounded page of saved doses with their current saved site label,
+/// newest dose first. This is read-only history, not a suggestion list.
+final savedSiteHistoryProvider = StreamProvider.autoDispose
+    .family<List<SavedSiteEntry>, ({String personId, int offset})>((
+      ref,
+      key,
+    ) async* {
+      yield* (await ref.watch(recordStoreProvider.future))
+          .watchSavedSiteHistory(
+            personId: key.personId,
+            limit: 21,
+            offset: key.offset,
+          );
+    });
 final combinedWriterProvider =
     Provider<Future<CombinedUseResult> Function(CombinedUseCommand)>(
       (ref) =>
@@ -1146,6 +1163,7 @@ class _SiteFormState extends DurableFormState<SiteForm> {
   final site = TextEditingController();
   AdultProfile? owner;
   UseRecord? record;
+  int siteOffset = 0;
   @override
   DraftKind get entryKind => DraftKind.siteEdit;
   @override
@@ -1192,6 +1210,124 @@ class _SiteFormState extends DurableFormState<SiteForm> {
             siteLabel: site.text.trim().isEmpty ? null : site.text,
           ),
       successPath: '/recorded',
+    );
+  }
+
+  /// Optional, read-only history. Opening it never writes the draft or moves
+  /// the site field; only the explicit site edit saves.
+  Widget siteHistorySection(bool canOpen) {
+    final t = AppLocalizations.of(context);
+    final key = (personId: widget.personId, offset: siteOffset);
+    final page = ref.watch(savedSiteHistoryProvider(key));
+    return VitalDisclosure(
+      title: t.batch15T10RecentSites,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(t.batch15T10RecentSitesHelp),
+          const SizedBox(height: 16),
+          page.when(
+            data: (entries) {
+              if (entries.isEmpty) {
+                if (siteOffset > 0) {
+                  final emptyOffset = siteOffset;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted && siteOffset == emptyOffset) {
+                      setState(() => siteOffset -= 20);
+                    }
+                  });
+                  return Text(t.loadingRecords);
+                }
+                return Text(t.batch15T10NoSites);
+              }
+              final shown = entries.take(20).toList();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  VitalPanel(
+                    inset: true,
+                    gap: 20,
+                    children: [
+                      for (final entry in shown) _savedSiteRow(entry, canOpen),
+                    ],
+                  ),
+                  if (siteOffset > 0 || entries.length > 20) ...[
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        if (siteOffset > 0)
+                          VitalButton.secondary(
+                            onPressed: () => setState(() => siteOffset -= 20),
+                            child: Text(t.previous),
+                          ),
+                        if (entries.length > 20)
+                          VitalButton.secondary(
+                            onPressed: () => setState(() => siteOffset += 20),
+                            child: Text(t.next),
+                          ),
+                      ],
+                    ),
+                  ],
+                ],
+              );
+            },
+            error: (_, _) => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(t.historyLoadFailed),
+                const SizedBox(height: 8),
+                VitalButton.secondary(
+                  onPressed: () =>
+                      ref.invalidate(savedSiteHistoryProvider(key)),
+                  child: Text(t.retry),
+                ),
+              ],
+            ),
+            loading: () => Text(t.loadingRecords),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _savedSiteRow(SavedSiteEntry entry, bool canOpen) {
+    final t = AppLocalizations.of(context);
+    return Column(
+      key: ValueKey('site-history-row-${entry.recordId}'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(entry.siteLabel, style: VitalType.record),
+            VitalBadge(
+              entry.isVoided ? t.statusVoided : t.statusRecorded,
+              tone: entry.isVoided ? VitalTone.neutral : VitalTone.positive,
+              compact: true,
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(entry.itemName),
+        Text(t.actualStamp(displayStamp(context, ref, entry.actualAt))),
+        if (entry.earlierSiteLabel case final earlier?)
+          Text(t.batch15T10EarlierSite(earlier)),
+        if (!entry.isVoided && entry.revision > 1)
+          Text(t.batch15T10CorrectedDose(entry.revision)),
+        const SizedBox(height: 8),
+        _SiteHistoryOpen(
+          key: ValueKey('site-history-open-${entry.recordId}'),
+          personId: widget.personId,
+          kind: entry.sourceKind,
+          id: entry.sourceId,
+          itemName: entry.itemName,
+          enabled: canOpen,
+        ),
+      ],
     );
   }
 
@@ -1248,6 +1384,7 @@ class _SiteFormState extends DurableFormState<SiteForm> {
         helper: t.combinedSiteHelp,
         enabled: enabled,
       ),
+      siteHistorySection(enabled && !busy && !uncertain),
       if (!valid) Text(t.conflictFailure),
       ?failure(),
       VitalButton(
@@ -1261,5 +1398,69 @@ class _SiteFormState extends DurableFormState<SiteForm> {
         ),
       ),
     ]);
+  }
+}
+
+/// Opens the canonical read-only History source for one saved site entry.
+///
+/// The return location is the mounted site form, so Back and a later correction
+/// return to the same guarded form and its durable draft. Opening inspection
+/// performs no write.
+class _SiteHistoryOpen extends ConsumerStatefulWidget {
+  const _SiteHistoryOpen({
+    super.key,
+    required this.personId,
+    required this.kind,
+    required this.id,
+    required this.itemName,
+    required this.enabled,
+  });
+  final String personId, id, itemName;
+  final TimelineEntryKind kind;
+  final bool enabled;
+
+  @override
+  ConsumerState<_SiteHistoryOpen> createState() => _SiteHistoryOpenState();
+}
+
+class _SiteHistoryOpenState extends ConsumerState<_SiteHistoryOpen> {
+  bool _opening = false;
+
+  Future<void> _open() async {
+    final lock = ref.read(appLockProvider);
+    if (!widget.enabled ||
+        _opening ||
+        lock.locked ||
+        ModalRoute.of(context)?.isCurrent == false) {
+      return;
+    }
+    final returnLocation = GoRouterState.of(context).uri.toString();
+    // No progress indicator here: the read-only source page owns its own
+    // loading state, and this button stays mounted underneath it.
+    setState(() => _opening = true);
+    try {
+      await context.push<void>(
+        stockSourceLocation(
+          (kind: widget.kind, value: widget.id),
+          personId: widget.personId,
+          returnLocation: returnLocation,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _opening = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    return VitalButton.secondary(
+      onPressed: widget.enabled && !_opening ? _open : null,
+      child: Semantics(
+        label: t.batch15T10OpenDose(widget.itemName),
+        excludeSemantics: true,
+        child: Text(t.batch15T10Open),
+      ),
+    );
   }
 }

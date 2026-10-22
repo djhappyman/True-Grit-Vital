@@ -2904,6 +2904,49 @@
   "combinedSite": "Site (optional)",
   "combinedSiteHelp": "Enter a site label if useful. It is saved for this person only.",
   "combinedSites": "Site history",
+  "batch15T10RecentSites": "Recent sites",
+  "@batch15T10RecentSites": {
+    "description": "Optional collapsed history of saved dose sites on the site form. A disclosure label, not a command."
+  },
+  "batch15T10RecentSitesHelp": "Saved dose sites, newest first.",
+  "@batch15T10RecentSitesHelp": {
+    "description": "Explains the order of the read-only saved dose site history."
+  },
+  "batch15T10NoSites": "No saved sites.",
+  "@batch15T10NoSites": {
+    "description": "Empty state when no saved dose has a current site label."
+  },
+  "batch15T10EarlierSite": "Earlier site: {site}.",
+  "@batch15T10EarlierSite": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      }
+    },
+    "description": "The original label from this saved dose's site audit when the current label differs."
+  },
+  "batch15T10CorrectedDose": "Corrected dose, revision {revision}",
+  "@batch15T10CorrectedDose": {
+    "placeholders": {
+      "revision": {
+        "type": "int"
+      }
+    },
+    "description": "Factual current state of a saved dose whose revision is above one. Not a site label."
+  },
+  "batch15T10Open": "Open",
+  "@batch15T10Open": {
+    "description": "One-word command that opens the read-only source for one saved dose site entry."
+  },
+  "batch15T10OpenDose": "Open saved dose {name}.",
+  "@batch15T10OpenDose": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    },
+    "description": "Accessible name for the Open command beside one saved site entry."
+  },
   "combinedSiteValue": "Site: {site}.",
   "@combinedSiteValue": {
     "placeholders": {

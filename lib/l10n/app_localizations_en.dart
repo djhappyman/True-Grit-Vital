@@ -2429,6 +2429,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get combinedSites => 'Site history';
 
   @override
+  String get batch15T10RecentSites => 'Recent sites';
+
+  @override
+  String get batch15T10RecentSitesHelp => 'Saved dose sites, newest first.';
+
+  @override
+  String get batch15T10NoSites => 'No saved sites.';
+
+  @override
+  String batch15T10EarlierSite(String site) {
+    return 'Earlier site: $site.';
+  }
+
+  @override
+  String batch15T10CorrectedDose(int revision) {
+    return 'Corrected dose, revision $revision';
+  }
+
+  @override
+  String get batch15T10Open => 'Open';
+
+  @override
+  String batch15T10OpenDose(String name) {
+    return 'Open saved dose $name.';
+  }
+
+  @override
   String combinedSiteValue(String site) {
     return 'Site: $site.';
   }
