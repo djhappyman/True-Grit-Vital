@@ -350,7 +350,7 @@ class _HeroSecondaryActions extends ConsumerWidget {
         context: context,
         builder: (dialog) => VitalDialog(
           title: Text(t.reportReplaceTitle),
-          content: Text(t.reportItemReplaceBody),
+          content: Text(t.batch15T03ReplaceBody),
           actions: [
             VitalButton.secondary(
               onPressed: () => Navigator.of(dialog).pop(false),
@@ -368,9 +368,9 @@ class _HeroSecondaryActions extends ConsumerWidget {
           ref.read(appLockProvider).locked) {
         return;
       }
-      ref.read(reportControllerProvider.notifier).select(ready.selection);
-      if (ref.read(reportControllerProvider).selection?.identity !=
-          ready.selection.identity) {
+      if (!ref
+          .read(reportControllerProvider.notifier)
+          .selectIfCurrent(ready.selection, expected: state)) {
         return;
       }
     }

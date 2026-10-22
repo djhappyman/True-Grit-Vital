@@ -10146,5 +10146,9 @@
   "eventHistoryScopeFailed": "The event name could not be loaded. Retry to check it.",
   "@eventHistoryScopeFailed": {
     "description": "Failed event-name lookup in filtered History. Records retain the exact event filter."
+  },
+  "batch15T03ReplaceBody": "Replacing starts a new report. Private notes, source files and supporting records will be off.",
+  "@batch15T03ReplaceBody": {
+    "description": "Report route and shortcut replacement disclosure. Only explicit valid replacement starts a new report with these private content choices off."
   }
 }

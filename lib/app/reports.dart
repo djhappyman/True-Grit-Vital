@@ -191,21 +191,43 @@ class ReportController extends Notifier<ReportState> {
     ref.listen(appLockProvider.select((state) => state.locked), (_, locked) {
       if (locked) reset();
     });
-    return const ReportState();
+    // Fresh identity fences pending approvals across provider lifetimes.
+    // ignore: prefer_const_constructors
+    return ReportState();
   }
 
   void reset() {
     _token?.cancel();
     _token = null;
     _handoffToken = null;
-    state = const ReportState();
+    // Even an empty reset must retire approvals captured before a lock.
+    // ignore: prefer_const_constructors
+    state = ReportState();
   }
 
   void select(ReportSelection selection) {
-    if (state.busy || state.handoffBusy) return;
+    if (state.busy || state.handoffBusy || ref.read(appLockProvider).locked) {
+      return;
+    }
+    if (state.selection == selection) return;
     _token?.cancel();
     _token = null;
     state = ReportState(selection: selection);
+  }
+
+  /// Applies a route seed only to the exact draft/artifact state it reviewed.
+  bool selectIfCurrent(
+    ReportSelection selection, {
+    required ReportState expected,
+  }) {
+    if (!identical(state, expected) ||
+        state.busy ||
+        state.handoffBusy ||
+        ref.read(appLockProvider).locked) {
+      return false;
+    }
+    select(selection);
+    return true;
   }
 
   void setIncludeNotes(bool value) =>

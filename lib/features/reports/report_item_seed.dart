@@ -1,7 +1,7 @@
 import '../../domain/history/display_time.dart';
 import '../../domain/records.dart' show SubstanceItem;
 import '../../domain/reports/reports.dart';
-import '../../domain/scheduling/daily_plan.dart';
+import 'report_dates.dart';
 
 /// Canonical report editor entry point. Reports remain the only selection and
 /// generation screen.
@@ -51,20 +51,22 @@ ItemReportPlan itemReportPlan({
   required String displayZone,
   required DateTime now,
 }) {
-  final shown = DisplayTime().instant(now.toUtc(), displayZone);
-  if (shown.zoneFallback) {
-    return const ItemReportBlocked(ItemReportBlock.zoneUnavailable);
-  }
   try {
-    final today = shown.civilDate;
-    final before = today.addDays(1);
+    final shown = DisplayTime().instant(now.toUtc(), displayZone);
+    if (shown.zoneFallback) {
+      return const ItemReportBlocked(ItemReportBlock.zoneUnavailable);
+    }
+    final range = reportSeedRange(now: now, displayZone: displayZone);
+    if (range == null) {
+      return const ItemReportBlocked(ItemReportBlock.rangeUnavailable);
+    }
     return ItemReportReady(
       item: item,
       selection: ReportSelection(
         template: ReportTemplateId.r01SubstanceSummary,
         personId: item.personId,
-        fromDate: CivilDate(today.year, 1, 1),
-        beforeDate: before,
+        fromDate: range.from,
+        beforeDate: range.before,
         displayZone: displayZone,
         itemIds: [item.id],
       ),

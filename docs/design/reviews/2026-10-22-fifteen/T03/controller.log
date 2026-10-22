@@ -1,0 +1,15 @@
+00:00 +0: loading /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart
+00:00 +0: same seed preserves the exact reviewed artifact; stale approval cannot replace it
+00:00 +1: seed approval captures the whole selection and rejects another draft
+00:00 +2: rendering and handoff reject route replacement without altering the job
+00:00 +3: lock and unlock retire an earlier seed approval
+00:00 +4: generation produces one artifact and save/share use injected gateway
+00:00 +5: cancel stops a gated render and leaves no artifact
+00:00 +6: locking during generation clears the pending private artifact
+00:00 +7: reviewed PDF bytes cannot be changed through their backing buffer
+00:00 +8: disposed generation releases capture pins without reading a dead ref
+00:00 +9: selection change invalidates an existing artifact
+00:00 +10: stock details toggle invalidates an artifact and waits for busy work
+00:00 +11: unavailable handoff is truthful, never a silent success
+00:00 +12: preview offers the same artifact, structured text and handoff
+00:00 +13: All tests passed!

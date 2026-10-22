@@ -473,6 +473,10 @@ void main() {
     final router = f.container.read(routerProvider);
     router.push('/reports?from=2025-01-01&before=2025-02-01');
     await settle(tester);
+    final controller = f.container.read(reportControllerProvider.notifier);
+    controller.setIncludeNotes(true);
+    controller.setIncludeAttachments(true);
+    controller.setIncludeSupporting(true);
     final existing = f.container.read(reportControllerProvider).selection!;
     expect(existing.fromDate, CivilDate(2025, 1, 1));
 
@@ -482,6 +486,12 @@ void main() {
     await tap(tester, 'Report');
     await settle(tester);
     expect(find.text('Replace report?'), findsOneWidget);
+    expect(
+      find.text(
+        'Replacing starts a new report. Private notes, source files and supporting records will be off.',
+      ),
+      findsOneWidget,
+    );
     await tap(tester, 'Cancel');
     await settle(tester);
     expect(
@@ -500,11 +510,19 @@ void main() {
     );
     await tap(tester, 'Report');
     await settle(tester);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await settle(tester);
+    expect(find.text('Replace report?'), findsNothing);
+    expect(f.container.read(reportControllerProvider).selection, existing);
+    await tap(tester, 'Report');
     await tap(tester, 'Replace');
     await settle(tester);
     final replaced = f.container.read(reportControllerProvider);
     expect(replaced.selection!.eventId, event.id);
     expect(replaced.selection!.fromDate, CivilDate(2026, 10, 1));
+    expect(replaced.selection!.includeNotes, isFalse);
+    expect(replaced.selection!.includeAttachments, isFalse);
+    expect(replaced.selection!.includeSupporting, isFalse);
     expect(replaced.phase, ReportPhase.idle);
     expect(replaced.artifact, isNull);
     expect(
@@ -513,6 +531,42 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  appTest(
+    'event Replace approval cannot overwrite a draft changed during the dialog',
+    (tester) async {
+      final f = await launch(tester, todayClock: _now);
+      final event = await _saveEvent(
+        tester,
+        f.store,
+        id: 'race-event',
+        name: 'Race course',
+        actualStart: _day(10, 1),
+        actualEnd: _day(10, 20),
+      );
+      final router = f.container.read(routerProvider);
+      router.push('/reports?from=2025-01-01&before=2025-02-01');
+      await settle(tester);
+      final controller = f.container.read(reportControllerProvider.notifier);
+      final original = f.container.read(reportControllerProvider).selection!;
+      router.push('/event/${event.id}');
+      await settle(tester);
+      await waitForText(tester, event.name);
+      await tap(tester, 'Report');
+      expect(find.text('Replace report?'), findsOneWidget);
+      final newer = original.copyWith(
+        itemIds: ['another-exact-item'],
+        includeNotes: true,
+        includeAttachments: true,
+        includeSupporting: true,
+      );
+      controller.select(newer);
+      await tap(tester, 'Replace');
+      expect(f.container.read(reportControllerProvider).selection, newer);
+      expect(router.routerDelegate.state.uri.path, '/event/${event.id}');
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   appTest(
     'locking during report replacement closes the decision without applying it',

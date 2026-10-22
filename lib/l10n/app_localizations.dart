@@ -13424,6 +13424,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The event name could not be loaded. Retry to check it.'**
   String get eventHistoryScopeFailed;
+
+  /// Report route and shortcut replacement disclosure. Only explicit valid replacement starts a new report with these private content choices off.
+  ///
+  /// In en, this message translates to:
+  /// **'Replacing starts a new report. Private notes, source files and supporting records will be off.'**
+  String get batch15T03ReplaceBody;
 }
 
 class _AppLocalizationsDelegate

@@ -1450,7 +1450,7 @@ Future<void> _openEventReport(
       context: context,
       builder: (dialog) => VitalDialog(
         title: Text(t.reportReplaceTitle),
-        content: Text(t.reportReplaceBody),
+        content: Text(t.batch15T03ReplaceBody),
         actions: [
           VitalButton.secondary(
             onPressed: () => Navigator.of(dialog).pop(false),
@@ -1468,9 +1468,9 @@ Future<void> _openEventReport(
         ref.read(appLockProvider).locked) {
       return;
     }
-    ref.read(reportControllerProvider.notifier).select(seed);
-    if (ref.read(reportControllerProvider).selection?.identity !=
-        seed.identity) {
+    if (!ref
+        .read(reportControllerProvider.notifier)
+        .selectIfCurrent(seed, expected: state)) {
       return;
     }
   }

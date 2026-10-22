@@ -8621,4 +8621,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get eventHistoryScopeFailed =>
       'The event name could not be loaded. Retry to check it.';
+
+  @override
+  String get batch15T03ReplaceBody =>
+      'Replacing starts a new report. Private notes, source files and supporting records will be off.';
 }

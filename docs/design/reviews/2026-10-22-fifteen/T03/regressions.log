@@ -1,0 +1,128 @@
+Waiting for another flutter command to release the startup lock...
+Waiting for another flutter command to release the startup lock...
+00:00 +0: loading /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_dates_test.dart
+00:00 +0: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_dates_test.dart: explicit invalid or unordered dates never use defaults
+00:00 +1: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_dates_test.dart: valid leap day and exclusive civil year edges remain exact
+00:00 +2: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_dates_test.dart: defaults use the display day across DST and a civil year boundary
+00:00 +3: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_dates_test.dart: unavailable zone/current projection never guesses a range
+00:00 +4: loading /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart
+00:04 +4: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: (setUpAll)
+00:04 +4: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: summary rejects from=2026-02-30&before=2026-03-02 through a rebuild
+00:07 +5: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: summary rejects from=2026-01-01&before= through a rebuild
+00:09 +6: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: summary rejects from=2026-03-02&before=2026-03-01 through a rebuild
+00:11 +7: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: summary rejects from=2026-01-01&before=0001-01-01 through a rebuild
+00:13 +8: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: history rejects from=2026-02-30&before=2026-03-02 through a rebuild
+00:15 +9: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: history rejects from=2026-01-01&before= through a rebuild
+00:17 +10: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: history rejects from=2026-03-02&before=2026-03-01 through a rebuild
+00:19 +11: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: history rejects from=2026-01-01&before=0001-01-01 through a rebuild
+00:21 +12: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: event rejects from=2026-02-30&before=2026-03-02 through a rebuild
+00:23 +13: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: event rejects from=2026-01-01&before= through a rebuild
+00:25 +14: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: event rejects from=2026-03-02&before=2026-03-01 through a rebuild
+00:27 +15: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: event rejects from=2026-01-01&before=0001-01-01 through a rebuild
+00:29 +16: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: summary keeps an explicit leap-day range and template
+00:30 +17: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: history keeps an explicit leap-day range and template
+00:32 +18: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: event keeps an explicit leap-day range and template
+00:33 +19: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: opening another report never edits the active draft
+00:35 +20: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: summary never seeds from an unavailable device zone
+00:36 +21: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: history never seeds from an unavailable device zone
+00:37 +22: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: event never seeds from an unavailable device zone
+00:39 +23: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: final-year manual through overflow cannot generate or change scope
+00:42 +24: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: a draft arriving before the seed callback keeps exact private scope
+00:43 +25: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: a stale Replace callback cannot overwrite a newer draft
+00:47 +26: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: date recovery and replacement remain usable in light
+00:51 +27: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: date recovery and replacement remain usable in dark
+00:55 +28: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_seed_safety_test.dart: (tearDownAll)
+00:55 +28: loading /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart
+00:56 +28: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart: same seed preserves the exact reviewed artifact; stale approval cannot replace it
+00:56 +29: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart: seed approval captures the whole selection and rejects another draft
+00:56 +30: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart: rendering and handoff reject route replacement without altering the job
+00:56 +31: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart: lock and unlock retire an earlier seed approval
+00:56 +32: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart: generation produces one artifact and save/share use injected gateway
+00:56 +33: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart: cancel stops a gated render and leaves no artifact
+00:56 +34: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart: locking during generation clears the pending private artifact
+00:56 +35: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart: reviewed PDF bytes cannot be changed through their backing buffer
+00:56 +36: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart: disposed generation releases capture pins without reading a dead ref
+00:56 +37: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart: selection change invalidates an existing artifact
+00:56 +38: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart: stock details toggle invalidates an artifact and waits for busy work
+00:56 +39: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart: unavailable handoff is truthful, never a silent success
+00:56 +40: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_controller_test.dart: preview offers the same artifact, structured text and handoff
+00:56 +41: loading /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/reports_page_test.dart
+00:57 +41: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/reports_page_test.dart: History report entry retains the person and half-open date window
+01:01 +42: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/reports_page_test.dart: stock details start off and stay in the reviewed selection
+01:03 +43: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/reports_page_test.dart: a missing person link cannot silently generate for Me
+01:05 +44: loading /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart
+01:05 +44: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: (setUpAll)
+01:06 +44: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: single-item report seed uses the existing default range, display zone and exact item
+01:06 +45: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: single-item report seed an unavailable zone is reported instead of guessing a date
+01:06 +46: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: single-item report seed an unrepresentable range edge fails truthfully
+01:06 +47: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: single-item report seed the report location round-trips the exact item and return path
+01:06 +48: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: single-item report seed a foreign item is not treated as the owner item
+01:06 +49: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: overview Report seeds only this item and never generates
+01:12 +50: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: missing and malformed item links never select all items
+01:14 +51: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: item notice follows the reviewed substance selection
+01:17 +52: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: item report entry accepts keyboard activation
+01:19 +53: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: malformed item report dates never become default ranges
+01:21 +54: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: a different report draft needs explicit Replace
+01:33 +55: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: item Replace approval cannot overwrite a draft changed during the dialog
+01:39 +56: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: a direct item link keeps an active draft until Replace
+01:43 +57: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: an impossible item range fails truthfully without throwing
+01:45 +58: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: a busy report blocks the item shortcut without replacing it
+01:52 +59: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: locking during replacement cancels the item seed
+02:00 +60: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: the same selection opens without a replacement question
+02:11 +61: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: Back keeps the overview section that opened the report
+02:20 +62: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: the item report keeps its full name at 320, 390 and 430 in light
+02:26 +63: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: the item report keeps its full name at 320, 390 and 430 in dark
+02:32 +64: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: item report captures use synthetic records in light
+02:33 +65: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: item report captures use synthetic records in dark
+02:33 +66: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/report_item_entry_test.dart: (tearDownAll)
+02:33 +66: loading /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart
+02:33 +66: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: (setUpAll)
+02:33 +66: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event report window a date-only end includes the whole final day
+02:33 +67: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event report window an exact start is projected through the display zone and DST
+02:33 +68: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event report window a date-only boundary follows the event zone across DST
+02:33 +69: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event report window missing start stays unresolved
+02:33 +70: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event report window partial dates stay unresolved instead of becoming a range
+02:33 +71: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event report window a completed event without a resolvable end stays blocked
+02:33 +72: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event report window an entered partial end is not silently treated as an ongoing event
+02:33 +73: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event report window an ongoing event ends at the current display day, not its plan
+02:33 +74: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event report window an unavailable event zone stays blocked
+02:33 +75: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event report window the seeded selection covers the derived inclusive range
+02:33 +76: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event Report opens one named event and Back returns to it
+02:41 +77: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: an ongoing event report ends today without inventing an end
+02:44 +78: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: unresolved or missing events do not offer a report
+02:46 +79: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: the event report action stays behind the app lock
+02:49 +80: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: another report selection is not replaced by the event action
+02:58 +81: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event Replace approval cannot overwrite a draft changed during the dialog
+03:03 +82: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: locking during report replacement closes the decision without applying it
+03:06 +83: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: a direct event report link keeps an existing draft until Replace
+03:10 +84: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: a changed event report URL preserves a mounted selection until Replace
+03:13 +85: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event report action stays readable in light at 320px and 2x text
+03:17 +86: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event report action stays readable in dark at 320px and 2x text
+03:20 +87: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event report captures use synthetic records in light
+03:21 +88: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: event report captures use synthetic records in dark
+03:21 +89: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/event_report_entry_test.dart: (tearDownAll)
+03:21 +89: loading /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_event_selection_test.dart
+03:22 +89: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_event_selection_test.dart: a historical event keeps its identity and explains the date gap
+03:27 +90: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_event_selection_test.dart: applying the event dates retains edited inputs and private options
+03:37 +91: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_event_selection_test.dart: an ongoing event keeps the entered end date
+03:41 +92: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_event_selection_test.dart: generation retains the zone shown in the selected draft
+03:45 +93: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_event_selection_test.dart: a stale event is named without starting a report
+03:47 +94: loading /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_omission_test.dart
+03:48 +94: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_omission_test.dart: (setUpAll)
+03:48 +94: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_omission_test.dart: a mixed fixture counts only current undated records
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+Helvetica-Bold has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+03:48 +95: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_omission_test.dart: the counting bound reports uncounted without rejecting records
+03:48 +96: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_omission_test.dart: an exact zero keeps the artifact identity and adds no notice
+03:48 +97: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_omission_test.dart: a single omitted record uses singular wording
+03:48 +98: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_omission_test.dart: supporting off carries no metadata and no omitted content
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+Helvetica-Bold has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+03:48 +99: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_omission_test.dart: captured metadata cannot change after concurrent edits
+03:49 +100: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_omission_test.dart: R02 and R03 capture and output keep the omission
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+Helvetica-Bold has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+Helvetica-Bold has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+03:49 +101: /home/mike/.t3/worktrees/true_grit_vital/t3-c4efdb29/test/reports/report_omission_test.dart: (tearDownAll)
+03:49 +101: All tests passed!

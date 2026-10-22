@@ -4,6 +4,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/app_lock.dart';
 import '../../app/display_preferences.dart';
+import '../../app/device_zone.dart';
 import '../../app/reports.dart';
 import '../../app/settings_toggle_row.dart';
 import '../../app/storage.dart';
@@ -18,20 +19,11 @@ import '../../ui/vital_ui.dart';
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
 import 'report_item_seed.dart';
+import 'report_dates.dart';
 
 /// Stable entry point for the current report template.
 const reportsLocation = eventReportsLocation;
 const reportPreviewLocation = '/reports/preview';
-
-/// Civil dates at the representable edge fail rather than throwing from a text
-/// listener or a build. Callers show the existing date error or recovery.
-CivilDate? _safeAddDays(CivilDate date, int days) {
-  try {
-    return date.addDays(days);
-  } catch (_) {
-    return null;
-  }
-}
 
 class ReportsPage extends ConsumerStatefulWidget {
   const ReportsPage({
@@ -56,7 +48,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   bool initialised = false, openedPreview = false;
   ReportSelection? _requestedSeed, _pendingSelection;
   bool _seedBlocked = false, _seedScheduled = false;
-  bool _itemSeedDatesUnavailable = false;
+  bool _seedDatesUnavailable = false, _applyingSelection = false;
+  bool _syncingInput = false;
+  int _seedGeneration = 0;
 
   @override
   void initState() {
@@ -75,23 +69,31 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   }
 
   void _syncDates() {
-    if (!mounted) return;
-    final selection = ref.read(reportControllerProvider).selection;
-    if (selection == null || ref.read(reportControllerProvider).busy) return;
-    final start = parseDate(from.text), end = parseDate(through.text);
-    final before = end == null ? null : _safeAddDays(end, 1);
-    if (start == null || end == null || before == null) return;
-    if (end.compareTo(start) < 0) return;
-    final next = selection.copyWith(fromDate: start, beforeDate: before);
+    if (!mounted || _applyingSelection) return;
+    final state = ref.read(reportControllerProvider);
+    final selection = state.selection;
+    if (selection == null || state.busy || state.handoffBusy) return;
+    final range = reportThroughRange(from.text, through.text);
+    if (range == null) return;
+    final next = selection.copyWith(
+      fromDate: range.from,
+      beforeDate: range.before,
+    );
     if (next == selection) return;
     if (dateError != null) setState(() => dateError = null);
-    ref.read(reportControllerProvider.notifier).select(next);
+    _syncingInput = true;
+    try {
+      ref.read(reportControllerProvider.notifier).select(next);
+    } finally {
+      _syncingInput = false;
+    }
   }
 
   void _syncReportName() {
-    if (!mounted) return;
-    final selection = ref.read(reportControllerProvider).selection;
-    if (selection == null || ref.read(reportControllerProvider).busy) return;
+    if (!mounted || _applyingSelection) return;
+    final state = ref.read(reportControllerProvider);
+    final selection = state.selection;
+    if (selection == null || state.busy || state.handoffBusy) return;
     final value = reportName.text.trim();
     if (value.length > 120) return;
     if ((value.isEmpty ? null : value) ==
@@ -100,9 +102,14 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
             : selection.reportName?.trim())) {
       return;
     }
-    ref
-        .read(reportControllerProvider.notifier)
-        .setReportName(value.isEmpty ? null : value);
+    _syncingInput = true;
+    try {
+      ref
+          .read(reportControllerProvider.notifier)
+          .setReportName(value.isEmpty ? null : value);
+    } finally {
+      _syncingInput = false;
+    }
   }
 
   ReportTemplateId _requestedTemplate() {
@@ -131,33 +138,21 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   }) {
     try {
       final displayZone = ref.read(displayZoneProvider);
-      final shown = DisplayTime().instant(now.toUtc(), displayZone);
-      if (itemId != null && shown.zoneFallback) return null;
-      final today = shown.zoneFallback
-          ? CivilDate(now.year, now.month, now.day)
-          : shown.civilDate;
-      final fallbackBefore = _safeAddDays(today, 1);
-      final requestedBefore = widget.before == null
-          ? null
-          : parseDate(widget.before!);
-      final requestedFrom = widget.from == null
-          ? null
-          : parseDate(widget.from!);
-      if (itemId != null &&
-          ((widget.before != null && requestedBefore == null) ||
-              (widget.from != null && requestedFrom == null))) {
-        return null;
-      }
-      final beforeDate = requestedBefore ?? fallbackBefore;
-      if (beforeDate == null) return null;
+      final range = reportSeedRange(
+        now: now,
+        displayZone: displayZone,
+        from: widget.from,
+        before: widget.before,
+      );
+      if (range == null) return null;
       final event = widget.event;
       return ReportSelection(
         template: itemId == null
             ? template
             : ReportTemplateId.r01SubstanceSummary,
         personId: personId,
-        fromDate: requestedFrom ?? CivilDate(today.year, 1, 1),
-        beforeDate: beforeDate,
+        fromDate: range.from,
+        beforeDate: range.before,
         displayZone: displayZone,
         eventId:
             itemId == null &&
@@ -176,17 +171,27 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   }
 
   void _applySelection(ReportSelection selection) {
-    from.text = selection.fromDate.toString();
-    through.text = _safeAddDays(selection.beforeDate, -1)?.toString() ?? '';
-    reportName.text = selection.reportName ?? '';
+    _applyingSelection = true;
+    try {
+      from.text = selection.fromDate.toString();
+      through.text = selection.beforeDate.addDays(-1).toString();
+      reportName.text = selection.reportName ?? '';
+    } finally {
+      _applyingSelection = false;
+    }
   }
 
-  void _replaceSeed() {
-    final seed = _requestedSeed;
-    if (seed == null || ref.read(appLockProvider).locked) return;
-    ref.read(reportControllerProvider.notifier).select(seed);
-    if (ref.read(reportControllerProvider).selection?.identity !=
-        seed.identity) {
+  void _replaceSeed(
+    ReportState expected,
+    ReportSelection seed,
+    int generation,
+  ) {
+    if (!mounted ||
+        generation != _seedGeneration ||
+        !identical(seed, _requestedSeed) ||
+        !ref
+            .read(reportControllerProvider.notifier)
+            .selectIfCurrent(seed, expected: expected)) {
       return;
     }
     setState(() {
@@ -196,12 +201,21 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     _applySelection(seed);
   }
 
-  CivilDate? parseDate(String text) {
-    try {
-      final date = CivilDate.parse(text.trim());
-      return date;
-    } catch (_) {
-      return null;
+  @override
+  void didUpdateWidget(ReportsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.from != widget.from ||
+        oldWidget.before != widget.before ||
+        oldWidget.item != widget.item ||
+        oldWidget.event != widget.event ||
+        oldWidget.template != widget.template) {
+      _seedGeneration++;
+      initialised = false;
+      _seedDatesUnavailable = false;
+      _seedBlocked = false;
+      _seedScheduled = false;
+      _pendingSelection = _requestedSeed = null;
+      dateError = null;
     }
   }
 
@@ -210,13 +224,25 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     final t = AppLocalizations.of(context);
     final people = ref.watch(profilesProvider);
     final state = ref.watch(reportControllerProvider);
+    final zoneObservation = ref.watch(observedDeviceZoneProvider);
+    final editingEnabled = !state.busy && !state.handoffBusy;
     final preferences = ref.watch(displayPreferencesProvider);
     final use24Hour = displayFormatter(
       context,
       preferences.timeFormat,
     ).use24Hour;
     ref.listen(reportControllerProvider, (previous, next) {
-      if (!mounted || openedPreview) return;
+      if (!mounted) return;
+      final prior = previous?.selection, selected = next.selection;
+      if (!_syncingInput &&
+          prior != null &&
+          selected != null &&
+          (prior.fromDate != selected.fromDate ||
+              prior.beforeDate != selected.beforeDate ||
+              prior.reportName != selected.reportName)) {
+        _applySelection(selected);
+      }
+      if (openedPreview) return;
       if (next.phase == ReportPhase.ready && next.artifact != null) {
         openedPreview = true;
         context
@@ -315,10 +341,20 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
               !reportItemOwnedBy(requestedItem, selected)) {
             return _ReportItemRecovery(message: t.reportItemMissing);
           }
-          if (_itemSeedDatesUnavailable) {
+          if (_seedDatesUnavailable) {
             return _ReportItemRecovery(message: t.reportItemDates);
           }
           if (!initialised) {
+            if (zoneObservation.isLoading) {
+              return PageContent(
+                panelled: true,
+                children: [Text(t.loadingRecords)],
+              );
+            }
+            if (zoneObservation.hasError ||
+                zoneObservation.value?.zoneId == null) {
+              return _ReportItemRecovery(message: t.reportZoneUnavailable);
+            }
             initialised = true;
             final requestedSelection = _requestedSelection(
               ref.read(todayNowProvider)(),
@@ -327,13 +363,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
               itemId: requestedItemId,
             );
             if (requestedSelection == null) {
-              if (widget.item != null) {
-                _itemSeedDatesUnavailable = true;
-                return _ReportItemRecovery(message: t.reportItemDates);
-              }
-              dateError = t.historyDateError;
-              final active = ref.read(reportControllerProvider).selection;
-              if (active != null) _applySelection(active);
+              _seedDatesUnavailable = true;
+              return _ReportItemRecovery(message: t.reportItemDates);
             } else {
               final active = ref.read(reportControllerProvider).selection;
               if (active != null &&
@@ -353,39 +384,37 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
           if (current == null && _pendingSelection != null && !_seedScheduled) {
             _seedScheduled = true;
             final pending = _pendingSelection!;
+            final expected = state;
+            final generation = _seedGeneration;
+            final lock = ref.read(appLockProvider);
+            final zone = ref.read(displayZoneProvider);
             WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted || generation != _seedGeneration) return;
               _seedScheduled = false;
-              if (!mounted || ref.read(appLockProvider).locked) return;
+              final controller = ref.read(reportControllerProvider.notifier);
+              final applied =
+                  identical(lock, ref.read(appLockProvider)) &&
+                  zone == ref.read(observedDeviceZoneProvider).value?.zoneId &&
+                  controller.selectIfCurrent(pending, expected: expected);
               final active = ref.read(reportControllerProvider).selection;
-              if (active != null && active.identity != pending.identity) {
-                setState(() {
-                  _seedBlocked = true;
-                  _requestedSeed = pending;
-                  _pendingSelection = null;
-                });
-                _applySelection(active);
-                return;
-              }
-              if (active == null) {
-                ref.read(reportControllerProvider.notifier).select(pending);
-              }
-              if (mounted &&
-                  ref.read(reportControllerProvider).selection?.identity ==
-                      pending.identity) {
-                setState(() => _pendingSelection = null);
-              }
+              setState(() {
+                _pendingSelection = null;
+                if (!applied) {
+                  if (active == null) {
+                    _seedDatesUnavailable = true;
+                  } else {
+                    _seedBlocked = true;
+                    _requestedSeed = pending;
+                  }
+                }
+              });
+              if (!applied && active != null) _applySelection(active);
             });
           }
-          final effective =
-              current ??
-              _pendingSelection ??
-              ReportSelection(
-                personId: selected,
-                fromDate: parseDate(from.text) ?? CivilDate(2000, 1, 1),
-                beforeDate: (parseDate(through.text) ?? CivilDate(2100, 1, 1))
-                    .addDays(1),
-                displayZone: ref.read(displayZoneProvider),
-              );
+          final effective = current ?? _pendingSelection;
+          if (effective == null) {
+            return _ReportItemRecovery(message: t.reportItemDates);
+          }
           final eventLookup =
               effective.template.requiresEvent && effective.eventId != null
               ? ref.watch(eventLookupProvider(effective.eventId!))
@@ -404,15 +433,22 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
           final person = profiles
               .where((profile) => profile.id == effective.personId)
               .firstOrNull;
+          final requestedSeed = _requestedSeed;
+          final seedGeneration = _seedGeneration;
           return PageContent(
             panelled: true,
             children: [
               if (_seedBlocked) ...[
                 VitalNotice(
                   action: VitalButton.secondary(
-                    onPressed: state.busy || state.handoffBusy
+                    onPressed:
+                        state.busy || state.handoffBusy || requestedSeed == null
                         ? null
-                        : _replaceSeed,
+                        : () => _replaceSeed(
+                            state,
+                            requestedSeed,
+                            seedGeneration,
+                          ),
                     child: Text(t.replace),
                   ),
                   child: Column(
@@ -425,11 +461,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                       const SizedBox(height: 4),
                       if (requestedItem != null)
                         Text(t.reportItemRequested(requestedItem.name)),
-                      Text(
-                        widget.item == null
-                            ? t.reportSelectedBody
-                            : t.reportItemSelectedBody,
-                      ),
+                      Text(t.batch15T03ReplaceBody),
                     ],
                   ),
                 ),
@@ -471,7 +503,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                     t.reportHistoryTemplate,
                   ReportTemplateId.r03EventReview => t.reportEventTemplate,
                 },
-                onChanged: state.busy
+                onChanged: !editingEnabled
                     ? (_) {}
                     : (template) => ref
                           .read(reportControllerProvider.notifier)
@@ -488,7 +520,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                   key: ValueKey(effective.personId),
                   personId: effective.personId,
                   selected: effective.eventId,
-                  enabled: !state.busy,
+                  enabled: editingEnabled,
                   onChanged: (eventId) => ref
                       .read(reportControllerProvider.notifier)
                       .select(effective.copyWith(eventId: eventId)),
@@ -498,7 +530,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                   _SelectedEventReview(
                     lookup: eventLookup,
                     guidance: eventGuidance,
-                    enabled: !state.busy,
+                    enabled: editingEnabled,
                     onApplyDates: eventGuidance == null
                         ? null
                         : () => _applyEventDates(eventGuidance),
@@ -514,7 +546,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                   label: t.reportSkippedRows,
                   description: t.reportSkippedRowsHelp,
                   value: effective.includeSkipped,
-                  enabled: !state.busy,
+                  enabled: editingEnabled,
                   reduceMotion: MediaQuery.disableAnimationsOf(context),
                   onChanged: (value) => ref
                       .read(reportControllerProvider.notifier)
@@ -524,7 +556,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                   label: t.reportUnrecordedRows,
                   description: t.reportUnrecordedRowsHelp,
                   value: effective.includeUnrecorded,
-                  enabled: !state.busy,
+                  enabled: editingEnabled,
                   reduceMotion: MediaQuery.disableAnimationsOf(context),
                   onChanged: (value) => ref
                       .read(reportControllerProvider.notifier)
@@ -537,25 +569,25 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 controller: from,
                 helper: t.reportDateHelp,
                 error: dateError,
-                enabled: !state.busy,
+                enabled: editingEnabled,
               ),
               LabelledInput(
                 label: t.reportThrough,
                 controller: through,
                 helper: t.reportThroughHelp,
-                enabled: !state.busy,
+                enabled: editingEnabled,
               ),
               LabelledInput(
                 label: t.reportIdentity,
                 controller: reportName,
                 helper: t.reportNameHelp,
-                enabled: !state.busy,
+                enabled: editingEnabled,
               ),
               const SizedBox(height: 4),
               _ItemSelection(
                 items: items,
                 selected: effective.itemIds,
-                enabled: !state.busy,
+                enabled: editingEnabled,
                 onChanged: _setItems,
               ),
               const SizedBox(height: 16),
@@ -563,7 +595,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 label: t.reportContext,
                 description: t.reportContextHelp,
                 value: effective.includeSupporting,
-                enabled: !state.busy,
+                enabled: editingEnabled,
                 reduceMotion: MediaQuery.disableAnimationsOf(context),
                 onChanged: (value) {
                   ref
@@ -575,7 +607,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 label: t.reportNotes,
                 description: t.reportNotesHelp,
                 value: effective.includeNotes,
-                enabled: !state.busy,
+                enabled: editingEnabled,
                 reduceMotion: MediaQuery.disableAnimationsOf(context),
                 onChanged: (value) => ref
                     .read(reportControllerProvider.notifier)
@@ -585,7 +617,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 label: t.reportSources,
                 description: t.reportSourcesHelp,
                 value: effective.includeAttachments,
-                enabled: !state.busy,
+                enabled: editingEnabled,
                 reduceMotion: MediaQuery.disableAnimationsOf(context),
                 onChanged: (value) => ref
                     .read(reportControllerProvider.notifier)
@@ -595,7 +627,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 label: t.featureReportStock,
                 description: t.featureReportStockHelp,
                 value: effective.includeStock,
-                enabled: !state.busy,
+                enabled: editingEnabled,
                 reduceMotion: MediaQuery.disableAnimationsOf(context),
                 onChanged: (value) => ref
                     .read(reportControllerProvider.notifier)
@@ -670,7 +702,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
               else
                 VitalButton(
                   onPressed:
-                      state.busy ||
+                      !editingEnabled ||
                           selectedEventMissing ||
                           (eventGuidance != null && !eventGuidance.covers)
                       ? null
@@ -703,15 +735,17 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   }
 
   void _generate(bool use24Hour) {
-    final selection = ref.read(reportControllerProvider).selection;
-    if (selection == null) return;
-    final t = AppLocalizations.of(context);
-    final start = parseDate(from.text), before = parseDate(through.text);
-    if (start == null || before == null) {
-      setState(() => dateError = t.historyDateError);
+    final state = ref.read(reportControllerProvider);
+    final selection = state.selection;
+    if (selection == null ||
+        state.busy ||
+        state.handoffBusy ||
+        ref.read(appLockProvider).locked) {
       return;
     }
-    if (before.compareTo(start) < 0) {
+    final t = AppLocalizations.of(context);
+    final range = reportThroughRange(from.text, through.text);
+    if (range == null) {
       setState(() => dateError = t.historyDateError);
       return;
     }
@@ -723,15 +757,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       setState(() => dateError = t.reportEventRequired);
       return;
     }
-    final exclusive = _safeAddDays(before, 1);
-    if (exclusive == null) {
-      setState(() => dateError = t.historyDateError);
-      return;
-    }
     final next = selection.copyWith(
       personId: selection.personId,
-      fromDate: start,
-      beforeDate: exclusive,
+      fromDate: range.from,
+      beforeDate: range.before,
       displayZone: selection.displayZone,
       reportName: reportName.text.trim().isEmpty
           ? null

@@ -426,6 +426,10 @@ void main() {
     final router = f.container.read(routerProvider);
     router.push('/reports?from=2025-01-01&before=2025-02-01');
     await settle(tester);
+    final controller = f.container.read(reportControllerProvider.notifier);
+    controller.setIncludeNotes(true);
+    controller.setIncludeAttachments(true);
+    controller.setIncludeSupporting(true);
     final existing = f.container.read(reportControllerProvider).selection!;
     expect(existing.fromDate, CivilDate(2025, 1, 1));
 
@@ -434,8 +438,7 @@ void main() {
     expect(find.text('Replace report?'), findsOneWidget);
     expect(
       find.text(
-        'The report editor has a different selection. '
-        'Replace it with this item report?',
+        'Replacing starts a new report. Private notes, source files and supporting records will be off.',
       ),
       findsOneWidget,
     );
@@ -448,15 +451,55 @@ void main() {
     );
 
     await _openReport(tester, item);
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await settle(tester);
+    expect(find.text('Replace report?'), findsNothing);
+    expect(f.container.read(reportControllerProvider).selection, existing);
+    await _openReport(tester, item);
     await tap(tester, 'Replace');
     await settle(tester);
     expect(router.routerDelegate.state.uri.path, '/reports');
     final replaced = f.container.read(reportControllerProvider);
     expect(replaced.selection!.itemIds, {item.id});
+    expect(replaced.selection!.includeNotes, isFalse);
+    expect(replaced.selection!.includeAttachments, isFalse);
+    expect(replaced.selection!.includeSupporting, isFalse);
     expect(replaced.phase, ReportPhase.idle);
     expect(replaced.artifact, isNull);
     expect(tester.takeException(), isNull);
   });
+
+  appTest(
+    'item Replace approval cannot overwrite a draft changed during the dialog',
+    (tester) async {
+      final f = await launch(tester, todayClock: _now);
+      final item = await _createItem(
+        tester,
+        f.store,
+        commandId: 'raced-item',
+        name: 'Race report item',
+      );
+      final router = f.container.read(routerProvider);
+      router.push('/reports?from=2025-01-01&before=2025-02-01');
+      await settle(tester);
+      final controller = f.container.read(reportControllerProvider.notifier);
+      final original = f.container.read(reportControllerProvider).selection!;
+      await _openOverview(tester, f.container, item);
+      await _openReport(tester, item);
+      expect(find.text('Replace report?'), findsOneWidget);
+      final newer = original.copyWith(
+        itemIds: ['another-exact-item'],
+        includeNotes: true,
+        includeAttachments: true,
+        includeSupporting: true,
+      );
+      controller.select(newer);
+      await tap(tester, 'Replace');
+      expect(f.container.read(reportControllerProvider).selection, newer);
+      expect(router.routerDelegate.state.uri.path, '/substance/${item.id}');
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   appTest('a direct item link keeps an active draft until Replace', (
     tester,

@@ -48,6 +48,7 @@ class _Unlocked extends AppLockController {
   AppLockState build() => const AppLockState(ready: true, locked: false);
 
   void lockNow() => state = const AppLockState(ready: true, locked: true);
+  void unlockNow() => state = const AppLockState(ready: true, locked: false);
 }
 
 ReportSnapshot _snapshot(ReportSelection selection, DateTime now) =>
@@ -112,6 +113,15 @@ class _Renderer implements ReportTemplateRenderer {
   }
 }
 
+class _PendingHandoff extends FixtureReportArtifactGateway {
+  final gate = Completer<ReportHandoffResult>();
+  @override
+  Future<ReportHandoffResult> save(
+    ReportArtifact artifact, {
+    bool asText = false,
+  }) => gate.future;
+}
+
 Future<ProviderContainer> _container({
   required ReportArtifactGateway gateway,
   ReportTemplateRenderer? renderer,
@@ -155,6 +165,133 @@ Future<void> _until(bool Function() ready) async {
 }
 
 void main() {
+  test('same seed preserves the exact reviewed artifact; stale approval cannot replace it', () async {
+    final container = await _container(gateway: FixtureReportArtifactGateway());
+    final sub = container.listen(reportControllerProvider, (_, _) {});
+    addTearDown(sub.close);
+    final controller = container.read(reportControllerProvider.notifier);
+    final before = container.read(reportControllerProvider);
+    await controller.generate(use24Hour: true);
+    final reviewed = container.read(reportControllerProvider);
+    controller.select(reviewed.selection!);
+    expect(
+      identical(container.read(reportControllerProvider), reviewed),
+      isTrue,
+    );
+    expect(
+      controller.selectIfCurrent(
+        reviewed.selection!.copyWith(itemIds: ['another']),
+        expected: before,
+      ),
+      isFalse,
+    );
+    expect(
+      identical(
+        container.read(reportControllerProvider).artifact,
+        reviewed.artifact,
+      ),
+      isTrue,
+    );
+  });
+
+  test(
+    'seed approval captures the whole selection and rejects another draft',
+    () async {
+      final container = await _container(
+        gateway: FixtureReportArtifactGateway(),
+      );
+      final sub = container.listen(reportControllerProvider, (_, _) {});
+      addTearDown(sub.close);
+      final controller = container.read(reportControllerProvider.notifier);
+      final expected = container.read(reportControllerProvider);
+      controller.select(
+        expected.selection!.copyWith(
+          itemIds: ['exact'],
+          includeNotes: true,
+          includeAttachments: true,
+        ),
+      );
+      final active = container.read(reportControllerProvider);
+      expect(
+        controller.selectIfCurrent(expected.selection!, expected: expected),
+        isFalse,
+      );
+      expect(
+        identical(container.read(reportControllerProvider), active),
+        isTrue,
+      );
+    },
+  );
+
+  test(
+    'rendering and handoff reject route replacement without altering the job',
+    () async {
+      final gate = Completer<void>();
+      final gateway = _PendingHandoff();
+      final container = await _container(
+        gateway: gateway,
+        renderer: _Renderer(gate: gate),
+      );
+      final sub = container.listen(reportControllerProvider, (_, _) {});
+      addTearDown(sub.close);
+      final controller = container.read(reportControllerProvider.notifier);
+      final generate = controller.generate(use24Hour: true);
+      await _until(
+        () =>
+            container.read(reportControllerProvider).phase ==
+            ReportPhase.rendering,
+      );
+      final rendering = container.read(reportControllerProvider);
+      final seed = rendering.selection!.copyWith(itemIds: ['exact']);
+      expect(controller.selectIfCurrent(seed, expected: rendering), isFalse);
+      gate.complete();
+      await generate;
+      final artifact = container.read(reportControllerProvider).artifact;
+      final save = controller.save();
+      final handingOff = container.read(reportControllerProvider);
+      expect(handingOff.handoffBusy, isTrue);
+      expect(controller.selectIfCurrent(seed, expected: handingOff), isFalse);
+      expect(
+        identical(container.read(reportControllerProvider).artifact, artifact),
+        isTrue,
+      );
+      gateway.gate.complete(
+        const ReportHandoffResult(ReportHandoffOutcome.completed),
+      );
+      await save;
+    },
+  );
+
+  test('lock and unlock retire an earlier seed approval', () async {
+    final container = await _container(gateway: FixtureReportArtifactGateway());
+    final sub = container.listen(reportControllerProvider, (_, _) {});
+    addTearDown(sub.close);
+    final controller = container.read(reportControllerProvider.notifier);
+    final expected = container.read(reportControllerProvider);
+    final lock = container.read(appLockProvider.notifier) as _Unlocked;
+    lock.lockNow();
+    expect(
+      controller.selectIfCurrent(expected.selection!, expected: expected),
+      isFalse,
+    );
+    controller.select(expected.selection!);
+    expect(container.read(reportControllerProvider).selection, isNull);
+    lock.unlockNow();
+    expect(
+      controller.selectIfCurrent(expected.selection!, expected: expected),
+      isFalse,
+    );
+    expect(container.read(reportControllerProvider).selection, isNull);
+    final empty = container.read(reportControllerProvider);
+    lock.lockNow();
+    lock.unlockNow();
+    expect(
+      controller.selectIfCurrent(expected.selection!, expected: empty),
+      isFalse,
+    );
+    expect(container.read(reportControllerProvider).selection, isNull);
+  });
+
   test(
     'generation produces one artifact and save/share use injected gateway',
     () async {
