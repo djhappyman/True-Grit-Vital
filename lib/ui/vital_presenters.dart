@@ -231,6 +231,8 @@ class _VitalLocalOptionsState extends State<VitalLocalOptions>
     with SingleTickerProviderStateMixin {
   OverlayCompleter<dynamic>? _overlay;
   bool _open = false;
+  final _triggerFocus = FocusNode();
+  final _optionsFocus = FocusNode();
   late final _animation = AnimationController(
     vsync: this,
     duration: VitalMotion.sheet,
@@ -251,6 +253,8 @@ class _VitalLocalOptionsState extends State<VitalLocalOptions>
     if (overlay != null && !overlay.isCompleted) overlay.remove();
     _animation.dispose();
     _content.dispose();
+    _triggerFocus.dispose();
+    _optionsFocus.dispose();
     super.dispose();
   }
 
@@ -266,32 +270,42 @@ class _VitalLocalOptionsState extends State<VitalLocalOptions>
       VitalMotion.sheetClose,
     );
     final narrow = media.size.width < 360 || media.textScaler.scale(14) > 21;
-    Widget body(BuildContext context) => ValueListenableBuilder<Widget>(
-      valueListenable: _content,
-      builder: (_, child, _) => ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: math.min(440, media.size.width - 32),
-          maxHeight: math.max(
-            48,
-            media.size.height - media.viewInsets.bottom - 96,
-          ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              child,
-              const SizedBox(height: 12),
-              VitalControlStyle(
-                child: Button(
-                  style: ButtonVariance.secondary,
-                  onPressed: () => _overlay?.close(),
-                  child: Text(AppLocalizations.of(context).done),
-                ),
+    Widget body(BuildContext context) => CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.escape): () =>
+            _overlay?.close(),
+      },
+      child: Focus(
+        focusNode: _optionsFocus,
+        autofocus: true,
+        child: ValueListenableBuilder<Widget>(
+          valueListenable: _content,
+          builder: (_, child, _) => ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: math.min(440, media.size.width - 32),
+              maxHeight: math.max(
+                48,
+                media.size.height - media.viewInsets.bottom - 96,
               ),
-            ],
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  child,
+                  const SizedBox(height: 12),
+                  VitalControlStyle(
+                    child: Button(
+                      style: ButtonVariance.secondary,
+                      onPressed: () => _overlay?.close(),
+                      child: Text(AppLocalizations.of(context).done),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -316,8 +330,16 @@ class _VitalLocalOptionsState extends State<VitalLocalOptions>
       ).show<void>(anchor, (context) => SurfaceCard(child: body(context)));
     }
     setState(() => _open = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _open) _optionsFocus.requestFocus();
+    });
     _overlay!.future.whenComplete(() {
-      if (mounted) setState(() => _open = false);
+      if (mounted) {
+        setState(() => _open = false);
+        if (ModalRoute.of(context)?.isCurrent != false) {
+          _triggerFocus.requestFocus();
+        }
+      }
     });
   }
 
@@ -329,6 +351,7 @@ class _VitalLocalOptionsState extends State<VitalLocalOptions>
         expanded: _open,
         button: true,
         child: Button(
+          focusNode: _triggerFocus,
           style: ButtonVariance.ghost,
           onPressed: () => _show(anchor),
           child: SizedBox(

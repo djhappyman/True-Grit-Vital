@@ -82,6 +82,7 @@ Regenerate with:
   unverified.
 - The sort choice lives with the page's other filter state; it is not persisted
   across app launches. Persistence was not requested.
-- In the narrow bottom sheet, system Back dismisses the disclosure and keeps the
-  chosen sort. Escape did not dismiss the shared sheet in the widget test; that
-  overlay behaviour is unchanged by this slice and is reported for the lead.
+- The lead reproduced the reported narrow-sheet Escape failure, then fixed
+  keyboard focus and Escape dismissal in the shared VitalLocalOptions component.
+  System Back and Escape preserve the chosen sort. The four collection destinations
+  now verify initial focus, Escape dismissal and return to the invoking control.

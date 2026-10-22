@@ -8,11 +8,11 @@ timing, scanning, automatic-backup and release decisions remain open.
 
 | Slice | Outcome | Owner | State |
 | --- | --- | --- | --- |
-| D13g | Explicit Name/Expiry inventory sorting before paging | DeepSeek | Assigned |
+| D13g | Explicit Name/Expiry inventory sorting before paging | DeepSeek | Host verified |
 | D13h | Inspect the saved dose behind a stock movement | DeepSeek | Assigned |
 | D20b | Review a report scoped to one substance from its overview | DeepSeek | Assigned |
 | D16d | Open complete explicitly linked event History | DeepSeek | Assigned |
-| D21c | Inspect saved/check-only backup receipts with consistent latest-save facts | Lead | Assigned |
+| D21c | Inspect saved/check-only backup receipts with consistent latest-save facts | Lead | Host verified |
 
 Acceptance briefs and task identities are retained under
 `.scratch/vital-implementation/third-five-2026-10-22/`. Each slice needs lead

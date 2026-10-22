@@ -167,3 +167,14 @@ with a named event and visible date/template selection. A different active
 selection needs explicit Replace; busy work and lock remain guarded. Partial
 entered ends block the shortcut instead of becoming an ongoing-date estimate.
 [Host evidence](reviews/2026-10-22-more-five/event-report/README.md).
+
+## Inventory order and backup receipts
+
+D13g adds an explicit Name/Expiry choice to existing inventory options. Sorting
+precedes paging, with undated containers last and the existing incomplete-read
+warning retained. Lead integration repaired shared option-surface keyboard focus:
+Escape now closes narrow sheets and restores the invoking control, tested across
+Stock, History, Substances and Labs. D21c keeps Backup receipt inspection inside
+the existing disclosure, with shared filter segments and separate creation/check/
+save dates. Settings and Backup share the latest confirmed-save calculation.
+See [batch evidence](reviews/2026-10-22-third-five/README.md).

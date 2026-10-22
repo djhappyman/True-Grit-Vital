@@ -465,7 +465,9 @@ void main() {
 
     await openFilters(tester);
     await _revealInFilterSheet(tester, sortOption('expiry'));
-    await tester.binding.handlePopRoute();
+    Focus.of(tester.element(find.text('Expiry'))).requestFocus();
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
     await settle(tester);
     expect(find.text('Expiry'), findsNothing);
     expect(
