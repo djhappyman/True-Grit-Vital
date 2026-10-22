@@ -7645,6 +7645,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Checks every saved result before this panel.';
 
   @override
+  String featurePanelOpenSource(String title, String date, String value) {
+    return 'Open earlier source record $title from $date, value $value.';
+  }
+
+  @override
   String get featureLabsMetadataHelp =>
       'Selected lab records include saved categories and accession or report identifiers. Notes stay private unless selected.';
 

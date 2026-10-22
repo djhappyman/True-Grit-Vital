@@ -11847,6 +11847,12 @@ abstract class AppLocalizations {
   /// **'Checks every saved result before this panel.'**
   String get featurePanelCoverage;
 
+  /// Accessible name for opening the saved panel behind the earlier comparison result.
+  ///
+  /// In en, this message translates to:
+  /// **'Open earlier source record {title} from {date}, value {value}.'**
+  String featurePanelOpenSource(String title, String date, String value);
+
   /// Discloses source metadata included with selected lab records in reports and exports.
   ///
   /// In en, this message translates to:

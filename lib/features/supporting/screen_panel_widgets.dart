@@ -10,6 +10,7 @@ import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
 import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
+import 'supporting_source_link.dart';
 import 'supporting_widgets.dart';
 
 typedef ScreenPanelAttachmentRequest = ({String personId, String id});
@@ -669,9 +670,14 @@ class ScreenPanelComparison extends ConsumerWidget {
     super.key,
     required this.viewed,
     required this.result,
+    this.returnLocation,
   });
   final SupportingRevision viewed;
   final LabResultSnapshot result;
+
+  /// The current saved-panel detail location, including its own return
+  /// context, so the earlier record can return to this filtered view.
+  final String? returnLocation;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (ref.watch(appLockProvider.select((state) => state.locked))) {
@@ -729,6 +735,37 @@ class ScreenPanelComparison extends ConsumerWidget {
               Text(t.featureLabsChange(change), style: VitalType.metadata)
             else if (result.value.isExactNumeric)
               Text(t.featureLabsChangeUnavailable, style: VitalType.metadata),
+            if (comparison.found) ...[
+              const SizedBox(height: 4),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Semantics(
+                  key: ValueKey(
+                    'screen-panel-source-${earlier.record.id.id}-${earlier.result.id}',
+                  ),
+                  label: t.featurePanelOpenSource(
+                    earlier.record.snapshot.title,
+                    supportingDateLabel(
+                      context,
+                      ref,
+                      earlier.record.snapshot.collectionDate,
+                    ),
+                    supportingValueLabel(t, earlier.result),
+                  ),
+                  child: StitchButton(
+                    quiet: true,
+                    compact: true,
+                    onPressed: () => context.push(
+                      supportingSourceLocation(
+                        earlier.record.id,
+                        returnLocation: returnLocation,
+                      ),
+                    ),
+                    child: Text(t.supportingOpen),
+                  ),
+                ),
+              ),
+            ],
           ] else
             Text(switch (comparison.status) {
               SupportingEarlierStatus.incomplete =>

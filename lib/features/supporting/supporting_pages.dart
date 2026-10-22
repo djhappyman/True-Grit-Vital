@@ -104,6 +104,16 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
     if (mounted) backFocus.requestFocus();
   }
 
+  /// The current detail view, including its own return URL. An earlier saved
+  /// panel uses this to return to the same filtered detail and collection.
+  String _viewedPanelLocation() => Uri(
+    pathSegments: ['', 'supporting', widget.personId, widget.id],
+    queryParameters: {
+      if (widget.revision != null) 'revision': '${widget.revision}',
+      'return': ?widget.returnLocation,
+    },
+  ).toString();
+
   Future<bool> _committed(RecordStore store, String operation) async {
     try {
       return await store.operationCommitted(operation);
@@ -513,7 +523,11 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
                     result: result,
                     comparison: saved.isVoided
                         ? null
-                        : ScreenPanelComparison(viewed: saved, result: result),
+                        : ScreenPanelComparison(
+                            viewed: saved,
+                            result: result,
+                            returnLocation: _viewedPanelLocation(),
+                          ),
                     onTrends: () => openTrends(result),
                   ),
               ],

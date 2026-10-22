@@ -142,3 +142,8 @@ calculation; unsupported results expose no partial totals. The initial forecast
 keeps its conditional basis visible. Lock hides the expanded quantities, and
 the shared disclosure supplies focus and reduced-motion behavior.
 See [host evidence](reviews/2026-10-22-more-five/forecast-details/README.md).
+
+D18b adds a contextual Open action to the earlier lab comparison, using the
+existing saved-panel detail and nested return context. The source is available
+only for a uniquely found earlier result. Current panel filters stay mounted
+through inspection. [Host evidence](reviews/2026-10-22-more-five/prior-source/README.md).

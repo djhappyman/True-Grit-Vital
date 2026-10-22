@@ -9018,6 +9018,21 @@
   "@featurePanelCoverage": {
     "description": "Panel detail prior comparison. Discloses that the comparison searched all saved records before the viewed panel, not a bounded window."
   },
+  "featurePanelOpenSource": "Open earlier source record {title} from {date}, value {value}.",
+  "@featurePanelOpenSource": {
+    "description": "Accessible name for opening the saved panel behind the earlier comparison result.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "featureLabsMetadataHelp": "Selected lab records include saved categories and accession or report identifiers. Notes stay private unless selected.",
   "@featureLabsMetadataHelp": {
     "description": "Discloses source metadata included with selected lab records in reports and exports."
