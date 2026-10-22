@@ -43,7 +43,8 @@ final class EventReportBlocked extends EventReportPlan {
 /// Builds one reviewable report window for [event].
 ///
 /// Date-only ends are inclusive and become the next display-zone midnight
-/// through the editor's half-open selection. Exact boundaries stay exact.
+/// through the editor's half-open selection. Exact instants determine covering
+/// display dates; their saved values remain unchanged.
 /// Missing, partial, ambiguous or unavailable boundaries are reported instead
 /// of being replaced with guessed dates.
 EventReportPlan eventReportPlan(
@@ -63,9 +64,11 @@ EventReportPlan eventReportPlan(
   }
 
   final endDate = event.actualEnd;
-  final end =
-      _boundaryInstant(endDate, event.zoneId, endOfDay: true) ??
-      event.completedAt;
+  final resolvedEnd = _boundaryInstant(endDate, event.zoneId, endOfDay: true);
+  if (endDate != null && resolvedEnd == null) {
+    return const EventReportBlocked(EventReportBlock.endUnavailable);
+  }
+  final end = resolvedEnd ?? event.completedAt;
   CivilDate through;
   var ongoing = false;
   if (end == null) {

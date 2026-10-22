@@ -235,6 +235,24 @@ void main() {
       );
     });
 
+    test(
+      'an entered partial end is not silently treated as an ongoing event',
+      () {
+        final plan = eventReportPlan(
+          _event(
+            actualStart: _day(10, 1),
+            actualEnd: EventDate(
+              precision: EventDatePrecision.month,
+              value: '2026-10',
+            ),
+          ),
+          displayZone: 'Europe/London',
+          now: _now(),
+        );
+        expect(plan, isA<EventReportBlocked>());
+      },
+    );
+
     test('an ongoing event ends at the current display day, not its plan', () {
       final plan = eventReportPlan(
         _event(plannedStart: _day(10, 1), plannedEnd: _day(10, 10)),
@@ -496,6 +514,45 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  appTest(
+    'locking during report replacement closes the decision without applying it',
+    (tester) async {
+      final f = await launch(tester, auth: FakeAuth(), todayClock: _now);
+      final event = await _saveEvent(
+        tester,
+        f.store,
+        id: 'replace-lock',
+        name: 'Replacement lock course',
+        actualStart: _day(10, 1),
+        actualEnd: _day(10, 25),
+        completed: true,
+      );
+      await runIo(
+        tester,
+        () => f.container.read(appLockProvider.notifier).setEnabled(true),
+      );
+      final router = f.container.read(routerProvider);
+      router.push('/reports?from=2025-01-01&before=2025-02-01');
+      await settle(tester);
+      router.push('/event/${event.id}');
+      await waitForText(tester, event.name);
+      expect(f.container.read(appLockProvider).locked, isFalse);
+      expect(
+        f.container.read(reportControllerProvider).selection!.fromDate,
+        CivilDate(2025, 1, 1),
+      );
+      await tap(tester, 'Report');
+      await settle(tester);
+      expect(find.text('Replace report?'), findsOneWidget);
+      f.container.read(appLockProvider.notifier).lock();
+      await settle(tester);
+      expect(find.text('Replace report?'), findsNothing);
+      expect(find.text('Unlock').hitTestable(), findsWidgets);
+      expect(f.container.read(reportControllerProvider).selection, isNull);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   appTest('a direct event report link keeps an existing draft until Replace', (
     tester,
   ) async {
@@ -533,6 +590,42 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  appTest(
+    'a changed event report URL preserves a mounted selection until Replace',
+    (tester) async {
+      final f = await launch(tester, todayClock: _now);
+      final event = await _saveEvent(
+        tester,
+        f.store,
+        id: 'changed-link',
+        name: 'Changed link course',
+        actualStart: _day(10, 1),
+        actualEnd: _day(10, 25),
+        completed: true,
+      );
+      final router = f.container.read(routerProvider);
+      router.go('/reports?from=2025-01-01&before=2025-02-01');
+      await settle(tester);
+      final existing = f.container.read(reportControllerProvider).selection!;
+      router.go(
+        '/reports?event=${event.id}&template=event&from=2026-10-01&before=2026-10-26',
+      );
+      await settle(tester);
+      expect(find.text('Report selected'), findsOneWidget);
+      expect(
+        f.container.read(reportControllerProvider).selection!.identity,
+        existing.identity,
+      );
+      await tap(tester, 'Replace');
+      await settle(tester);
+      expect(
+        f.container.read(reportControllerProvider).selection!.eventId,
+        event.id,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   for (final mode in [ThemeMode.light, ThemeMode.dark]) {
     appTest(

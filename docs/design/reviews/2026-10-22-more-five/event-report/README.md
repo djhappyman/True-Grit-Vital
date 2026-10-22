@@ -1,5 +1,14 @@
 # Event report entry
 
+Lead integration passed 21 focused event-report checks, one report-replacement
+lock check and 124 report/event/framework regressions. A new partial-end test
+failed before the fix: an entered unresolved end had incorrectly fallen back
+to the current day. The shortcut now requires that end to be resolved. Entry
+and delayed replacement also check lock state before selecting or navigating.
+Changing the report URL keeps the prior selection until explicit Replace.
+All eight light/dark action, selection, narrow and unavailable captures were
+reviewed. Whole-project analysis is clean.
+
 22 October 2026, D16c. Based on `2b283a5`. No dependency, schema or History
 change. The canonical Reports page and report controller remain the only report
 selection and generation path.

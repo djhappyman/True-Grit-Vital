@@ -161,3 +161,9 @@ animation, and teardown does not complete a closed overlay twice. Direct
 320 px/2x entry, keyboard insets, reduced motion, reopening and all four
 collection filter destinations are host checked.
 [Evidence](reviews/2026-10-22-more-five/d13f/README.md).
+
+D16c adds Report to canonical event detail. It opens the existing report editor
+with a named event and visible date/template selection. A different active
+selection needs explicit Replace; busy work and lock remain guarded. Partial
+entered ends block the shortcut instead of becoming an ongoing-date estimate.
+[Host evidence](reviews/2026-10-22-more-five/event-report/README.md).

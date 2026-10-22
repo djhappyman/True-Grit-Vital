@@ -1369,6 +1369,7 @@ Future<void> _openEventReport(
   EventReportReady plan,
   String displayZone,
 ) async {
+  if (ref.read(appLockProvider).locked) return;
   final seed = eventReportSelection(event, plan, displayZone: displayZone);
   final state = ref.read(reportControllerProvider);
   final active = state.selection;
@@ -1406,14 +1407,18 @@ Future<void> _openEventReport(
         ],
       ),
     );
-    if (replace != true || !context.mounted) return;
+    if (replace != true ||
+        !context.mounted ||
+        ref.read(appLockProvider).locked) {
+      return;
+    }
     ref.read(reportControllerProvider.notifier).select(seed);
     if (ref.read(reportControllerProvider).selection?.identity !=
         seed.identity) {
       return;
     }
   }
-  if (!context.mounted) return;
+  if (!context.mounted || ref.read(appLockProvider).locked) return;
   context.push(
     eventReportLocation(
       eventId: event.id,

@@ -316,10 +316,16 @@ scanning, FHIR and physical-device gates remain open.
 | --- | --- | --- | --- |
 | D13f | Filter stock by an explicit inclusive expiry cutoff | DeepSeek | Host verified |
 | D18b | Open the original earlier lab record from a panel comparison | DeepSeek | Host verified |
-| D16c | Prepare an event-specific report in the existing report editor | DeepSeek | In progress |
+| D16c | Prepare an event-specific report in the existing report editor | DeepSeek | Host verified |
 | D19c | Jump directly to an exact date in History | DeepSeek | Host verified |
 | D14d | Inspect exact projected quantities and forecast assumptions | Lead | Host verified |
 
 Every slice retains the canonical screens, shared controls, copy and motion
 standards, exact records and guarded actions. Worker results require lead
 integration and meaningful host verification before the state changes.
+
+All five extensions are integrated and host verified. Lead review also fixed
+adaptive filter-sheet opening/teardown, matched inventory headings, History
+confirmation guards and explicit partial event ends. See the
+[batch evidence](reviews/2026-10-22-more-five/README.md). Device and unresolved
+product-policy gates remain open.
