@@ -1,4 +1,8 @@
-import 'package:flutter/semantics.dart' show SemanticsAction;
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -81,6 +85,16 @@ Future<void> _openTable(WidgetTester tester) async {
 Key _sourceKey(String id) => ValueKey('spark-source-$id-result-$id');
 
 void main() {
+  test('source URI preserves record identity and nested return filters', () {
+    final source = SupportingRecordId(personId: meId, id: 'record-part-one');
+    const origin = '/supporting?kind=labPanel&from=2026-01-01';
+    final uri = Uri.parse(
+      supportingSourceLocation(source, returnLocation: origin),
+    );
+    expect(uri.pathSegments, ['supporting', meId, source.id]);
+    expect(uri.queryParameters['return'], origin);
+  });
+
   setUpAll(loadFonts);
 
   for (final mode in [ThemeMode.light, ThemeMode.dark]) {
@@ -288,5 +302,43 @@ void main() {
     expect(find.text('$_value mg/L'), findsNothing);
     expect((await runIo(tester, f.store.drafts))!, isEmpty);
     expect(tester.takeException(), isNull);
+  });
+  appTest('capture lab source actions in both themes', (tester) async {
+    const output = String.fromEnvironment('VITAL_LAB_SOURCE_CAPTURES');
+    if (output.isEmpty) return;
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final f = await launch(tester);
+    await _save(tester, f.store, [
+      _panel('alpha', title: 'Earlier panel', day: 10),
+      _panel('beta', title: 'Recent panel', day: 15),
+    ]);
+    final key = GlobalKey();
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: f.container,
+        child: RepaintBoundary(key: key, child: const VitalApp()),
+      ),
+    );
+    f.container.read(routerProvider).go('/supporting?kind=labPanel');
+    await _openTable(tester);
+    for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+      f.container.read(appearanceProvider.notifier).setMode(mode);
+      await settle(tester);
+      await tester.ensureVisible(find.byType(ScreenLabsSparkline));
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+      await tester.runAsync(() async {
+        final boundary =
+            key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+        final image = await boundary.toImage(pixelRatio: 1);
+        final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+        final file = File('$output/${mode.name}-lab-sources.png');
+        await file.parent.create(recursive: true);
+        await file.writeAsBytes(bytes!.buffer.asUint8List());
+        image.dispose();
+      });
+    }
   });
 }

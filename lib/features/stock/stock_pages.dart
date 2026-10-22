@@ -99,7 +99,9 @@ class _StockPageState extends ConsumerState<StockPage> {
     );
     final inventory = ref.watch(stockInventoryProvider(query));
     final filtered = search.isNotEmpty || _filter != StockInventoryFilter.all;
-    final snapshot = inventory.value;
+    final snapshot = inventory.isLoading || inventory.hasError
+        ? null
+        : inventory.value;
     final expiryFilter =
         _filter == StockInventoryFilter.expired ||
         _filter == StockInventoryFilter.today;
@@ -231,7 +233,7 @@ class _StockPageState extends ConsumerState<StockPage> {
         ],
         if (inventory.hasError)
           LoadFailure(onRetry: () => ref.invalidate(stockInventoryProvider))
-        else if (!inventory.hasValue)
+        else if (inventory.isLoading || !inventory.hasValue)
           Text(t.loadingRecords)
         else if (rows.isEmpty && !filtered && !archived)
           VitalEmptyState(
@@ -501,6 +503,7 @@ class _StockContainerList extends StatelessWidget {
               archived: archived,
               planState: inventory.planStateFor(c.id),
               balanceState: inventory.balanceFor(c.id),
+              expiryDay: inventory.expiryDay,
             ),
             const SizedBox(height: 12),
           ],
@@ -559,16 +562,13 @@ class StockInventoryFilters extends StatelessWidget {
                     primary: selected == filter,
                     compact: true,
                     onPressed: () => onSelected(filter),
-                    child: Text(
-                      switch (counts?.count(filter)) {
-                        final int count => t.stitchFilterCount(
-                          _name(t, filter),
-                          count,
-                        ),
-                        null => _name(t, filter),
-                      },
-                      style: StitchType.small,
-                    ),
+                    child: Text(switch (counts?.count(filter)) {
+                      final int count => t.stitchFilterCount(
+                        _name(t, filter),
+                        count,
+                      ),
+                      null => _name(t, filter),
+                    }, style: StitchType.small),
                   ),
                 ),
               ),
@@ -587,12 +587,14 @@ class _StockContainerCard extends ConsumerWidget {
     required this.archived,
     required this.planState,
     required this.balanceState,
+    required this.expiryDay,
   });
   final StoredStockContainer container;
   final int personRevision;
   final bool archived;
   final StockInventoryPlanState planState;
   final StockInventoryBalance balanceState;
+  final CivilDate? expiryDay;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context), c = StitchColors(context);
@@ -613,7 +615,11 @@ class _StockContainerCard extends ConsumerWidget {
             strength: container.strength.label,
             badge: _stockNoticeBadge(t, container),
           ),
-          StockPackFacts(container: container),
+          StockPackFacts(
+            container: container,
+            expiryDay: expiryDay,
+            expiryUnavailable: expiryDay == null,
+          ),
           const SizedBox(height: 12),
           _StockBalanceLine(container: container),
           const SizedBox(height: 10),

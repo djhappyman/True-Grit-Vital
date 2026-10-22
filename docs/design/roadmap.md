@@ -291,12 +291,17 @@ implementation slices, based on `0dab613`. All four workers use OpenCode's
 
 | Slice | Outcome | Owner | State |
 | --- | --- | --- | --- |
-| D13d | Whole-inventory Expired/Expires today filters and counts, using real local dates | DeepSeek | In progress |
-| D14c | Conditional stock forecasts for fixed-planned elapsed intervals | DeepSeek | In progress |
-| D17c | Open exact lab trend points in their original saved records | DeepSeek | In progress |
-| D21b | Factual last-confirmed-backup status in Settings Data | DeepSeek | In progress |
+| D13d | Whole-inventory Expired/Expires today filters and counts, using real local dates | DeepSeek | Host verified |
+| D14c | Conditional stock forecasts for fixed-planned elapsed intervals | DeepSeek | Host verified |
+| D17c | Open exact lab trend points in their original saved records | DeepSeek | Host verified |
+| D21b | Factual last-confirmed-backup status in Settings Data | DeepSeek | Host verified |
 | D13e | Guided choice between a new physical pack and adding to an existing container | Lead | Host verified |
 
 These extend existing features without defining clinical timing tolerance,
 follow-up policies, automatic backup destinations/retention, scanning formats or
 FHIR mappings. Those decisions and physical-device gates remain open.
+
+All five slices are integrated. Lead review aligned stock-card expiry labels
+with the filter's captured day, hid retained inventory during loading/errors,
+bounded interval expansion before allocation and checked source-link identity.
+See the [batch evidence](reviews/2026-10-22-next-five-direct/README.md).

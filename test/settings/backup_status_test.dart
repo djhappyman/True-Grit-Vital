@@ -1,3 +1,8 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
+
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -294,4 +299,49 @@ void main() {
       expect(tester.getRect(card).width, lessThanOrEqualTo(288));
     });
   }
+  appTest('capture backup status inside Settings Data', (tester) async {
+    const output = String.fromEnvironment('VITAL_BACKUP_STATUS_CAPTURES');
+    if (output.isEmpty) return;
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final f = await launch(tester);
+    await runIo(
+      tester,
+      () => f.store.recordBackupReceipt(
+        _receipt(
+          f.store.generation,
+          12,
+          verifiedAt: DateTime.utc(2026, 10, 22, 12),
+          savedAt: DateTime.utc(2026, 10, 22, 12, 1),
+        ),
+      ),
+    );
+    final key = GlobalKey();
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: f.container,
+        child: RepaintBoundary(key: key, child: const VitalApp()),
+      ),
+    );
+    f.container.read(routerProvider).go('/settings?group=data');
+    await _waitForKey(tester, _savedKey);
+    for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+      f.container.read(appearanceProvider.notifier).setMode(mode);
+      await settle(tester);
+      await tester.ensureVisible(find.byType(SettingsBackupStatus));
+      await settle(tester);
+      expect(tester.takeException(), isNull);
+      await tester.runAsync(() async {
+        final boundary =
+            key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+        final image = await boundary.toImage(pixelRatio: 1);
+        final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+        final file = File('$output/${mode.name}-backup-status.png');
+        await file.parent.create(recursive: true);
+        await file.writeAsBytes(bytes!.buffer.asUint8List());
+        image.dispose();
+      });
+    }
+  });
 }

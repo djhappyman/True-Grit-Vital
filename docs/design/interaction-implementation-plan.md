@@ -121,3 +121,15 @@ D13e adds `/stock/:person/restock/:container` as a contextual task sheet. It
 replaces itself with the canonical new-container page or quantity-adjustment
 sheet, preserving the existing draft and save guards. The chooser never writes
 stock and copies no pack facts. [Host evidence](reviews/2026-10-22-next-five-direct/restock/README.md).
+
+## Inventory and source inspection
+
+D13d adds Expired/Expires today choices to the existing inventory filter
+disclosure. Counts and card labels share the observed civil day; an unknown
+zone has an explicit unavailable state. D17c adds an Open action beside each
+exact lab trend value, retaining the existing saved-record detail and filtered
+Labs return location. D21b replaces the duplicate Settings Data Backup command
+with a compact receipt-based status and the same destination. Shared controls,
+lock handling and disclosure motion remain in use. Both themes, narrow layouts
+and host navigation are covered in the
+[batch evidence](reviews/2026-10-22-next-five-direct/README.md).

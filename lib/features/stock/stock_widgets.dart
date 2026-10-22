@@ -84,17 +84,29 @@ class StockPackFacts extends StatelessWidget {
     super.key,
     required this.container,
     this.detailed = false,
+    this.expiryDay,
+    this.expiryUnavailable = false,
   });
   final StoredStockContainer container;
   final bool detailed;
+
+  /// Uses the inventory snapshot's civil day when supplied.
+  final CivilDate? expiryDay;
+
+  /// An unknown observed zone must not fall back to a different local day.
+  final bool expiryUnavailable;
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final colors = StitchColors(context);
-    final today = CivilDate.fromDateTime(DateTime.now());
+    final today =
+        expiryDay ??
+        (expiryUnavailable ? null : CivilDate.fromDateTime(DateTime.now()));
     final expiry = container.expiryDate;
-    final expiryState = container.expiryState(today);
+    final expiryState = today == null
+        ? StockExpiryState.none
+        : container.expiryState(today);
     final rows = <Widget>[
       if (container.strength.preparation case final p?)
         VialPreparationSummary(preparation: p),

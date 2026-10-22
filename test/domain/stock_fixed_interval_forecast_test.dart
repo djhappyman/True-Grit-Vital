@@ -317,6 +317,21 @@ void main() {
       expect(result.reason, StockForecastReason.unsupportedSchedule);
     });
 
+    test('sub-second interval expansion stops at the work limit', () {
+      final result = forecast('9000000000', [
+        intervalPlan([
+          intervalPhase(
+            versionId: 'v1',
+            intervalHours: '0.000001',
+            amount: planned('1', 'ml'),
+            anchor: DateTime.utc(2026, 10, 20),
+          ),
+        ]),
+      ]);
+      expect(result.reason, StockForecastReason.unsupportedSchedule);
+      expect(result.isAvailable, false);
+    });
+
     test('actual-anchored intervals never invent a future dose', () {
       final result = forecast('100', [
         intervalPlan([

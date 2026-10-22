@@ -100,6 +100,43 @@ Future<void> makePlan(
 );
 
 void main() {
+  testWidgets(
+    'pack expiry uses the inventory snapshot day and stays neutral without a zone',
+    (tester) async {
+      final pack = StoredStockContainer(
+        id: 'pack',
+        personId: meId,
+        itemId: 'item',
+        label: 'Pack',
+        unit: 'ml',
+        strength: LabelledStrength(ingredientId: 'item', label: 'Unknown'),
+        revision: 1,
+        sequence: 1,
+        balance: const StockBalance(null),
+        refillEnabled: false,
+        expiryDate: CivilDate(2026, 10, 22),
+      );
+      await tester.pumpWidget(
+        host(
+          StockPackFacts(container: pack, expiryDay: CivilDate(2026, 10, 23)),
+        ),
+      );
+      expect(find.text('Expired 2026-10-22'), findsOneWidget);
+      await tester.pumpWidget(
+        host(
+          StockPackFacts(container: pack, expiryDay: CivilDate(2026, 10, 22)),
+        ),
+      );
+      expect(find.text('Expires today'), findsOneWidget);
+      await tester.pumpWidget(
+        host(StockPackFacts(container: pack, expiryUnavailable: true)),
+      );
+      expect(find.text('Expires 2026-10-22'), findsOneWidget);
+      expect(find.text('Expired 2026-10-22'), findsNothing);
+      expect(find.text('Expires today'), findsNothing);
+    },
+  );
+
   setUpAll(() async {
     await (FontLoader('StitchSans')
           ..addFont(rootBundle.load('assets/fonts/StitchNotoSans-Regular.ttf'))

@@ -239,7 +239,9 @@ StockRunOutForecast forecastStockRunOut({
           toExclusive: date.addDays(1),
           observedZone: zone,
           maxDates: 100000,
-          maxRows: 100000,
+          // Bound expansion itself, before allocating the returned rows.
+          maxRows:
+              stockForecastMaxIntervalOccurrences - intervalOccurrences + 1,
           now: now,
         );
         if (!expansion.complete) {

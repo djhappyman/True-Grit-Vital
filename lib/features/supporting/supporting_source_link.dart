@@ -10,7 +10,7 @@ String supportingSourceLocation(
   SupportingRecordId id, {
   String? returnLocation,
 }) => Uri(
-  path: '/supporting/${id.personId}/${id.id}',
+  pathSegments: ['', 'supporting', id.personId, id.id],
   queryParameters: {
     if (returnLocation != null && returnLocation.isNotEmpty)
       'return': returnLocation,
