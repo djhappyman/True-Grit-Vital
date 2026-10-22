@@ -8625,4 +8625,39 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get batch15T03ReplaceBody =>
       'Replacing starts a new report. Private notes, source files and supporting records will be off.';
+
+  @override
+  String get batch15T11PlanPreviewTotalsHeading => 'Seven-day total';
+
+  @override
+  String batch15T11PlanPreviewTotalsDoses(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planned doses',
+      one: '1 planned dose',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String batch15T11PlanPreviewTotalsQuantity(String amount, String unit) {
+    return '$amount $unit planned';
+  }
+
+  @override
+  String get batch15T11PlanPreviewTotalsNone =>
+      'No planned doses in these seven days.';
+
+  @override
+  String get batch15T11PlanPreviewTotalsPrn =>
+      'No planned times or fixed total.';
+
+  @override
+  String get batch15T11PlanPreviewTotalsIncomplete =>
+      'Totals unavailable. The seven-day calculation is incomplete.';
+
+  @override
+  String get batch15T11PlanPreviewTotalsHelp =>
+      'Planned amounts for these seven days only. This is not a record of doses taken.';
 }

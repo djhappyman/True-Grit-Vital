@@ -10150,5 +10150,46 @@
   "batch15T03ReplaceBody": "Replacing starts a new report. Private notes, source files and supporting records will be off.",
   "@batch15T03ReplaceBody": {
     "description": "Report route and shortcut replacement disclosure. Only explicit valid replacement starts a new report with these private content choices off."
+  },
+  "batch15T11PlanPreviewTotalsHeading": "Seven-day total",
+  "@batch15T11PlanPreviewTotalsHeading": {
+    "description": "Daily plan preview. Definite planned quantities for the displayed seven dates only. Not actual use, adherence or the full-plan count."
+  },
+  "batch15T11PlanPreviewTotalsDoses": "{count, plural, =1{1 planned dose} other{{count} planned doses}}",
+  "@batch15T11PlanPreviewTotalsDoses": {
+    "description": "Exact number of planned dose entries across the displayed seven dates.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "batch15T11PlanPreviewTotalsQuantity": "{amount} {unit} planned",
+  "@batch15T11PlanPreviewTotalsQuantity": {
+    "description": "One exact planned amount with its full original unit across the displayed seven dates. Different units use separate lines.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "batch15T11PlanPreviewTotalsNone": "No planned doses in these seven days.",
+  "@batch15T11PlanPreviewTotalsNone": {
+    "description": "Complete seven-day calculation with no planned doses, for example during a pause or after a finite plan ends."
+  },
+  "batch15T11PlanPreviewTotalsPrn": "No planned times or fixed total.",
+  "@batch15T11PlanPreviewTotalsPrn": {
+    "description": "As-needed plans have no fixed number or quantity of planned doses."
+  },
+  "batch15T11PlanPreviewTotalsIncomplete": "Totals unavailable. The seven-day calculation is incomplete.",
+  "@batch15T11PlanPreviewTotalsIncomplete": {
+    "description": "The solver could not complete the displayed seven dates, so no partial total is shown."
+  },
+  "batch15T11PlanPreviewTotalsHelp": "Planned amounts for these seven days only. This is not a record of doses taken.",
+  "@batch15T11PlanPreviewTotalsHelp": {
+    "description": "Clarifies that exact preview totals are planned amounts, not recorded use or adherence."
   }
 }

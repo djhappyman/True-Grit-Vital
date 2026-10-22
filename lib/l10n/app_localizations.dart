@@ -13430,6 +13430,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replacing starts a new report. Private notes, source files and supporting records will be off.'**
   String get batch15T03ReplaceBody;
+
+  /// Daily plan preview. Definite planned quantities for the displayed seven dates only. Not actual use, adherence or the full-plan count.
+  ///
+  /// In en, this message translates to:
+  /// **'Seven-day total'**
+  String get batch15T11PlanPreviewTotalsHeading;
+
+  /// Exact number of planned dose entries across the displayed seven dates.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 planned dose} other{{count} planned doses}}'**
+  String batch15T11PlanPreviewTotalsDoses(int count);
+
+  /// One exact planned amount with its full original unit across the displayed seven dates. Different units use separate lines.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} {unit} planned'**
+  String batch15T11PlanPreviewTotalsQuantity(String amount, String unit);
+
+  /// Complete seven-day calculation with no planned doses, for example during a pause or after a finite plan ends.
+  ///
+  /// In en, this message translates to:
+  /// **'No planned doses in these seven days.'**
+  String get batch15T11PlanPreviewTotalsNone;
+
+  /// As-needed plans have no fixed number or quantity of planned doses.
+  ///
+  /// In en, this message translates to:
+  /// **'No planned times or fixed total.'**
+  String get batch15T11PlanPreviewTotalsPrn;
+
+  /// The solver could not complete the displayed seven dates, so no partial total is shown.
+  ///
+  /// In en, this message translates to:
+  /// **'Totals unavailable. The seven-day calculation is incomplete.'**
+  String get batch15T11PlanPreviewTotalsIncomplete;
+
+  /// Clarifies that exact preview totals are planned amounts, not recorded use or adherence.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned amounts for these seven days only. This is not a record of doses taken.'**
+  String get batch15T11PlanPreviewTotalsHelp;
 }
 
 class _AppLocalizationsDelegate

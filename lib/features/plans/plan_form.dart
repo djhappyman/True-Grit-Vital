@@ -16,6 +16,7 @@ import '../../l10n/app_localizations.dart';
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
 import '../reminders/reminder_pages.dart';
+import 'plan_preview_totals.dart';
 import 'plan_providers.dart';
 import 'pause_editor.dart';
 import 'calendar_editor.dart';
@@ -1074,6 +1075,7 @@ class _PlanPreviewState extends ConsumerState<PlanPreview> {
   late CivilDate from;
   late DailyNext next;
   late DailyExpansion expansion;
+  PlanPreviewTotals? totals;
   DailyExpectation? boundary;
   bool failed = false;
   @override
@@ -1095,6 +1097,7 @@ class _PlanPreviewState extends ConsumerState<PlanPreview> {
     final plan = widget.plan, observedZone = widget.observedZone;
     final instant = DateTime.now().toUtc();
     failed = false;
+    totals = null;
     try {
       final resolver = DailyResolver();
       final now = resolver.currentDate(
@@ -1123,6 +1126,12 @@ class _PlanPreviewState extends ConsumerState<PlanPreview> {
         observedZone: observedZone,
         maxDates: 370,
         maxRows: 20000,
+      );
+      totals = planPreviewTotals(
+        plan,
+        from: from,
+        observedZone: observedZone,
+        now: instant,
       );
       boundary = null;
       Duration? previousOffset;
@@ -1188,6 +1197,7 @@ class _PlanPreviewState extends ConsumerState<PlanPreview> {
         CalendarBoundaryPreview(plan: plan, from: from),
         for (final review in next.needsReview)
           Text(expectationLabel(context, ref, t, review)),
+        if (totals case final totals?) PlanPreviewTotalsSummary(totals: totals),
         for (final row
             in expansion.rows
                 .where(
