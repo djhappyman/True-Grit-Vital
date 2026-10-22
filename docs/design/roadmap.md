@@ -45,7 +45,7 @@ These are recorded follow-up work, not completed features. Dependencies refer to
 | D10 | Dose context and skip reasons | Persist optional notes, food/context tags and skip reason through edits, history, exports and backup/restore. Optional observation entry links use existing supporting-record semantics. | Host integrated and verified: optional dose context and skip reasons, revision/draft recovery, private outputs and encrypted restore |
 | D11 | Schedule requirements and tolerance | Optional food/bedtime instructions and explicit timing-tolerance rules, reflected consistently in forms, summaries and history. No treatment recommendations or inferred maximum doses. | Partial: versioned authored plan instructions, drafts, shared summaries and encrypted recovery are host verified; timing-tolerance rules still need definition |
 | D12 | Reminder follow-ups and alert controls | Explicit opt-in follow-up timing, cancellation/reconciliation after actions, sound/haptic choices and truthful OS limitations. Existing snooze is preserved. Native/device evidence required. | Partial: sound/vibration preferences and real Android channel variants are host verified, with native OS-mute guards; follow-up timing and physical-device evidence remain open |
-| D13 | Stock lots and expiry | Optional lot/batch and expiry metadata, pack capacity and restock flow; schema migrations, history and export/backup round trips. | Host integrated and verified: schema 24, lot/expiry/exact capacity, guarded edits and paged history, structured provenance and encrypted restore |
+| D13 | Stock lots and expiry | Optional lot/batch and expiry metadata, pack capacity and restock flow; schema migrations, history and export/backup round trips. | Host integrated and verified: schema 24, lot/expiry/exact capacity, guarded edits and paged history, structured provenance, encrypted restore and optional capture-time stock details in reports |
 | D14 | Stock forecast and inventory overview | Low/adequate/paused filtering, remaining-capacity display and schedule-based run-out estimates. PRN, unknown balance, incompatible units and incomplete schedules stay explicit; follows D03/D13. | Host integrated and verified: store-backed search/counts/filters, exact capacity proportions and conditional forecast from tomorrow; incomplete inventory reads and unsupported schedules are explicit |
 | D15 | Refill delivery and scanning | Native refill notices extend the currently agreed in-app stock notices. Barcode/pack recognition needs exact source, licence, privacy and ambiguity rules; manual entry always works. | Backlog: bounded design/source review |
 | D16 | Event overview | Status filters/counts, progress cards and linked-substance/recorded/skipped summaries using existing event dates/membership. Surface supported notes and configure/history actions. | Host integrated: saved private notes, whole-event recorded/skipped totals and linked-substance counts; collection status filters still describe the loaded page |
@@ -68,10 +68,10 @@ and optional stock-source facts in reports (D13b). The lead owns protected-backu
 verification history (D21a) and takes over any rate-limited work. Three workers
 run alongside the lead; the fourth starts when a slot opens.
 
-These are implementation assignments, not acceptance. Timing-tolerance rules,
-automatic backups and physical-device delivery checks remain open. Each package
-requires focused functional checks, shared-component UI review and lead
-integration before its status changes. Task briefs and delegation identities
+These are scoped slices. Timing-tolerance rules, automatic backups and
+physical-device delivery checks remain open. Each package received focused
+functional checks, shared-component UI review and lead integration before its
+host status changed. Task briefs and delegation identities
 are retained locally under `.scratch/vital-implementation/next-five-2026-10-22/`.
 
 D21a is implemented and host verified by the lead: bounded encrypted receipts,
@@ -93,8 +93,13 @@ remain open. D11a is integrated and host verified: exact authored instructions
 follow immutable plan versions, drafts, pause/restart, phases and shared summaries.
 The [review](reviews/2026-10-22-next-five/plan-instructions/README.md) records 118
 focused schedule checks and the resolved summary-fixture hang (14 checks).
-All five packages are integrated locally; final combined checks, boot and push
-are recorded below when completed. Device/release gates remain open.
+All five packages are integrated and host verified. Final verification passed
+113 combined feature/framework/motion checks, clean project analysis, 37 native
+reminder engine checks, Android Kotlin compilation and the real Secret Service
+Linux boot/persistence/navigation/export/backup flow. The Linux debug bundle
+built successfully. See the [batch evidence](reviews/2026-10-22-next-five/README.md).
+Device/release gates remain open. Plan-instruction output mapping remains separate
+from this private in-app slice.
 
 ## Claims requiring decisions
 

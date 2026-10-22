@@ -1,0 +1,11 @@
+{
+  "platform": "linux",
+  "native": true,
+  "realSecretService": true,
+  "namespace": "dev.truegrit.vital.smoke.f93629b5363f4b48ae5f17238b514bc5",
+  "temporaryDirectory": "/tmp/vital-linux-boot-8qvx4b_8",
+  "physicalAndroid": false,
+  "exitCode": 0,
+  "secretCleanupExitCode": 0,
+  "temporaryDirectoryRemoved": true
+}
