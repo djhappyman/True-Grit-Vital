@@ -8502,4 +8502,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get moreForecastAssumptions =>
       'Includes every planned dose on the final day. It does not predict unplanned use, waste or restocking.';
+
+  @override
+  String get receiptFilterAll => 'All';
+
+  @override
+  String get receiptFilterSaved => 'Saved';
+
+  @override
+  String get receiptFilterUnconfirmed => 'Unconfirmed';
+
+  @override
+  String get receiptFilterEmpty =>
+      'No receipts match. Choose All to see the retained history.';
+
+  @override
+  String receiptFilterCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count receipts',
+      one: '1 receipt',
+      zero: 'No receipts',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String receiptCreated(String date) {
+    return 'Archive created: $date';
+  }
 }

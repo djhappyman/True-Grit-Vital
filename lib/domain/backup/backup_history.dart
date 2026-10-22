@@ -2,6 +2,18 @@ import 'dart:convert';
 
 import 'backup_format.dart';
 
+/// The latest retained confirmation, independent of check or insertion order.
+/// A receipt does not establish that an external copy still exists.
+BackupReceipt? latestConfirmedBackup(Iterable<BackupReceipt> receipts) {
+  BackupReceipt? latest;
+  for (final receipt in receipts) {
+    final savedAt = receipt.savedAt;
+    if (savedAt == null) continue;
+    if (latest == null || savedAt.isAfter(latest.savedAt!)) latest = receipt;
+  }
+  return latest;
+}
+
 /// Local receipts, not proof that an external file still exists or restores.
 final class BackupReceipt {
   const BackupReceipt({

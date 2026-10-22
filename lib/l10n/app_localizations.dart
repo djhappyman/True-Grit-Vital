@@ -13238,6 +13238,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Includes every planned dose on the final day. It does not predict unplanned use, waste or restocking.'**
   String get moreForecastAssumptions;
+
+  /// Backup receipt filter value. Shows all retained receipts.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get receiptFilterAll;
+
+  /// Backup receipt filter value. Only confirmed saves.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get receiptFilterSaved;
+
+  /// Backup receipt filter value. No save confirmation was recorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Unconfirmed'**
+  String get receiptFilterUnconfirmed;
+
+  /// Empty state for a backup receipt filter.
+  ///
+  /// In en, this message translates to:
+  /// **'No receipts match. Choose All to see the retained history.'**
+  String get receiptFilterEmpty;
+
+  /// Number of retained receipts matching the filter.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No receipts} =1{1 receipt} other{{count} receipts}}'**
+  String receiptFilterCount(int count);
+
+  /// Original archive creation time, distinct from checking and saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive created: {date}'**
+  String receiptCreated(String date);
 }
 
 class _AppLocalizationsDelegate

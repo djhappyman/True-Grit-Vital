@@ -10,21 +10,7 @@ import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
 import 'settings_widgets.dart';
 
-/// The latest receipt with a confirmed save, ordered by the save itself.
-///
-/// Stored history is newest-receipt first, but that order follows receipt
-/// insertion. The archive check time and list position are not save times.
-BackupReceipt? latestConfirmedBackup(Iterable<BackupReceipt> receipts) {
-  BackupReceipt? latest;
-  for (final receipt in receipts) {
-    final savedAt = receipt.savedAt;
-    if (savedAt == null) continue;
-    if (latest == null || savedAt.isAfter(latest.savedAt!)) {
-      latest = receipt;
-    }
-  }
-  return latest;
-}
+export '../../domain/backup/backup_history.dart' show latestConfirmedBackup;
 
 /// Read-only backup receipt summary inside Settings Data.
 ///

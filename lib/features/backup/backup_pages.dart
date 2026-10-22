@@ -363,11 +363,20 @@ class _BackupPageState extends ConsumerState<BackupPage> {
 }
 
 /// Read-only receipts inside the existing guarded backup workflow.
-class BackupHistoryPanel extends ConsumerWidget {
+class BackupHistoryPanel extends ConsumerStatefulWidget {
   const BackupHistoryPanel({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BackupHistoryPanel> createState() => _BackupHistoryPanelState();
+}
+
+enum _ReceiptFilter { all, saved, unconfirmed }
+
+class _BackupHistoryPanelState extends ConsumerState<BackupHistoryPanel> {
+  _ReceiptFilter filter = _ReceiptFilter.all;
+
+  @override
+  Widget build(BuildContext context) {
     if (ref.watch(appLockProvider).locked) return const SizedBox.shrink();
     final text = AppLocalizations.of(context);
     final history = ref.watch(backupHistoryProvider);
@@ -375,10 +384,18 @@ class BackupHistoryPanel extends ConsumerWidget {
       child: history.when(
         skipError: false,
         skipLoadingOnReload: false,
+        skipLoadingOnRefresh: false,
         data: (receipts) {
-          final saved = receipts
-              .where((receipt) => receipt.savedAt != null)
-              .firstOrNull;
+          final saved = latestConfirmedBackup(receipts);
+          final visible = receipts
+              .where(
+                (receipt) => switch (filter) {
+                  _ReceiptFilter.all => true,
+                  _ReceiptFilter.saved => receipt.savedAt != null,
+                  _ReceiptFilter.unconfirmed => receipt.savedAt == null,
+                },
+              )
+              .toList();
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -402,11 +419,31 @@ class BackupHistoryPanel extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(text.featureBackupHistoryHelp),
+                    const SizedBox(height: 12),
+                    VitalSegments<_ReceiptFilter>(
+                      values: _ReceiptFilter.values,
+                      selected: filter,
+                      label: (value) => switch (value) {
+                        _ReceiptFilter.all => text.receiptFilterAll,
+                        _ReceiptFilter.saved => text.receiptFilterSaved,
+                        _ReceiptFilter.unconfirmed =>
+                          text.receiptFilterUnconfirmed,
+                      },
+                      onChanged: (value) => setState(() => filter = value),
+                    ),
+                    const SizedBox(height: 12),
+                    Semantics(
+                      liveRegion: true,
+                      child: Text(text.receiptFilterCount(visible.length)),
+                    ),
                     if (receipts.isEmpty) ...[
                       const SizedBox(height: 12),
                       Text(text.featureBackupHistoryEmpty),
+                    ] else if (visible.isEmpty) ...[
+                      const SizedBox(height: 12),
+                      Text(text.receiptFilterEmpty),
                     ],
-                    for (final receipt in receipts) ...[
+                    for (final receipt in visible) ...[
                       const SizedBox(height: 16),
                       _BackupReceiptDetails(receipt: receipt),
                     ],
@@ -444,6 +481,11 @@ class _BackupReceiptDetails extends StatelessWidget {
       key: ValueKey('backup-receipt-${receipt.sha256}'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Text(
+          text.receiptCreated(
+            _BackupPageState._created(context, receipt.createdAt),
+          ),
+        ),
         Text(
           text.featureBackupHistoryChecked(
             _BackupPageState._created(context, receipt.verifiedAt),

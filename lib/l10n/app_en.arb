@@ -9997,5 +9997,39 @@
   "moreForecastAssumptions": "Includes every planned dose on the final day. It does not predict unplanned use, waste or restocking.",
   "@moreForecastAssumptions": {
     "description": "Limits of the conditional forecast totals; no recommendation or actual stock movement."
+  },
+  "receiptFilterAll": "All",
+  "@receiptFilterAll": {
+    "description": "Backup receipt filter value. Shows all retained receipts."
+  },
+  "receiptFilterSaved": "Saved",
+  "@receiptFilterSaved": {
+    "description": "Backup receipt filter value. Only confirmed saves."
+  },
+  "receiptFilterUnconfirmed": "Unconfirmed",
+  "@receiptFilterUnconfirmed": {
+    "description": "Backup receipt filter value. No save confirmation was recorded."
+  },
+  "receiptFilterEmpty": "No receipts match. Choose All to see the retained history.",
+  "@receiptFilterEmpty": {
+    "description": "Empty state for a backup receipt filter."
+  },
+  "receiptFilterCount": "{count, plural, =0{No receipts} =1{1 receipt} other{{count} receipts}}",
+  "@receiptFilterCount": {
+    "description": "Number of retained receipts matching the filter.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "receiptCreated": "Archive created: {date}",
+  "@receiptCreated": {
+    "description": "Original archive creation time, distinct from checking and saving.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   }
 }
