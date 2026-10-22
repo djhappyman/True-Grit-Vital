@@ -132,6 +132,12 @@ Android channel creation/override rules were checked against the official page
 above during lead review. Host integration verification is recorded in the
 batch review after all five packages are merged.
 
+Lead verification passed 126 focused Flutter checks (the worker's reminder set
+plus backup-history UI), clean project analysis and `:app:compileDebugKotlin`
+against the configured Android toolchain. The compile exited successfully;
+existing Gradle/Kotlin plugin deprecation notices remain. This is source/build
+verification, not physical-device delivery evidence.
+
 Physical-device notification sound, vibration, channel creation, system mute,
 lock-screen presentation and TalkBack were not exercised; no emulator or APK
 build was run. Delivery remains platform-controlled. Variant channels remain

@@ -78,7 +78,11 @@ D21a is implemented and host verified by the lead: bounded encrypted receipts,
 separate checked/saved facts, restored-generation fencing and failure-aware
 bookkeeping in the canonical Backup page. The [review](reviews/2026-10-22-next-five/backup-history/README.md)
 records focused checks and light/dark captures. Automatic backup lifecycle work
-remains open; the other four packages await lead review and integration.
+remains open. D12a is also integrated and host verified: encrypted alert choices,
+real Android channel variants and a native OS-mute guard, with 126 focused Flutter
+checks, 37 native engine checks, clean analysis and a successful Android Kotlin
+compile. Physical sound/vibration delivery remains unverified. The remaining
+three packages await lead review and integration.
 
 ## Claims requiring decisions
 
