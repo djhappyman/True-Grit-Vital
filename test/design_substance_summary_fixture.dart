@@ -47,9 +47,11 @@ class SummaryFixture {
         }),
       ],
     );
-    addTearDown(_container.dispose);
     addTearDown(() async {
-      await store.close();
+      // Cancel watched providers before waiting for their database reads.
+      // The widget clock must advance while those reads settle.
+      _container.dispose();
+      await runIo(_tester, store.close);
       await directory.delete(recursive: true);
     });
   }
@@ -107,7 +109,7 @@ class SummaryFixture {
 
   /// Watches the summary the collection mounts below the identity header.
   Future<void> mount({bool detailed = false}) async {
-    _tester.pumpWidget(
+    await _tester.pumpWidget(
       UncontrolledProviderScope(
         container: _container,
         child: ShadcnApp(

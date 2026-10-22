@@ -1,7 +1,6 @@
 # D11a saved schedule instructions
 
-Status: implemented and locally verified in the isolated worktree. Lead integration and
-acceptance remain open.
+Status: integrated locally after lead review. Physical-device gates remain open.
 
 ## Capability
 
@@ -81,7 +80,7 @@ Commands were run from this worktree with `./tool/flutterw`.
 - `light-schedule-full.png` and `dark-schedule-full.png` show the complete editor.
 - `light-schedule.png` and `dark-schedule.png` show the viewport composition.
 
-## Known limit and reported blocker
+## Fixture review
 
 `test/design_substance_summary_test.dart` timed out after ten minutes in the focused
 regression run on `the streamed container page stays disclosed at its bound` and then
@@ -90,8 +89,17 @@ A bounded stash baseline check was attempted, but the command did not complete i
 shell bound; the task stash was restored and all modified and new files were verified
 present. No baseline result was obtained. The instruction path is not exercised by that
 test, and the new summary branches are no-ops when no plan exists. This is reported for
-lead review as a likely pre-existing widget-fixture teardown/stream hang, not claimed as
-resolved.
+lead review. The lead corrected the fixture teardown to dispose watched providers before
+awaiting database close, using the existing widget-aware IO drain. The fixture also awaits
+mounting its widget. The formerly hanging 51-container test then passed in two seconds;
+the complete 14-test substance-summary suite passed in fourteen seconds. No production
+stream behavior or collection limit was weakened to satisfy the test. The original worker
+did not establish a baseline result, so this review makes no baseline-failure claim.
+
+Lead integration also passed 118 instruction, daily/pause/phase/interval store,
+draft/UI and schedule-capture checks with clean project analysis. Constructor
+copy sites were checked against graph callers and exact source. No public
+report/export or notification field gained the private authored text.
 
 ## Report/export seam
 
