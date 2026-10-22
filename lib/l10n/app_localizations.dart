@@ -10353,17 +10353,53 @@ abstract class AppLocalizations {
   /// **'Recorded use and skipped plans kept on this device.'**
   String get screenHistorySubtitle;
 
-  /// Heading for the seven real day markers ending today.
+  /// Heading for exact counts in the locale week containing the selected calendar date.
   ///
   /// In en, this message translates to:
-  /// **'Last 7 days'**
-  String get screenHistoryLastSevenDays;
+  /// **'Selected week'**
+  String get featureHistoryWeekTitle;
 
-  /// Factual count of recorded entries in the seven-day strip. Not an adherence percentage.
+  /// Explicit date range of the selected locale week. Never a relative count or an adherence claim.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{No recorded entries} one{1 recorded} other{{count} recorded}}'**
-  String screenHistoryRecordedCount(int count);
+  /// **'From {start} to {end}'**
+  String featureHistoryWeekRange(String start, String end);
+
+  /// Selected-week summary while its exact calendar counts are being read.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading this week’s counts…'**
+  String get featureHistoryWeekLoading;
+
+  /// Selected-week counts failed to read. Does not imply zero entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Week counts unavailable. Try again.'**
+  String get featureHistoryWeekFailed;
+
+  /// Selected-week counts are hidden while the app lock covers records.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to view week counts.'**
+  String get featureHistoryWeekLocked;
+
+  /// Accessible date label when the status filter shows recorded entries only.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}. {count, plural, =0{No recorded entries} one{1 recorded entry} other{{count} recorded entries}}'**
+  String featureHistoryWeekDayRecorded(String date, int count);
+
+  /// Accessible date label when the status filter shows skipped entries only.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}. {count, plural, =0{No skipped entries} one{1 skipped entry} other{{count} skipped entries}}'**
+  String featureHistoryWeekDaySkipped(String date, int count);
+
+  /// Accessible date label when the status filter shows voided entries only.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}. {count, plural, =0{No voided entries} one{1 voided entry} other{{count} voided entries}}'**
+  String featureHistoryWeekDayVoided(String date, int count);
 
   /// Number of history entries shown for one day.
   ///

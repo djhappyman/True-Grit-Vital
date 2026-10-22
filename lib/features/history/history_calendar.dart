@@ -17,6 +17,27 @@ class HistoryDayCounts {
   final int recorded, skipped, voided;
 }
 
+/// The seven civil dates of the locale week containing [selected].
+///
+/// [firstDayOfWeek] is [MaterialLocalizations.firstDayOfWeekIndex], where
+/// 0 is Sunday. The same index positions both the month grid and this week,
+/// so changing the selected date moves the week without a second week rule.
+List<CivilDate> historyWeekDates(CivilDate selected, int firstDayOfWeek) {
+  final offset = (selected.calendarValue.weekday % 7 - firstDayOfWeek + 7) % 7;
+  var start = selected.calendarValue.subtract(Duration(days: offset));
+  // CivilDate only represents years 1 through 9999. At either edge the week
+  // cannot be represented in full, so keep seven contiguous representable
+  // days around the selected date instead of throwing.
+  if (start.year < 1) start = DateTime.utc(1, 1, 1);
+  if (start.add(const Duration(days: 6)).year > 9999) {
+    start = DateTime.utc(9999, 12, 31).subtract(const Duration(days: 6));
+  }
+  return [
+    for (var i = 0; i < 7; i++)
+      CivilDate.fromDateTime(start.add(Duration(days: i))),
+  ];
+}
+
 List<CivilDate?> historyCalendarCells(CivilDate month, int firstDayOfWeek) {
   final first = DateTime.utc(month.year, month.month, 1);
   final padding = (first.weekday % 7 - firstDayOfWeek + 7) % 7;

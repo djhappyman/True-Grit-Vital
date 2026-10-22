@@ -351,6 +351,16 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         events.isNotEmpty ||
         appliedFrom != null ||
         appliedBefore != null;
+    final calendarQuery = selected == null
+        ? query
+        : query.restart(
+            filter: query.filter.restart(clearFrom: true, clearBefore: true),
+          );
+    void selectCalendarDay(CivilDate date) {
+      setState(() => month = CivilDate(date.year, date.month, 1));
+      selectDay(date, zone);
+    }
+
     final filtersToggle = VitalLocalOptions(
       key: const ValueKey('history-filters-toggle'),
       label: t.historyFilters,
@@ -458,14 +468,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     final page = <Widget>[
       if (calendar)
         HistoryCalendarSection(
-          query: selected == null
-              ? query
-              : query.restart(
-                  filter: query.filter.restart(
-                    clearFrom: true,
-                    clearBefore: true,
-                  ),
-                ),
+          query: calendarQuery,
           tools: filtersToggle,
           month: month!,
           selected: selected,
@@ -478,11 +481,17 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
               zone,
             );
           },
-          onSelect: (date) {
-            setState(() => month = CivilDate(date.year, date.month, 1));
-            selectDay(date, zone);
-          },
+          onSelect: selectCalendarDay,
         ),
+      if (calendar && selected != null) ...[
+        const SizedBox(height: 12),
+        HistoryWeekStrip(
+          query: calendarQuery,
+          today: today,
+          selected: selected,
+          onSelect: selectCalendarDay,
+        ),
+      ],
       if (calendar) const SizedBox(height: 16),
       if (!calendar)
         Align(alignment: AlignmentDirectional.centerEnd, child: filtersToggle),
@@ -812,11 +821,13 @@ class _HistoryStatusChips extends StatelessWidget {
   }
 }
 
-/// Seven real days ending today, using the bounded calendar counts.
+/// One selected locale week of exact calendar counts.
 ///
-/// The strip is a browsing aid only: it never invents adherence, a completion
-/// percentage or a due dose. Selecting a day applies the same exact-day filter
-/// as the month grid and is reflected in the history URL.
+/// The week follows the canonical selected calendar date and starts on the
+/// same locale first day as the month grid. Counts come from the bounded
+/// indexed calendar aggregate, not the loaded record page, so a full week
+/// remains factual when the selected-day list is paged. It never invents
+/// adherence, a completion percentage, planned doses or timing judgements.
 class HistoryWeekStrip extends ConsumerStatefulWidget {
   const HistoryWeekStrip({
     super.key,
@@ -838,25 +849,57 @@ class _HistoryWeekStripState extends ConsumerState<HistoryWeekStrip> {
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.of<MaterialLocalizations>(
-          context,
-          MaterialLocalizations,
-        )!,
-        t = AppLocalizations.of(context),
-        c = StitchColors(context);
-    final dates = [for (var i = 6; i >= 0; i--) widget.today.addDays(-i)];
+      context,
+      MaterialLocalizations,
+    )!;
+    final t = AppLocalizations.of(context), c = StitchColors(context);
+    final locked = ref.watch(appLockProvider.select((state) => state.locked));
+    final selected = widget.selected ?? widget.today;
+    final dates = historyWeekDates(selected, locale.firstDayOfWeekIndex);
     final request = CalendarRequest(widget.query, dates);
     final result = ref.watch(historyCalendarProvider(request));
-    final available = result.value != null;
-    final unavailable = result.hasError
-        ? t.historyLoadFailed
-        : t.loadingRecords;
+    final calendar = locked ? null : result.value;
+    final available = calendar != null;
     final cells = {
-      for (final cell in result.value?.cells ?? <HistoryCalendarCell>[])
+      for (final cell in calendar?.cells ?? <HistoryCalendarCell>[])
         cell.date: cell,
     };
     final recorded = cells.values.fold(0, (sum, cell) => sum + cell.recorded);
+    final skipped = cells.values.fold(0, (sum, cell) => sum + cell.skipped);
+    final voided = cells.values.fold(0, (sum, cell) => sum + cell.voided);
+    final status = widget.query.filter.status;
     final scale = MediaQuery.textScalerOf(context).scale(16) / 16;
+    final range = t.featureHistoryWeekRange(
+      locale.formatShortDate(dates.first.calendarValue),
+      locale.formatShortDate(dates.last.calendarValue),
+    );
+    final metrics = <Widget>[
+      if (status == TimelineStatus.all || status == TimelineStatus.recorded)
+        VitalMetric(
+          key: const ValueKey('history-week-recorded'),
+          label: t.statusRecorded,
+          value: '$recorded',
+        ),
+      if (status == TimelineStatus.all || status == TimelineStatus.skipped)
+        VitalMetric(
+          key: const ValueKey('history-week-skipped'),
+          label: t.statusSkipped,
+          value: '$skipped',
+        ),
+      if (status == TimelineStatus.all || status == TimelineStatus.voided)
+        VitalMetric(
+          key: const ValueKey('history-week-voided'),
+          label: t.statusVoided,
+          value: '$voided',
+        ),
+    ];
+    final unavailable = locked
+        ? t.featureHistoryWeekLocked
+        : result.hasError
+        ? t.featureHistoryWeekFailed
+        : t.featureHistoryWeekLoading;
     return StitchSurface(
+      key: const ValueKey('history-week-summary'),
       radius: VitalLayout.sectionRadius,
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 16),
       child: Column(
@@ -864,147 +907,210 @@ class _HistoryWeekStripState extends ConsumerState<HistoryWeekStrip> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Builder(
-              builder: (context) {
-                final heading = Row(
-                  children: [
-                    StitchIcon(LucideIcons.calendarDays, size: 32),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        t.screenHistoryLastSevenDays,
-                        style: StitchType.label.copyWith(
-                          color: c.ink,
-                          fontWeight: FontWeight.w600,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                StitchIcon(LucideIcons.calendarDays, size: 32),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          t.featureHistoryWeekTitle,
+                          style: StitchType.name.copyWith(
+                            color: c.ink,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
+                      if (!locked) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          range,
+                          key: const ValueKey('history-week-range'),
+                          style: StitchType.caption.copyWith(color: c.muted),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (locked)
+            _HistoryWeekMessage(
+              key: const ValueKey('history-week-locked'),
+              text: t.featureHistoryWeekLocked,
+            )
+          else ...[
+            if (result.hasError)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Semantics(
+                      liveRegion: true,
+                      child: Text(
+                        t.featureHistoryWeekFailed,
+                        key: const ValueKey('history-week-failed'),
+                        style: StitchType.caption.copyWith(color: c.muted),
+                      ),
+                    ),
+                    StitchButton(
+                      compact: true,
+                      onPressed: () =>
+                          ref.invalidate(historyCalendarProvider(request)),
+                      child: Text(t.retry),
                     ),
                   ],
-                );
-                if (!available) return heading;
-                final badge = VitalBadge(
-                  t.screenHistoryRecordedCount(recorded),
-                  compact: true,
-                );
-                if (MediaQuery.textScalerOf(context).scale(13) > 19) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [heading, const SizedBox(height: 6), badge],
+                ),
+              )
+            else if (!available)
+              _HistoryWeekMessage(
+                key: const ValueKey('history-week-loading'),
+                text: t.featureHistoryWeekLoading,
+              ),
+            if (available) ...[
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: _HistoryWeekMetrics(metrics: metrics),
+              ),
+            ],
+            const SizedBox(height: 8),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                Widget cell(CivilDate date) {
+                  final marker = cells[date];
+                  final isSelected = date == selected;
+                  final isToday = date == widget.today;
+                  final label = available
+                      ? switch (status) {
+                          TimelineStatus.all => t.historyDaySummary(
+                            locale.formatFullDate(date.calendarValue),
+                            marker?.recorded ?? 0,
+                            marker?.skipped ?? 0,
+                            marker?.voided ?? 0,
+                          ),
+                          TimelineStatus.recorded =>
+                            t.featureHistoryWeekDayRecorded(
+                              locale.formatFullDate(date.calendarValue),
+                              marker?.recorded ?? 0,
+                            ),
+                          TimelineStatus.skipped =>
+                            t.featureHistoryWeekDaySkipped(
+                              locale.formatFullDate(date.calendarValue),
+                              marker?.skipped ?? 0,
+                            ),
+                          TimelineStatus.voided =>
+                            t.featureHistoryWeekDayVoided(
+                              locale.formatFullDate(date.calendarValue),
+                              marker?.voided ?? 0,
+                            ),
+                        }
+                      : t.screenHistoryDayUnavailable(
+                          locale.formatFullDate(date.calendarValue),
+                          unavailable,
+                        );
+                  return Semantics(
+                    key: ValueKey('history-week-$date'),
+                    button: true,
+                    selected: isSelected,
+                    label: label,
+                    excludeSemantics: true,
+                    onTap: () => widget.onSelect(date),
+                    child: _HistoryWeekCell(
+                      available: available,
+                      weekday:
+                          locale.narrowWeekdays[date.calendarValue.weekday % 7],
+                      day: date.day,
+                      selected: isSelected,
+                      today: isToday,
+                      recorded: marker?.recorded ?? 0,
+                      skipped: marker?.skipped ?? 0,
+                      voided: marker?.voided ?? 0,
+                      onTap: () => widget.onSelect(date),
+                    ),
                   );
                 }
-                return Row(
+
+                // Seven 48 px targets fit from 336 px upward. Narrower windows
+                // and larger text use two deliberate rows instead of hiding a
+                // day behind a scroll edge.
+                final singleRow = constraints.maxWidth >= 336 && scale <= 1.3;
+                final rows = singleRow
+                    ? [dates]
+                    : [dates.sublist(0, 4), dates.sublist(4)];
+                return Column(
                   children: [
-                    Expanded(child: heading),
-                    const SizedBox(width: 8),
-                    Flexible(child: badge),
+                    for (var row = 0; row < rows.length; row++)
+                      Padding(
+                        padding: EdgeInsets.only(top: row == 0 ? 0 : 4),
+                        child: Row(
+                          children: [
+                            for (final date in rows[row])
+                              Expanded(child: cell(date)),
+                            for (var i = rows[row].length; i < 4; i++)
+                              const Expanded(child: SizedBox()),
+                          ],
+                        ),
+                      ),
                   ],
                 );
               },
             ),
-          ),
-          if (!available && !result.hasError)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-              child: Text(
-                unavailable,
-                style: StitchType.caption.copyWith(color: c.muted),
-              ),
-            ),
-          if (result.hasError)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    t.historyLoadFailed,
-                    style: StitchType.caption.copyWith(color: c.muted),
-                  ),
-                  StitchButton(
-                    compact: true,
-                    onPressed: () =>
-                        ref.invalidate(historyCalendarProvider(request)),
-                    child: Text(t.retry),
-                  ),
-                ],
-              ),
-            ),
-          const SizedBox(height: 8),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              Widget cell(CivilDate date) {
-                final marker = cells[date];
-                final isSelected = date == widget.selected;
-                final isToday = date == widget.today;
-                final recorded = marker?.recorded ?? 0,
-                    skipped = marker?.skipped ?? 0,
-                    voided = marker?.voided ?? 0;
-                return Semantics(
-                  key: ValueKey('history-week-$date'),
-                  button: true,
-                  selected: isSelected,
-                  label: available
-                      ? t.historyDaySummary(
-                          locale.formatFullDate(date.calendarValue),
-                          recorded,
-                          skipped,
-                          voided,
-                        )
-                      : t.screenHistoryDayUnavailable(
-                          locale.formatFullDate(date.calendarValue),
-                          unavailable,
-                        ),
-                  excludeSemantics: true,
-                  onTap: () => widget.onSelect(date),
-                  child: _HistoryWeekCell(
-                    available: available,
-                    weekday:
-                        locale.narrowWeekdays[date.calendarValue.weekday % 7],
-                    day: date.day,
-                    selected: isSelected,
-                    today: isToday,
-                    recorded: recorded,
-                    skipped: skipped,
-                    voided: voided,
-                    onTap: () => widget.onSelect(date),
-                  ),
-                );
-              }
-
-              // Seven 48 px targets fit from 390 px upward with the strip's
-              // compact gutters. Narrower windows and larger text use two
-              // deliberate rows instead of hiding a day behind a scroll edge.
-              final singleRow = constraints.maxWidth >= 336 && scale <= 1.3;
-              final rows = singleRow
-                  ? [dates]
-                  : [dates.sublist(0, 4), dates.sublist(4)];
-              return Column(
-                children: [
-                  for (var row = 0; row < rows.length; row++)
-                    Padding(
-                      padding: EdgeInsets.only(top: row == 0 ? 0 : 4),
-                      child: Row(
-                        children: [
-                          for (final date in rows[row])
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: .5,
-                                ),
-                                child: cell(date),
-                              ),
-                            ),
-                          for (var i = rows[row].length; i < 4; i++)
-                            const Expanded(child: SizedBox()),
-                        ],
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class _HistoryWeekMessage extends StatelessWidget {
+  const _HistoryWeekMessage({super.key, required this.text});
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = StitchColors(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+      child: Text(text, style: StitchType.caption.copyWith(color: c.muted)),
+    );
+  }
+}
+
+class _HistoryWeekMetrics extends StatelessWidget {
+  const _HistoryWeekMetrics({required this.metrics});
+  final List<Widget> metrics;
+
+  @override
+  Widget build(BuildContext context) {
+    if (metrics.isEmpty) return const SizedBox.shrink();
+    final scale = MediaQuery.textScalerOf(context).scale(16) / 16;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final inline = constraints.maxWidth >= 240 && scale <= 1.3;
+        if (!inline) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: metrics,
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = 0; i < metrics.length; i++) ...[
+              if (i > 0) const SizedBox(width: 8),
+              Expanded(child: metrics[i]),
+            ],
+          ],
+        );
+      },
     );
   }
 }
@@ -1030,23 +1136,16 @@ class _HistoryWeekCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = StitchColors(context);
-    final marker = !available
-        ? (icon: LucideIcons.circleHelp, colour: c.muted, fill: c.inset)
-        : recorded > 0
-        ? (icon: LucideIcons.check, colour: c.accent, fill: c.accentSurface)
-        : skipped > 0
-        ? (
-            icon: LucideIcons.cross,
-            colour: c.amber,
-            fill: c.amber.withValues(alpha: .14),
-          )
-        : voided > 0
-        ? (icon: LucideIcons.circleDot, colour: c.muted, fill: c.inset)
-        : (
-            icon: LucideIcons.circle,
-            colour: c.muted.withValues(alpha: .45),
-            fill: Colors.transparent,
-          );
+    final markers = <Widget>[
+      if (recorded > 0)
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: c.accent),
+        ),
+      if (skipped > 0) Icon(LucideIcons.minus, size: 14, color: c.amber),
+      if (voided > 0) Icon(LucideIcons.x, size: 14, color: c.muted),
+    ];
     return ButtonStyleOverride(
       padding: (_, _, _) => EdgeInsets.zero,
       decoration: (_, _, decoration) => decoration is BoxDecoration
@@ -1095,14 +1194,25 @@ class _HistoryWeekCell extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Container(
-                width: 24,
+              SizedBox(
                 height: 24,
-                decoration: BoxDecoration(
-                  color: marker.fill,
-                  shape: BoxShape.circle,
+                child: ExcludeSemantics(
+                  child: !available
+                      ? Icon(LucideIcons.circleHelp, size: 14, color: c.muted)
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: markers.isEmpty
+                              ? [
+                                  Icon(
+                                    LucideIcons.circle,
+                                    size: 10,
+                                    color: c.muted.withValues(alpha: .45),
+                                  ),
+                                ]
+                              : markers,
+                        ),
                 ),
-                child: Icon(marker.icon, size: 14, color: marker.colour),
               ),
             ],
           ),

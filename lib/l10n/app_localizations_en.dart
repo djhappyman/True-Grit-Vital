@@ -6631,18 +6631,56 @@ class AppLocalizationsEn extends AppLocalizations {
       'Recorded use and skipped plans kept on this device.';
 
   @override
-  String get screenHistoryLastSevenDays => 'Last 7 days';
+  String get featureHistoryWeekTitle => 'Selected week';
 
   @override
-  String screenHistoryRecordedCount(int count) {
+  String featureHistoryWeekRange(String start, String end) {
+    return 'From $start to $end';
+  }
+
+  @override
+  String get featureHistoryWeekLoading => 'Loading this week’s counts…';
+
+  @override
+  String get featureHistoryWeekFailed => 'Week counts unavailable. Try again.';
+
+  @override
+  String get featureHistoryWeekLocked => 'Unlock to view week counts.';
+
+  @override
+  String featureHistoryWeekDayRecorded(String date, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count recorded',
-      one: '1 recorded',
+      other: '$count recorded entries',
+      one: '1 recorded entry',
       zero: 'No recorded entries',
     );
-    return '$_temp0';
+    return '$date. $_temp0';
+  }
+
+  @override
+  String featureHistoryWeekDaySkipped(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count skipped entries',
+      one: '1 skipped entry',
+      zero: 'No skipped entries',
+    );
+    return '$date. $_temp0';
+  }
+
+  @override
+  String featureHistoryWeekDayVoided(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count voided entries',
+      one: '1 voided entry',
+      zero: 'No voided entries',
+    );
+    return '$date. $_temp0';
   }
 
   @override
