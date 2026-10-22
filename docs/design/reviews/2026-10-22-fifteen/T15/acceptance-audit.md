@@ -2,7 +2,7 @@
 
 22 October 2026. Audit baseline `cdefb2a`; this checkout is `bc14ce6` (assignment docs only). Graph generation `2026-10-22T22:17:00Z`, Tier 3 bounded. T01–T14 were concurrent and are not counted as shipped; the lead reconciles final status. Read-only audit: no app/test/spec edit, no full suite, no remote action.
 
-**Status vocabulary.** Host means code, focused host tests and dated evidence exist. It does not mean physical-device, measured-performance, policy or release acceptance. Every original ticket remains `in-progress`; the machine inventory reports 69/78 stories done, 60 host-tested and 18 with open verification; 18/20 screens implemented (S01 Profile, S02 Unlock partial), 7/8 sheets; 12 acceptance obligations open; gates 3 partially verified and 5 open.
+**Status vocabulary.** Host means code, focused host tests and dated evidence exist. It does not mean physical-device, measured-performance, policy or release acceptance. Every original ticket remains `in-progress`; the saved inventory in `tool/release/obligations.json` reports 69/78 stories implementation-done, 60 host-tested and 18 with open verification; 18/20 screens implemented (S01 Profile, S02 Unlock partial), 7/8 sheets; 12 acceptance obligations open; gates 3 partially verified and 5 open. These are recorded inventory states, not a freshly measured completion percentage.
 
 ## Original steps 01–28
 
