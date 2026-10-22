@@ -10425,6 +10425,84 @@ abstract class AppLocalizations {
   /// **'{date}. {count, plural, =0{No voided entries} one{1 voided entry} other{{count} voided entries}}'**
   String featureHistoryWeekDayVoided(String date, int count);
 
+  /// Heading for exact recorded, skipped and voided counts across the browsed month.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine activity'**
+  String get routineActivityTitle;
+
+  /// Scope caption when no History filter narrows the monthly summary.
+  ///
+  /// In en, this message translates to:
+  /// **'All entries'**
+  String get routineActivityScopeAll;
+
+  /// Scope caption when the current History filters narrow the monthly summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Filtered entries'**
+  String get routineActivityScopeFiltered;
+
+  /// Monthly count of days with at least one current non-void recorded entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded days'**
+  String get routineActivityRecordedDays;
+
+  /// Monthly count of recorded entries. An entry is not a dose; combined entries count once.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries'**
+  String get routineActivityEntries;
+
+  /// Monthly count of skipped entries under the current History filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped entries'**
+  String get routineActivitySkippedEntries;
+
+  /// Monthly count of voided entries, shown only when the status filter includes them.
+  ///
+  /// In en, this message translates to:
+  /// **'Voided entries'**
+  String get routineActivityVoidedEntries;
+
+  /// Monthly summary while its exact calendar counts are being read.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading routine activity…'**
+  String get routineActivityLoading;
+
+  /// Monthly summary failed to read. Does not imply zero entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine activity unavailable. Try again.'**
+  String get routineActivityFailed;
+
+  /// Monthly summary is hidden while the app lock covers records.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to view routine activity.'**
+  String get routineActivityLocked;
+
+  /// Monthly summary has no entries under the current History filter.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries this month.'**
+  String get routineActivityEmpty;
+
+  /// Command that expands the monthly routine activity summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get routineActivityShow;
+
+  /// Command that collapses the monthly routine activity summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get routineActivityHide;
+
   /// Number of history entries shown for one day.
   ///
   /// In en, this message translates to:

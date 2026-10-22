@@ -6701,6 +6701,46 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get routineActivityTitle => 'Routine activity';
+
+  @override
+  String get routineActivityScopeAll => 'All entries';
+
+  @override
+  String get routineActivityScopeFiltered => 'Filtered entries';
+
+  @override
+  String get routineActivityRecordedDays => 'Recorded days';
+
+  @override
+  String get routineActivityEntries => 'Entries';
+
+  @override
+  String get routineActivitySkippedEntries => 'Skipped entries';
+
+  @override
+  String get routineActivityVoidedEntries => 'Voided entries';
+
+  @override
+  String get routineActivityLoading => 'Loading routine activity…';
+
+  @override
+  String get routineActivityFailed =>
+      'Routine activity unavailable. Try again.';
+
+  @override
+  String get routineActivityLocked => 'Unlock to view routine activity.';
+
+  @override
+  String get routineActivityEmpty => 'No entries this month.';
+
+  @override
+  String get routineActivityShow => 'Show';
+
+  @override
+  String get routineActivityHide => 'Hide';
+
+  @override
   String screenHistoryEntryCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -51,7 +51,7 @@ These are recorded follow-up work, not completed features. Dependencies refer to
 | D16 | Event overview | Status filters/counts, progress cards and linked-substance/recorded/skipped summaries using existing event dates/membership. Surface supported notes and configure/history actions. | Host integrated: saved private notes, whole-event summaries, whole-collection status counts and filter-before-page browsing; captured status instants and filtered-page clamping preserve current context |
 | D17 | Lab dashboard | Latest-value cards, categories, comparable trends/sparklines, baseline changes and source-range indicators with original units/flags. Existing panels/attachments/trends remain available. | Host integrated: latest dated values across the filtered collection with 24-marker pages and exact counts; trends sample 24 points and comparisons 48 results with disclosed limits; duplicate prior results retain uncertainty |
 | D18 | Lab panel detail | Categorised results, comparable prior values, context links and protected original-file/hash actions. Add accession/source identifiers only with storage and export support. | Host integrated: complete current-record prior comparisons relative to the viewed panel, exact source/date matching and order-independent ambiguity; saved accession/report identifiers remain available through outputs and encrypted restore |
-| D19 | History presentation and timing | Compact day groups, filters/counts, weekly summaries and on-time/late indicators using D11 rules; planned slots and actual use remain distinct. Existing reports/CSV/PDF remain available. | Partial: monthly calendar, compact day cards, disclosed filters and exact selected-week aggregates integrated; timing indicators await D11 |
+| D19 | History presentation and timing | Compact day groups, filters/counts, weekly summaries and on-time/late indicators using D11 rules; planned slots and actual use remain distinct. Existing reports/CSV/PDF remain available. | Partial: monthly calendar, compact day cards, disclosed filters and exact selected-week/monthly activity aggregates integrated; timing indicators await D11 |
 | D20 | Settings and vault overview | Reference-informed sections/tabs, real storage/record counts and report date shortcuts. Preserve current manual backup/restore, lock, appearance, privacy and support. | Host integrated and verified: live whole-collection counts, measured database storage and reviewed report date shortcuts; device gates remain open |
 | D21 | Automatic protected backups | Define destination, retention, encryption/key availability and interrupted-exit recovery. Never claim a completed backup before durable verification. | Partial foundation: bounded encrypted manual-backup receipts distinguish archive checks from confirmed saves; automatic destination/retention/key/recovery lifecycle remains open |
 | D22 | FHIR/HL7 export | Select exact format/version/mapping and validate representative artifacts; preserve units, source meaning and privacy. Existing structured exports are not FHIR/HL7. | Backlog: format decision |
@@ -229,10 +229,16 @@ and a friendly README explaining the project's safety-minded purpose.
   durable alert episode, existing reminder reconciliation and private Open-only
   actions. Paid direct-API DeepSeek owns implementation; device delivery stays a
   separate evidence gate. Scanning remains outside this slice.
-- D19b: factual monthly routine activity using full calendar aggregates and the
-  active History filters. Free DeepSeek owns implementation. Counts describe
-  recorded entries, days with records and explicit skips/voids; no adherence,
-  streak, lateness or missed-dose inference is introduced.
+- D19b: factual monthly routine activity is integrated using full calendar
+  aggregates and active History filters. Free DeepSeek reached its usage limit;
+  the lead recovered, finished and verified the work. Counts describe entries,
+  recorded days and explicit skips/voids. The collapsed summary reads counts
+  only when opened, refreshes after edits and hides stale/locked data. No
+  adherence, streak, lateness or missed-dose inference. Tests cover more than
+  50 entries, combined entries, partial ranges/DST, boundary months, live
+  corrections/Undo, keyboard, both themes and narrow 2x text. Thirty-five
+  activity/week/motion checks and 27 activity/mobile regressions passed.
+  A shared reveal fix lets collapse finish before pausing content tickers.
 - D26b: captured actual-dose strengths and exact equivalents now appear in all
   three PDF/text report templates. Mixing details follow the stock-details
   choice; current defaults never rewrite historical use. Unknown strengths and
@@ -241,5 +247,5 @@ and a friendly README explaining the project's safety-minded purpose.
 - README: GLM5.3Flash Free produced the reader-focused draft. Lead review
   corrected current/planned claims and retained contributor instructions.
 
-The stock and History assignments remain in progress. Briefs and identities are retained
+The stock assignment remains in review. Briefs and identities are retained
 under `.scratch/vital-implementation/function-batch-2026-10-22/`.

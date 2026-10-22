@@ -7783,6 +7783,58 @@
       }
     }
   },
+  "routineActivityTitle": "Routine activity",
+  "@routineActivityTitle": {
+    "description": "Heading for exact recorded, skipped and voided counts across the browsed month."
+  },
+  "routineActivityScopeAll": "All entries",
+  "@routineActivityScopeAll": {
+    "description": "Scope caption when no History filter narrows the monthly summary."
+  },
+  "routineActivityScopeFiltered": "Filtered entries",
+  "@routineActivityScopeFiltered": {
+    "description": "Scope caption when the current History filters narrow the monthly summary."
+  },
+  "routineActivityRecordedDays": "Recorded days",
+  "@routineActivityRecordedDays": {
+    "description": "Monthly count of days with at least one current non-void recorded entry."
+  },
+  "routineActivityEntries": "Entries",
+  "@routineActivityEntries": {
+    "description": "Monthly count of recorded entries. An entry is not a dose; combined entries count once."
+  },
+  "routineActivitySkippedEntries": "Skipped entries",
+  "@routineActivitySkippedEntries": {
+    "description": "Monthly count of skipped entries under the current History filter."
+  },
+  "routineActivityVoidedEntries": "Voided entries",
+  "@routineActivityVoidedEntries": {
+    "description": "Monthly count of voided entries, shown only when the status filter includes them."
+  },
+  "routineActivityLoading": "Loading routine activity…",
+  "@routineActivityLoading": {
+    "description": "Monthly summary while its exact calendar counts are being read."
+  },
+  "routineActivityFailed": "Routine activity unavailable. Try again.",
+  "@routineActivityFailed": {
+    "description": "Monthly summary failed to read. Does not imply zero entries."
+  },
+  "routineActivityLocked": "Unlock to view routine activity.",
+  "@routineActivityLocked": {
+    "description": "Monthly summary is hidden while the app lock covers records."
+  },
+  "routineActivityEmpty": "No entries this month.",
+  "@routineActivityEmpty": {
+    "description": "Monthly summary has no entries under the current History filter."
+  },
+  "routineActivityShow": "Show",
+  "@routineActivityShow": {
+    "description": "Command that expands the monthly routine activity summary."
+  },
+  "routineActivityHide": "Hide",
+  "@routineActivityHide": {
+    "description": "Command that collapses the monthly routine activity summary."
+  },
   "screenHistoryEntryCount": "{count, plural, one{1 entry} other{{count} entries}}",
   "@screenHistoryEntryCount": {
     "description": "Number of history entries shown for one day.",

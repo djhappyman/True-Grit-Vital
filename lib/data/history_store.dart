@@ -769,7 +769,10 @@ extension HistoryRecordStore on RecordStore {
       if (ranges.isNotEmpty) {
         final sql = _calendarCounts(query, ranges);
         for (final row in await _rows(sql.sql, sql.args)) {
-          counts['${row['cell']}|${row['status']}'] = row['count'] as int;
+          final key = '${row['cell']}|${row['status']}';
+          // Singles and combined groups can both contribute the same status on
+          // one day, so each grouped row must add to the cell.
+          counts[key] = (counts[key] ?? 0) + (row['count'] as int);
         }
       }
       return HistoryCalendar(
@@ -787,6 +790,16 @@ extension HistoryRecordStore on RecordStore {
       );
     });
   }
+
+  /// Watches the same bounded calendar cells until the store closes.
+  ///
+  /// Every record, correction, void, Undo and skip mutation refreshes the
+  /// counts through the existing change stream, so the monthly summary stays
+  /// factual without rescanning the loaded timeline page.
+  Stream<HistoryCalendar> watchCalendar(
+    TimelineQuery query, {
+    required List<CivilDate> dates,
+  }) => _watch(() => calendar(query, dates: dates));
 
   /// One bounded aggregate over every visible cell range.
   ///

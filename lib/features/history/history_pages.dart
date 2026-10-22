@@ -23,6 +23,7 @@ import '../recording/record_pages.dart';
 import '../stock/stock_widgets.dart';
 import 'history_calendar.dart';
 import 'history_source.dart' show historySourceProvider;
+import 'routine_activity_summary.dart';
 
 final historyNowProvider = Provider<DateTime Function()>(
   (ref) =>
@@ -483,6 +484,10 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
           },
           onSelect: selectCalendarDay,
         ),
+      if (calendar) ...[
+        const SizedBox(height: 12),
+        HistoryRoutineActivity(query: calendarQuery, month: month!),
+      ],
       if (calendar && selected != null) ...[
         const SizedBox(height: 12),
         HistoryWeekStrip(
@@ -839,6 +844,204 @@ class _HistoryStatusChips extends StatelessWidget {
   }
 }
 
+/// Collapsed factual counts for the browsed month.
+///
+/// The month, the current filter scope and a Show command stay visible while
+/// the counts are collapsed. Counts come from [routineActivityProvider], whose
+/// stream follows record, correction, void, Undo and skip changes. Only the
+/// representable days of [month] are aggregated, never the surrounding 42-cell
+/// grid or the visible selected-day page. There is no adherence percentage,
+/// streak, planned denominator or timing judgement.
+class HistoryRoutineActivity extends ConsumerStatefulWidget {
+  const HistoryRoutineActivity({
+    super.key,
+    required this.query,
+    required this.month,
+  });
+
+  final TimelineQuery query;
+
+  /// First day of the browsed month.
+  final CivilDate month;
+
+  @override
+  ConsumerState<HistoryRoutineActivity> createState() =>
+      _HistoryRoutineActivityState();
+}
+
+class _HistoryRoutineActivityState
+    extends ConsumerState<HistoryRoutineActivity> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = Localizations.of<MaterialLocalizations>(
+      context,
+      MaterialLocalizations,
+    )!;
+    final t = AppLocalizations.of(context), c = StitchColors(context);
+    final locked = ref.watch(appLockProvider.select((state) => state.locked));
+    final request = RoutineActivityRequest(
+      query: widget.query,
+      month: widget.month,
+    );
+    final result = _expanded
+        ? ref.watch(routineActivityProvider(request))
+        : const AsyncData<RoutineActivitySummary?>(null);
+    // A retained event from a replaced query, a restore or a different
+    // generation must never stand in for the current month.
+    final generation = ref.watch(routineActivityGenerationProvider);
+    final value = result.value;
+    final summary =
+        locked ||
+            result.isLoading ||
+            result.hasError ||
+            generation == null ||
+            value == null ||
+            value.generation != generation ||
+            value.queryIdentity != widget.query.identity ||
+            value.month != request.month
+        ? null
+        : value;
+    final available = summary != null;
+    final status = widget.query.filter.status;
+    final range = locale.formatMonthYear(widget.month.calendarValue);
+    final scope = widget.query.filter.isUnfiltered
+        ? t.routineActivityScopeAll
+        : t.routineActivityScopeFiltered;
+    final metrics = <Widget>[
+      if (summary != null &&
+          (status == TimelineStatus.all ||
+              status == TimelineStatus.recorded)) ...[
+        VitalMetric(
+          key: const ValueKey('routine-activity-recorded-days'),
+          label: t.routineActivityRecordedDays,
+          value: '${summary.recordedDays}',
+        ),
+        VitalMetric(
+          key: const ValueKey('routine-activity-recorded-entries'),
+          label: t.routineActivityEntries,
+          value: '${summary.recordedEntries}',
+        ),
+      ],
+      if (summary != null &&
+          (status == TimelineStatus.all || status == TimelineStatus.skipped))
+        VitalMetric(
+          key: const ValueKey('routine-activity-skipped-entries'),
+          label: t.routineActivitySkippedEntries,
+          value: '${summary.skippedEntries}',
+        ),
+      if (summary != null &&
+          (status == TimelineStatus.all || status == TimelineStatus.voided))
+        VitalMetric(
+          key: const ValueKey('routine-activity-voided-entries'),
+          label: t.routineActivityVoidedEntries,
+          value: '${summary.voidedEntries}',
+        ),
+    ];
+    return StitchSurface(
+      key: const ValueKey('routine-activity-summary'),
+      radius: VitalLayout.sectionRadius,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              StitchIcon(LucideIcons.activity, size: 32),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        t.routineActivityTitle,
+                        style: StitchType.name.copyWith(
+                          color: c.ink,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      range,
+                      key: const ValueKey('routine-activity-range'),
+                      style: StitchType.caption.copyWith(color: c.muted),
+                    ),
+                    Text(
+                      scope,
+                      key: const ValueKey('routine-activity-scope'),
+                      style: StitchType.caption.copyWith(color: c.muted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Semantics(
+            expanded: _expanded,
+            child: VitalButton.secondary(
+              leading: Icon(
+                _expanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+              ),
+              onPressed: () => setState(() => _expanded = !_expanded),
+              expand: true,
+              child: Text(
+                _expanded ? t.routineActivityHide : t.routineActivityShow,
+              ),
+            ),
+          ),
+          VitalReveal(
+            expanded: _expanded,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: locked
+                  ? _HistorySummaryMessage(
+                      key: const ValueKey('routine-activity-locked'),
+                      text: t.routineActivityLocked,
+                    )
+                  : result.hasError
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Semantics(
+                          liveRegion: true,
+                          child: Text(
+                            t.routineActivityFailed,
+                            key: const ValueKey('routine-activity-failed'),
+                            style: StitchType.caption.copyWith(color: c.muted),
+                          ),
+                        ),
+                        StitchButton(
+                          compact: true,
+                          onPressed: () =>
+                              ref.invalidate(routineActivityProvider(request)),
+                          child: Text(t.retry),
+                        ),
+                      ],
+                    )
+                  : !available
+                  ? _HistorySummaryMessage(
+                      key: const ValueKey('routine-activity-loading'),
+                      text: t.routineActivityLoading,
+                    )
+                  : !summary.hasEntries
+                  ? _HistorySummaryMessage(
+                      key: const ValueKey('routine-activity-empty'),
+                      text: t.routineActivityEmpty,
+                    )
+                  : _HistoryMetrics(metrics: metrics),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// One selected locale week of exact calendar counts.
 ///
 /// The week follows the canonical selected calendar date and starts on the
@@ -961,7 +1164,7 @@ class _HistoryWeekStripState extends ConsumerState<HistoryWeekStrip> {
             ),
           ),
           if (locked)
-            _HistoryWeekMessage(
+            _HistorySummaryMessage(
               key: const ValueKey('history-week-locked'),
               text: t.featureHistoryWeekLocked,
             )
@@ -990,7 +1193,7 @@ class _HistoryWeekStripState extends ConsumerState<HistoryWeekStrip> {
                 ),
               )
             else if (!available)
-              _HistoryWeekMessage(
+              _HistorySummaryMessage(
                 key: const ValueKey('history-week-loading'),
                 text: t.featureHistoryWeekLoading,
               ),
@@ -998,7 +1201,7 @@ class _HistoryWeekStripState extends ConsumerState<HistoryWeekStrip> {
               const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: _HistoryWeekMetrics(metrics: metrics),
+                child: _HistoryMetrics(metrics: metrics),
               ),
             ],
             const SizedBox(height: 8),
@@ -1090,8 +1293,8 @@ class _HistoryWeekStripState extends ConsumerState<HistoryWeekStrip> {
   }
 }
 
-class _HistoryWeekMessage extends StatelessWidget {
-  const _HistoryWeekMessage({super.key, required this.text});
+class _HistorySummaryMessage extends StatelessWidget {
+  const _HistorySummaryMessage({super.key, required this.text});
   final String text;
 
   @override
@@ -1104,8 +1307,8 @@ class _HistoryWeekMessage extends StatelessWidget {
   }
 }
 
-class _HistoryWeekMetrics extends StatelessWidget {
-  const _HistoryWeekMetrics({required this.metrics});
+class _HistoryMetrics extends StatelessWidget {
+  const _HistoryMetrics({required this.metrics});
   final List<Widget> metrics;
 
   @override

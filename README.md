@@ -17,7 +17,7 @@ The aim is to support informed conversations with a doctor or pharmacist through
 - Review your full history with corrections and Undo, so changes stay visible rather than erased.
 - Choose a timeframe and export it as a PDF report or a CSV or JSON file. You review, save and share it yourself. Nothing is sent automatically to anyone.
 - Set dose reminders on Android. An unrecorded dose stays "not recorded" rather than being assumed missed. Gentle opt-in follow-up nudges are planned.
-- Track routines around your doses with notes, food and context tags and skip reasons tied to each substance record.
+- Track routines around your doses with notes, food and context tags and skip reasons tied to each substance record. A monthly History summary shows recorded days and entries, with skips and voids kept separate.
 - Manage your stock: current balances, in-app low-stock notices and simple adjust, restock and waste actions.
 - Keep everything private: encrypted local storage, an optional app lock, private drafts and password-protected backups. There are no accounts and no cloud sync.
 

@@ -71,21 +71,23 @@ class VitalReveal extends StatelessWidget {
     excluding: !expanded,
     child: ExcludeSemantics(
       excluding: !expanded,
-      child: TickerMode(
-        enabled: expanded,
-        child: TweenAnimationBuilder<double>(
-          tween: Tween(end: expanded ? 1 : 0),
-          duration: VitalMotion.duration(
-            context,
-            expanded ? VitalMotion.expand : VitalMotion.collapse,
-          ),
-          curve: VitalMotion.geometry,
-          child: child,
-          builder: (_, value, child) => ClipRect(
-            child: Align(
-              alignment: Alignment.topCenter,
-              heightFactor: value,
-              child: Offstage(offstage: value == 0, child: child),
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(end: expanded ? 1 : 0),
+        duration: VitalMotion.duration(
+          context,
+          expanded ? VitalMotion.expand : VitalMotion.collapse,
+        ),
+        curve: VitalMotion.geometry,
+        child: child,
+        builder: (_, value, child) => ClipRect(
+          child: Align(
+            alignment: Alignment.topCenter,
+            heightFactor: value,
+            child: Offstage(
+              offstage: value == 0,
+              // Content tickers pause only while hidden. Keeping this inside
+              // the builder lets the reveal itself finish collapsing.
+              child: TickerMode(enabled: expanded, child: child!),
             ),
           ),
         ),

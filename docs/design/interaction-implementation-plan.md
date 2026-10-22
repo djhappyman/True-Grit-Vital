@@ -82,3 +82,12 @@ mixing details reuse shared controls/disclosures. The live dose equivalent sits
 beside the amount; source selection and saved snapshot identity remain explicit.
 No new route or alternative mock editor is introduced. See
 [substance properties](substance-properties.md) for the field and history rules.
+
+## Monthly activity extension
+
+D19b adds a collapsed Routine activity summary to canonical History. It uses
+the browsed month and existing filters, with shared surfaces, controls and
+reveal motion. No new route is introduced. Counts load when opened; query,
+dataset and lock changes hide retained values. Keyboard activation and
+collapse geometry, both themes and 320/390/430 px at 2x text are covered by
+`test/history_routine_activity_test.dart`.
