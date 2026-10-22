@@ -4600,8 +4600,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Records without a complete date, and voided records, are not included.';
 
   @override
-  String featureLabsCoverage(int count) {
-    return 'Trend lines use up to $count recent dated results for each marker. Older results are not plotted.';
+  String featureLabsCoverage(int count, int compared) {
+    return 'Trend lines show up to $count recent dated results per marker. Previous comparisons check up to $compared results.';
   }
 
   @override
@@ -7939,4 +7939,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String featurePlanInstructionsTooLong(int max) {
     return 'Keep plan instructions within $max characters.';
   }
+
+  @override
+  String featureLabsPageRange(int first, int last, int total) {
+    return 'Markers $first to $last of $total';
+  }
+
+  @override
+  String get featureLabsEmptyPage =>
+      'No markers on this page. Use Previous to browse earlier pages.';
 }

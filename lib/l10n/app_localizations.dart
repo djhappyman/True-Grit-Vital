@@ -7356,8 +7356,8 @@ abstract class AppLocalizations {
   /// Exact bounded coverage of the per-marker trend sample. It never claims full history.
   ///
   /// In en, this message translates to:
-  /// **'Trend lines use up to {count} recent dated results for each marker. Older results are not plotted.'**
-  String featureLabsCoverage(int count);
+  /// **'Trend lines show up to {count} recent dated results per marker. Previous comparisons check up to {compared} results.'**
+  String featureLabsCoverage(int count, int compared);
 
   /// Shows how many of the matching markers are loaded in the latest-value page.
   ///
@@ -12296,6 +12296,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keep plan instructions within {max} characters.'**
   String featurePlanInstructionsTooLong(int max);
+
+  /// The current bounded marker page and exact whole-collection marker count.
+  ///
+  /// In en, this message translates to:
+  /// **'Markers {first} to {last} of {total}'**
+  String featureLabsPageRange(int first, int last, int total);
+
+  /// Recovery when records change and the current marker page becomes empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No markers on this page. Use Previous to browse earlier pages.'**
+  String get featureLabsEmptyPage;
 }
 
 class _AppLocalizationsDelegate

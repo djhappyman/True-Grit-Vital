@@ -19,10 +19,11 @@ final class SupportingLatestQuery {
     this.eventId,
     this.displayZone = 'UTC',
     this.markerLimit = 24,
+    this.markerOffset = 0,
   }) {
     supportingText(personId, 'latest_person');
     supportingText(displayZone, 'latest_zone', max: 256);
-    if (markerLimit < 1) {
+    if (markerLimit < 1 || markerLimit > 100 || markerOffset < 0) {
       throw const SupportingLimitException('latest_marker_limit');
     }
     if (fromDate != null &&
@@ -35,7 +36,7 @@ final class SupportingLatestQuery {
   final SupportingRecordKind? kind;
   final CivilDate? fromDate, beforeDate;
   final String? itemId, eventId;
-  final int markerLimit;
+  final int markerLimit, markerOffset;
 }
 
 /// One saved result with the current revision around it. The revision keeps the
@@ -72,13 +73,14 @@ final class SupportingLatestPage {
     required Iterable<SupportingLatestMarker> markers,
     required this.recordCount,
     required this.markerCount,
+    required this.markerOffset,
   }) : markers = List.unmodifiable(markers);
   final List<SupportingLatestMarker> markers;
 
   /// All eligible dated current records in the current filters, not just the
   /// marker page. The count is factual even when the marker page is smaller.
   final int recordCount;
-  final int markerCount;
+  final int markerCount, markerOffset;
 }
 
 final class _SupportingLatestRow {
@@ -121,6 +123,7 @@ extension SupportingLatestStore on RecordStore {
           markers: const [],
           recordCount: recordCount,
           markerCount: 0,
+          markerOffset: query.markerOffset,
         );
       }
       final markerRows = await _rows(
@@ -130,8 +133,13 @@ extension SupportingLatestStore on RecordStore {
         'AND m.revision=r.revision '
         'JOIN supporting_metric mtr ON mtr.id=r.metric '
         'AND mtr.person=r.person '
-        'WHERE r.person=? ORDER BY mtr.name,r.metric LIMIT ?',
-        [...matched.args, query.personId, query.markerLimit],
+        'WHERE r.person=? ORDER BY mtr.name,r.metric LIMIT ? OFFSET ?',
+        [
+          ...matched.args,
+          query.personId,
+          query.markerLimit,
+          query.markerOffset,
+        ],
       );
       final metrics = [for (final row in markerRows) row['metric'] as String];
       if (metrics.isEmpty) {
@@ -139,6 +147,7 @@ extension SupportingLatestStore on RecordStore {
           markers: const [],
           recordCount: recordCount,
           markerCount: markerCount,
+          markerOffset: query.markerOffset,
         );
       }
       final ids = List.filled(metrics.length, '?').join(',');
@@ -206,6 +215,7 @@ extension SupportingLatestStore on RecordStore {
         markers: markers,
         recordCount: recordCount,
         markerCount: markerCount,
+        markerOffset: query.markerOffset,
       );
     });
   }

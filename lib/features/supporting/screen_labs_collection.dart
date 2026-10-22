@@ -34,8 +34,8 @@ class _ScreenLabsCollectionPageState
   String get person => meId;
 
   /// The latest section reads a bounded marker page. Loading another page
-  /// grows the requested page rather than hiding older markers behind a cap.
-  int latestMarkerLimit = screenLabsMarkerPageSize;
+  /// moves through stable-size requests without rereading a growing prefix.
+  int latestMarkerOffset = 0;
 
   /// Null means all saved records. The form route below follows the choice.
   late SupportingRecordKind? kind = switch (seed['kind']) {
@@ -92,7 +92,7 @@ class _ScreenLabsCollectionPageState
     cursors
       ..clear()
       ..add(null);
-    latestMarkerLimit = screenLabsMarkerPageSize;
+    latestMarkerOffset = 0;
     latestExpanded = false;
   }
 
@@ -206,11 +206,14 @@ class _ScreenLabsCollectionPageState
       eventId: seed['event'],
       fromDate: appliedFrom,
       beforeDate: appliedBefore,
-      markerLimit: latestMarkerLimit,
+      markerLimit: screenLabsMarkerPageSize,
+      markerOffset: latestMarkerOffset,
     );
     final latest = ref.watch(screenLabsLatestProvider(latestRequest));
-    final latestValue = latest.value;
-    final latestPending = latest.isLoading && !latest.hasValue;
+    final latestValue = latest.isLoading || latest.hasError
+        ? null
+        : latest.value;
+    final latestPending = latest.isLoading;
     final latestCount = latestValue?.values.length ?? 0;
     final empty =
         page != null &&
@@ -541,9 +544,14 @@ class _ScreenLabsCollectionPageState
       trailing: latestValue == null
           ? null
           : Text(
-              latestValue.hasMoreMarkers
-                  ? t.featureLabsLoaded(
-                      latestValue.values.length,
+              latestValue.values.isEmpty
+                  ? t.screenLabsLatestCount(0)
+                  : latestValue.markerOffset > 0 || latestValue.hasMoreMarkers
+                  ? t.featureLabsPageRange(
+                      latestValue.values.isEmpty
+                          ? 0
+                          : latestValue.markerOffset + 1,
+                      latestValue.markerOffset + latestValue.values.length,
                       latestValue.markerCount,
                     )
                   : t.screenLabsLatestCount(latestValue.values.length),
@@ -598,11 +606,27 @@ class _ScreenLabsCollectionPageState
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  t.screenLabsNoLatestBody,
+                  latestMarkerOffset > 0
+                      ? t.featureLabsEmptyPage
+                      : t.screenLabsNoLatestBody,
                   style: StitchType.caption.copyWith(
                     color: StitchColors(context).muted,
                   ),
                 ),
+                if (latestMarkerOffset > 0) ...[
+                  const SizedBox(height: 12),
+                  StitchButton(
+                    onPressed: () => setState(() {
+                      latestMarkerOffset =
+                          (latestMarkerOffset - screenLabsMarkerPageSize).clamp(
+                            0,
+                            latestMarkerOffset,
+                          );
+                      latestExpanded = true;
+                    }),
+                    child: Text(t.previous),
+                  ),
+                ],
               ],
             ),
           ),
@@ -636,10 +660,15 @@ class _ScreenLabsCollectionPageState
             ),
           ),
         if (latestValue.values.any(
-          (value) => value.sparkline?.hasPoints ?? false,
+          (value) =>
+              (value.sparkline?.hasPoints ?? false) ||
+              value.previousResult != null,
         ))
           Text(
-            t.featureLabsCoverage(screenLabsSparkSampleLimit),
+            t.featureLabsCoverage(
+              screenLabsSparkSampleLimit,
+              supportingLatestCandidateLimit,
+            ),
             style: StitchType.caption.copyWith(
               color: StitchColors(context).muted,
             ),
@@ -673,7 +702,8 @@ class _ScreenLabsCollectionPageState
           ],
         ],
         if (latestValue.values.length > _initialLatestCards ||
-            latestValue.hasMoreMarkers)
+            latestValue.hasMoreMarkers ||
+            latestMarkerOffset > 0)
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -686,12 +716,26 @@ class _ScreenLabsCollectionPageState
                       setState(() => latestExpanded = !latestExpanded),
                   child: Text(latestExpanded ? t.screenLabsLess : t.more),
                 ),
+              if (latestMarkerOffset > 0)
+                StitchButton(
+                  quiet: true,
+                  compact: true,
+                  onPressed: () => setState(() {
+                    latestMarkerOffset =
+                        (latestMarkerOffset - screenLabsMarkerPageSize).clamp(
+                          0,
+                          latestMarkerOffset,
+                        );
+                    latestExpanded = true;
+                  }),
+                  child: Text(t.previous),
+                ),
               if (latestValue.hasMoreMarkers)
                 StitchButton(
                   quiet: true,
                   compact: true,
                   onPressed: () => setState(() {
-                    latestMarkerLimit += screenLabsMarkerPageSize;
+                    latestMarkerOffset += screenLabsMarkerPageSize;
                     latestExpanded = true;
                   }),
                   child: Text(t.featureLabsLoad),

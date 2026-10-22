@@ -173,6 +173,7 @@ ScreenLabsLatestRequest _request({int markerLimit = 100}) => (
   fromDate: null,
   beforeDate: null,
   markerLimit: markerLimit,
+  markerOffset: 0,
 );
 
 Future<ScreenLabsLatest> _waitFor(
@@ -207,6 +208,115 @@ void main() {
     await directory.delete(recursive: true);
   });
 
+  test(
+    'duplicate comparable results in one prior panel remain ambiguous',
+    () async {
+      await _savePanel(
+        store,
+        _panel(
+          id: 'prior-duplicates',
+          day: CivilDate(2026, 1, 1),
+          results: [
+            _result(
+              'prior-a',
+              metric: 'same-marker',
+              name: 'Same marker',
+              value: '1',
+            ),
+            _result(
+              'prior-b',
+              metric: 'same-marker',
+              name: 'Same marker',
+              value: '2',
+            ),
+          ],
+        ),
+      );
+      await _savePanel(
+        store,
+        _panel(
+          id: 'latest',
+          day: CivilDate(2026, 1, 3),
+          results: [
+            _result(
+              'latest',
+              metric: 'same-marker',
+              name: 'Same marker',
+              value: '3',
+            ),
+          ],
+        ),
+      );
+      final latest = (await _latest(store)).values.single;
+      expect(latest.result.value.originalText, '3');
+      expect(latest.previousResult, isNull);
+    },
+  );
+
+  test(
+    'a candidate boundary never supplies a partially read prior panel',
+    () async {
+      final start = CivilDate(2026, 1, 1);
+      await _savePanel(
+        store,
+        _panel(
+          id: 'boundary',
+          day: start,
+          results: [
+            _result(
+              'boundary-a',
+              metric: 'same-marker',
+              name: 'Same marker',
+              value: '1',
+            ),
+            _result(
+              'boundary-b',
+              metric: 'same-marker',
+              name: 'Same marker',
+              value: '2',
+            ),
+          ],
+        ),
+      );
+      for (var i = 1; i <= 46; i++) {
+        await _savePanel(
+          store,
+          _panel(
+            id: 'different-$i',
+            day: start.addDays(i),
+            provenance: _source(laboratoryId: 'different'),
+            results: [
+              _result(
+                'different-$i',
+                metric: 'same-marker',
+                name: 'Same marker',
+                value: '5',
+              ),
+            ],
+          ),
+        );
+      }
+      await _savePanel(
+        store,
+        _panel(
+          id: 'latest',
+          day: start.addDays(47),
+          results: [
+            _result(
+              'latest',
+              metric: 'same-marker',
+              name: 'Same marker',
+              value: '3',
+            ),
+          ],
+        ),
+      );
+      final latest = (await _latest(store)).values.single;
+      expect(latest.result.value.originalText, '3');
+      expect(latest.previousResult, isNull);
+    },
+  );
+
   test('an old marker and more than sixty markers stay reachable', () async {
     final start = CivilDate(2026, 1, 1);
     for (var index = 0; index < 80; index++) {
@@ -233,6 +343,30 @@ void main() {
     expect(page.recordCount, 80);
     expect(page.markerCount, 80);
     expect(page.markers, hasLength(24));
+    final seen = <String>{};
+    for (var offset = 0; offset < 80; offset += 24) {
+      final next = await store.supportingLatest(
+        SupportingLatestQuery(
+          personId: meId,
+          markerLimit: 24,
+          markerOffset: offset,
+        ),
+      );
+      expect(next.markerOffset, offset);
+      expect(next.markers.length, lessThanOrEqualTo(24));
+      for (final marker in next.markers) {
+        expect(seen.add(marker.latest.result.metricId), isTrue);
+      }
+    }
+    expect(seen, hasLength(80));
+    expect(
+      () => SupportingLatestQuery(personId: meId, markerLimit: 101),
+      throwsA(isA<SupportingLimitException>()),
+    );
+    expect(
+      () => SupportingLatestQuery(personId: meId, markerOffset: -1),
+      throwsA(isA<SupportingLimitException>()),
+    );
 
     final all = await _latest(store);
     expect(all.markerCount, 80);

@@ -260,7 +260,7 @@ void main() {
     );
     expect(
       find.text(
-        'Trend lines use up to 24 recent dated results for each marker. Older results are not plotted.',
+        'Trend lines show up to 24 recent dated results per marker. Previous comparisons check up to 48 results.',
       ),
       findsOneWidget,
     );
@@ -475,16 +475,22 @@ void main() {
     );
     fixture.container.read(routerProvider).go('/supporting');
     await settle(tester);
-    await waitForText(tester, '24 of 30 markers');
-    expect(find.text('24 of 30 markers'), findsOneWidget);
+    await waitForText(tester, 'Markers 1 to 24 of 30');
+    expect(find.text('Markers 1 to 24 of 30'), findsOneWidget);
 
     final load = find.widgetWithText(StitchButton, 'Load');
     await tester.ensureVisible(load);
     await settle(tester);
     await tap(tester, 'Load');
-    await waitForText(tester, '30 markers');
-    expect(find.text('30 markers'), findsOneWidget);
-    expect(find.text('24 of 30 markers'), findsNothing);
+    await waitForText(tester, 'Markers 25 to 30 of 30');
+    expect(find.text('Markers 25 to 30 of 30'), findsOneWidget);
+    expect(find.text('Marker 29'), findsOneWidget);
+    expect(find.widgetWithText(StitchButton, 'Load'), findsNothing);
+    await tap(tester, 'Previous');
+    await waitForText(tester, 'Markers 1 to 24 of 30');
+    expect(find.text('Marker 00'), findsOneWidget);
+    expect(find.text('Marker 29'), findsNothing);
+    expect(find.text('Markers 25 to 30 of 30'), findsNothing);
   });
 
   appTest('labs collection preserves paging cursors', (tester) async {
@@ -689,7 +695,7 @@ void main() {
       );
       fixture.container.read(routerProvider).go('/supporting');
       await settle(tester);
-      await waitForText(tester, '24 of 30 markers');
+      await waitForText(tester, 'Markers 1 to 24 of 30');
       await tester.ensureVisible(find.text('LATEST RESULTS'));
       await settle(tester);
       await capture(tester, key, '${mode.name}-labs-latest');
@@ -719,7 +725,7 @@ void main() {
     );
     fixture.container.read(routerProvider).go('/supporting');
     await settle(tester);
-    await waitForText(tester, '24 of 30 markers');
+    await waitForText(tester, 'Markers 1 to 24 of 30');
     await tester.ensureVisible(find.text('Marker 01').first);
     await settle(tester);
     expect(tester.takeException(), isNull);

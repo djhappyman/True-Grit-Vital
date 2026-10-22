@@ -108,6 +108,7 @@ final class ScreenLabsLatest {
     required this.recordCount,
     required this.markerCount,
     required this.hasMoreMarkers,
+    this.markerOffset = 0,
     this.truncated = false,
     this.linksTruncated = false,
   });
@@ -123,7 +124,7 @@ final class ScreenLabsLatest {
   final int recordCount;
 
   /// All markers with a dated current result in the current filters.
-  final int markerCount;
+  final int markerCount, markerOffset;
 
   /// Whether another marker page is available.
   final bool hasMoreMarkers;
@@ -138,6 +139,7 @@ final class ScreenLabsLatest {
         values: values,
         recordCount: recordCount,
         markerCount: markerCount,
+        markerOffset: markerOffset,
         hasMoreMarkers: hasMoreMarkers,
         truncated: truncated,
         linksTruncated: linksTruncated,
@@ -146,6 +148,7 @@ final class ScreenLabsLatest {
     values: values,
     recordCount: recordCount,
     markerCount: markerCount,
+    markerOffset: markerOffset,
     hasMoreMarkers: hasMoreMarkers,
     truncated: truncated,
     linksTruncated: value,
@@ -161,6 +164,7 @@ typedef ScreenLabsLatestRequest = ({
   CivilDate? fromDate,
   CivilDate? beforeDate,
   int markerLimit,
+  int markerOffset,
 });
 
 /// Projects the latest value for each marker from records that are already in
@@ -237,7 +241,7 @@ ScreenLabsLatest screenLabsProjectLatest(
     final earlier = supportingEarlierComparison(
       viewed: latest.record,
       result: latest.result,
-      candidates: [for (final candidate in marker.candidates) candidate.record],
+      candidates: _comparisonCandidates(marker),
       displayZone: displayZone,
       windowLimited: marker.candidatesLimited,
     ).earlier;
@@ -263,8 +267,35 @@ ScreenLabsLatest screenLabsProjectLatest(
     values: values,
     recordCount: page.recordCount,
     markerCount: page.markerCount,
-    hasMoreMarkers: values.length < page.markerCount,
+    markerOffset: page.markerOffset,
+    hasMoreMarkers: page.markerOffset + values.length < page.markerCount,
   );
+}
+
+/// Reunites selected results from one panel before the established comparison
+/// algorithm deduplicates record revisions. Otherwise two same-marker results
+/// could become one falsely certain prior value. A sample boundary record is
+/// omitted when older candidates exist, because its result group may be cut.
+Iterable<SupportingRevision> _comparisonCandidates(
+  SupportingLatestMarker marker,
+) sync* {
+  final groups = <String, List<SupportingLatestOccurrence>>{};
+  for (final candidate in marker.candidates) {
+    (groups[candidate.record.id.id] ??= []).add(candidate);
+  }
+  final boundary = marker.candidatesLimited && marker.candidates.isNotEmpty
+      ? marker.candidates.last.record.id.id
+      : null;
+  for (final entry in groups.entries) {
+    if (entry.key == boundary) continue;
+    final encoded = entry.value.first.record.toJson();
+    final snapshot = Map<String, dynamic>.from(encoded['snapshot'] as Map);
+    snapshot['results'] = [
+      for (final candidate in entry.value) candidate.result.toJson(),
+    ];
+    encoded['snapshot'] = snapshot;
+    yield SupportingRevision.fromJson(encoded);
+  }
 }
 
 /// Exact numeric points from the sample, oldest first. A value for the same
@@ -341,6 +372,7 @@ final screenLabsLatestProvider = StreamProvider.autoDispose
         eventId: request.eventId,
         displayZone: request.displayZone,
         markerLimit: request.markerLimit,
+        markerOffset: request.markerOffset,
       );
       // The watch keeps the summary current after a save, correction or void.
       // Each emission re-reads the same filtered collection from the store.
