@@ -39,10 +39,14 @@ void main() {
       expect(find.text('Alert options'), findsOneWidget);
       expect(find.text('Sound'), findsOneWidget);
       expect(find.text('Vibration'), findsOneWidget);
-      expect(find.byType(Switch), findsNWidgets(2));
+      final switches = find.descendant(
+        of: find.byType(ReminderAlertSettings),
+        matching: find.byType(Switch),
+      );
+      expect(switches, findsNWidgets(2));
       for (var index = 0; index < 2; index++) {
         expect(
-          tester.getTopRight(find.byType(Switch).at(index)).dx,
+          tester.getTopRight(switches.at(index)).dx,
           greaterThan(390 * 0.6),
         );
       }
@@ -71,10 +75,14 @@ void main() {
       await settle(tester);
       expect(find.text('Sound'), findsOneWidget);
       expect(find.text('Vibration'), findsOneWidget);
-      expect(find.byType(Switch), findsNWidgets(2));
+      final switches = find.descendant(
+        of: find.byType(ReminderAlertSettings),
+        matching: find.byType(Switch),
+      );
+      expect(switches, findsNWidgets(2));
       for (var index = 0; index < 2; index++) {
         expect(
-          tester.widget<Switch>(find.byType(Switch).at(index)).key,
+          tester.widget<Switch>(switches.at(index)).key,
           isA<ValueKey<bool>>(),
         );
       }

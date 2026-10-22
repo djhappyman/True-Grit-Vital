@@ -278,7 +278,8 @@ void main() {
       expect(ReminderCapacity.snoozes, 16);
       expect(ReminderCapacity.eventEnds, 8);
       expect(ReminderCapacity.nativeOrdinaryPurpose, 248);
-      expect(ReminderCapacity.nativeTotal, 256);
+      expect(ReminderCapacity.nativeTotal, 264);
+      expect(ReminderCapacity.stockNotices, 8);
     });
 
     test('use counts reserved pools separately from ordinary requests', () {

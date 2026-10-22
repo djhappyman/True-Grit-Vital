@@ -96,9 +96,10 @@ part 'report_template_store.dart';
 part 'backup_store.dart';
 part 'backup_history_store.dart';
 part 'restore_store.dart';
+part 'stock_alert_store.dart';
 
 /// Current durable record schema, also used by backup and restore validation.
-const currentRecordSchemaVersion = 25;
+const currentRecordSchemaVersion = 26;
 
 // No generated table layer is needed for this bounded, explicitly versioned SQL schema.
 final class _Database extends drift.GeneratedDatabase {
@@ -170,9 +171,10 @@ final class _Database extends drift.GeneratedDatabase {
       for (final sql in substanceProfileSchemaV25) {
         await customStatement(sql);
       }
+      await _migrateStockAlertsV26(this);
     }),
     onUpgrade: (_, from, to) => transaction(() async {
-      if (from < 1 || from > 24 || to != 25) {
+      if (from < 1 || from > 25 || to != 26) {
         throw StateError('unsupported_schema');
       }
       if (from == 1) {
@@ -261,6 +263,7 @@ final class _Database extends drift.GeneratedDatabase {
           await customStatement(sql);
         }
       }
+      if (from < 26) await _migrateStockAlertsV26(this);
     }),
   );
   Future<void> _addProfiles() async {

@@ -176,6 +176,14 @@ extension ReminderRecordStore on RecordStore {
 
   Future<void> _stopPersonReminderRequests(String person) async {
     await _db.customStatement(
+      "UPDATE stock_notice_request SET active=0,state='pending',reason='cancelled' WHERE person=? AND active=1",
+      [person],
+    );
+    await _db.customStatement(
+      'DELETE FROM stock_notice_episode WHERE person=?',
+      [person],
+    );
+    await _db.customStatement(
       "UPDATE event_end_request SET active=0,state='pending',reason='cancelled' WHERE person=? AND active=1",
       [person],
     );
@@ -1064,7 +1072,11 @@ extension ReminderRecordStore on RecordStore {
       meta['namespace'] as String,
     );
     final eventAllocation = eventProjection.$1;
-    complete = complete && eventProjection.$4;
+    final stockProjection = await _prepareStockNotices(
+      now,
+      meta['namespace'] as String,
+    );
+    complete = complete && eventProjection.$4 && stockProjection.complete;
     for (final excluded in allocation.excluded) {
       await _db.customStatement(
         "UPDATE reminder_request SET state='capacity',reason='capacity' WHERE token=?",
@@ -1085,6 +1097,7 @@ extension ReminderRecordStore on RecordStore {
     };
     final obsolete = <String>{
       ...eventProjection.$2,
+      ...stockProjection.obsolete,
       ...obsoleteRows.take(256).map((r) => r['token'] as String),
       ...[
             ...all,
@@ -1120,6 +1133,7 @@ extension ReminderRecordStore on RecordStore {
           r.bootId,
         ],
       [for (final r in eventAllocation.selected) _eventRequestJson(r)],
+      [for (final r in stockProjection.selected) _stockNoticeJson(r)],
       obsolete,
     ]);
     if (meta['fingerprint'] != fingerprint) {
@@ -1231,6 +1245,8 @@ extension ReminderRecordStore on RecordStore {
             r.repairState != ReminderRepairState.prepared ||
             r.adapterFingerprint != adapterFingerprint,
       ),
+      stockNotices: stockProjection.selected,
+      stockNoticeAttention: stockProjection.attention,
       obsoleteTokens: obsolete,
       complete:
           complete &&
@@ -1262,10 +1278,45 @@ extension ReminderRecordStore on RecordStore {
                 ? null
                 : r.reason ?? r.repairState.name,
           ),
+        if (stockProjection.enabled)
+          ReminderCoverage(
+            scope: 'stock:notices',
+            generation: generation,
+            basis: observedZone ?? 'observed_zone_unavailable',
+            adapterFingerprint: adapterFingerprint,
+            checkedAt: now,
+            complete:
+                stockProjection.complete &&
+                stockProjection.exclusions.isEmpty &&
+                stockProjection.selected.every(
+                  (r) =>
+                      [
+                        ReminderRepairState.prepared,
+                        ReminderRepairState.consumed,
+                      ].contains(r.repairState) &&
+                      r.adapterFingerprint == adapterFingerprint,
+                ),
+            reason: !stockProjection.complete
+                ? 'calculation_incomplete'
+                : stockProjection.exclusions.isNotEmpty
+                ? 'capacity'
+                : stockProjection.selected
+                      .where(
+                        (r) =>
+                            ![
+                              ReminderRepairState.prepared,
+                              ReminderRepairState.consumed,
+                            ].contains(r.repairState) ||
+                            r.adapterFingerprint != adapterFingerprint,
+                      )
+                      .firstOrNull
+                      ?.reason,
+          ),
       ],
       exclusions: [
         ...exclusions,
         ...eventProjection.$5,
+        ...stockProjection.exclusions,
         for (final entry in capacityExclusions.entries)
           ReminderExclusion(
             scope: entry.key,
@@ -1304,7 +1355,15 @@ extension ReminderRecordStore on RecordStore {
       requestToken,
     ]);
     if (rows.isEmpty) {
-      return _acknowledgeEventEnd(
+      final event = await _acknowledgeEventEnd(
+        requestToken,
+        intentRevision,
+        receipt,
+        adapterFingerprint,
+        reason,
+      );
+      if (event) return true;
+      return _acknowledgeStockNotice(
         requestToken,
         intentRevision,
         receipt,
@@ -1401,7 +1460,18 @@ extension ReminderRecordStore on RecordStore {
         'SELECT token FROM event_end_request WHERE token=?',
         [requestToken],
       );
-      if (events.isEmpty) return false;
+      if (events.isEmpty) {
+        final stock = await _rows(
+          'SELECT token FROM stock_notice_request WHERE token=?',
+          [requestToken],
+        );
+        if (stock.isEmpty) return false;
+        await _db.customStatement(
+          "UPDATE stock_notice_request SET cancel_ack=1,state=CASE WHEN active=0 THEN 'cancelled' ELSE state END,fingerprint=? WHERE token=?",
+          [adapterFingerprint, requestToken],
+        );
+        return true;
+      }
       await _db.customStatement(
         "UPDATE event_end_request SET cancel_ack=1,state=CASE WHEN active=0 THEN 'cancelled' ELSE state END,fingerprint=? WHERE token=?",
         [adapterFingerprint, requestToken],

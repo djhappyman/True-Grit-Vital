@@ -327,5 +327,37 @@ fun main() {
         check(ReminderAlertCodec.encode(ReminderAlert(sound = false, vibration = true)) ==
             mapOf("sound" to false, "vibration" to true))
     }
+    test("stock notices expose Open only and never dose actions") {
+        val j = MemoryJournal(); val f = Effects(); val e = ReminderEngine(j, f)
+        val stock = request("stock").copy(purpose = "stockLow")
+        e.apply("epoch1", 1, listOf(stock), emptyList())
+        check(!e.capture("epoch1", "stock", stock.takenToken, "taken"))
+        check(!e.capture("epoch1", "stock", stock.snoozeToken, "snooze"))
+        check(!e.capture("epoch1", "stock", stock.skipToken, "skip"))
+        check(e.capture("epoch1", "stock", "stock", "open"))
+        f.wall = 2000; e.fire("epoch1", "stock")
+        check(f.posts == 1)
+        check(receipt(e.apply("epoch1", 2, listOf(stock), emptyList()), "stock") == "consumed")
+        e.fire("epoch1", "stock"); check(f.posts == 1)
+    }
+    test("stock notices reserve eight wall-only slots and reject elapsed") {
+        val j = MemoryJournal(); val f = Effects(); val e = ReminderEngine(j, f)
+        check(runCatching { e.apply("epoch1", 1, List(9) { request("stock$it").copy(purpose = "stockLow") }, emptyList()) }.isFailure)
+        check(runCatching { e.apply("epoch1", 1, listOf(request(clock = "elapsed").copy(purpose = "stockLow")), emptyList()) }.isFailure)
+        val requests = List(248) { request("dose$it") } +
+            List(8) { request("end$it").copy(purpose = "eventEnd") } +
+            List(8) { request("stock$it").copy(purpose = "stockLow") }
+        check(e.apply("epoch1", 1, requests, emptyList())["accepted"] == true)
+        check(f.scheduled.size == 264)
+    }
+    test("stock notice cancellation remains terminal and open is fenced") {
+        val j = MemoryJournal(); val f = Effects(); val e = ReminderEngine(j, f)
+        val stock = request("stock").copy(purpose = "stockLow")
+        e.apply("epoch1", 1, listOf(stock), emptyList())
+        e.apply("epoch1", 2, emptyList(), listOf("stock"))
+        check(!e.capture("epoch1", "stock", "stock", "open"))
+        check(receipt(e.apply("epoch1", 2, listOf(stock), emptyList()), "stock") == "cancelled")
+        f.wall = 2000; e.fire("epoch1", "stock"); check(f.posts == 0)
+    }
     println("$passed reminder engine tests passed")
 }

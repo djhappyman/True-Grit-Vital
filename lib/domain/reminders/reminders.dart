@@ -1,4 +1,5 @@
 import '../scheduling/stored_daily.dart';
+import '../stock/stored_stock.dart' show ExactAmount, StockNoticeState;
 
 enum ReminderActionKind { open, taken, snooze, skip }
 
@@ -224,10 +225,14 @@ final class ReminderProjection {
     required Iterable<ReminderCoverage> coverage,
     Iterable<EventEndReminder> eventEnds = const [],
     Iterable<EventEndReminder> eventEndAttention = const [],
+    Iterable<StockNoticeReminder> stockNotices = const [],
+    Iterable<StockNoticeReminder> stockNoticeAttention = const [],
     Iterable<ReminderExclusion> exclusions = const [],
     Iterable<DesiredReminder> attention = const [],
   }) : eventEnds = List.unmodifiable(eventEnds),
        eventEndAttention = List.unmodifiable(eventEndAttention),
+       stockNotices = List.unmodifiable(stockNotices),
+       stockNoticeAttention = List.unmodifiable(stockNoticeAttention),
        desired = List.unmodifiable(desired),
        obsoleteTokens = List.unmodifiable(obsoleteTokens),
        coverage = List.unmodifiable(coverage),
@@ -237,6 +242,7 @@ final class ReminderProjection {
   final int sequence;
   final List<DesiredReminder> desired;
   final List<EventEndReminder> eventEnds, eventEndAttention;
+  final List<StockNoticeReminder> stockNotices, stockNoticeAttention;
   final List<String> obsoleteTokens;
   final bool complete;
   final List<ReminderCoverage> coverage;
@@ -251,10 +257,16 @@ abstract final class ReminderCapacity {
   static const int snoozes = 16;
   static const int eventEnds = 8;
 
-  /// The Android adapter accepts at most 248 ordinary-purpose and 256 total
-  /// requests in one snapshot. These totals must stay in step with it.
+  /// Reserved refill/low notices. A dense dose queue never displaces a stock
+  /// notice, and a stock backlog never delays or evicts dose or event work.
+  static const int stockNotices = 8;
+
+  /// The Android adapter accepts at most 248 ordinary-purpose requests, eight
+  /// event reviews and eight stock notices in one snapshot. These totals must
+  /// stay in step with it.
   static const int nativeOrdinaryPurpose = ordinary + snoozes;
-  static const int nativeTotal = nativeOrdinaryPurpose + eventEnds;
+  static const int nativeTotal =
+      nativeOrdinaryPurpose + eventEnds + stockNotices;
 }
 
 final class ReminderAllocation {
@@ -408,4 +420,154 @@ EventEndAllocation allocateEventEndReminders(
     ordered.take(ReminderCapacity.eventEnds),
     ordered.skip(ReminderCapacity.eventEnds),
   );
+}
+
+/// One known low or refill condition for a configured stock container.
+///
+/// A deficit is represented by the same condition as the in-app notice:
+/// [StockNoticeState.refill] when only the refill rule applies, otherwise
+/// [StockNoticeState.low]. Unknown and aggregate-limited balances never enter
+/// this lane, so the native notice never claims a quantity nobody measured.
+final class StockNoticeReminder {
+  const StockNoticeReminder({
+    required this.requestToken,
+    required this.takenToken,
+    required this.snoozeToken,
+    required this.skipToken,
+    required this.generation,
+    required this.namespace,
+    required this.containerId,
+    required this.personId,
+    required this.itemId,
+    required this.itemName,
+    required this.label,
+    required this.unit,
+    required this.condition,
+    required this.deadlineMilliseconds,
+    required this.intentRevision,
+    required this.repairState,
+    this.balance,
+    this.threshold,
+    this.refillEnabled = false,
+    this.reason,
+    this.adapterFingerprint,
+    this.opened = false,
+  });
+  final String requestToken,
+      takenToken,
+      snoozeToken,
+      skipToken,
+      generation,
+      namespace,
+      containerId,
+      personId,
+      itemId,
+      itemName,
+      label,
+      unit;
+  final StockNoticeState condition;
+  final ExactAmount? balance, threshold;
+  final bool refillEnabled;
+
+  /// Set once an Open action was captured. A captured notice is never offered
+  /// again, even before its terminal receipt arrives.
+  final bool opened;
+  final int deadlineMilliseconds, intentRevision;
+  final ReminderRepairState repairState;
+  final String? reason, adapterFingerprint;
+  DateTime get projectedUtc =>
+      DateTime.fromMillisecondsSinceEpoch(deadlineMilliseconds, isUtc: true);
+
+  StockNoticeReminder copyWith({
+    ReminderRepairState? repairState,
+    String? reason,
+    bool? opened,
+    String? itemName,
+    String? label,
+    String? unit,
+    StockNoticeState? condition,
+    ExactAmount? balance,
+    ExactAmount? threshold,
+    bool? refillEnabled,
+    int? deadlineMilliseconds,
+  }) => StockNoticeReminder(
+    requestToken: requestToken,
+    takenToken: takenToken,
+    snoozeToken: snoozeToken,
+    skipToken: skipToken,
+    generation: generation,
+    namespace: namespace,
+    containerId: containerId,
+    personId: personId,
+    itemId: itemId,
+    itemName: itemName ?? this.itemName,
+    label: label ?? this.label,
+    unit: unit ?? this.unit,
+    condition: condition ?? this.condition,
+    balance: balance ?? this.balance,
+    threshold: threshold ?? this.threshold,
+    refillEnabled: refillEnabled ?? this.refillEnabled,
+    deadlineMilliseconds: deadlineMilliseconds ?? this.deadlineMilliseconds,
+    intentRevision: intentRevision,
+    repairState: repairState ?? this.repairState,
+    reason: reason ?? this.reason,
+    adapterFingerprint: adapterFingerprint,
+    opened: opened ?? this.opened,
+  );
+}
+
+final class StockNoticeAllocation {
+  StockNoticeAllocation(
+    Iterable<StockNoticeReminder> selected,
+    Iterable<StockNoticeReminder> excluded,
+  ) : selected = List.unmodifiable(selected),
+      excluded = List.unmodifiable(excluded);
+  final List<StockNoticeReminder> selected, excluded;
+}
+
+/// Eight reserved refill/low notices. Missing-capability, uncertain and
+/// capacity states stay visible; none of them is a delivery claim.
+StockNoticeAllocation allocateStockNotices(
+  Iterable<StockNoticeReminder> requests,
+) {
+  final ordered =
+      requests
+          .where(
+            (r) => [
+              ReminderRepairState.pending,
+              ReminderRepairState.prepared,
+              ReminderRepairState.failed,
+              ReminderRepairState.unknown,
+              ReminderRepairState.capacity,
+            ].contains(r.repairState),
+          )
+          .toList()
+        ..sort((a, b) {
+          var c = a.condition.index.compareTo(b.condition.index);
+          if (c != 0) return c;
+          c = a.personId.compareTo(b.personId);
+          if (c != 0) return c;
+          c = a.itemName.compareTo(b.itemName);
+          if (c != 0) return c;
+          c = a.label.compareTo(b.label);
+          if (c != 0) return c;
+          c = a.containerId.compareTo(b.containerId);
+          return c != 0 ? c : a.requestToken.compareTo(b.requestToken);
+        });
+  return StockNoticeAllocation(
+    ordered.take(ReminderCapacity.stockNotices),
+    ordered.skip(ReminderCapacity.stockNotices),
+  );
+}
+
+/// Review-only destination for an Open stock notice. No action kind here can
+/// record an administration, move stock or alter a plan.
+final class StockNoticeOpen {
+  const StockNoticeOpen({
+    required this.envelopeId,
+    required this.personId,
+    required this.itemId,
+    required this.containerId,
+  });
+  final String envelopeId, personId, itemId, containerId;
 }

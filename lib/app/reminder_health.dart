@@ -54,17 +54,20 @@ final class ReminderCapacityUse {
     this.ordinary = 0,
     this.snoozes = 0,
     this.eventEnds = 0,
+    this.stockNotices = 0,
     this.deferred = 0,
   });
 
-  final int ordinary, snoozes, eventEnds, deferred;
+  final int ordinary, snoozes, eventEnds, stockNotices, deferred;
 
   bool get ordinaryFull => ordinary >= ReminderCapacity.ordinary;
   bool get snoozesFull => snoozes >= ReminderCapacity.snoozes;
   bool get eventEndsFull => eventEnds >= ReminderCapacity.eventEnds;
-  bool get exhausted => ordinaryFull || snoozesFull || eventEndsFull;
+  bool get stockNoticesFull => stockNotices >= ReminderCapacity.stockNotices;
+  bool get exhausted =>
+      ordinaryFull || snoozesFull || eventEndsFull || stockNoticesFull;
 
-  int get prepared => ordinary + snoozes + eventEnds;
+  int get prepared => ordinary + snoozes + eventEnds + stockNotices;
 }
 
 final class ReminderScopeHealth {
@@ -170,6 +173,7 @@ ReminderCapacityUse reminderCapacityUse(ReminderProjection? projection) {
         .where((d) => d.kind == ReminderKind.snooze)
         .length,
     eventEnds: projection.eventEnds.length,
+    stockNotices: projection.stockNotices.length,
     deferred: deferred,
   );
 }

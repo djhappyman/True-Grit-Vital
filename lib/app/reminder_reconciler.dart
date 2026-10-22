@@ -39,6 +39,18 @@ abstract interface class EventEndReminderRepairRepository {
   });
 }
 
+/// Optional stock-notice extension. Its only native action is Open; it never
+/// grants an administration or stock-movement command.
+abstract interface class StockNoticeRepairRepository {
+  Future<bool> acknowledgeStockNotice({
+    required int sequence,
+    required StockNoticeReminder desired,
+    required ReminderReceipt receipt,
+    required String? reason,
+    required String adapterFingerprint,
+  });
+}
+
 /// Outcome of one bounded foreground repair flight. It is reported even when
 /// the bound is reached, so a partial repair is never presented as complete.
 enum ReminderConvergence {
@@ -228,6 +240,17 @@ final class ReminderReconciler {
                       deadlineMilliseconds: d.deadlineMilliseconds,
                       purpose: NativeReminderPurpose.eventEnd,
                     ),
+                  for (final d in projection.stockNotices)
+                    NativeReminderRequest(
+                      epoch: d.namespace,
+                      requestToken: d.requestToken,
+                      takenToken: d.takenToken,
+                      snoozeToken: d.snoozeToken,
+                      skipToken: d.skipToken,
+                      clock: ReminderNativeClock.wall,
+                      deadlineMilliseconds: d.deadlineMilliseconds,
+                      purpose: NativeReminderPurpose.stockLow,
+                    ),
                 ],
                 obsoleteTokens: projection.obsoleteTokens,
               )
@@ -278,6 +301,27 @@ final class ReminderReconciler {
             final accepted =
                 await (eventRepository as EventEndReminderRepairRepository)
                     .acknowledgeEventEnd(
+                      sequence: projection.sequence,
+                      desired: desired,
+                      receipt: receipt == null
+                          ? ReminderReceipt.unknown
+                          : ReminderReceipt.values.byName(receipt.state.name),
+                      reason: receipt == null
+                          ? (current ? 'missing_receipt' : 'native_unknown')
+                          : receipt.reason,
+                      adapterFingerprint: capabilities.fingerprint,
+                    );
+            if (!accepted) _again = true;
+          }
+        }
+        final stockRepository = repository;
+        if (stockRepository is StockNoticeRepairRepository) {
+          for (final desired in projection.stockNotices) {
+            if (_disposed) return;
+            final receipt = receipts[desired.requestToken];
+            final accepted =
+                await (stockRepository as StockNoticeRepairRepository)
+                    .acknowledgeStockNotice(
                       sequence: projection.sequence,
                       desired: desired,
                       receipt: receipt == null
@@ -369,6 +413,8 @@ final class ReminderReconciler {
         if (checked.sequence != projection.sequence ||
             checked.eventEnds.map((d) => d.requestToken).join(',') !=
                 projection.eventEnds.map((d) => d.requestToken).join(',') ||
+            checked.stockNotices.map((d) => d.requestToken).join(',') !=
+                projection.stockNotices.map((d) => d.requestToken).join(',') ||
             checked.desired.map((d) => d.requestToken).join(',') !=
                 projection.desired.map((d) => d.requestToken).join(',') ||
             checked.obsoleteTokens.join(',') !=

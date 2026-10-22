@@ -9,6 +9,12 @@ export '../../domain/stock/stock_ledger.dart';
 export '../../domain/stock/stored_stock.dart';
 
 typedef StockQuery = ({String personId, String? itemId, int offset});
+
+final stockAlertPreferenceProvider =
+    StreamProvider.autoDispose<StockAlertPreference>((ref) async* {
+      final store = await ref.watch(recordStoreProvider.future);
+      yield* store.watchStockAlertPreference();
+    });
 final stockContainersProvider = StreamProvider.autoDispose
     .family<List<StoredStockContainer>, StockQuery>(retry: (_, _) => null, (
       ref,

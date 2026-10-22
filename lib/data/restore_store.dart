@@ -149,6 +149,8 @@ extension RestoreRecordStore on RecordStore {
         await staged._db.customStatement('DELETE FROM reminder_request');
         await staged._db.customStatement('DELETE FROM event_pending');
         await staged._db.customStatement('DELETE FROM event_end_request');
+        await staged._db.customStatement('DELETE FROM stock_notice_request');
+        await staged._db.customStatement('DELETE FROM stock_notice_episode');
         await staged._db.customStatement(
           'INSERT INTO reminder_meta(id,namespace,sequence,fingerprint) VALUES (1,?,0,\'\') ON CONFLICT(id) DO UPDATE SET namespace=excluded.namespace,sequence=0,fingerprint=\'\'',
           [namespace],

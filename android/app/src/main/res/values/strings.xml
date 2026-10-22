@@ -9,5 +9,7 @@
     <string name="reminder_taken">Taken</string>
     <string name="reminder_snooze">Snooze</string>
     <string name="reminder_skip">Skip</string>
+    <string name="stock_notice_title">Stock notice</string>
+    <string name="stock_notice_body">Open Vital to review stock.</string>
     <string name="attachment_default_name">Attachment</string>
 </resources>

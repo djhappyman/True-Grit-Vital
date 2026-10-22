@@ -1441,6 +1441,22 @@
       }
     }
   },
+  "stockAlerts": "Stock alerts",
+  "@stockAlerts": {
+    "description": "Default-off reminder preference for native low-stock and refill notices."
+  },
+  "stockAlertsHelp": "Notify about known low or refill states for configured containers. Off by default; lock-screen text stays private.",
+  "@stockAlertsHelp": {
+    "description": "Explains the default-off stock alert scope and the private lock-screen default."
+  },
+  "stockAlertNone": "No known low or refill states.",
+  "@stockAlertNone": {
+    "description": "Empty state when stock alerts are on but no configured container currently has a known low or refill condition."
+  },
+  "stockAlertOpen": "Open",
+  "@stockAlertOpen": {
+    "description": "One-word action that opens the canonical stock page for a stock notice."
+  },
   "stockStrengthValue": "Labelled strength: {strength}",
   "@stockStrengthValue": {
     "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences.",

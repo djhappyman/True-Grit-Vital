@@ -10,7 +10,7 @@ export '../domain/reminders/reminders.dart' show ReminderClockSample;
 
 enum ReminderNativeClock { wall, elapsed }
 
-enum NativeReminderPurpose { ordinary, eventEnd }
+enum NativeReminderPurpose { ordinary, eventEnd, stockLow }
 
 enum NativeReminderState {
   accepted,

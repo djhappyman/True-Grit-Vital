@@ -2034,6 +2034,30 @@ abstract class AppLocalizations {
   /// **'{person}: {container}'**
   String stockNoticeTarget(String person, String container);
 
+  /// Default-off reminder preference for native low-stock and refill notices.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock alerts'**
+  String get stockAlerts;
+
+  /// Explains the default-off stock alert scope and the private lock-screen default.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify about known low or refill states for configured containers. Off by default; lock-screen text stays private.'**
+  String get stockAlertsHelp;
+
+  /// Empty state when stock alerts are on but no configured container currently has a known low or refill condition.
+  ///
+  /// In en, this message translates to:
+  /// **'No known low or refill states.'**
+  String get stockAlertNone;
+
+  /// One-word action that opens the canonical stock page for a stock notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get stockAlertOpen;
+
   /// Stock tracking copy. Preserve owner, original quantities, units and physical consequences.
   ///
   /// In en, this message translates to:

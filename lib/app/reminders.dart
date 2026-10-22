@@ -15,7 +15,10 @@ import 'storage.dart';
 export 'reminder_gateway.dart' show reminderGatewayProvider;
 
 final class _StoreRepair
-    implements ReminderRepairRepository, EventEndReminderRepairRepository {
+    implements
+        ReminderRepairRepository,
+        EventEndReminderRepairRepository,
+        StockNoticeRepairRepository {
   _StoreRepair(this.store);
   final RecordStore store;
   @override
@@ -63,6 +66,22 @@ final class _StoreRepair
     adapterFingerprint: adapterFingerprint,
   );
   @override
+  Future<bool> acknowledgeStockNotice({
+    required int sequence,
+    required StockNoticeReminder desired,
+    required ReminderReceipt receipt,
+    required String? reason,
+    required String adapterFingerprint,
+  }) => store.acknowledgeReminder(
+    sequence: sequence,
+    generation: desired.generation,
+    requestToken: desired.requestToken,
+    intentRevision: desired.intentRevision,
+    receipt: receipt,
+    reason: reason,
+    adapterFingerprint: adapterFingerprint,
+  );
+  @override
   Future<void> acknowledgeObsolete({
     required String generation,
     required int sequence,
@@ -87,12 +106,14 @@ final class ReminderState {
     this.report = const ReminderRepairReport(),
     this.pending = const [],
     this.eventPending = const [],
+    this.stockOpen,
     this.busy = false,
     this.actionFailed = false,
   });
   final ReminderRepairReport report;
   final List<PendingReminderAction> pending;
   final List<PendingEventEndReview> eventPending;
+  final StockNoticeOpen? stockOpen;
   final bool busy, actionFailed;
 }
 
@@ -160,6 +181,7 @@ class ReminderController extends Notifier<ReminderState>
               report: report,
               pending: state.pending,
               eventPending: state.eventPending,
+              stockOpen: state.stockOpen,
               busy: state.busy,
               actionFailed: state.actionFailed,
             );
@@ -207,6 +229,7 @@ class ReminderController extends Notifier<ReminderState>
         ),
         pending: state.pending,
         eventPending: state.eventPending,
+        stockOpen: state.stockOpen,
         busy: state.busy,
         actionFailed: state.actionFailed,
       );
@@ -224,6 +247,7 @@ class ReminderController extends Notifier<ReminderState>
       report: state.report,
       pending: state.pending,
       eventPending: state.eventPending,
+      stockOpen: state.stockOpen,
       actionFailed: state.actionFailed,
       busy: true,
     );
@@ -242,6 +266,7 @@ class ReminderController extends Notifier<ReminderState>
           report: state.report,
           pending: state.pending,
           eventPending: state.eventPending,
+          stockOpen: state.stockOpen,
           actionFailed: state.actionFailed,
         );
       }
@@ -272,6 +297,7 @@ class ReminderController extends Notifier<ReminderState>
                 ),
           pending: state.pending,
           eventPending: state.eventPending,
+          stockOpen: state.stockOpen,
           busy: state.busy,
           actionFailed: state.actionFailed,
         );
@@ -317,17 +343,40 @@ class ReminderController extends Notifier<ReminderState>
           const Duration(seconds: 5),
         );
         if (!_current(session) || !_unlocked || envelope == null) break;
+        final action = switch (envelope.action) {
+          NativeReminderActionKind.open => ReminderActionKind.open,
+          NativeReminderActionKind.taken => ReminderActionKind.taken,
+          NativeReminderActionKind.snooze => ReminderActionKind.snooze,
+          NativeReminderActionKind.skip => ReminderActionKind.skip,
+        };
+        final stockOpen = await store.captureStockNoticeOpen(
+          envelopeId: envelope.envelopeId,
+          namespace: envelope.epoch,
+          requestToken: envelope.requestToken,
+          actionToken: envelope.actionToken,
+          action: action,
+        );
+        if (stockOpen != null) {
+          if (_current(session)) {
+            state = ReminderState(
+              report: state.report,
+              pending: state.pending,
+              eventPending: state.eventPending,
+              stockOpen: stockOpen,
+              busy: state.busy,
+            );
+          }
+          await gateway
+              .acknowledgeAction(envelope.envelopeId)
+              .timeout(const Duration(seconds: 5));
+          continue;
+        }
         final eventCaptured = await store.captureEventEndAction(
           envelopeId: envelope.envelopeId,
           namespace: envelope.epoch,
           requestToken: envelope.requestToken,
           actionToken: envelope.actionToken,
-          action: switch (envelope.action) {
-            NativeReminderActionKind.open => ReminderActionKind.open,
-            NativeReminderActionKind.taken => ReminderActionKind.taken,
-            NativeReminderActionKind.snooze => ReminderActionKind.snooze,
-            NativeReminderActionKind.skip => ReminderActionKind.skip,
-          },
+          action: action,
         );
         if (!eventCaptured) {
           await store.captureReminderAction(
@@ -335,12 +384,7 @@ class ReminderController extends Notifier<ReminderState>
             namespace: envelope.epoch,
             requestToken: envelope.requestToken,
             actionToken: envelope.actionToken,
-            action: switch (envelope.action) {
-              NativeReminderActionKind.open => ReminderActionKind.open,
-              NativeReminderActionKind.taken => ReminderActionKind.taken,
-              NativeReminderActionKind.snooze => ReminderActionKind.snooze,
-              NativeReminderActionKind.skip => ReminderActionKind.skip,
-            },
+            action: action,
           );
         }
         if (!_current(session)) return;
@@ -357,6 +401,7 @@ class ReminderController extends Notifier<ReminderState>
           report: state.report,
           pending: List.unmodifiable(pending),
           eventPending: List.unmodifiable(eventPending),
+          stockOpen: state.stockOpen,
           busy: state.busy,
         );
       }
@@ -366,6 +411,7 @@ class ReminderController extends Notifier<ReminderState>
           report: state.report,
           pending: state.pending,
           eventPending: state.eventPending,
+          stockOpen: state.stockOpen,
           actionFailed: true,
           busy: state.busy,
         );
@@ -390,6 +436,7 @@ class ReminderController extends Notifier<ReminderState>
       report: state.report,
       pending: state.pending,
       eventPending: state.eventPending,
+      stockOpen: state.stockOpen,
       busy: true,
     );
     try {
@@ -403,10 +450,22 @@ class ReminderController extends Notifier<ReminderState>
           report: state.report,
           pending: state.pending,
           eventPending: state.eventPending,
+          stockOpen: state.stockOpen,
         );
         refresh();
       }
     }
+  }
+
+  void completeStockOpen(String envelopeId) {
+    if (_disposed || !ref.mounted) return;
+    if (state.stockOpen?.envelopeId != envelopeId) return;
+    state = ReminderState(
+      report: state.report,
+      busy: state.busy,
+      pending: state.pending,
+      eventPending: state.eventPending,
+    );
   }
 
   void completeEventPending(String envelopeId) {
@@ -418,6 +477,7 @@ class ReminderController extends Notifier<ReminderState>
       eventPending: List.unmodifiable(
         state.eventPending.where((p) => p.envelopeId != envelopeId),
       ),
+      stockOpen: state.stockOpen,
     );
     refresh();
   }
@@ -428,6 +488,7 @@ class ReminderController extends Notifier<ReminderState>
       report: state.report,
       busy: state.busy,
       eventPending: state.eventPending,
+      stockOpen: state.stockOpen,
       pending: List.unmodifiable(
         state.pending.where((p) => p.envelopeId != envelopeId),
       ),

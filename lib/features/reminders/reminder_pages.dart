@@ -13,6 +13,7 @@ import '../../app/device_zone.dart';
 import '../../app/reminders.dart';
 import 'reminder_alert_settings.dart';
 import 'reminder_health_panel.dart';
+import 'stock_alert_settings.dart';
 import '../../app/settings_toggle_row.dart';
 import '../../app/storage.dart';
 import '../../app/vital_app.dart' show routerProvider;
@@ -90,6 +91,17 @@ class _ReminderHostState extends ConsumerState<ReminderHost> {
         );
   }
 
+  void openStock(StockNoticeOpen open) {
+    _opened.add(open.envelopeId);
+    if (ref.read(appLockProvider).locked) return;
+    ref
+        .read(routerProvider)
+        .push(
+          '/stock/${Uri.encodeComponent(open.personId)}?item=${Uri.encodeQueryComponent(open.itemId)}',
+        );
+    ref.read(remindersProvider.notifier).completeStockOpen(open.envelopeId);
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(remindersProvider),
@@ -97,6 +109,7 @@ class _ReminderHostState extends ConsumerState<ReminderHost> {
     final t = AppLocalizations.of(context);
     final pending = state.pending.firstOrNull;
     final eventPending = state.eventPending.firstOrNull;
+    final stockOpen = state.stockOpen;
     final path = _path;
     if (pending != null &&
         path ==
@@ -147,6 +160,25 @@ class _ReminderHostState extends ConsumerState<ReminderHost> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && !ref.read(appLockProvider).locked) {
           openEvent(eventPending);
+        }
+      });
+    }
+    if (unlocked &&
+        stockOpen != null &&
+        !_opened.contains(stockOpen.envelopeId) &&
+        !path.startsWith('/stock/') &&
+        const [
+          '/today',
+          '/substances',
+          '/events',
+          '/history',
+          '/appearance',
+          '/reminders',
+        ].contains(path)) {
+      _opened.add(stockOpen.envelopeId);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !ref.read(appLockProvider).locked) {
+          openStock(stockOpen);
         }
       });
     }
@@ -209,6 +241,9 @@ class RemindersPage extends ConsumerWidget {
         ref.watch(profilesProvider).value ?? const <AdultProfile>[];
     String scopeLabel(String scope) {
       if (scope == 'everyone') return t.reminders;
+      if (scope.startsWith('stock:')) {
+        return t.stockAlerts;
+      }
       if (scope.startsWith('event:')) {
         final event = ref.watch(eventLookupProvider(scope.substring(6))).value;
         return event == null
@@ -289,6 +324,8 @@ class RemindersPage extends ConsumerWidget {
             const SizedBox(height: 20),
             const ReminderAlertSettings(),
           ],
+          const SizedBox(height: 20),
+          const StockAlertSettings(),
           const SizedBox(height: 16),
           if (report.failed || state.actionFailed)
             Semantics(liveRegion: true, child: Text(t.reminderAttention)),

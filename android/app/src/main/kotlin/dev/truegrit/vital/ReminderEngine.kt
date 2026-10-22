@@ -81,10 +81,11 @@ internal class ReminderEngine(private val journal: ReminderJournal, private val 
     fun installedEpoch(): String? = state().epoch
     fun apply(epoch: String, sequence: Long, desired: List<ReminderRequest>, obsolete: List<String>): Map<String, Any?> {
         token(epoch)
-        if (sequence < 0 || desired.size > 256 || obsolete.size > 512 || desired.map { it.requestToken }.distinct().size != desired.size) {
+        if (sequence < 0 || desired.size > 264 || obsolete.size > 512 || desired.map { it.requestToken }.distinct().size != desired.size) {
             throw ReminderFailure("invalid_arguments")
         }
-        if (desired.count { it.purpose == "eventEnd" } > 8 || desired.count { it.purpose == "ordinary" } > 248) throw ReminderFailure("invalid_arguments")
+        if (desired.count { it.purpose == "eventEnd" } > 8 || desired.count { it.purpose == "stockLow" } > 8 ||
+            desired.count { it.purpose == "ordinary" } > 248) throw ReminderFailure("invalid_arguments")
         desired.forEach { validate(it); if (it.epoch != epoch) throw ReminderFailure("invalid_arguments") }
         obsolete.forEach { token(it) }
         if (desired.any { it.requestToken in obsolete }) throw ReminderFailure("invalid_arguments")
@@ -137,7 +138,8 @@ internal class ReminderEngine(private val journal: ReminderJournal, private val 
     private fun validate(r: ReminderRequest) {
         listOf(r.epoch, r.requestToken, r.takenToken, r.snoozeToken, r.skipToken).forEach { token(it) }
         if (listOf(r.requestToken, r.takenToken, r.snoozeToken, r.skipToken).distinct().size != 4 ||
-            r.purpose !in setOf("ordinary", "eventEnd") || (r.purpose == "eventEnd" && r.clock != "wall") ||
+            r.purpose !in setOf("ordinary", "eventEnd", "stockLow") ||
+            ((r.purpose == "eventEnd" || r.purpose == "stockLow") && r.clock != "wall") ||
             r.clock !in setOf("wall", "elapsed") || r.deadlineMilliseconds <= 0 || (r.bootId?.length ?: 0) > 256) {
             throw ReminderFailure("invalid_arguments")
         }
@@ -209,7 +211,7 @@ internal class ReminderEngine(private val journal: ReminderJournal, private val 
         val s = state()
         val e = s.entries[requestToken] ?: return false
         if (epoch != s.epoch || epoch != e.request.epoch || epoch in s.retired || e.state == "cancelled") return false
-        if (requestToken !in s.eligible || (e.request.purpose == "eventEnd" && action != "open")) return false
+        if (requestToken !in s.eligible || (e.request.purpose != "ordinary" && action != "open")) return false
         val expected = when (action) { "open" -> requestToken; "taken" -> e.request.takenToken
             "snooze" -> e.request.snoozeToken; "skip" -> e.request.skipToken; else -> return false }
         if (expected != actionToken) return false

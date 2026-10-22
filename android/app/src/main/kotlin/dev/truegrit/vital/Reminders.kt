@@ -111,11 +111,18 @@ internal class AndroidReminderEffects(private val context: Context) : ReminderEf
         val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, channelId) else {
             @Suppress("DEPRECATION") Notification.Builder(context)
         }
-        builder.setSmallIcon(R.drawable.ic_reminder).setContentTitle(context.getString(R.string.reminder_title))
-            .setContentText(context.getString(R.string.reminder_body)).setVisibility(Notification.VISIBILITY_PRIVATE)
+        builder.setSmallIcon(R.drawable.ic_reminder)
+        if (request.purpose == "stockLow") {
+            builder.setContentTitle(context.getString(R.string.stock_notice_title))
+                .setContentText(context.getString(R.string.stock_notice_body))
+        } else {
+            builder.setContentTitle(context.getString(R.string.reminder_title))
+                .setContentText(context.getString(R.string.reminder_body))
+        }
+        builder.setVisibility(Notification.VISIBILITY_PRIVATE)
             .setCategory(Notification.CATEGORY_REMINDER).setAutoCancel(true)
             .setContentIntent(activity(request, "open", request.requestToken))
-        for ((kind, token, label) in (if (request.purpose == "eventEnd") emptyList() else listOf(Triple("taken", request.takenToken, R.string.reminder_taken),
+        for ((kind, token, label) in (if (request.purpose != "ordinary") emptyList() else listOf(Triple("taken", request.takenToken, R.string.reminder_taken),
             Triple("snooze", request.snoozeToken, R.string.reminder_snooze), Triple("skip", request.skipToken, R.string.reminder_skip)))) {
             val action = Notification.Action.Builder(null, context.getString(label), activity(request, kind, token))
             if (Build.VERSION.SDK_INT >= 31) action.setAuthenticationRequired(true)
@@ -221,7 +228,7 @@ internal class Reminders(private val activity: MainActivity, messenger: BinaryMe
                                 val epoch = string(call.argument<Any?>("epoch"))
                                 val sequence = number(call.argument<Any?>("sequence"))
                                 val raw = call.argument<List<Any?>>("desired") ?: throw ReminderFailure("invalid_arguments")
-                                if (raw.size > 256) throw ReminderFailure("invalid_arguments")
+                                if (raw.size > 264) throw ReminderFailure("invalid_arguments")
                                 val requests = raw.map { value ->
                                     val m = value as? Map<*, *> ?: throw ReminderFailure("invalid_arguments")
                                     ReminderRequest(string(m["epoch"]), string(m["requestToken"]), string(m["takenToken"]),

@@ -1160,6 +1160,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get stockAlerts => 'Stock alerts';
+
+  @override
+  String get stockAlertsHelp =>
+      'Notify about known low or refill states for configured containers. Off by default; lock-screen text stays private.';
+
+  @override
+  String get stockAlertNone => 'No known low or refill states.';
+
+  @override
+  String get stockAlertOpen => 'Open';
+
+  @override
   String stockStrengthValue(String strength) {
     return 'Labelled strength: $strength';
   }
