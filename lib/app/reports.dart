@@ -214,6 +214,8 @@ class ReportController extends Notifier<ReportState> {
       _change((selection) => selection.copyWith(includeAttachments: value));
   void setIncludeSupporting(bool value) =>
       _change((selection) => selection.copyWith(includeSupporting: value));
+  void setIncludeStock(bool value) =>
+      _change((selection) => selection.copyWith(includeStock: value));
   void setItems(Iterable<String> items) =>
       _change((selection) => selection.copyWith(itemIds: items));
   void setReportName(String? value) => _change(

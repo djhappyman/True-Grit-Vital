@@ -355,6 +355,14 @@ final class ReportEventData implements ReportTemplateData {
       ..add('')
       ..add('Recorded administrations')
       ..add('');
+    if (selection.includeStock) {
+      lines.add(ReportText.stockSourceDisclosure);
+      final stockNote = ReportText.stockCoverageNote(
+        entries.map((entry) => entry.stockSource),
+      );
+      if (stockNote != null) lines.add(stockNote);
+      lines.add('');
+    }
     for (final entry in entries) {
       lines.add(
         '${entry.dateOnly ? formatCivilDate(_civil(entry.occurredAt, selection.displayZone)) : formatInstant(entry.occurredAt, selection.displayZone, use24Hour: use24Hour)} · '
@@ -362,6 +370,11 @@ final class ReportEventData implements ReportTemplateData {
         '${entry.amount == null ? 'No dose recorded' : '${formatAmount(entry.amount!)} ${entry.unit}'} · '
         '${entry.status == ReportLedgerStatus.corrected ? 'Corrected' : 'Recorded'}',
       );
+      if (selection.includeStock && entry.stockSource != null) {
+        lines.add(
+          '  Stock source: ${ReportText.stockSourceText(entry.stockSource!)}',
+        );
+      }
     }
     lines
       ..add('')

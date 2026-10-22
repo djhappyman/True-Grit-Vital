@@ -30,6 +30,8 @@ final class ReportSelectionFailure implements Exception {
 /// every recorded item in the period; a non-empty set is an exact inclusion.
 /// [eventId] scopes R03 to one recorded event. [includeSkipped] and
 /// [includeUnrecorded] control R02 ledger rows only; R01 ignores them.
+/// [includeStock] adds the chosen container facts captured with each dose. It
+/// stays off by default and never infers a source from a balance.
 final class ReportSelection {
   ReportSelection({
     this.template = ReportTemplateId.r01SubstanceSummary,
@@ -44,6 +46,7 @@ final class ReportSelection {
     this.includeSupporting = false,
     this.includeSkipped = true,
     this.includeUnrecorded = true,
+    this.includeStock = false,
     Iterable<String> itemIds = const [],
   }) : itemIds = Set.unmodifiable(itemIds) {
     if (!RegExp(r'^[A-Za-z0-9_-]{1,128}$').hasMatch(personId)) {
@@ -74,7 +77,7 @@ final class ReportSelection {
   final String? reportName, eventId;
   final CivilDate fromDate, beforeDate;
   final bool includeNotes, includeAttachments, includeSupporting;
-  final bool includeSkipped, includeUnrecorded;
+  final bool includeSkipped, includeUnrecorded, includeStock;
   final Set<String> itemIds;
 
   /// Half-open civil range. [beforeDate] is never included.
@@ -96,6 +99,7 @@ final class ReportSelection {
     bool? includeSupporting,
     bool? includeSkipped,
     bool? includeUnrecorded,
+    bool? includeStock,
     Iterable<String>? itemIds,
   }) => ReportSelection(
     template: template ?? this.template,
@@ -110,6 +114,7 @@ final class ReportSelection {
     includeSupporting: includeSupporting ?? this.includeSupporting,
     includeSkipped: includeSkipped ?? this.includeSkipped,
     includeUnrecorded: includeUnrecorded ?? this.includeUnrecorded,
+    includeStock: includeStock ?? this.includeStock,
     itemIds: itemIds ?? this.itemIds,
   );
 
@@ -127,6 +132,9 @@ final class ReportSelection {
     'supporting': includeSupporting,
     'skipped': includeSkipped,
     'unrecorded': includeUnrecorded,
+    // Off keeps the previous JSON shape, so a stored selection that predates
+    // stock details keeps its identity and still decodes as false.
+    if (includeStock) 'stock': true,
     'items': itemIds.toList()..sort(),
   };
 
@@ -147,6 +155,7 @@ final class ReportSelection {
         includeSupporting: json['supporting'] as bool? ?? false,
         includeSkipped: json['skipped'] as bool? ?? true,
         includeUnrecorded: json['unrecorded'] as bool? ?? true,
+        includeStock: json['stock'] as bool? ?? false,
         itemIds: (json['items'] as List? ?? const []).cast<String>(),
       );
 

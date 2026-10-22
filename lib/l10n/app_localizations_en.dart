@@ -5060,6 +5060,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'List attached source file names. File contents stay separate.';
 
   @override
+  String get featureReportStock => 'Stock details';
+
+  @override
+  String get featureReportStockHelp =>
+      'Include the saved container label, lot, expiry and exact capacity when a dose used a chosen container.';
+
+  @override
+  String get featureReportStockIncluded => 'Stock details: included';
+
+  @override
+  String get featureReportStockNotIncluded => 'Stock details: not included';
+
+  @override
   String get reportReview => 'Review';
 
   @override

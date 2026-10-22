@@ -39,6 +39,7 @@ final class ReportLedgerEntry {
     this.notes,
     this.contextTags = const [],
     this.skipReason,
+    this.stockSource,
     this.identityComplete = true,
   }) {
     if (id.isEmpty ||
@@ -78,6 +79,7 @@ final class ReportLedgerEntry {
         site: record.site,
         notes: record.notes,
         contextTags: record.contextTags,
+        stockSource: record.stockSource,
       );
   final String id, itemId, name, form, type, unit;
   final ReportLedgerStatus status;
@@ -91,6 +93,10 @@ final class ReportLedgerEntry {
   final String? planName, site;
   final String? notes;
   final List<String> contextTags;
+
+  /// Capture-time container facts for a recorded administration, or null when
+  /// no container was chosen or stock details were not selected.
+  final ReportStockSource? stockSource;
 
   /// Explicit skip reason, present only when notes were selected in the report
   /// capture. The skip row itself never depends on this free-text field.
@@ -325,6 +331,16 @@ final class ReportHistoryData implements ReportTemplateData {
         ..add(coverageNote!)
         ..add('');
     }
+    if (selection.includeStock) {
+      lines.add(ReportText.stockSourceDisclosure);
+      final stockNote = ReportText.stockCoverageNote(
+        entries
+            .where((entry) => entry.amount != null)
+            .map((entry) => entry.stockSource),
+      );
+      if (stockNote != null) lines.add(stockNote);
+      lines.add('');
+    }
     for (final entry in entries) {
       final time = entry.dateOnly
           ? formatCivilDate(_civil(entry.occurredAt, selection.displayZone))
@@ -357,6 +373,11 @@ final class ReportHistoryData implements ReportTemplateData {
         );
       }
       if (entry.site != null) lines.add('  Site: ${entry.site}');
+      if (selection.includeStock && entry.stockSource != null) {
+        lines.add(
+          '  Stock source: ${ReportText.stockSourceText(entry.stockSource!)}',
+        );
+      }
       if (entry.contextTags.isNotEmpty) {
         lines.add('  Tags: ${entry.contextTags.join(', ')}');
       }

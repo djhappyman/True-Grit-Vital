@@ -89,6 +89,14 @@ final class R03EventRenderer implements ReportTemplateRenderer {
       pw.SizedBox(height: 16),
       reportSectionHeading('Recorded administrations'),
       pw.SizedBox(height: 6),
+      if (reportStockNote(
+            snapshot,
+            data.entries.map((entry) => entry.stockSource),
+          )
+          case final stockNote?) ...[
+        stockNote,
+        pw.SizedBox(height: 6),
+      ],
       if (data.entries.isEmpty)
         reportNote(
           'No current administration revisions fall inside this event.',

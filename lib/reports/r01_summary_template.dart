@@ -140,6 +140,7 @@ final class R01SummaryRenderer implements ReportTemplateRenderer {
     content.addAll(_contextBlock(snapshot, use24Hour));
     content.add(pw.SizedBox(height: 18));
     content.addAll(_recentBlock(snapshot, use24Hour, cancellation));
+    content.addAll(_stockBlock(snapshot, use24Hour));
     content.add(pw.SizedBox(height: 12));
     completed++;
     onProgress?.call(completed, totalGroups + 1);
@@ -566,6 +567,60 @@ final class R01SummaryRenderer implements ReportTemplateRenderer {
       }
     }
     return content;
+  }
+
+  List<pw.Widget> _stockBlock(ReportSnapshot snapshot, bool use24Hour) {
+    if (!snapshot.selection.includeStock) return const [];
+    final recent = snapshot.recentRecords();
+    final linked = [
+      for (final record in recent)
+        if (record.stockSource != null) record,
+    ];
+    final coverage = ReportText.stockCoverageNote(
+      snapshot.records.map((record) => record.stockSource),
+    );
+    return [
+      pw.SizedBox(height: 14),
+      pw.Text(
+        'Stock source details',
+        style: pw.TextStyle(fontSize: 12, color: _graphite),
+      ),
+      pw.SizedBox(height: 4),
+      pw.Text(
+        ReportText.stockSourceDisclosure,
+        style: pw.TextStyle(fontSize: 8, color: _muted),
+      ),
+      if (coverage != null) ...[
+        pw.SizedBox(height: 2),
+        pw.Text(coverage, style: pw.TextStyle(fontSize: 8, color: _muted)),
+      ],
+      if (linked.isNotEmpty) ...[
+        pw.SizedBox(height: 6),
+        ..._rowsTable(
+          header: const ['When', 'Item', 'Amount', 'Stock source'],
+          rows: [
+            for (final record in linked)
+              [
+                formatInstant(
+                  record.actualAt,
+                  snapshot.selection.displayZone,
+                  use24Hour: use24Hour,
+                ),
+                record.name,
+                '${formatAmount(record.amount)} ${record.unit}',
+                ReportText.stockSourceText(record.stockSource!),
+              ],
+          ],
+          widths: const [105, 125, 75, 188],
+          aligns: const [
+            pw.TextAlign.left,
+            pw.TextAlign.left,
+            pw.TextAlign.right,
+            pw.TextAlign.left,
+          ],
+        ),
+      ],
+    ];
   }
 
   List<pw.Widget> _recentBlock(

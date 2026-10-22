@@ -9,6 +9,24 @@ import '../supporting/supporting.dart';
 import 'report_selection.dart';
 import 'report_template_data.dart';
 
+/// The exact saved container linked to a recorded dose when stock details are
+/// selected. These are capture-time container facts, not the balance at dose
+/// time, a verified product identity or proof that the dose was taken.
+final class ReportStockSource {
+  const ReportStockSource({
+    required this.containerId,
+    required this.label,
+    required this.unit,
+    this.lot,
+    this.expiryDate,
+    this.capacity,
+  });
+  final String containerId, label, unit;
+  final String? lot;
+  final CivilDate? expiryDate;
+  final ExactAmount? capacity;
+}
+
 /// One captured, current-revision dose. Voided revisions never enter a report.
 final class ReportRecord {
   ReportRecord({
@@ -27,6 +45,7 @@ final class ReportRecord {
     this.site,
     this.notes,
     this.contextTags = const [],
+    this.stockSource,
   }) {
     if (amount <= ExactAmount.zero ||
         !actualAt.isUtc ||
@@ -38,6 +57,7 @@ final class ReportRecord {
   factory ReportRecord.fromUseRecord(
     UseRecord record, {
     bool includeNotes = false,
+    ReportStockSource? stockSource,
   }) => ReportRecord(
     id: record.id,
     itemId: record.itemId,
@@ -56,6 +76,7 @@ final class ReportRecord {
     product: record.product == null
         ? null
         : ReportProduct.fromSnapshot(record.product!, record.actualUnit),
+    stockSource: stockSource,
   );
   final String id, itemId, name, form, type, unit;
   final String? site;
@@ -66,6 +87,7 @@ final class ReportRecord {
   final int revision;
   final RecordSource source;
   final ReportProduct? product;
+  final ReportStockSource? stockSource;
 
   String get itemIdentity => jsonEncode([type, itemId, name, form, unit]);
 }
@@ -725,6 +747,42 @@ int _productCompare(ReportProductTotal a, ReportProductTotal b) {
 final class ReportText {
   const ReportText._();
 
+  /// One stable line for a chosen container. The unit is the container's
+  /// measurement unit; capacity stays exact rather than rounded.
+  static String stockSourceText(ReportStockSource source) => [
+    source.label,
+    'Unit ${source.unit}',
+    if (source.lot != null) 'Lot ${source.lot}',
+    if (source.expiryDate != null)
+      'Expires ${formatCivilDate(source.expiryDate!)}',
+    if (source.capacity != null)
+      'Capacity ${formatExactQuantity(source.capacity!)} ${source.unit}',
+  ].join(' · ');
+
+  static const stockSourceDisclosure =
+      'Stock source details are saved container facts at report capture. '
+      'They do not confirm product identity or when a dose was taken.';
+
+  /// Plain notice for a selected stock section with no chosen container.
+  static const noChosenStockSource =
+      'No dose in this report used a chosen stock container.';
+
+  /// Bounded notice next to a list that mixes doses with and without a chosen
+  /// container. It never invents a source for a dose recorded without one.
+  static const partialStockSourceNote =
+      'Stock source details appear only for doses linked to a chosen container.';
+
+  /// Honest coverage note for the supplied recorded doses, or null when each
+  /// one carries a chosen source. Skipped and not-recorded rows are excluded by
+  /// the caller because they never have a stock movement.
+  static String? stockCoverageNote(Iterable<ReportStockSource?> sources) {
+    final values = sources.toList();
+    if (values.isEmpty || values.every((value) => value == null)) {
+      return noChosenStockSource;
+    }
+    return values.any((value) => value == null) ? partialStockSourceNote : null;
+  }
+
   /// Plain notice for supporting records omitted because their collection date
   /// is unknown or partial. Null when supporting context was not selected or
   /// when no record has such a date, because neither changes the reviewed text.
@@ -1023,6 +1081,13 @@ final class ReportText {
     lines
       ..add('')
       ..add('Doses in period');
+    if (selection.includeStock) {
+      lines.add(stockSourceDisclosure);
+      final note = stockCoverageNote(
+        snapshot.records.map((record) => record.stockSource),
+      );
+      if (note != null) lines.add(note);
+    }
     for (final record in recent) {
       lines.add(
         '${formatInstant(record.actualAt, selection.displayZone, use24Hour: use24Hour)} · '
@@ -1030,6 +1095,9 @@ final class ReportText {
         '${record.contextTags.isEmpty ? '' : ' · Tags: ${record.contextTags.join(', ')}'}',
       );
       if (record.notes != null) lines.add('  Note: ${record.notes}');
+      if (selection.includeStock && record.stockSource != null) {
+        lines.add('  Stock source: ${stockSourceText(record.stockSource!)}');
+      }
     }
     if (snapshot.records.length > recent.length) {
       lines.add(
@@ -1102,6 +1170,37 @@ String formatAmount(ExactAmount amount) {
   final trimmed = _trimDecimal(rounded);
   final exact = ExactAmount.parseEntry(trimmed) == amount;
   return exact ? trimmed : '~$trimmed';
+}
+
+/// Exact decimal text when the rational terminates within 12 places.
+/// Otherwise the exact fraction is shown. Values are never rounded and never
+/// relabelled as exact when a decimal cannot represent them.
+String formatExactQuantity(ExactAmount amount) {
+  var remainder = amount.denominator;
+  var twos = 0, fives = 0;
+  while (remainder % BigInt.two == BigInt.zero) {
+    remainder ~/= BigInt.two;
+    twos++;
+  }
+  while (remainder % BigInt.from(5) == BigInt.zero) {
+    remainder ~/= BigInt.from(5);
+    fives++;
+  }
+  final places = twos > fives ? twos : fives;
+  if (remainder != BigInt.one || places > 12) {
+    return '${amount.numerator}/${amount.denominator}';
+  }
+  final scale = BigInt.from(10).pow(places);
+  final scaled = amount.numerator * scale ~/ amount.denominator;
+  final negative = scaled.isNegative;
+  final digits = scaled.abs().toString().padLeft(places + 1, '0');
+  final whole = digits.substring(0, digits.length - places);
+  final fraction = places == 0
+      ? ''
+      : digits
+            .substring(digits.length - places)
+            .replaceFirst(RegExp(r'0+$'), '');
+  return '${negative ? '-' : ''}$whole${fraction.isEmpty ? '' : '.$fraction'}';
 }
 
 String _trimDecimal(String value) {

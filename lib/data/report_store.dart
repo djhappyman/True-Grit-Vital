@@ -95,6 +95,12 @@ extension ReportStore on RecordStore {
       throw const ReportSelectionFailure('report_source_limit');
     }
     final records = <ReportRecord>[];
+    final stockSources = selection.includeStock
+        ? await _reportStockSources(
+            selection.personId,
+            rows.map((row) => row['id'] as String),
+          )
+        : const <String, ReportStockSource>{};
     for (final row in rows) {
       final record = _record(row);
       if (record.personId != selection.personId) {
@@ -104,6 +110,7 @@ extension ReportStore on RecordStore {
         ReportRecord.fromUseRecord(
           record,
           includeNotes: selection.includeNotes,
+          stockSource: stockSources[record.id],
         ),
       );
       if (cancellation.isCancelled) throw const ReportCancelled();
@@ -287,6 +294,51 @@ extension ReportStore on RecordStore {
       await _releaseReportPins(pins);
       rethrow;
     }
+  }
+
+  /// The exact container linked by the record's own `actualUse` movement.
+  ///
+  /// The lookup never derives a container from balances, strength or another
+  /// movement. A missing link stays absent. The movement's record is unique, so
+  /// a defensive duplicate removes the entry rather than choosing a container.
+  Future<Map<String, ReportStockSource>> _reportStockSources(
+    String personId,
+    Iterable<String> recordIds,
+  ) async {
+    final ids = recordIds.toList()..sort();
+    final result = <String, ReportStockSource>{};
+    final seen = <String>{};
+    const chunkSize = 400;
+    for (var offset = 0; offset < ids.length; offset += chunkSize) {
+      final end = offset + chunkSize < ids.length
+          ? offset + chunkSize
+          : ids.length;
+      final chunk = ids.sublist(offset, end);
+      final marks = List.filled(chunk.length, '?').join(',');
+      final rows = await _rows(
+        '''SELECT sm.record AS record_id,sc.id AS container_id,sc.label AS container_label,sc.unit AS container_unit,sc.lot AS container_lot,sc.expiry_date AS container_expiry,sc.capacity_n AS capacity_n,sc.capacity_d AS capacity_d FROM stock_movement sm JOIN stock_container sc ON sc.id=sm.container AND sc.person=sm.person WHERE sm.person=? AND sm.kind='actualUse' AND sm.record IN ($marks) ORDER BY sm.record''',
+        [personId, ...chunk],
+      );
+      for (final row in rows) {
+        final recordId = row['record_id'] as String;
+        if (!seen.add(recordId)) {
+          result.remove(recordId);
+          continue;
+        }
+        result[recordId] = ReportStockSource(
+          containerId: row['container_id'] as String,
+          label: row['container_label'] as String,
+          unit: row['container_unit'] as String,
+          lot: row['container_lot'] as String?,
+          expiryDate: switch (row['container_expiry']) {
+            final String value when value.isNotEmpty => CivilDate.parse(value),
+            _ => null,
+          },
+          capacity: _storedPair(row, 'capacity_n', 'capacity_d'),
+        );
+      }
+    }
+    return result;
   }
 
   Future<void> _releaseReportPins(Iterable<AttachmentPin> pins) async {

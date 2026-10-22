@@ -64,6 +64,16 @@ final class R02HistoryRenderer implements ReportTemplateRenderer {
         'skipped or not-recorded rows. Entry time stays separate.',
         size: 8,
       ),
+      if (reportStockNote(
+            snapshot,
+            data.entries
+                .where((entry) => entry.amount != null)
+                .map((entry) => entry.stockSource),
+          )
+          case final stockNote?) ...[
+        pw.SizedBox(height: 6),
+        stockNote,
+      ],
       pw.SizedBox(height: 6),
       if (cancellation.isCancelled) throw const ReportCancelled(),
       reportLedgerTable(

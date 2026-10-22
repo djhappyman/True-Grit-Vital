@@ -154,6 +154,27 @@ pw.Widget reportNote(String text, {double size = 8.5}) => pw.Text(
   style: pw.TextStyle(fontSize: size, color: ReportPalette.muted),
 );
 
+/// Disclosure for an optional stock section, or null when it was not selected.
+/// [recordedSources] must contain only doses, never skipped or not-recorded
+/// rows, so the coverage note cannot imply a missing source for a non-dose.
+pw.Widget? reportStockNote(
+  ReportSnapshot snapshot,
+  Iterable<ReportStockSource?> recordedSources,
+) {
+  if (!snapshot.selection.includeStock) return null;
+  final coverage = ReportText.stockCoverageNote(recordedSources);
+  return pw.Column(
+    crossAxisAlignment: pw.CrossAxisAlignment.start,
+    children: [
+      reportNote(ReportText.stockSourceDisclosure, size: 8),
+      if (coverage != null) ...[
+        pw.SizedBox(height: 2),
+        reportNote(coverage, size: 8),
+      ],
+    ],
+  );
+}
+
 pw.Widget reportScopeBox({required String heading, required String body}) =>
     pw.Container(
       padding: const pw.EdgeInsets.all(9),
@@ -227,7 +248,14 @@ pw.Widget reportLedgerTable(
           pw.TableRow(
             children: [
               reportCell(ledgerWhenText(entry, zone, use24Hour: use24Hour)),
-              reportCell(ledgerItemText(entry, zone, use24Hour: use24Hour)),
+              reportCell(
+                ledgerItemText(
+                  entry,
+                  zone,
+                  use24Hour: use24Hour,
+                  includeStock: snapshot.selection.includeStock,
+                ),
+              ),
               reportCell(ledgerAmountText(entry), align: pw.TextAlign.right),
               reportCell(ledgerStatusText(entry.status)),
             ],
@@ -253,6 +281,7 @@ String ledgerItemText(
   ReportLedgerEntry entry,
   String zone, {
   required bool use24Hour,
+  bool includeStock = false,
 }) {
   final lines = <String>[entry.name];
   if (entry.form.trim().isNotEmpty) lines.add(entry.form);
@@ -263,6 +292,11 @@ String ledgerItemText(
     );
   }
   if (entry.site != null) lines.add('Site: ${entry.site}');
+  if (includeStock && entry.stockSource != null) {
+    lines.add(
+      'Stock source: ${ReportText.stockSourceText(entry.stockSource!)}',
+    );
+  }
   if (entry.contextTags.isNotEmpty) {
     lines.add('Tags: ${entry.contextTags.join(', ')}');
   }

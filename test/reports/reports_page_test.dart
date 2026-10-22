@@ -28,6 +28,27 @@ void main() {
     expect(find.text('Unrecorded entries'), findsOneWidget);
   });
 
+  appTest('stock details start off and stay in the reviewed selection', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    f.container
+        .read(routerProvider)
+        .push('/reports?person=$meId&from=2026-10-01&before=2026-10-22');
+    await settle(tester);
+    final initial = f.container.read(reportControllerProvider).selection!;
+    expect(initial.includeStock, isFalse);
+    expect(find.text('Stock details'), findsOneWidget);
+    expect(find.text('Stock details: not included'), findsOneWidget);
+
+    await tap(tester, 'Stock details');
+    final selected = f.container.read(reportControllerProvider).selection!;
+    expect(selected.includeStock, isTrue);
+    expect(selected.identity, isNot(initial.identity));
+    expect(find.text('Stock details: included'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   appTest('a missing person link cannot silently generate for Me', (
     tester,
   ) async {

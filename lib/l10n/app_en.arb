@@ -5668,6 +5668,22 @@
   "@reportSourcesHelp": {
     "description": "Explains source file listing without embedding contents."
   },
+  "featureReportStock": "Stock details",
+  "@featureReportStock": {
+    "description": "Toggle label for optional chosen-container details in reports."
+  },
+  "featureReportStockHelp": "Include the saved container label, lot, expiry and exact capacity when a dose used a chosen container.",
+  "@featureReportStockHelp": {
+    "description": "Explains that stock details come from the container chosen when a dose was recorded."
+  },
+  "featureReportStockIncluded": "Stock details: included",
+  "@featureReportStockIncluded": {
+    "description": "Review summary when stock details are selected."
+  },
+  "featureReportStockNotIncluded": "Stock details: not included",
+  "@featureReportStockNotIncluded": {
+    "description": "Review summary when stock details are off."
+  },
   "reportReview": "Review",
   "@reportReview": {
     "description": "Heading for the selection review panel."

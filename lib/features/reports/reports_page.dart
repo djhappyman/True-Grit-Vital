@@ -354,6 +354,16 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                     .read(reportControllerProvider.notifier)
                     .setIncludeAttachments(value),
               ),
+              SettingsToggleRow(
+                label: t.featureReportStock,
+                description: t.featureReportStockHelp,
+                value: effective.includeStock,
+                enabled: !state.busy,
+                reduceMotion: MediaQuery.disableAnimationsOf(context),
+                onChanged: (value) => ref
+                    .read(reportControllerProvider.notifier)
+                    .setIncludeStock(value),
+              ),
               const SizedBox(height: 16),
               VitalSurface(
                 child: Column(
@@ -382,6 +392,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                         effective.template.id,
                         reportTemplateVersion(effective.template),
                       ),
+                    ),
+                    Text(
+                      effective.includeStock
+                          ? t.featureReportStockIncluded
+                          : t.featureReportStockNotIncluded,
                     ),
                   ],
                 ),

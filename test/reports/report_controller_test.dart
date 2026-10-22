@@ -305,6 +305,52 @@ void main() {
     );
   });
 
+  test(
+    'stock details toggle invalidates an artifact and waits for busy work',
+    () async {
+      final container = await _container(
+        gateway: FixtureReportArtifactGateway(),
+      );
+      final subscription = container.listen(
+        reportControllerProvider,
+        (_, _) {},
+      );
+      addTearDown(subscription.close);
+      await container
+          .read(reportControllerProvider.notifier)
+          .generate(use24Hour: true);
+      expect(container.read(reportControllerProvider).artifact, isNotNull);
+      container.read(reportControllerProvider.notifier).setIncludeStock(true);
+      expect(container.read(reportControllerProvider).artifact, isNull);
+      expect(
+        container.read(reportControllerProvider).selection!.includeStock,
+        isTrue,
+      );
+
+      final gate = Completer<void>();
+      final busy = await _container(
+        gateway: FixtureReportArtifactGateway(),
+        renderer: _Renderer(gate: gate),
+      );
+      final busySubscription = busy.listen(reportControllerProvider, (_, _) {});
+      addTearDown(busySubscription.close);
+      final pending = busy
+          .read(reportControllerProvider.notifier)
+          .generate(use24Hour: true);
+      await _until(
+        () =>
+            busy.read(reportControllerProvider).phase == ReportPhase.rendering,
+      );
+      busy.read(reportControllerProvider.notifier).setIncludeStock(true);
+      expect(
+        busy.read(reportControllerProvider).selection!.includeStock,
+        isFalse,
+      );
+      gate.complete();
+      await pending;
+    },
+  );
+
   test('unavailable handoff is truthful, never a silent success', () async {
     final container = await _container(
       gateway: const UnavailableReportArtifactGateway(),

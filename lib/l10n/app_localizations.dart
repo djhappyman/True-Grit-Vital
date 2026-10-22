@@ -8106,6 +8106,30 @@ abstract class AppLocalizations {
   /// **'List attached source file names. File contents stay separate.'**
   String get reportSourcesHelp;
 
+  /// Toggle label for optional chosen-container details in reports.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock details'**
+  String get featureReportStock;
+
+  /// Explains that stock details come from the container chosen when a dose was recorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Include the saved container label, lot, expiry and exact capacity when a dose used a chosen container.'**
+  String get featureReportStockHelp;
+
+  /// Review summary when stock details are selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock details: included'**
+  String get featureReportStockIncluded;
+
+  /// Review summary when stock details are off.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock details: not included'**
+  String get featureReportStockNotIncluded;
+
   /// Heading for the selection review panel.
   ///
   /// In en, this message translates to:
