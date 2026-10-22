@@ -13568,6 +13568,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last check: unknown.'**
   String get batch15T14LastCheckUnknown;
+
+  /// Heading for the small dialog that edits one saved exact amount preset.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit amount'**
+  String get batch15T05PresetEditTitle;
+
+  /// Explains that editing a saved amount changes only the preset and never records use.
+  ///
+  /// In en, this message translates to:
+  /// **'Save replaces this saved amount. It does not record a dose.'**
+  String get batch15T05PresetEditHelp;
+
+  /// Visible label and accessible name for the exact preset amount field.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get batch15T05PresetAmountLabel;
+
+  /// Visible label and accessible name for the preset unit field.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get batch15T05PresetUnitLabel;
+
+  /// Validation message for an exact preset amount that cannot be saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number greater than zero with up to six decimal places.'**
+  String get batch15T05PresetAmountInvalid;
+
+  /// Validation message naming the units accepted by this substance and its labelled strength.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a supported unit: {units}.'**
+  String batch15T05PresetUnitUnsupported(String units);
+
+  /// Validation message when an edited preset would duplicate another saved exact amount.
+  ///
+  /// In en, this message translates to:
+  /// **'That amount and unit are already saved.'**
+  String get batch15T05PresetDuplicate;
+
+  /// Accessible name for the action that opens one saved amount for editing.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit saved amount {amount} {unit}'**
+  String batch15T05PresetEditSemantic(String amount, String unit);
 }
 
 class _AppLocalizationsDelegate

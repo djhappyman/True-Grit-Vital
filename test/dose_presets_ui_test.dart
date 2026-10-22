@@ -7,11 +7,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:true_grit_vital/app/appearance.dart';
+import 'package:true_grit_vital/app/app_lock.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/recording/dose_preset_panel.dart';
 import 'package:true_grit_vital/features/recording/dose_presets.dart';
 import 'package:true_grit_vital/features/recording/record_pages.dart';
+import 'package:true_grit_vital/ui/vital_ui.dart';
+
+import 'private_drafts_ui_test.dart' show FakeAuth;
 
 import 'screen_record_dose_test.dart'
     show createItem, createContainer, enterAmount, selectSource;
@@ -20,6 +24,19 @@ import 'vital_app_test.dart'
 
 Finder preset(String amount, String unit) =>
     find.byKey(ValueKey('dose-preset-$amount\u0000$unit'));
+Finder editPreset(String amount, String unit) =>
+    find.byKey(ValueKey('dose-preset-edit-$amount\u0000$unit'));
+Finder dialogAmount() => find.byKey(const ValueKey('dose-preset-edit-amount'));
+Finder dialogUnit() => find.byKey(const ValueKey('dose-preset-edit-unit'));
+Finder dialogAction(String label) => find.descendant(
+  of: find.byKey(const ValueKey('dose-preset-edit-dialog')),
+  matching: find.text(label),
+);
+List<String> savedValues(ProviderContainer container, DosePresetOwner owner) =>
+    [
+      for (final value in container.read(dosePresetsProvider(owner)).values)
+        '${value.text} ${value.unit}',
+    ];
 Finder amountField() => find.descendant(
   of: find.widgetWithText(LabelledInput, 'Amount'),
   matching: find.byType(TextField),
@@ -203,6 +220,156 @@ void main() {
       expect(record.actualUnit, 'mg');
     },
   );
+
+  appTest(
+    'editing a saved amount preserves the entered dose and supports cancellation',
+    (tester) async {
+      final f = await launch(tester);
+      final screen = GlobalKey();
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: f.container,
+          child: RepaintBoundary(key: screen, child: const VitalApp()),
+        ),
+      );
+      final item = (await runIo(tester, () => createItem(f.store)))!;
+      f.container.read(routerProvider).go('/record/${item.id}');
+      await settle(tester);
+      final owner = (personId: meId, itemId: item.id);
+      await runIo(tester, () async {
+        final controller = f.container.read(
+          dosePresetsProvider(owner).notifier,
+        );
+        await controller.add(DosePreset('1', 'ml'));
+        await controller.add(DosePreset('2', 'ml'));
+      });
+      await enterAmount(tester, '9');
+      await tap(tester, 'Configure');
+      await choose(tester, editPreset('1', 'ml'));
+      await tester.enterText(dialogAmount(), '0.25');
+      await tester.testTextInput.receiveAction(TextInputAction.next);
+      await settle(tester);
+      expect(find.byType(DosePresetEditDialog), findsOneWidget);
+      expect(savedValues(f.container, owner), ['1 ml', '2 ml']);
+      if (captures.isNotEmpty) {
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+          f.container.read(appearanceProvider.notifier).setMode(mode);
+          for (final (width, scale) in [(390.0, 1.0), (320.0, 2.0)]) {
+            tester.view.physicalSize = Size(width, 844);
+            tester.platformDispatcher.textScaleFactorTestValue = scale;
+            await settle(tester);
+            expect(dialogAction('Save').hitTestable(), findsOneWidget);
+            expect(tester.takeException(), isNull);
+            await capture(
+              tester,
+              screen,
+              '${mode.name}-edit-${width.toInt()}x${scale.toInt()}',
+            );
+          }
+        }
+        tester.platformDispatcher.clearTextScaleFactorTestValue();
+        tester.view.physicalSize = const Size(390, 844);
+        await settle(tester);
+      }
+      await choose(tester, dialogAction('Save'));
+      expect(savedValues(f.container, owner), ['0.25 ml', '2 ml']);
+      expect(tester.widget<TextField>(amountField()).controller!.text, '9');
+      expect(await runIo(tester, f.store.records), isEmpty);
+      await choose(tester, editPreset('0.25', 'ml'));
+      await tester.enterText(dialogAmount(), '2');
+      await settle(tester);
+      expect(
+        find.text('That amount and unit are already saved.'),
+        findsOneWidget,
+      );
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await settle(tester);
+      expect(find.byType(DosePresetEditDialog), findsNothing);
+      expect(savedValues(f.container, owner), ['0.25 ml', '2 ml']);
+    },
+  );
+
+  appTest('a preset edit captured before lock cannot write after unlock', (
+    tester,
+  ) async {
+    final f = await launch(tester, auth: FakeAuth());
+    final item = (await runIo(tester, () => createItem(f.store)))!;
+    await runIo(
+      tester,
+      () => f.container.read(appLockProvider.notifier).setEnabled(true),
+    );
+    f.container.read(routerProvider).go('/record/${item.id}');
+    await settle(tester);
+    final owner = (personId: meId, itemId: item.id);
+    await runIo(
+      tester,
+      () => f.container
+          .read(dosePresetsProvider(owner).notifier)
+          .add(DosePreset('1', 'ml')),
+    );
+    await settle(tester);
+    await tap(tester, 'Configure');
+    await choose(tester, editPreset('1', 'ml'));
+    final staleSave = tester
+        .widget<DosePresetEditDialog>(find.byType(DosePresetEditDialog))
+        .onSave;
+    await tester.enterText(dialogAmount(), '0.5');
+    f.container.read(appLockProvider.notifier).lock();
+    await settle(tester);
+    await tap(tester, 'Unlock');
+    await settle(tester);
+    expect(
+      await runIo(tester, () => staleSave(DosePreset('0.5', 'ml'))),
+      isFalse,
+    );
+    expect(savedValues(f.container, owner), ['1 ml']);
+    expect(await runIo(tester, f.store.records), isEmpty);
+  });
+
+  appTest('a preset dialog keeps the old amount after failure and retries', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final item = (await runIo(tester, () => createItem(f.store)))!;
+    f.container.read(routerProvider).go('/record/${item.id}');
+    await settle(tester);
+    final owner = (personId: meId, itemId: item.id);
+    final controller = f.container.read(dosePresetsProvider(owner).notifier);
+    await runIo(tester, () => controller.add(DosePreset('1', 'ml')));
+    await settle(tester);
+    var attempts = 0;
+    final dialog = showVitalDialog<void>(
+      context: tester.element(find.byType(DosePresetPanel)),
+      builder: (_) => DosePresetEditDialog(
+        initial: DosePreset('1', 'ml'),
+        allowedUnits: const {'ml'},
+        otherIdentities: const {},
+        onSave: (next) async {
+          if (attempts++ == 0) throw StateError('synthetic writer failure');
+          return controller.replace(
+            DosePreset('1', 'ml'),
+            next,
+            allowedUnits: {'ml'},
+          );
+        },
+      ),
+    );
+    await settle(tester);
+    await tester.enterText(dialogAmount(), '0.5');
+    await choose(tester, dialogAction('Save'));
+    expect(
+      find.byKey(const ValueKey('dose-preset-edit-failed')),
+      findsOneWidget,
+    );
+    expect(savedValues(f.container, owner), ['1 ml']);
+    await choose(tester, dialogAction('Save'));
+    await dialog;
+    expect(savedValues(f.container, owner), ['0.5 ml']);
+    expect(await runIo(tester, f.store.records), isEmpty);
+  });
 
   appTest(
     'saved amount selection and management grow at narrow widths in both themes',

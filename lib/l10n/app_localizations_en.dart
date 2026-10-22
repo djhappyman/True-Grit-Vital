@@ -8738,4 +8738,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get batch15T14LastCheckUnknown => 'Last check: unknown.';
+
+  @override
+  String get batch15T05PresetEditTitle => 'Edit amount';
+
+  @override
+  String get batch15T05PresetEditHelp =>
+      'Save replaces this saved amount. It does not record a dose.';
+
+  @override
+  String get batch15T05PresetAmountLabel => 'Amount';
+
+  @override
+  String get batch15T05PresetUnitLabel => 'Unit';
+
+  @override
+  String get batch15T05PresetAmountInvalid =>
+      'Enter a number greater than zero with up to six decimal places.';
+
+  @override
+  String batch15T05PresetUnitUnsupported(String units) {
+    return 'Use a supported unit: $units.';
+  }
+
+  @override
+  String get batch15T05PresetDuplicate =>
+      'That amount and unit are already saved.';
+
+  @override
+  String batch15T05PresetEditSemantic(String amount, String unit) {
+    return 'Edit saved amount $amount $unit';
+  }
 }

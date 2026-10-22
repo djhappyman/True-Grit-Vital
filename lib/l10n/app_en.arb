@@ -10295,5 +10295,50 @@
   "batch15T14LastCheckUnknown": "Last check: unknown.",
   "@batch15T14LastCheckUnknown": {
     "description": "Reminder cancellation detail shown when the last completed check reported counts without a readable time. Never substitute the current time or imply a fresh check."
+  },
+  "batch15T05PresetEditTitle": "Edit amount",
+  "@batch15T05PresetEditTitle": {
+    "description": "Heading for the small dialog that edits one saved exact amount preset."
+  },
+  "batch15T05PresetEditHelp": "Save replaces this saved amount. It does not record a dose.",
+  "@batch15T05PresetEditHelp": {
+    "description": "Explains that editing a saved amount changes only the preset and never records use."
+  },
+  "batch15T05PresetAmountLabel": "Amount",
+  "@batch15T05PresetAmountLabel": {
+    "description": "Visible label and accessible name for the exact preset amount field."
+  },
+  "batch15T05PresetUnitLabel": "Unit",
+  "@batch15T05PresetUnitLabel": {
+    "description": "Visible label and accessible name for the preset unit field."
+  },
+  "batch15T05PresetAmountInvalid": "Enter a number greater than zero with up to six decimal places.",
+  "@batch15T05PresetAmountInvalid": {
+    "description": "Validation message for an exact preset amount that cannot be saved."
+  },
+  "batch15T05PresetUnitUnsupported": "Use a supported unit: {units}.",
+  "@batch15T05PresetUnitUnsupported": {
+    "description": "Validation message naming the units accepted by this substance and its labelled strength.",
+    "placeholders": {
+      "units": {
+        "type": "String"
+      }
+    }
+  },
+  "batch15T05PresetDuplicate": "That amount and unit are already saved.",
+  "@batch15T05PresetDuplicate": {
+    "description": "Validation message when an edited preset would duplicate another saved exact amount."
+  },
+  "batch15T05PresetEditSemantic": "Edit saved amount {amount} {unit}",
+  "@batch15T05PresetEditSemantic": {
+    "description": "Accessible name for the action that opens one saved amount for editing.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
   }
 }

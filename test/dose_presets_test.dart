@@ -261,5 +261,203 @@ void main() {
       expect(state.failed && state.readFailed, isTrue);
       expect(state.values, isEmpty);
     });
+    test(
+      'replacement keeps order, exact values and survives restart',
+      () async {
+        final controller = container.read(dosePresetsProvider(owner).notifier);
+        await controller.add(DosePreset('1', 'mg'));
+        await controller.add(DosePreset('2', 'ml'));
+        await controller.add(DosePreset('3', 'count'));
+        final saved = await controller.replace(
+          DosePreset('2', 'ml'),
+          DosePreset('0,000001', 'ml'),
+          allowedUnits: {'mg', 'ml', 'count'},
+        );
+        expect(saved, isTrue);
+        String values() => container
+            .read(dosePresetsProvider(owner))
+            .values
+            .map((value) => '${value.text} ${value.unit}')
+            .join(',');
+        expect(values(), '1 mg,0.000001 ml,3 count');
+        container.invalidate(dosePresetsProvider(owner));
+        await until(() => !container.read(dosePresetsProvider(owner)).loading);
+        expect(values(), '1 mg,0.000001 ml,3 count');
+        expect(await store.records(), isEmpty);
+      },
+    );
+    test(
+      'replacement rejects duplicate identity and unsupported units',
+      () async {
+        final controller = container.read(dosePresetsProvider(owner).notifier);
+        await controller.add(DosePreset('1', 'mg'));
+        final before = await store.readSetting(controller.storageKey);
+        expect(
+          await controller.replace(
+            DosePreset('1', 'mg'),
+            DosePreset('2', 'ml'),
+            allowedUnits: {'mg'},
+          ),
+          isFalse,
+        );
+        expect(
+          await controller.replace(
+            DosePreset('1', 'mg'),
+            DosePreset('1', 'oz'),
+            allowedUnits: {'mg', 'ml'},
+          ),
+          isFalse,
+        );
+        expect(
+          container.read(dosePresetsProvider(owner)).values.single.identity,
+          DosePreset('1', 'mg').identity,
+        );
+        expect(await store.readSetting(controller.storageKey), before);
+      },
+    );
+    test('a failed replacement keeps the old preset and retries', () async {
+      final controller = container.read(dosePresetsProvider(owner).notifier);
+      await controller.add(DosePreset('1', 'mg'));
+      writer = (_) => Future.error(StateError('test failure'));
+      expect(
+        await controller.replace(
+          DosePreset('1', 'mg'),
+          DosePreset('2', 'mg'),
+          allowedUnits: {'mg'},
+        ),
+        isFalse,
+      );
+      var state = container.read(dosePresetsProvider(owner));
+      expect(state.failed, isTrue);
+      expect(state.values.single.text, '1');
+      expect(await store.readSetting(controller.storageKey), contains('"1"'));
+      writer = null;
+      expect(
+        await controller.replace(
+          DosePreset('1', 'mg'),
+          DosePreset('2', 'mg'),
+          allowedUnits: {'mg'},
+        ),
+        isTrue,
+      );
+      state = container.read(dosePresetsProvider(owner));
+      expect(state.failed, isFalse);
+      expect(state.values.single.text, '2');
+      expect(await store.readSetting(controller.storageKey), contains('"2"'));
+    });
+    test('locking during a pending replacement publishes nothing', () async {
+      final controller = container.read(dosePresetsProvider(owner).notifier);
+      await controller.add(DosePreset('1', 'mg'));
+      final gate = Completer<void>(), started = Completer<void>();
+      writer = (write) async {
+        started.complete();
+        await gate.future;
+        await write.store.writeSetting(
+          write.key,
+          write.value,
+          canCommit: write.canCommit,
+        );
+      };
+      final save = controller.replace(
+        DosePreset('1', 'mg'),
+        DosePreset('2', 'mg'),
+        allowedUnits: {'mg'},
+      );
+      await started.future;
+      final lock = container.read(appLockProvider.notifier) as PresetTestLock;
+      lock.setLocked(true);
+      await pumpEventQueue();
+      lock.setLocked(false);
+      await pumpEventQueue();
+      gate.complete();
+      expect(await save, isFalse);
+      await until(() => !container.read(dosePresetsProvider(owner)).loading);
+      expect(await store.readSetting(controller.storageKey), contains('"1"'));
+      expect(
+        container.read(dosePresetsProvider(owner)).values.single.text,
+        '1',
+      );
+    });
+    test('an expired edit context rejects a queued replacement', () async {
+      final controller = container.read(dosePresetsProvider(owner).notifier);
+      await controller.add(DosePreset('1', 'mg'));
+      var current = true;
+      final gate = Completer<void>(), started = Completer<void>();
+      writer = (write) async {
+        started.complete();
+        await gate.future;
+        await write.store.writeSetting(
+          write.key,
+          write.value,
+          canCommit: write.canCommit,
+        );
+      };
+      final save = controller.replace(
+        DosePreset('1', 'mg'),
+        DosePreset('2', 'mg'),
+        allowedUnits: {'mg'},
+        canCommit: () => current,
+      );
+      await started.future;
+      current = false;
+      gate.complete();
+      expect(await save, isFalse);
+      expect(await store.readSetting(controller.storageKey), contains('"1"'));
+      expect(
+        container.read(dosePresetsProvider(owner)).values.single.text,
+        '1',
+      );
+    });
+
+    test('a dataset change retires a pending replacement', () async {
+      final controller = container.read(dosePresetsProvider(owner).notifier);
+      await controller.add(DosePreset('1', 'mg'));
+      final gate = Completer<void>(), started = Completer<void>();
+      writer = (write) async {
+        started.complete();
+        await gate.future;
+        await write.store.writeSetting(
+          write.key,
+          write.value,
+          canCommit: write.canCommit,
+        );
+      };
+      final save = controller.replace(
+        DosePreset('1', 'mg'),
+        DosePreset('2', 'mg'),
+        allowedUnits: {'mg'},
+      );
+      await started.future;
+      final old = store;
+      store = await RecordStore.open(
+        path: '${directory.path}/replacement-edit',
+        key: key,
+        isNew: true,
+      );
+      container.invalidate(recordStoreProvider);
+      await pumpEventQueue();
+      gate.complete();
+      expect(await save, isFalse);
+      await until(() => !container.read(dosePresetsProvider(owner)).loading);
+      await old.close();
+      final preserved = await RecordStore.open(
+        path: old.databasePath,
+        key: key,
+        isNew: false,
+      );
+      try {
+        expect(
+          await preserved.readSetting(controller.storageKey),
+          contains('"1"'),
+        );
+      } finally {
+        await preserved.close();
+      }
+      expect(
+        container.read(dosePresetsProvider(owner)).values,
+        isEmpty,
+        reason: 'The replacement dataset has no saved preset yet',
+      );
+    });
   });
 }

@@ -96,11 +96,18 @@ class DosePresetController extends Notifier<DosePresetState> {
   static const limit = 8;
   String get storageKey => 'dose_presets:${owner.personId}:${owner.itemId}';
   int _epoch = 0;
+  Object _authority = Object();
+  Object get authority => _authority;
+  bool actionCurrent(Object token) =>
+      ref.mounted &&
+      identical(token, _authority) &&
+      !ref.read(appLockProvider).locked;
   bool _saving = false;
   Completer<void>? _settled;
 
   @override
   DosePresetState build() {
+    _authority = Object();
     final locked = ref.watch(appLockProvider.select((state) => state.locked));
     final record = ref.watch(recordStoreProvider);
     final store = record.isLoading || record.hasError ? null : record.value;
@@ -156,16 +163,52 @@ class DosePresetController extends Notifier<DosePresetState> {
       if (value.identity != preset.identity) value,
   ]);
 
-  Future<void> _save(List<DosePreset> values) async {
+  /// Replaces one saved amount in place. The order and the eight-preset bound
+  /// stay unchanged. An unsupported unit, a different preset with the same
+  /// exact identity, a locked app or a replaced dataset never reaches storage.
+  Future<bool> replace(
+    DosePreset previous,
+    DosePreset next, {
+    required Set<String> allowedUnits,
+    bool Function()? canCommit,
+  }) async {
+    if (_saving ||
+        state.loading ||
+        ref.read(appLockProvider).locked ||
+        canCommit?.call() == false) {
+      return false;
+    }
+    final index = state.values.indexWhere(
+      (value) => value.identity == previous.identity,
+    );
+    if (index < 0 || !allowedUnits.contains(next.unit)) return false;
+    for (var i = 0; i < state.values.length; i++) {
+      if (i != index && state.values[i].identity == next.identity) return false;
+    }
+    if (next.identity == previous.identity) return true;
+    // A failed write left the previous stored list intact. Let the edit dialog
+    // retry the same replacement without forcing a full settings reload.
+    if (state.failed && !state.readFailed) {
+      state = DosePresetState(values: state.values);
+    }
+    final values = [...state.values]..[index] = next;
+    return _save(values, canCommit: canCommit);
+  }
+
+  Future<bool> _save(
+    List<DosePreset> values, {
+    bool Function()? canCommit,
+  }) async {
     if (_saving ||
         state.loading ||
         state.failed ||
-        ref.read(appLockProvider).locked) {
-      return;
+        ref.read(appLockProvider).locked ||
+        canCommit?.call() == false) {
+      return false;
     }
     final record = ref.read(recordStoreProvider);
     final store = record.isLoading || record.hasError ? null : record.value;
-    if (store == null) return;
+    if (store == null) return false;
     final previous = state.values, epoch = ++_epoch;
     final settled = _settled = Completer<void>();
     final lease = ref.keepAlive();
@@ -179,7 +222,8 @@ class DosePresetController extends Notifier<DosePresetState> {
         canCommit: () {
           if (!ref.mounted ||
               epoch != _epoch ||
-              ref.read(appLockProvider).locked) {
+              ref.read(appLockProvider).locked ||
+              canCommit?.call() == false) {
             return false;
           }
           final current = ref.read(recordStoreProvider);
@@ -191,10 +235,12 @@ class DosePresetController extends Notifier<DosePresetState> {
       if (ref.mounted && epoch == _epoch) {
         state = DosePresetState(values: List.unmodifiable(values));
       }
+      return true;
     } catch (_) {
       if (ref.mounted && epoch == _epoch) {
         state = DosePresetState(values: previous, failed: true);
       }
+      return false;
     } finally {
       _saving = false;
       _settled = null;
