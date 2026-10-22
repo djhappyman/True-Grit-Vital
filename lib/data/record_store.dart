@@ -51,6 +51,8 @@ import '../domain/events/events.dart';
 export '../domain/events/events.dart';
 import '../domain/events/event_summary.dart';
 export '../domain/events/event_summary.dart';
+import '../domain/events/event_collection.dart';
+export '../domain/events/event_collection.dart';
 import '../domain/charts/charts.dart';
 import '../domain/exports/exports.dart';
 import '../domain/supporting/supporting.dart';
@@ -78,6 +80,7 @@ part 'combined_store.dart';
 part 'reminder_store.dart';
 part 'event_store.dart';
 part 'event_summary_store.dart';
+part 'event_collection_store.dart';
 part 'attachment_store.dart';
 part 'history_store.dart';
 part 'chart_store.dart';
@@ -1688,15 +1691,16 @@ final class RecordStore {
     Future<void> queue = Future.value();
     var cancelled = false;
     void refresh() {
-      if (_closed || cancelled) return;
+      if (_closed || cancelled || _writesSuspended) return;
       late final Future<void> work;
       work = queue.then((_) async {
-        if (_closed || cancelled) return;
+        if (_closed || cancelled || _writesSuspended) return;
         try {
           final value = await read();
-          if (!cancelled) sink.add(value);
+          // A read that started before the lock must not publish afterwards.
+          if (!cancelled && !_writesSuspended) sink.add(value);
         } catch (e, s) {
-          if (!cancelled) sink.addError(e, s);
+          if (!cancelled && !_writesSuspended) sink.addError(e, s);
         }
       });
       queue = work;

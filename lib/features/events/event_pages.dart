@@ -12,6 +12,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/storage.dart';
 import '../../app/settings_toggle_row.dart';
+import '../../app/app_lock.dart';
 import '../../data/record_store.dart';
 import '../../domain/scheduling/iana_clock.dart';
 import '../../l10n/app_localizations.dart';
@@ -20,6 +21,8 @@ import '../plans/today_hero.dart' show todayNowProvider;
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
 import 'event_summary_widgets.dart';
+
+export '../../domain/events/event_collection.dart' show cycleTiming;
 
 typedef EventWriter = Future<void> Function(
   SaveEventCommand command,
@@ -48,6 +51,30 @@ final eventPageProvider = StreamProvider.autoDispose
       (ref, q) async* {
         yield* (await ref.watch(recordStoreProvider.future))
             .watchEvents(personId: q.personId, limit: 51, offset: q.offset);
+      },
+    );
+
+/// Whole-collection Events counts and one filtered page under the same instant.
+/// Locked reads never emit prior records; the page treats a reload as loading
+/// rather than presenting the previous page as current.
+typedef EventCollectionQuery = ({
+  DateTime asOf,
+  EventCollectionFilter filter,
+  int offset,
+});
+final eventCollectionProvider = StreamProvider.autoDispose
+    .family<EventCollectionSnapshot, EventCollectionQuery>(
+      retry: (_, _) => null,
+      (ref, query) async* {
+        if (ref.watch(appLockProvider.select((state) => state.locked))) {
+          return;
+        }
+        yield* (await ref.watch(recordStoreProvider.future))
+            .watchEventCollection(
+              filter: query.filter,
+              now: query.asOf,
+              offset: query.offset,
+            );
       },
     );
 final eventActualsProvider = FutureProvider.autoDispose
@@ -197,12 +224,22 @@ enum _EventFilter { all, active, upcoming, completed, review }
 
 enum _EventPhase { active, upcoming, completed, review }
 
-_EventPhase _eventPhase(EventRecord event, DateTime now) {
-  if (event.completed) return _EventPhase.completed;
-  final timing = cycleTiming(event, now);
-  if (timing.startsIn != null) return _EventPhase.upcoming;
-  return timing.elapsed == null ? _EventPhase.review : _EventPhase.active;
-}
+EventCollectionFilter _collectionFilter(_EventFilter filter) =>
+    switch (filter) {
+      _EventFilter.all => EventCollectionFilter.all,
+      _EventFilter.active => EventCollectionFilter.active,
+      _EventFilter.upcoming => EventCollectionFilter.upcoming,
+      _EventFilter.completed => EventCollectionFilter.completed,
+      _EventFilter.review => EventCollectionFilter.review,
+    };
+
+_EventPhase _eventPhase(EventRecord event, DateTime now) =>
+    switch (eventCollectionPhase(event, now)) {
+      EventCollectionPhase.active => _EventPhase.active,
+      EventCollectionPhase.upcoming => _EventPhase.upcoming,
+      EventCollectionPhase.completed => _EventPhase.completed,
+      EventCollectionPhase.review => _EventPhase.review,
+    };
 
 bool _eventReviewDue(EventRecord event, DateTime now) {
   if (event.completed || event.endReviewDismissed) return false;
@@ -350,6 +387,9 @@ class EventsPage extends ConsumerStatefulWidget {
 
 class _EventsPageState extends ConsumerState<EventsPage> {
   final selected = <String>{};
+  final _filterKeys = {
+    for (final choice in _EventFilter.values) choice: GlobalKey(),
+  };
   int offset = 0;
   _EventFilter filter = _EventFilter.all;
   Timer? _clockTimer;
@@ -367,44 +407,27 @@ class _EventsPageState extends ConsumerState<EventsPage> {
     super.dispose();
   }
 
+  /// Minute granularity keeps the query stable while status labels rerender.
+  DateTime _collectionAsOf(DateTime now) {
+    final utc = now.toUtc();
+    return DateTime.utc(utc.year, utc.month, utc.day, utc.hour, utc.minute);
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context), c = StitchColors(context);
-    final query = (personId: meId, offset: offset);
-    final result = ref.watch(eventPageProvider(query));
-    final visible = result.value?.take(50).toList();
-    final complete = offset == 0 && (result.value?.length ?? 0) <= 50;
     final now = ref.watch(todayNowProvider)();
+    final query = (
+      asOf: _collectionAsOf(now),
+      filter: _collectionFilter(filter),
+      offset: offset,
+    );
+    final result = ref.watch(eventCollectionProvider(query));
+    final loaded = result.hasValue && !result.isLoading && !result.hasError
+        ? result.requireValue
+        : null;
+    final counts = loaded?.counts ?? const EventCollectionCounts.empty();
     final picked = selected.toList();
-    final counts = <_EventPhase, int>{
-      for (final phase in _EventPhase.values)
-        phase: visible == null
-            ? 0
-            : visible.where((e) => _eventPhase(e, now) == phase).length,
-    };
-    final shown = switch (filter) {
-      _EventFilter.all => visible ?? const <EventRecord>[],
-      _EventFilter.active =>
-        visible
-                ?.where((e) => _eventPhase(e, now) == _EventPhase.active)
-                .toList() ??
-            const <EventRecord>[],
-      _EventFilter.upcoming =>
-        visible
-                ?.where((e) => _eventPhase(e, now) == _EventPhase.upcoming)
-                .toList() ??
-            const <EventRecord>[],
-      _EventFilter.completed =>
-        visible
-                ?.where((e) => _eventPhase(e, now) == _EventPhase.completed)
-                .toList() ??
-            const <EventRecord>[],
-      _EventFilter.review =>
-        visible
-                ?.where((e) => _eventPhase(e, now) == _EventPhase.review)
-                .toList() ??
-            const <EventRecord>[],
-    };
     return StitchScrollBody(
       children: [
         Wrap(
@@ -425,26 +448,18 @@ class _EventsPageState extends ConsumerState<EventsPage> {
             ),
           ],
         ),
-        if (visible != null && visible.isNotEmpty) ...[
+        if (loaded != null && loaded.total > 0) ...[
           const SizedBox(height: 8),
           Align(
             alignment: AlignmentDirectional.centerStart,
             child: StitchBadge(
-              complete
-                  ? [
-                      t.screenEventsActiveCount(
-                        counts[_EventPhase.active] ?? 0,
-                      ),
-                      t.screenEventsUpcomingCount(
-                        counts[_EventPhase.upcoming] ?? 0,
-                      ),
-                      t.screenEventsCompletedCount(
-                        counts[_EventPhase.completed] ?? 0,
-                      ),
-                      if ((counts[_EventPhase.review] ?? 0) > 0)
-                        t.screenEventsReviewCount(counts[_EventPhase.review]!),
-                    ].join(' · ')
-                  : t.screenEventsShown(visible.length),
+              [
+                t.screenEventsActiveCount(loaded.counts.active),
+                t.screenEventsUpcomingCount(loaded.counts.upcoming),
+                t.screenEventsCompletedCount(loaded.counts.completed),
+                if (loaded.counts.review > 0)
+                  t.screenEventsReviewCount(loaded.counts.review),
+              ].join(' · '),
               dot: true,
             ),
           ),
@@ -455,7 +470,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
           style: StitchType.body.copyWith(color: c.muted),
         ),
         const SizedBox(height: 16),
-        if (visible != null && visible.isNotEmpty) ...[
+        if (loaded != null && loaded.total > 0) ...[
           Semantics(
             container: true,
             label: t.screenEventsFilterLabel,
@@ -465,16 +480,28 @@ class _EventsPageState extends ConsumerState<EventsPage> {
                 children: [
                   for (final choice in _EventFilter.values)
                     Padding(
+                      key: _filterKeys[choice],
                       padding: const EdgeInsets.only(right: 8),
                       child: Semantics(
                         selected: filter == choice,
                         child: StitchButton(
                           compact: true,
-                          onPressed: () => setState(() => filter = choice),
+                          onPressed: () {
+                            setState(() {
+                              filter = choice;
+                              offset = 0;
+                            });
+                            // Keep the chosen status visible in the scrolled
+                            // chip row, so its selected state stays apparent.
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              final chip = _filterKeys[choice]?.currentContext;
+                              if (chip != null) {
+                                Scrollable.ensureVisible(chip, alignment: 0.5);
+                              }
+                            });
+                          },
                           primary: filter == choice,
-                          child: Text(
-                            _filterLabel(t, choice, counts, complete),
-                          ),
+                          child: Text(_filterLabel(t, choice, counts)),
                         ),
                       ),
                     ),
@@ -482,18 +509,18 @@ class _EventsPageState extends ConsumerState<EventsPage> {
               ),
             ),
           ),
-          if (!complete) ...[
-            const SizedBox(height: 6),
-            Text(
-              t.screenEventsLoadedOnly,
-              style: StitchType.caption.copyWith(color: c.muted),
-            ),
-          ],
+          const SizedBox(height: 6),
+          Text(
+            t.featureEventCollectionCountsHelp,
+            style: StitchType.caption.copyWith(color: c.muted),
+          ),
           const SizedBox(height: 16),
         ],
         if (result.hasError)
-          LoadFailure(onRetry: () => ref.invalidate(eventPageProvider(query)))
-        else if (!result.hasValue)
+          LoadFailure(
+            onRetry: () => ref.invalidate(eventCollectionProvider(query)),
+          )
+        else if (loaded == null)
           StitchSurface(
             radius: VitalLayout.sectionRadius,
             child: Semantics(
@@ -501,49 +528,66 @@ class _EventsPageState extends ConsumerState<EventsPage> {
               child: Text(t.loadingRecords, style: StitchType.body),
             ),
           )
-        else if (visible!.isEmpty)
+        else if (loaded.total == 0)
           VitalEmptyState(
             title: t.events,
             description: t.eventEmpty,
             icon: LucideIcons.calendarRange,
           )
-        else if (shown.isEmpty) ...[
+        else if (loaded.events.isEmpty)
           VitalEmptyState(
-            title: t.screenEventsNoMatches,
+            title: t.featureEventCollectionNoMatches,
+            description: t.featureEventCollectionNoMatchesHelp,
             icon: LucideIcons.calendarRange,
             action: VitalButton.secondary(
-              onPressed: () => setState(() => filter = _EventFilter.all),
+              onPressed: () => setState(() {
+                filter = _EventFilter.all;
+                offset = 0;
+              }),
               child: Text(t.clear),
             ),
-          ),
-        ] else
-          for (final event in shown)
+          )
+        else
+          for (final event in loaded.events)
             Padding(
               key: ValueKey(event.id),
               padding: const EdgeInsets.only(bottom: 12),
               child: _EventCard(
                 key: ValueKey('screen-events-card-${event.id}'),
                 event: event,
-                now: now,
+                now: loaded.asOf,
                 selected: selected.contains(event.id),
                 onToggleSelected: () => setState(() {
                   if (!selected.add(event.id)) selected.remove(event.id);
                 }),
               ),
             ),
-        if (visible != null && visible.isNotEmpty)
+        if (loaded != null && loaded.filteredTotal > loaded.pageSize) ...[
+          const SizedBox(height: 6),
+          Text(
+            t.featureEventCollectionPageRange(
+              loaded.offset + 1,
+              loaded.offset + loaded.events.length,
+              loaded.filteredTotal,
+            ),
+            style: StitchType.caption.copyWith(color: c.muted),
+          ),
+        ],
+        if (loaded != null && (loaded.hasPrevious || loaded.hasNext))
           Wrap(
             spacing: 12,
             runSpacing: 12,
             children: [
-              if (offset > 0)
+              if (loaded.hasPrevious)
                 VitalButton.secondary(
-                  onPressed: () => setState(() => offset -= 50),
+                  onPressed: () =>
+                      setState(() => offset = loaded.offset - loaded.pageSize),
                   child: Text(t.previous),
                 ),
-              if ((result.value?.length ?? 0) > 50)
+              if (loaded.hasNext)
                 VitalButton.secondary(
-                  onPressed: () => setState(() => offset += 50),
+                  onPressed: () =>
+                      setState(() => offset = loaded.offset + loaded.pageSize),
                   child: Text(t.next),
                 ),
             ],
@@ -562,7 +606,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
           const SizedBox(height: 12),
           EventActualList(ids: (picked..sort()).join(',')),
         ],
-        if (visible != null && visible.isNotEmpty) ...[
+        if (loaded != null && loaded.total > 0) ...[
           const SizedBox(height: 24),
           const _EventContextNotice(),
         ],
@@ -573,19 +617,28 @@ class _EventsPageState extends ConsumerState<EventsPage> {
   String _filterLabel(
     AppLocalizations t,
     _EventFilter choice,
-    Map<_EventPhase, int> counts,
-    bool complete,
+    EventCollectionCounts counts,
   ) {
-    final (label, phase) = switch (choice) {
+    final (label, filter) = switch (choice) {
       _EventFilter.all => (t.screenEventsAll, null),
-      _EventFilter.active => (t.screenEventsActive, _EventPhase.active),
-      _EventFilter.upcoming => (t.screenEventsUpcoming, _EventPhase.upcoming),
-      _EventFilter.completed => (t.eventCompleted, _EventPhase.completed),
-      _EventFilter.review => (t.review, _EventPhase.review),
+      _EventFilter.active => (
+        t.screenEventsActive,
+        EventCollectionFilter.active,
+      ),
+      _EventFilter.upcoming => (
+        t.screenEventsUpcoming,
+        EventCollectionFilter.upcoming,
+      ),
+      _EventFilter.completed => (
+        t.eventCompleted,
+        EventCollectionFilter.completed,
+      ),
+      _EventFilter.review => (t.review, EventCollectionFilter.review),
     };
-    return complete && phase != null
-        ? t.stitchFilterCount(label, counts[phase] ?? 0)
-        : label;
+    // "All" stays uncounted so it remains the plain reset target.
+    return filter == null
+        ? label
+        : t.stitchFilterCount(label, counts.count(filter));
   }
 }
 
@@ -1030,66 +1083,6 @@ class _EventActualListState extends ConsumerState<EventActualList> {
           ),
       ],
     );
-  }
-}
-
-/// Display-only timing. It never changes membership, plans, stock or doses.
-/// Civil dates count calendar days in the saved zone, including the final day.
-/// Exact boundaries use completed elapsed and started remaining 24-hour periods.
-({int? elapsed, int? remaining, int? startsIn}) cycleTiming(
-  EventRecord event,
-  DateTime now,
-) {
-  const unavailable = (elapsed: null, remaining: null, startsIn: null);
-  if (event.completed && event.actualEnd == null) return unavailable;
-  final clock = IanaClock();
-  final startDate = event.actualStart ?? event.plannedStart;
-  final endDate = event.actualEnd ?? event.plannedEnd;
-  try {
-    final start = startDate?.resolve(clock, event.zoneId);
-    final end = endDate?.resolve(clock, event.zoneId, inclusiveEnd: true);
-    if (startDate != null && start == null || endDate != null && end == null) {
-      return unavailable;
-    }
-    int civilDays(DateTime a, DateTime b) {
-      final first = clock.dateAt(a, event.zoneId);
-      final last = clock.dateAt(b, event.zoneId);
-      return DateTime.utc(
-        last.year,
-        last.month,
-        last.day,
-      ).difference(DateTime.utc(first.year, first.month, first.day)).inDays;
-    }
-
-    if (start != null && now.isBefore(start)) {
-      return (
-        elapsed: null,
-        remaining: null,
-        startsIn: startDate!.precision == EventDatePrecision.day
-            ? civilDays(now, start)
-            : (start.difference(now).inMicroseconds /
-                      Duration.microsecondsPerDay)
-                  .ceil(),
-      );
-    }
-    final until = end != null && now.isAfter(end) ? end : now;
-    final elapsed = start == null
-        ? null
-        : startDate!.precision == EventDatePrecision.day
-        ? civilDays(start, until)
-        : until.difference(start).inDays;
-    final remaining = end == null
-        ? null
-        : !now.isBefore(end)
-        ? 0
-        : endDate!.precision == EventDatePrecision.day
-        ? civilDays(now, end)
-        : (end.difference(now).inMicroseconds / Duration.microsecondsPerDay)
-              .ceil();
-    return (elapsed: elapsed, remaining: remaining, startsIn: null);
-  } catch (_) {
-    // Partial/unknown boundaries and zones needing review never acquire a date.
-    return unavailable;
   }
 }
 

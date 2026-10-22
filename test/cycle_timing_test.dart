@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:true_grit_vital/data/record_store.dart';
-import 'package:true_grit_vital/features/events/event_pages.dart';
 
 EventRecord cycle({
   EventDate? start,

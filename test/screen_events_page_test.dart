@@ -150,7 +150,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  appTest('Events labels the loaded page instead of claiming a total count', (
+  appTest('Events counts the whole collection and filters before paging', (
     tester,
   ) async {
     final f = await launch(tester, todayClock: screenEventsNow);
@@ -166,11 +166,23 @@ void main() {
     }
     f.container.read(routerProvider).go('/events');
     await settle(tester);
-    await waitForText(tester, '50 shown');
-    expect(find.text('50 shown'), findsOneWidget);
-    expect(find.text('Filters only cover the events shown.'), findsOneWidget);
-    expect(find.textContaining('active ·'), findsNothing);
+    await waitForText(tester, '51 active · 0 upcoming · 0 completed');
+    expect(find.text('51 active · 0 upcoming · 0 completed'), findsOneWidget);
+    expect(
+      find.text(
+        'Counts and filters cover every saved event, not only this page.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('1–50 of 51'), findsOneWidget);
+    expect(find.text('50 shown'), findsNothing);
+    expect(find.text('Filters only cover the events shown.'), findsNothing);
     expect(find.text('Next'), findsOneWidget);
+    await tap(tester, 'Next');
+    await waitForText(tester, 'Bulk event 51');
+    expect(find.text('51–51 of 51'), findsOneWidget);
+    expect(find.text('Previous'), findsOneWidget);
+    expect(find.text('Next'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

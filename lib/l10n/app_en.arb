@@ -7908,11 +7908,11 @@
   },
   "screenEventsAll": "All",
   "@screenEventsAll": {
-    "description": "Filter choice that shows every loaded event."
+    "description": "Filter choice that shows every saved event."
   },
   "screenEventsActiveCount": "{count, plural, =1{1 active} other{{count} active}}",
   "@screenEventsActiveCount": {
-    "description": "Loaded active event count for the Events header.",
+    "description": "Whole-collection active event count for the Events header.",
     "placeholders": {
       "count": {
         "type": "int"
@@ -7921,7 +7921,7 @@
   },
   "screenEventsUpcomingCount": "{count, plural, =1{1 upcoming} other{{count} upcoming}}",
   "@screenEventsUpcomingCount": {
-    "description": "Loaded upcoming event count for the Events header.",
+    "description": "Whole-collection upcoming event count for the Events header.",
     "placeholders": {
       "count": {
         "type": "int"
@@ -7930,29 +7930,39 @@
   },
   "screenEventsCompletedCount": "{count, plural, =1{1 completed} other{{count} completed}}",
   "@screenEventsCompletedCount": {
-    "description": "Loaded completed event count for the Events header.",
+    "description": "Whole-collection completed event count for the Events header.",
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
   },
-  "screenEventsShown": "{count, plural, =1{1 shown} other{{count} shown}}",
-  "@screenEventsShown": {
-    "description": "Header count when more than one page of events exists, so the shown number is not presented as a whole-collection count.",
+  "featureEventCollectionCountsHelp": "Counts and filters cover every saved event, not only this page.",
+  "@featureEventCollectionCountsHelp": {
+    "description": "Explains that Events status counts and filters cover the whole saved collection."
+  },
+  "featureEventCollectionNoMatches": "No events match this filter.",
+  "@featureEventCollectionNoMatches": {
+    "description": "Filtered empty state when the whole collection has events but none match the chosen status."
+  },
+  "featureEventCollectionNoMatchesHelp": "Clear the filter to see the other statuses.",
+  "@featureEventCollectionNoMatchesHelp": {
+    "description": "Recovery hint in the filtered Events empty state."
+  },
+  "featureEventCollectionPageRange": "{start}–{end} of {total}",
+  "@featureEventCollectionPageRange": {
+    "description": "Visible range of the filtered Events collection.",
     "placeholders": {
-      "count": {
+      "start": {
+        "type": "int"
+      },
+      "end": {
+        "type": "int"
+      },
+      "total": {
         "type": "int"
       }
     }
-  },
-  "screenEventsLoadedOnly": "Filters only cover the events shown.",
-  "@screenEventsLoadedOnly": {
-    "description": "Explains that status filters cover only the loaded event page, not the whole collection."
-  },
-  "screenEventsNoMatches": "No events match this filter.",
-  "@screenEventsNoMatches": {
-    "description": "Filtered empty state for the Events list."
   },
   "screenEventsRange": "{start} to {end}",
   "@screenEventsRange": {

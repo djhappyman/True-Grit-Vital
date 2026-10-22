@@ -6825,21 +6825,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String screenEventsShown(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count shown',
-      one: '1 shown',
-    );
-    return '$_temp0';
+  String get featureEventCollectionCountsHelp =>
+      'Counts and filters cover every saved event, not only this page.';
+
+  @override
+  String get featureEventCollectionNoMatches => 'No events match this filter.';
+
+  @override
+  String get featureEventCollectionNoMatchesHelp =>
+      'Clear the filter to see the other statuses.';
+
+  @override
+  String featureEventCollectionPageRange(int start, int end, int total) {
+    return '$start–$end of $total';
   }
-
-  @override
-  String get screenEventsLoadedOnly => 'Filters only cover the events shown.';
-
-  @override
-  String get screenEventsNoMatches => 'No events match this filter.';
 
   @override
   String screenEventsRange(String start, String end) {

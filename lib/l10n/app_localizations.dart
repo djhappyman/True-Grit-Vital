@@ -10533,47 +10533,53 @@ abstract class AppLocalizations {
   /// **'Upcoming'**
   String get screenEventsUpcoming;
 
-  /// Filter choice that shows every loaded event.
+  /// Filter choice that shows every saved event.
   ///
   /// In en, this message translates to:
   /// **'All'**
   String get screenEventsAll;
 
-  /// Loaded active event count for the Events header.
+  /// Whole-collection active event count for the Events header.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 active} other{{count} active}}'**
   String screenEventsActiveCount(int count);
 
-  /// Loaded upcoming event count for the Events header.
+  /// Whole-collection upcoming event count for the Events header.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 upcoming} other{{count} upcoming}}'**
   String screenEventsUpcomingCount(int count);
 
-  /// Loaded completed event count for the Events header.
+  /// Whole-collection completed event count for the Events header.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 completed} other{{count} completed}}'**
   String screenEventsCompletedCount(int count);
 
-  /// Header count when more than one page of events exists, so the shown number is not presented as a whole-collection count.
+  /// Explains that Events status counts and filters cover the whole saved collection.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 shown} other{{count} shown}}'**
-  String screenEventsShown(int count);
+  /// **'Counts and filters cover every saved event, not only this page.'**
+  String get featureEventCollectionCountsHelp;
 
-  /// Explains that status filters cover only the loaded event page, not the whole collection.
-  ///
-  /// In en, this message translates to:
-  /// **'Filters only cover the events shown.'**
-  String get screenEventsLoadedOnly;
-
-  /// Filtered empty state for the Events list.
+  /// Filtered empty state when the whole collection has events but none match the chosen status.
   ///
   /// In en, this message translates to:
   /// **'No events match this filter.'**
-  String get screenEventsNoMatches;
+  String get featureEventCollectionNoMatches;
+
+  /// Recovery hint in the filtered Events empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the filter to see the other statuses.'**
+  String get featureEventCollectionNoMatchesHelp;
+
+  /// Visible range of the filtered Events collection.
+  ///
+  /// In en, this message translates to:
+  /// **'{start}–{end} of {total}'**
+  String featureEventCollectionPageRange(int start, int end, int total);
 
   /// Event date range. Values keep their recorded precision.
   ///
