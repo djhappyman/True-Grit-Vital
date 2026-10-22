@@ -1,5 +1,37 @@
 # Design implementation roadmap
 
+## Fifteen-task continuation, 22 October
+
+Owner authorised three Sol 6.1 workers, two OpenCode-hosted DeepSeek workers
+and ten direct-API DeepSeek workers concurrently, based on `cdefb2a`.
+Fourteen implementation/hardening packages and one original-plan acceptance
+audit are assigned below. Assignment is not a completion or release claim.
+
+| Task | Scope | Lane | State |
+| --- | --- | --- | --- |
+| T01 | Isolate protected backup snapshot database lifetimes | Sol 6.1 | Assigned |
+| T02 | Guard protected file actions across lifecycle changes | Sol 6.1 | Assigned |
+| T03 | Unify safe report date and seed validation | Sol 6.1 | Assigned |
+| T04 | Make catalogue search cancellable and calm | OpenCode DeepSeek Free | Assigned |
+| T05 | Edit saved exact dose presets | OpenCode DeepSeek Free | Assigned |
+| T06 | Add reviewable export date shortcuts | Direct DeepSeek | Assigned |
+| T07 | Preserve exact lab trend source context | Direct DeepSeek | Assigned |
+| T08 | Filter stock movements before paging | Direct DeepSeek | Assigned |
+| T09 | Explain changes in stock metadata history | Direct DeepSeek | Assigned |
+| T10 | Inspect recorded injection-site history | Direct DeepSeek | Assigned |
+| T11 | Show exact seven-day plan preview totals | Direct DeepSeek | Assigned |
+| T12 | Reject invalid quick-entry dates and preserve task context | Direct DeepSeek | Assigned |
+| T13 | Fence destructive privacy confirmation to its dataset | Direct DeepSeek | Assigned |
+| T14 | Explain pending reminder cancellations | Direct DeepSeek | Assigned |
+| T15 | Reconcile the roadmap and original 28-step acceptance plan | Direct DeepSeek | Assigned |
+
+The lead owns integration, combined verification, commit/push and the final
+plain-English report of remaining roadmap and original-plan work. Briefs,
+ownership, acceptance criteria and task identities are retained under
+`.scratch/vital-implementation/fifteen-2026-10-22/`. Timing tolerance,
+reminder follow-up policy, scanning/FHIR choices, automatic-backup lifecycle
+and physical-device/distribution gates retain their existing status.
+
 ## Third five-task continuation, 22 October
 
 Owner authorised another five tasks under the same concurrent direct-DeepSeek
