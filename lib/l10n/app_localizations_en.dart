@@ -5168,6 +5168,47 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get reportItemAction => 'Report';
+
+  @override
+  String get reportItemHeading => 'Report item';
+
+  @override
+  String get reportItemOnly => 'Only this item is included.';
+
+  @override
+  String reportItemRequested(String name) {
+    return 'Requested item: $name';
+  }
+
+  @override
+  String get reportItemSelectedBody =>
+      'The report editor already has a selection. Replace it with this item report, or finish that report first.';
+
+  @override
+  String get reportItemReplaceBody =>
+      'The report editor has a different selection. Replace it with this item report?';
+
+  @override
+  String get reportItemBusyBody =>
+      'A report is being prepared. Wait for it to finish or cancel it before preparing this item report.';
+
+  @override
+  String get reportItemUnavailableTitle => 'Report unavailable';
+
+  @override
+  String get reportItemInvalid =>
+      'This item link is not valid. Go back and choose another report.';
+
+  @override
+  String get reportItemMissing =>
+      'This item is unavailable. It may have been deleted. Go back and choose another report.';
+
+  @override
+  String get reportItemDates =>
+      'The report dates are unavailable. Check the link, then try again.';
+
+  @override
   String reportTemplateValue(String id, String version) {
     return 'Template $id version $version';
   }

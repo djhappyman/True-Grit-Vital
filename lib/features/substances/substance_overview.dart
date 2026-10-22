@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../app/app_lock.dart';
 import '../../app/device_zone.dart';
 import '../../app/display_preferences.dart';
+import '../../app/reports.dart' show reportControllerProvider;
 import '../../app/storage.dart';
 import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
@@ -17,9 +19,11 @@ import '../plans/calendar_editor.dart' show weekdayLabel;
 import '../plans/phase_editor.dart' show phaseTimingSummary;
 import '../plans/plan_form.dart' show expectationLabel;
 import '../plans/plan_providers.dart' show nextDailyPlansProvider;
+import '../plans/today_hero.dart' show todayNowProvider;
 import '../products/product_pages.dart' show ProductLabelPanel;
 import '../profiles/profile_pages.dart' show ownerLabel;
 import '../recording/record_pages.dart' show LoadFailure, pagedRecordsProvider;
+import '../reports/report_item_seed.dart';
 import '../stock/stock_providers.dart' show stockContainersProvider;
 import '../stock/stock_widgets.dart' show stockRecordAmountNumber;
 import '../supporting/supporting_pages.dart' show supportingLocation;
@@ -254,15 +258,15 @@ class _SubstanceHero extends StatelessWidget {
   }
 }
 
-/// Two compact destinations where they fit; a deliberate stack when the width
-/// or text scale would otherwise squeeze the labels.
-class _HeroSecondaryActions extends StatelessWidget {
+/// Contextual destinations that stay compact where they fit and stack when the
+/// width or text scale would otherwise squeeze the labels.
+class _HeroSecondaryActions extends ConsumerWidget {
   const _HeroSecondaryActions({required this.item});
 
   final SubstanceItem item;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context);
     return VitalOverflow(
       label: t.more,
@@ -279,7 +283,100 @@ class _HeroSecondaryActions extends StatelessWidget {
           onPressed: () =>
               context.push('/stock/${item.personId}?item=${item.id}'),
         ),
+        VitalMenuAction(
+          label: t.reportItemAction,
+          icon: LucideIcons.fileText,
+          onPressed: () => _openItemReport(context, ref, t),
+        ),
       ],
+    );
+  }
+
+  /// The canonical Reports editor remains the only report selection and
+  /// generation path. This guard mirrors the existing event shortcut: a busy
+  /// report is identified, a different selection needs explicit replacement,
+  /// and a lock prevents either the seed or navigation.
+  Future<void> _openItemReport(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations t,
+  ) async {
+    if (ref.read(appLockProvider).locked) return;
+    final plan = itemReportPlan(
+      item: item,
+      displayZone: ref.read(displayZoneProvider),
+      now: ref.read(todayNowProvider)(),
+    );
+    if (plan is ItemReportBlocked) {
+      await showVitalDialog<void>(
+        context: context,
+        builder: (dialog) => VitalDialog(
+          title: Text(t.reportItemUnavailableTitle),
+          content: Text(switch (plan.reason) {
+            ItemReportBlock.zoneUnavailable => t.reportZoneUnavailable,
+            ItemReportBlock.rangeUnavailable => t.reportItemDates,
+          }),
+          actions: [
+            VitalButton(
+              onPressed: () => Navigator.of(dialog).pop(),
+              child: Text(t.done),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    final ready = plan as ItemReportReady;
+    final state = ref.read(reportControllerProvider);
+    final active = state.selection;
+    if (active != null && active.identity != ready.selection.identity) {
+      if (state.busy || state.handoffBusy) {
+        await showVitalDialog<void>(
+          context: context,
+          builder: (dialog) => VitalDialog(
+            title: Text(t.reportBusyTitle),
+            content: Text(t.reportItemBusyBody),
+            actions: [
+              VitalButton(
+                onPressed: () => Navigator.of(dialog).pop(),
+                child: Text(t.done),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+      final replace = await showVitalDialog<bool>(
+        context: context,
+        builder: (dialog) => VitalDialog(
+          title: Text(t.reportReplaceTitle),
+          content: Text(t.reportItemReplaceBody),
+          actions: [
+            VitalButton.secondary(
+              onPressed: () => Navigator.of(dialog).pop(false),
+              child: Text(t.cancel),
+            ),
+            VitalButton(
+              onPressed: () => Navigator.of(dialog).pop(true),
+              child: Text(t.replace),
+            ),
+          ],
+        ),
+      );
+      if (replace != true ||
+          !context.mounted ||
+          ref.read(appLockProvider).locked) {
+        return;
+      }
+      ref.read(reportControllerProvider.notifier).select(ready.selection);
+      if (ref.read(reportControllerProvider).selection?.identity !=
+          ready.selection.identity) {
+        return;
+      }
+    }
+    if (!context.mounted || ref.read(appLockProvider).locked) return;
+    context.push(
+      itemReportLocation(plan: ready, returnLocation: '/substance/${item.id}'),
     );
   }
 }

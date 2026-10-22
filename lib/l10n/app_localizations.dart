@@ -8268,6 +8268,72 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 selected item} other{{count} selected items}}'**
   String reportItemCount(int count);
 
+  /// Overflow command that opens the report editor for one substance.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get reportItemAction;
+
+  /// Heading above the substance name seeded into the report selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Report item'**
+  String get reportItemHeading;
+
+  /// Confirms that the seeded report includes exactly one item.
+  ///
+  /// In en, this message translates to:
+  /// **'Only this item is included.'**
+  String get reportItemOnly;
+
+  /// Names the item requested by a report link while another selection stays open.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested item: {name}'**
+  String reportItemRequested(String name);
+
+  /// Explains how to keep an existing report selection or replace it with the requested item report.
+  ///
+  /// In en, this message translates to:
+  /// **'The report editor already has a selection. Replace it with this item report, or finish that report first.'**
+  String get reportItemSelectedBody;
+
+  /// Asks whether to replace the current report selection with the requested item report.
+  ///
+  /// In en, this message translates to:
+  /// **'The report editor has a different selection. Replace it with this item report?'**
+  String get reportItemReplaceBody;
+
+  /// Explains why the item report shortcut cannot replace a report that is already being prepared.
+  ///
+  /// In en, this message translates to:
+  /// **'A report is being prepared. Wait for it to finish or cancel it before preparing this item report.'**
+  String get reportItemBusyBody;
+
+  /// Heading when a report link cannot seed a usable selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Report unavailable'**
+  String get reportItemUnavailableTitle;
+
+  /// Recovery for a malformed item report link.
+  ///
+  /// In en, this message translates to:
+  /// **'This item link is not valid. Go back and choose another report.'**
+  String get reportItemInvalid;
+
+  /// Recovery for a deleted or foreign item report link.
+  ///
+  /// In en, this message translates to:
+  /// **'This item is unavailable. It may have been deleted. Go back and choose another report.'**
+  String get reportItemMissing;
+
+  /// Recovery when a report range cannot be represented or reviewed.
+  ///
+  /// In en, this message translates to:
+  /// **'The report dates are unavailable. Check the link, then try again.'**
+  String get reportItemDates;
+
   /// Template identifier and version.
   ///
   /// In en, this message translates to:

@@ -101,6 +101,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             returnLocation: state.uri.queryParameters['return'],
             event: state.uri.queryParameters['event'],
             template: state.uri.queryParameters['template'],
+            item: state.uri.queryParameters['item'],
           ),
         ),
       ),

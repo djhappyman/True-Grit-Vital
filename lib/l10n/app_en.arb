@@ -5823,6 +5823,55 @@
       }
     }
   },
+  "reportItemAction": "Report",
+  "@reportItemAction": {
+    "description": "Overflow command that opens the report editor for one substance."
+  },
+  "reportItemHeading": "Report item",
+  "@reportItemHeading": {
+    "description": "Heading above the substance name seeded into the report selection."
+  },
+  "reportItemOnly": "Only this item is included.",
+  "@reportItemOnly": {
+    "description": "Confirms that the seeded report includes exactly one item."
+  },
+  "reportItemRequested": "Requested item: {name}",
+  "@reportItemRequested": {
+    "description": "Names the item requested by a report link while another selection stays open.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reportItemSelectedBody": "The report editor already has a selection. Replace it with this item report, or finish that report first.",
+  "@reportItemSelectedBody": {
+    "description": "Explains how to keep an existing report selection or replace it with the requested item report."
+  },
+  "reportItemReplaceBody": "The report editor has a different selection. Replace it with this item report?",
+  "@reportItemReplaceBody": {
+    "description": "Asks whether to replace the current report selection with the requested item report."
+  },
+  "reportItemBusyBody": "A report is being prepared. Wait for it to finish or cancel it before preparing this item report.",
+  "@reportItemBusyBody": {
+    "description": "Explains why the item report shortcut cannot replace a report that is already being prepared."
+  },
+  "reportItemUnavailableTitle": "Report unavailable",
+  "@reportItemUnavailableTitle": {
+    "description": "Heading when a report link cannot seed a usable selection."
+  },
+  "reportItemInvalid": "This item link is not valid. Go back and choose another report.",
+  "@reportItemInvalid": {
+    "description": "Recovery for a malformed item report link."
+  },
+  "reportItemMissing": "This item is unavailable. It may have been deleted. Go back and choose another report.",
+  "@reportItemMissing": {
+    "description": "Recovery for a deleted or foreign item report link."
+  },
+  "reportItemDates": "The report dates are unavailable. Check the link, then try again.",
+  "@reportItemDates": {
+    "description": "Recovery when a report range cannot be represented or reviewed."
+  },
   "reportTemplateValue": "Template {id} version {version}",
   "@reportTemplateValue": {
     "description": "Template identifier and version.",

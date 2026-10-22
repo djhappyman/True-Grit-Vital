@@ -2,22 +2,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../app/app_lock.dart';
 import '../../app/display_preferences.dart';
 import '../../app/reports.dart';
 import '../../app/settings_toggle_row.dart';
+import '../../app/storage.dart';
 import '../../app/vital_app.dart';
 import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
 import '../events/event_pages.dart'
     show eventDateLabel, eventLookupProvider, eventPageProvider;
 import '../events/event_report_location.dart';
+import '../plans/today_hero.dart' show todayNowProvider;
 import '../../ui/vital_ui.dart';
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
+import 'report_item_seed.dart';
 
 /// Stable entry point for the current report template.
 const reportsLocation = eventReportsLocation;
 const reportPreviewLocation = '/reports/preview';
+
+/// Civil dates at the representable edge fail rather than throwing from a text
+/// listener or a build. Callers show the existing date error or recovery.
+CivilDate? _safeAddDays(CivilDate date, int days) {
+  try {
+    return date.addDays(days);
+  } catch (_) {
+    return null;
+  }
+}
 
 class ReportsPage extends ConsumerStatefulWidget {
   const ReportsPage({
@@ -27,8 +41,9 @@ class ReportsPage extends ConsumerStatefulWidget {
     this.returnLocation,
     this.event,
     this.template,
+    this.item,
   });
-  final String? from, before, returnLocation, event, template;
+  final String? from, before, returnLocation, event, template, item;
   @override
   ConsumerState<ReportsPage> createState() => _ReportsPageState();
 }
@@ -39,8 +54,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       reportName = TextEditingController();
   String? dateError;
   bool initialised = false, openedPreview = false;
-  ReportSelection? _requestedSeed;
-  bool _seedBlocked = false;
+  ReportSelection? _requestedSeed, _pendingSelection;
+  bool _seedBlocked = false, _seedScheduled = false;
 
   @override
   void initState() {
@@ -63,11 +78,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     final selection = ref.read(reportControllerProvider).selection;
     if (selection == null || ref.read(reportControllerProvider).busy) return;
     final start = parseDate(from.text), end = parseDate(through.text);
-    if (start == null || end == null || end.compareTo(start) < 0) return;
-    final next = selection.copyWith(
-      fromDate: start,
-      beforeDate: end.addDays(1),
-    );
+    final before = end == null ? null : _safeAddDays(end, 1);
+    if (start == null || end == null || before == null) return;
+    if (end.compareTo(start) < 0) return;
+    final next = selection.copyWith(fromDate: start, beforeDate: before);
     if (next == selection) return;
     if (dateError != null) setState(() => dateError = null);
     ref.read(reportControllerProvider.notifier).select(next);
@@ -91,6 +105,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   }
 
   ReportTemplateId _requestedTemplate() {
+    if (widget.item != null) return ReportTemplateId.r01SubstanceSummary;
     final requested = widget.template?.trim().toLowerCase();
     return switch (requested) {
       'event' || 'r03' || 'r03eventreview' => ReportTemplateId.r03EventReview,
@@ -107,45 +122,58 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     };
   }
 
-  ReportSelection _requestedSelection(
+  ReportSelection? _requestedSelection(
     DateTime now,
     String personId,
-    ReportTemplateId template,
-  ) {
-    final fromText = widget.from ?? '${now.year}-01-01';
-    final throughText =
-        (widget.before == null
-            ? null
-            : parseDate(widget.before!)?.addDays(-1).toString()) ??
-        '${now.year}-${now.month.toString().padLeft(2, '0')}-'
-            '${now.day.toString().padLeft(2, '0')}';
-    final event = widget.event;
-    return ReportSelection(
-      template: template,
-      personId: personId,
-      fromDate: parseDate(fromText) ?? CivilDate(now.year, 1, 1),
-      beforeDate:
-          (parseDate(throughText) ?? CivilDate(now.year, now.month, now.day))
-              .addDays(1),
-      displayZone: ref.read(displayZoneProvider),
-      eventId:
-          template.requiresEvent &&
-              event != null &&
-              RegExp(r'^[A-Za-z0-9_-]{1,128}$').hasMatch(event)
-          ? event
-          : null,
-    );
+    ReportTemplateId template, {
+    String? itemId,
+  }) {
+    try {
+      final displayZone = ref.read(displayZoneProvider);
+      final shown = DisplayTime().instant(now.toUtc(), displayZone);
+      final today = shown.zoneFallback
+          ? CivilDate(now.year, now.month, now.day)
+          : shown.civilDate;
+      final fallbackBefore = _safeAddDays(today, 1);
+      final requestedBefore = widget.before == null
+          ? null
+          : parseDate(widget.before!);
+      final beforeDate = requestedBefore ?? fallbackBefore;
+      if (beforeDate == null) return null;
+      final event = widget.event;
+      return ReportSelection(
+        template: itemId == null
+            ? template
+            : ReportTemplateId.r01SubstanceSummary,
+        personId: personId,
+        fromDate: parseDate(widget.from ?? '') ?? CivilDate(today.year, 1, 1),
+        beforeDate: beforeDate,
+        displayZone: displayZone,
+        eventId:
+            itemId == null &&
+                template.requiresEvent &&
+                event != null &&
+                RegExp(r'^[A-Za-z0-9_-]{1,128}$').hasMatch(event)
+            ? event
+            : null,
+        itemIds: itemId == null ? const [] : [itemId],
+      );
+    } on ReportSelectionFailure {
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 
   void _applySelection(ReportSelection selection) {
     from.text = selection.fromDate.toString();
-    through.text = selection.beforeDate.addDays(-1).toString();
+    through.text = _safeAddDays(selection.beforeDate, -1)?.toString() ?? '';
     reportName.text = selection.reportName ?? '';
   }
 
   void _replaceSeed() {
     final seed = _requestedSeed;
-    if (seed == null) return;
+    if (seed == null || ref.read(appLockProvider).locked) return;
     ref.read(reportControllerProvider.notifier).select(seed);
     if (ref.read(reportControllerProvider).selection?.identity !=
         seed.identity) {
@@ -199,7 +227,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 VitalButton.secondary(
                   onPressed: () {
                     final back = widget.returnLocation;
-                    if (back != null) {
+                    if (widget.item != null && context.canPop()) {
+                      // The overview stays mounted beneath a pushed item
+                      // report, so popping retains its selected section.
+                      context.pop();
+                    } else if (back != null) {
                       context.go(back);
                     } else if (context.canPop()) {
                       context.pop();
@@ -238,33 +270,89 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
             );
           }
           const selected = meId;
+          final requestedItemId = widget.item == null
+              ? null
+              : reportItemId(widget.item);
+          final itemLookup = requestedItemId == null
+              ? null
+              : ref.watch(itemLookupProvider(requestedItemId));
+          final requestedItem = itemLookup?.value;
+          if (widget.item != null && requestedItemId == null) {
+            return _ReportItemRecovery(message: t.reportItemInvalid);
+          }
+          if (itemLookup != null &&
+              !itemLookup.hasValue &&
+              !itemLookup.hasError) {
+            return PageContent(
+              panelled: true,
+              children: [Text(t.loadingRecords)],
+            );
+          }
+          if (itemLookup?.hasError ?? false) {
+            return PageContent(
+              panelled: true,
+              children: [
+                Heading(t.reportItemUnavailableTitle),
+                const SizedBox(height: 16),
+                LoadFailure(
+                  onRetry: () =>
+                      ref.invalidate(itemLookupProvider(requestedItemId!)),
+                ),
+              ],
+            );
+          }
+          if (requestedItemId != null &&
+              !reportItemOwnedBy(requestedItem, selected)) {
+            return _ReportItemRecovery(message: t.reportItemMissing);
+          }
           if (!initialised) {
             initialised = true;
-            final requested = _requestedSelection(
-              DateTime.now(),
+            final requestedSelection = _requestedSelection(
+              ref.read(todayNowProvider)(),
               selected,
               _requestedTemplate(),
+              itemId: requestedItemId,
             );
-            final active = ref.read(reportControllerProvider).selection;
-            if (active != null && active.identity != requested.identity) {
-              _seedBlocked = true;
-              _requestedSeed = requested;
-              _applySelection(active);
+            if (requestedSelection == null) {
+              if (widget.item != null) {
+                return _ReportItemRecovery(message: t.reportItemDates);
+              }
+              dateError = t.historyDateError;
+              final active = ref.read(reportControllerProvider).selection;
+              if (active != null) _applySelection(active);
             } else {
-              _applySelection(requested);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted) return;
-                final state = ref.read(reportControllerProvider);
-                if (state.selection == null ||
-                    state.selection!.identity == requested.identity) {
-                  ref.read(reportControllerProvider.notifier).select(requested);
+              final active = ref.read(reportControllerProvider).selection;
+              if (active != null &&
+                  active.identity != requestedSelection.identity) {
+                _seedBlocked = true;
+                _requestedSeed = requestedSelection;
+                _applySelection(active);
+              } else {
+                _applySelection(requestedSelection);
+                if (active == null) {
+                  _pendingSelection = requestedSelection;
                 }
-              });
+              }
             }
           }
           final current = state.selection;
+          if (current == null && _pendingSelection != null && !_seedScheduled) {
+            _seedScheduled = true;
+            final pending = _pendingSelection!;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _seedScheduled = false;
+              if (!mounted || ref.read(appLockProvider).locked) return;
+              ref.read(reportControllerProvider.notifier).select(pending);
+              if (mounted &&
+                  ref.read(reportControllerProvider).selection?.identity ==
+                      pending.identity) {
+                setState(() => _pendingSelection = null);
+              }
+            });
+          }
           final effective =
               current ??
+              _pendingSelection ??
               ReportSelection(
                 personId: selected,
                 fromDate: parseDate(from.text) ?? CivilDate(2000, 1, 1),
@@ -309,7 +397,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 4),
-                      Text(t.reportSelectedBody),
+                      if (requestedItem != null)
+                        Text(t.reportItemRequested(requestedItem.name)),
+                      Text(
+                        widget.item == null
+                            ? t.reportSelectedBody
+                            : t.reportItemSelectedBody,
+                      ),
                     ],
                   ),
                 ),
@@ -317,6 +411,26 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
               ],
               Heading(t.reportsTitle),
               Text(t.reportScopeHelp),
+              if (requestedItem != null && !_seedBlocked) ...[
+                const SizedBox(height: 16),
+                VitalNotice(
+                  key: const ValueKey('report-item-selected'),
+                  icon: LucideIcons.pill,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        t.reportItemHeading,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(requestedItem.name, style: VitalType.record),
+                      const SizedBox(height: 4),
+                      Text(t.reportItemOnly),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               VitalSegments<ReportTemplateId>(
                 values: ReportTemplateId.values,
@@ -580,7 +694,11 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       setState(() => dateError = t.reportEventRequired);
       return;
     }
-    final exclusive = before.addDays(1);
+    final exclusive = _safeAddDays(before, 1);
+    if (exclusive == null) {
+      setState(() => dateError = t.historyDateError);
+      return;
+    }
     final next = selection.copyWith(
       personId: selection.personId,
       fromDate: start,
@@ -612,6 +730,29 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     setState(() => dateError = null);
     ref.read(reportControllerProvider.notifier).select(next);
     ref.read(reportControllerProvider.notifier).generate(use24Hour: use24Hour);
+  }
+}
+
+class _ReportItemRecovery extends StatelessWidget {
+  const _ReportItemRecovery({required this.message});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    return PageContent(
+      panelled: true,
+      children: [
+        Heading(t.reportItemUnavailableTitle),
+        const SizedBox(height: 12),
+        VitalNotice(
+          key: const ValueKey('report-item-recovery'),
+          tone: VitalTone.danger,
+          icon: LucideIcons.circleAlert,
+          child: Text(message),
+        ),
+      ],
+    );
   }
 }
 
