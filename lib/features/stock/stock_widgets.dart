@@ -18,6 +18,7 @@ import '../../l10n/app_localizations.dart';
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
 import 'stock_providers.dart';
+import 'stock_source_link.dart';
 import '../products/product_widgets.dart';
 
 bool stockRecordHasDerivedAmount(UseRecord record) =>
@@ -1049,6 +1050,21 @@ class _StockMovementHistoryState extends ConsumerState<StockMovementHistory> {
                                   ? t.stockReverseHelp
                                   : t.stockReviewedKeep,
                             ),
+                          if (movement.kind == StockMovementKind.actualUse &&
+                              movement.recordId != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Align(
+                                alignment: AlignmentDirectional.centerEnd,
+                                child: _StockMovementSourceOpen(
+                                  key: ValueKey(
+                                    'stock-movement-open-${movement.id}',
+                                  ),
+                                  personId: widget.personId,
+                                  recordId: movement.recordId!,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -1072,6 +1088,51 @@ class _StockMovementHistoryState extends ConsumerState<StockMovementHistory> {
               ),
             ),
       ],
+    );
+  }
+}
+
+/// Opens the current saved dose behind one recorded-use stock movement.
+///
+/// The movement keeps its own immutable identity. Inspection always reads the
+/// dose's current version, so a corrected or voided record is shown as it is
+/// now rather than as the movement once was.
+class _StockMovementSourceOpen extends ConsumerWidget {
+  const _StockMovementSourceOpen({
+    super.key,
+    required this.personId,
+    required this.recordId,
+  });
+  final String personId, recordId;
+
+  Future<void> _open(BuildContext context, WidgetRef ref) async {
+    final key = (personId: personId, recordId: recordId);
+    var target = singleStockSourceTarget(recordId);
+    try {
+      target = await ref.read(stockSourceTargetProvider(key).future);
+    } on Object {
+      // The canonical source page owns the missing or unavailable state.
+    }
+    if (!context.mounted) return;
+    context.push(
+      stockSourceLocation(
+        target,
+        personId: personId,
+        returnLocation: GoRouterState.of(context).uri.toString(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
+    return VitalButton.secondary(
+      onPressed: () => _open(context, ref),
+      child: Semantics(
+        label: t.stockMovementOpenSource,
+        excludeSemantics: true,
+        child: Text(t.stockMovementOpen),
+      ),
     );
   }
 }

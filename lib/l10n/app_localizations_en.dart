@@ -1201,6 +1201,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get stockMovementOpen => 'Open';
+
+  @override
+  String get stockMovementOpenSource => 'Open recorded dose';
+
+  @override
   String get stockUnavailable =>
       'This container is unavailable. Review the person and substance.';
 

@@ -2094,6 +2094,18 @@ abstract class AppLocalizations {
   /// **'{kind}: {amount}'**
   String stockMovementEntry(String kind, String amount);
 
+  /// Stock history action that opens the saved dose behind a recorded-use movement. Visible command labels use one word.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get stockMovementOpen;
+
+  /// Accessible name for the stock history Open action. It names the saved recorded dose without claiming the movement's original version.
+  ///
+  /// In en, this message translates to:
+  /// **'Open recorded dose'**
+  String get stockMovementOpenSource;
+
   /// Stock tracking copy. Preserve owner, original quantities, units and physical consequences.
   ///
   /// In en, this message translates to:

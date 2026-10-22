@@ -1509,6 +1509,14 @@
       }
     }
   },
+  "stockMovementOpen": "Open",
+  "@stockMovementOpen": {
+    "description": "Stock history action that opens the saved dose behind a recorded-use movement. Visible command labels use one word."
+  },
+  "stockMovementOpenSource": "Open recorded dose",
+  "@stockMovementOpenSource": {
+    "description": "Accessible name for the stock history Open action. It names the saved recorded dose without claiming the movement's original version."
+  },
   "stockUnavailable": "This container is unavailable. Review the person and substance.",
   "@stockUnavailable": {
     "description": "Stock tracking copy. Preserve owner, original quantities, units and physical consequences."
