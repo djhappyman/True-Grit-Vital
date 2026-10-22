@@ -1,0 +1,296 @@
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:true_grit_vital/app/vital_app.dart';
+import 'package:true_grit_vital/data/record_store.dart';
+import 'package:true_grit_vital/features/recording/record_pages.dart'
+    show LabelledInput;
+
+import 'vital_app_test.dart'
+    show appTest, launch, runIo, settle, tap, waitForText;
+
+Finder field(String label) => find.descendant(
+  of: find.widgetWithText(LabelledInput, label),
+  matching: find.byType(TextField),
+);
+
+Future<int> profileRevision(RecordStore store) async =>
+    (await store.profileById(meId))!.revision;
+
+Future<SubstanceItem> makeItem(
+  RecordStore store,
+  String name, {
+  String unit = 'ml',
+}) async => store.createItem(
+  commandId: newCommandId(),
+  expectedPersonRevision: await profileRevision(store),
+  name: name,
+  form: 'liquid',
+  unit: unit,
+  type: 'medicine',
+);
+
+Future<StoredStockContainer> makeContainer(
+  RecordStore store,
+  SubstanceItem item, {
+  required String label,
+  String opening = '3',
+  String? lot,
+  CivilDate? expiry,
+  String? capacity,
+  ExactAmount? capacityExact,
+}) async => store.createStockContainer(
+  commandId: newCommandId(),
+  personId: meId,
+  expectedPersonRevision: await profileRevision(store),
+  expectedGeneration: store.generation,
+  itemId: item.id,
+  label: label,
+  unit: item.unit,
+  strength: LabelledStrength(
+    ingredientId: item.id,
+    label: '10 mg/ml',
+    mgPerMl: ExactAmount.parseEntry('10'),
+  ),
+  opening: ExactAmount.parseEntry(opening),
+  lot: lot,
+  expiryDate: expiry,
+  capacity:
+      capacityExact ??
+      (capacity == null ? null : ExactAmount.parseEntry(capacity)),
+);
+
+Future<void> makePlan(
+  RecordStore store,
+  SubstanceItem item, {
+  bool paused = false,
+}) async => store.saveDailyPlan(
+  commandId: newCommandId(),
+  expectedPersonRevision: await profileRevision(store),
+  expectedGeneration: store.generation,
+  plan: DailyPlanVersion(
+    personId: meId,
+    planId: 'plan-${item.id}',
+    itemId: item.id,
+    versionId: 'version-${item.id}',
+    start: CivilDate(2020, 1, 1),
+    timing: DailyCount(
+      1,
+      PlannedAmount(
+        quantity: ExactQuantity.parse('1'),
+        enteredText: '1',
+        unit: item.unit,
+      ),
+    ),
+    zoneBasis: const FollowingLocal(),
+    pauses: paused ? [PlanPause(start: DateTime.utc(2020, 1, 2))] : const [],
+  ),
+);
+
+void main() {
+  setUpAll(() async {
+    await (FontLoader('StitchSans')
+          ..addFont(rootBundle.load('assets/fonts/StitchNotoSans-Regular.ttf'))
+          ..addFont(rootBundle.load('assets/fonts/StitchNotoSans-Medium.ttf'))
+          ..addFont(rootBundle.load('assets/fonts/StitchNotoSans-SemiBold.ttf'))
+          ..addFont(rootBundle.load('assets/fonts/StitchNotoSans-Bold.ttf')))
+        .load();
+    await (FontLoader('NotoSans')
+          ..addFont(rootBundle.load('assets/fonts/NotoSans-Regular.ttf'))
+          ..addFont(rootBundle.load('assets/fonts/NotoSans-Bold.ttf')))
+        .load();
+    await (FontLoader('packages/shadcn_flutter/LucideIcons')..addFont(
+          rootBundle.load('packages/shadcn_flutter/lib/icons/LucideIcons.ttf'),
+        ))
+        .load();
+  });
+
+  appTest('metadata details save through the guarded stock editor', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final item = (await runIo(tester, () => makeItem(f.store, 'Telmisartan')))!;
+    final container = (await runIo(
+      tester,
+      () => makeContainer(
+        f.store,
+        item,
+        label: 'Amber bottle',
+        lot: 'OLD-LOT',
+        expiry: CivilDate(2027, 1, 31),
+        capacity: '10',
+      ),
+    ))!;
+    f.container.read(routerProvider).go('/stock/$meId');
+    await settle(tester);
+    await waitForText(tester, 'Lot: OLD-LOT');
+    await tester.ensureVisible(
+      find.byKey(ValueKey('stock-details-${container.id}')),
+    );
+    await settle(tester);
+    await tester.tap(find.byKey(ValueKey('stock-details-${container.id}')));
+    await settle(tester);
+    await waitForText(tester, 'Container details');
+    await tester.enterText(field('Lot or batch'), 'NEW-LOT');
+    await tester.enterText(field('Expiry date'), '2027-02-28');
+    await tester.enterText(field('Pack capacity'), '12');
+    await settle(tester);
+    await tap(tester, 'Save');
+    await waitForText(tester, 'Lot: NEW-LOT');
+    expect(find.text('Expires 2027-02-28'), findsWidgets);
+    expect(find.textContaining('12 ml'), findsWidgets);
+    await runIo(tester, () async {
+      final saved = (await f.store.stockContainerById(
+        personId: meId,
+        containerId: container.id,
+      ))!;
+      expect(saved.lot, 'NEW-LOT');
+      expect(saved.expiryDate, CivilDate(2027, 2, 28));
+      expect(saved.capacity, ExactAmount.parseEntry('12'));
+      final history = await f.store.stockMetadataHistory(
+        personId: meId,
+        containerId: container.id,
+      );
+      expect(history.map((row) => row.lot), ['NEW-LOT', 'OLD-LOT']);
+    });
+  });
+
+  appTest('details editor guards unfinished changes and restores focus', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final item = (await runIo(tester, () => makeItem(f.store, 'Iron')))!;
+    final container = (await runIo(
+      tester,
+      () => makeContainer(f.store, item, label: 'Iron bottle'),
+    ))!;
+    f.container
+        .read(routerProvider)
+        .go('/stock/$meId/adjust/${container.id}?details=true');
+    await settle(tester);
+    await waitForText(tester, 'Container details');
+    await tester.enterText(field('Lot or batch'), 'UNSAVED');
+    await settle(tester);
+    await tester.binding.handlePopRoute();
+    await settle(tester);
+    await waitForText(tester, 'Unsaved changes');
+    await tap(tester, 'Keep');
+    await settle(tester);
+    expect(field('Lot or batch'), findsOneWidget);
+    await tester.binding.handlePopRoute();
+    await settle(tester);
+    await tap(tester, 'Discard');
+    await settle(tester);
+    expect(find.text('Unsaved changes'), findsNothing);
+    expect(field('Lot or batch'), findsNothing);
+  });
+
+  appTest('unchanged exact capacity survives edits and draft restore', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final item = (await runIo(
+      tester,
+      () => makeItem(f.store, 'Exact capacity item'),
+    ))!;
+    final container = (await runIo(
+      tester,
+      () => makeContainer(
+        f.store,
+        item,
+        label: 'Third vial',
+        capacityExact: ExactAmount(BigInt.one, BigInt.from(3)),
+      ),
+    ))!;
+    f.container
+        .read(routerProvider)
+        .go('/stock/$meId/adjust/${container.id}?details=true');
+    await settle(tester);
+    await waitForText(tester, 'Container details');
+    expect(
+      tester.widget<TextField>(field('Pack capacity')).controller!.text,
+      '1/3',
+    );
+    await tester.enterText(field('Lot or batch'), 'EXACT-EDIT');
+    await settle(tester);
+    f.container.read(routerProvider).go('/today');
+    await settle(tester);
+    f.container
+        .read(routerProvider)
+        .go('/stock/$meId/adjust/${container.id}?details=true');
+    await settle(tester);
+    await waitForText(tester, 'Container details');
+    expect(
+      tester.widget<TextField>(field('Lot or batch')).controller!.text,
+      'EXACT-EDIT',
+    );
+    expect(
+      tester.widget<TextField>(field('Pack capacity')).controller!.text,
+      '1/3',
+    );
+    await tap(tester, 'Save');
+    await settle(tester);
+    await runIo(tester, () async {
+      final saved = (await f.store.stockContainerById(
+        personId: meId,
+        containerId: container.id,
+      ))!;
+      expect(saved.lot, 'EXACT-EDIT');
+      expect(saved.capacity, ExactAmount(BigInt.one, BigInt.from(3)));
+    });
+  });
+
+  appTest('details and quantity edits keep separate draft identities', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final item = (await runIo(tester, () => makeItem(f.store, 'Draft split')))!;
+    final container = (await runIo(
+      tester,
+      () => makeContainer(f.store, item, label: 'Draft split bottle'),
+    ))!;
+    f.container
+        .read(routerProvider)
+        .go('/stock/$meId/adjust/${container.id}?details=true');
+    await settle(tester);
+    await waitForText(tester, 'Container details');
+    await tester.enterText(field('Lot or batch'), 'DETAILS-DRAFT');
+    await settle(tester);
+    f.container.read(routerProvider).go('/today');
+    await settle(tester);
+    f.container.read(routerProvider).go('/stock/$meId/adjust/${container.id}');
+    await settle(tester);
+    await waitForText(tester, 'Adjust stock');
+    await tap(tester, 'Restock');
+    await tester.enterText(field('Amount'), '4');
+    await settle(tester);
+    f.container.read(routerProvider).go('/today');
+    await settle(tester);
+    final drafts = (await runIo(
+      tester,
+      f.store.drafts,
+    ))!.where((draft) => draft.kind == DraftKind.stockAdjustment).toList();
+    expect(drafts, hasLength(2));
+    final details = drafts.singleWhere(
+      (draft) => draft.fields['kind'] == 'details',
+    );
+    final quantity = drafts.singleWhere(
+      (draft) => draft.fields['kind'] == 'restock',
+    );
+    expect(details.id, 'stockAdjustment:$meId:${container.id}:details');
+    expect(details.route, '/stock/$meId/adjust/${container.id}?details=true');
+    expect(details.fields['lot'], 'DETAILS-DRAFT');
+    expect(quantity.id, 'stockAdjustment:$meId:${container.id}');
+    expect(quantity.fields['amount'], '4');
+    f.container
+        .read(routerProvider)
+        .go('/stock/$meId/adjust/${container.id}?details=true');
+    await settle(tester);
+    await waitForText(tester, 'Container details');
+    expect(
+      tester.widget<TextField>(field('Lot or batch')).controller!.text,
+      'DETAILS-DRAFT',
+    );
+    expect(find.text('4'), findsNothing);
+  });
+}

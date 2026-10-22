@@ -54,7 +54,7 @@ void main() {
       addTearDown(raw.close);
       raw.execute("PRAGMA cipher='chacha20'");
       raw.execute("PRAGMA key=\"x'$hex'\"");
-      expect(raw.select('PRAGMA user_version').single.values.single, 23);
+      expect(raw.select('PRAGMA user_version').single.values.single, currentRecordSchemaVersion);
       final revisionColumns = raw
           .select('PRAGMA table_info(revision)')
           .map((row) => row['name'])

@@ -81,7 +81,7 @@ void main() {
     for (final entry in expected.entries) {
       expect(actual[entry.key], entry.value, reason: entry.key);
     }
-    expect(after.select('PRAGMA user_version').single.values.single, 23);
+    expect(after.select('PRAGMA user_version').single.values.single, currentRecordSchemaVersion);
     expect(after.select('PRAGMA integrity_check').single.values.single, 'ok');
     expect(after.select('PRAGMA foreign_key_check'), isEmpty);
     expect(
@@ -189,9 +189,14 @@ void main() {
       }
       expect(
         restored.keys,
-        unorderedEquals([...expected.keys, 'item_detail', 'item_setup']),
+        unorderedEquals([
+          ...expected.keys,
+          'item_detail',
+          'item_setup',
+          'stock_container_metadata',
+        ]),
       );
-      expect(after.select('PRAGMA user_version').single.values.single, 23);
+      expect(after.select('PRAGMA user_version').single.values.single, currentRecordSchemaVersion);
       expect(after.select('PRAGMA integrity_check').single.values.single, 'ok');
       expect(after.select('PRAGMA foreign_key_check'), isEmpty);
       final indexes = after
@@ -243,7 +248,7 @@ void main() {
       failed.close();
       await upgrade();
       final after = raw();
-      expect(after.select('PRAGMA user_version').single.values.single, 23);
+      expect(after.select('PRAGMA user_version').single.values.single, currentRecordSchemaVersion);
       // The deliberately colliding table is the only seeded object that the
       // successful retry must remove: the v20 migration creates the index that
       // has that name. Every other preserved table must still match.
@@ -258,6 +263,7 @@ void main() {
           ...expected.keys.where((k) => k != 'supporting_collection_instant'),
           'item_detail',
           'item_setup',
+          'stock_container_metadata',
         ]),
       );
       expect(after.select('PRAGMA foreign_key_check'), isEmpty);

@@ -376,14 +376,20 @@ final routerProvider = Provider<GoRouter>((ref) {
           // reuse the other surface's editor state.
           final containerId = state.pathParameters['container']!;
           final notices = state.uri.queryParameters['notices'] == 'true';
+          final details = state.uri.queryParameters['details'] == 'true';
           return StorageGate(
             child: StockAdjustmentForm(
               key: ValueKey(
-                'stockAdjust:$containerId:${notices ? 'notices' : 'quantity'}',
+                'stockAdjust:$containerId:${details
+                    ? 'details'
+                    : notices
+                    ? 'notices'
+                    : 'quantity'}',
               ),
               personId: meId,
               containerId: containerId,
               notices: notices,
+              details: details,
             ),
           );
         },

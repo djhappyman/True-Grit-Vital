@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../app/display_preferences.dart';
 import '../../app/storage.dart';
 import '../../app/settings_toggle_row.dart';
 import '../../data/record_store.dart';
@@ -218,6 +219,7 @@ class _StockNoticeCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _StockBalanceLine(container: c),
+          StockPackFacts(container: c),
           if (c.lowThreshold != null) ...[
             const SizedBox(height: 6),
             Text(
@@ -349,6 +351,7 @@ class _StockContainerCard extends ConsumerWidget {
             strength: container.strength.label,
             badge: _stockNoticeBadge(t, container),
           ),
+          StockPackFacts(container: container),
           const SizedBox(height: 12),
           _StockBalanceLine(container: container),
           if (!archived) ...[
@@ -361,16 +364,29 @@ class _StockContainerCard extends ConsumerWidget {
               personRevision: personRevision,
             ),
             const SizedBox(height: 12),
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: StitchButton(
-                key: ValueKey('stock-adjust-${container.id}'),
-                icon: LucideIcons.scale,
-                onPressed: () => context.push(
-                  '/stock/${container.personId}/adjust/${container.id}',
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.end,
+              children: [
+                StitchButton(
+                  key: ValueKey('stock-details-${container.id}'),
+                  icon: LucideIcons.packageOpen,
+                  onPressed: () => context.push(
+                    '/stock/${container.personId}/adjust/${container.id}?details=true',
+                  ),
+                  child: Text(t.details),
                 ),
-                child: Text(t.stockAdjustAction),
-              ),
+                StitchButton(
+                  key: ValueKey('stock-adjust-${container.id}'),
+                  primary: true,
+                  icon: LucideIcons.scale,
+                  onPressed: () => context.push(
+                    '/stock/${container.personId}/adjust/${container.id}',
+                  ),
+                  child: Text(t.stockAdjustAction),
+                ),
+              ],
             ),
           ],
         ],
@@ -683,7 +699,10 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
       strength = TextEditingController(),
       concentration = TextEditingController(),
       opening = TextEditingController(),
-      threshold = TextEditingController();
+      threshold = TextEditingController(),
+      lot = TextEditingController(),
+      expiry = TextEditingController(),
+      capacity = TextEditingController();
   ProductLabelSnapshot? productLabel;
   late final productEditor = ProductEditorData(entryChanged);
   String unit = 'ml';
@@ -715,6 +734,9 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
     'openingKnown': '$knownOpening',
     'threshold': threshold.text,
     'refill': '$refill',
+    'lot': lot.text,
+    'expiry': expiry.text,
+    'capacity': capacity.text,
     'productLabel': productLabel == null
         ? ''
         : jsonEncode(productLabel!.toJson()),
@@ -735,6 +757,9 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
     concentration.text = f['concentration'] ?? '';
     opening.text = f['opening'] ?? '';
     threshold.text = f['threshold'] ?? '';
+    lot.text = f['lot'] ?? '';
+    expiry.text = f['expiry'] ?? '';
+    capacity.text = f['capacity'] ?? '';
     unit = f['unit'] ?? 'ml';
     knownStrength = f['strengthKnown'] == 'true';
     knownOpening = f['openingKnown'] == 'true';
@@ -744,7 +769,16 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
   @override
   void initState() {
     super.initState();
-    for (final c in [label, strength, concentration, opening, threshold]) {
+    for (final c in [
+      label,
+      strength,
+      concentration,
+      opening,
+      threshold,
+      lot,
+      expiry,
+      capacity,
+    ]) {
       c.addListener(entryChanged);
     }
   }
@@ -752,7 +786,16 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
   @override
   void dispose() {
     productEditor.dispose();
-    for (final c in [label, strength, concentration, opening, threshold]) {
+    for (final c in [
+      label,
+      strength,
+      concentration,
+      opening,
+      threshold,
+      lot,
+      expiry,
+      capacity,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -768,7 +811,9 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
       });
       return;
     }
-    ExactAmount? c, o, low;
+    ExactAmount? c, o, low, packCapacity;
+    CivilDate? packExpiry;
+    String? packLot;
     try {
       if (productLabel == null && knownStrength) {
         c = ExactAmount.parseEntry(stockDecimal(concentration.text));
@@ -797,6 +842,36 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
       setState(() {
         invalid = 'threshold';
         error = t.stockMeasurementInvalid;
+      });
+      return;
+    }
+    if (expiry.text.trim().isNotEmpty) {
+      try {
+        packExpiry = CivilDate.parse(expiry.text.trim());
+      } catch (_) {
+        setState(() {
+          invalid = 'expiry';
+          error = t.featureStockExpiryInvalid;
+        });
+        return;
+      }
+    }
+    try {
+      if (capacity.text.trim().isNotEmpty) {
+        packCapacity = stockCapacityEntry(capacity.text);
+      }
+    } catch (_) {
+      setState(() {
+        invalid = 'capacity';
+        error = t.featureStockCapacityInvalid;
+      });
+      return;
+    }
+    packLot = lot.text.trim().isEmpty ? null : lot.text.trim();
+    if (packLot != null && packLot.length > 200) {
+      setState(() {
+        invalid = 'lot';
+        error = t.featureStockCapacityInvalid;
       });
       return;
     }
@@ -833,6 +908,9 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
           ),
           opening: o,
           lowThreshold: low,
+          lot: packLot,
+          expiryDate: packExpiry,
+          capacity: packCapacity,
           refillEnabled: refill,
           productLabel: sourceLabel,
         );
@@ -996,6 +1074,42 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
           error: invalid == 'opening' ? error : null,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
+      const SizedBox(height: 8),
+      VitalDisclosure(
+        title: t.featureStockDetails,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(t.featureStockDetailsHelp),
+            const SizedBox(height: 12),
+            LabelledInput(
+              label: t.featureStockLot,
+              controller: lot,
+              helper: t.featureStockLotHelp,
+              enabled: enabled,
+              error: invalid == 'lot' ? error : null,
+            ),
+            LabelledInput(
+              label: t.featureStockExpiry,
+              controller: expiry,
+              helper: t.featureStockExpiryHelp,
+              enabled: enabled,
+              error: invalid == 'expiry' ? error : null,
+            ),
+            LabelledInput(
+              label: t.featureStockCapacity,
+              controller: capacity,
+              helper: t.featureStockCapacityHelp(unit),
+              enabled: enabled,
+              error: invalid == 'capacity' ? error : null,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 8),
       LabelledInput(
         label: t.stockThreshold,
         controller: threshold,
@@ -1037,19 +1151,25 @@ class StockAdjustmentForm extends ConsumerStatefulWidget {
     required this.personId,
     required this.containerId,
     this.notices = false,
+    this.details = false,
   });
   final String personId, containerId;
-  final bool notices;
+  final bool notices, details;
   @override
   ConsumerState<StockAdjustmentForm> createState() =>
       _StockAdjustmentFormState();
 }
 
 class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
-  final amount = TextEditingController(), reason = TextEditingController();
+  final amount = TextEditingController(),
+      reason = TextEditingController(),
+      lot = TextEditingController(),
+      expiry = TextEditingController(),
+      capacity = TextEditingController();
   StockMovementKind? kind;
   bool unknown = false,
       noticesMode = false,
+      detailsMode = false,
       initialised = false,
       clearThreshold = false;
   AdultProfile? owner;
@@ -1068,7 +1188,11 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
   @override
   String? get entryTarget => widget.containerId;
   @override
-  String? get entryDraftVariant => noticesMode ? 'notices' : null;
+  String? get entryDraftVariant => detailsMode
+      ? 'details'
+      : noticesMode
+      ? 'notices'
+      : null;
   @override
   Future<OrdinaryDraft?> adoptEntryDraft(
     RecordStore store,
@@ -1103,16 +1227,30 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
   int? get entryTargetRevision => container?.revision;
   @override
   Map<String, String> captureEntry() => {
-    'kind': noticesMode ? 'notices' : kind?.name ?? '',
+    'kind': detailsMode
+        ? 'details'
+        : noticesMode
+        ? 'notices'
+        : kind?.name ?? '',
     'amount': amount.text,
     'unknown': '$unknown',
     'reason': reason.text,
     'clearThreshold': '$clearThreshold',
+    'lot': lot.text,
+    'expiry': expiry.text,
+    'capacity': capacity.text,
   };
   @override
   void restoreEntry(Map<String, String> f) {
-    // The route decides the surface. A draft written for the other command of
+    // The route decides the surface. A draft written for another command of
     // the same container must never leak its fields into this editor.
+    if ((f['kind'] ?? '') == 'details') {
+      if (!detailsMode) return;
+      lot.text = f['lot'] ?? '';
+      expiry.text = f['expiry'] ?? '';
+      capacity.text = f['capacity'] ?? '';
+      return;
+    }
     if ((f['kind'] ?? '') == 'notices') {
       if (!noticesMode) return;
       amount.text = f['amount'] ?? '';
@@ -1121,11 +1259,7 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
       unknown = f['unknown'] == 'true';
       return;
     }
-    // The route decides the surface. A stored command from the other surface
-    // arriving at this draft key is not restorable here and must keep its
-    // own operation: the form stops on a truthful conflict instead of
-    // silently rewriting that draft or capturing on top of it.
-    if (noticesMode) {
+    if (detailsMode || noticesMode) {
       conflict = true;
       error = conflictMessage;
       return;
@@ -1144,17 +1278,63 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
     super.initState();
     amount.addListener(entryChanged);
     reason.addListener(entryChanged);
+    lot.addListener(entryChanged);
+    expiry.addListener(entryChanged);
+    capacity.addListener(entryChanged);
   }
 
   @override
   void dispose() {
     amount.dispose();
     reason.dispose();
+    lot.dispose();
+    expiry.dispose();
+    capacity.dispose();
     super.dispose();
   }
 
   Future<void> save() async {
     final t = AppLocalizations.of(context);
+    if (detailsMode) {
+      CivilDate? packExpiry;
+      ExactAmount? packCapacity;
+      if (expiry.text.trim().isNotEmpty) {
+        try {
+          packExpiry = CivilDate.parse(expiry.text.trim());
+        } catch (_) {
+          setState(() => error = t.featureStockExpiryInvalid);
+          return;
+        }
+      }
+      try {
+        if (capacity.text.trim().isNotEmpty) {
+          packCapacity = stockCapacityEntry(capacity.text);
+        }
+      } catch (_) {
+        setState(() => error = t.featureStockCapacityInvalid);
+        return;
+      }
+      final packLot = lot.text.trim().isEmpty ? null : lot.text.trim();
+      if (packLot != null && packLot.length > 200) {
+        setState(() => error = t.featureStockLotInvalid);
+        return;
+      }
+      await commit((command) async {
+        final store = await ref.read(recordStoreProvider.future);
+        await store.updateStockMetadata(
+          commandId: command,
+          personId: widget.personId,
+          expectedPersonRevision: capturedPersonRevision!,
+          expectedGeneration: capturedGeneration!,
+          containerId: widget.containerId,
+          expectedContainerRevision: capturedTargetRevision!,
+          lot: packLot,
+          expiryDate: packExpiry,
+          capacity: packCapacity,
+        );
+      }, successPath: '/stock/${widget.personId}?item=${container!.itemId}');
+      return;
+    }
     if (noticesMode) {
       ExactAmount? low;
       try {
@@ -1262,6 +1442,14 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
     if (!initialised) {
       initialised = true;
       noticesMode = widget.notices;
+      detailsMode = widget.details;
+      if (detailsMode) {
+        lot.text = container!.lot ?? '';
+        expiry.text = container!.expiryDate?.toString() ?? '';
+        if (container!.capacity case final savedCapacity?) {
+          capacity.text = stockExactAmountEntry(savedCapacity);
+        }
+      }
       if (noticesMode) amount.text = '';
     }
     if (!prepareDraft()) return EntryPage(children: [Text(t.loadingRecords)]);
@@ -1271,7 +1459,13 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
         result.value!.revision == capturedTargetRevision;
     final enabled = valid && !busy && !uncertain && !conflict;
     return wrap([
-      Heading(noticesMode ? t.stockNotices : t.stockAdjust),
+      Heading(
+        noticesMode
+            ? t.stockNotices
+            : detailsMode
+            ? t.featureStockDetails
+            : t.stockAdjust,
+      ),
       Text(t.profileOwner(ownerLabel(ref, t, widget.personId))),
       Text(container!.label),
       if (container!.productLabel != null)
@@ -1280,6 +1474,39 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
         Text(t.stockStrengthValue(container!.strength.label)),
       StockBalanceText(container: result.value!),
       if (!valid) Text(t.conflictFailure),
+      if (detailsMode) ...[
+        Text(t.featureStockDetailsHelp),
+        StockPackFacts(container: result.value!, detailed: true),
+        LabelledInput(
+          label: t.featureStockLot,
+          controller: lot,
+          helper: t.featureStockLotHelp,
+          enabled: enabled,
+          error: error == t.featureStockLotInvalid ? error : null,
+        ),
+        LabelledInput(
+          label: t.featureStockExpiry,
+          controller: expiry,
+          helper: t.featureStockExpiryHelp,
+          enabled: enabled,
+          error: error == t.featureStockExpiryInvalid ? error : null,
+        ),
+        LabelledInput(
+          label: t.featureStockCapacity,
+          controller: capacity,
+          helper: t.featureStockCapacityHelp(result.value!.unit),
+          enabled: enabled,
+          error: error == t.featureStockCapacityInvalid ? error : null,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        ),
+        VitalDisclosure(
+          title: t.featureStockMetadataHistory,
+          child: StockMetadataHistory(
+            personId: widget.personId,
+            containerId: widget.containerId,
+          ),
+        ),
+      ],
       if (noticesMode && container!.lowThreshold != null)
         Text(
           t.stockThresholdValue(
@@ -1308,7 +1535,7 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
               : null,
           child: Text(t.catalogueClear),
         ),
-      if (!noticesMode)
+      if (!noticesMode && !detailsMode)
         Wrap(
           spacing: 12,
           runSpacing: 12,
@@ -1333,7 +1560,7 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
               ),
           ],
         ),
-      if (!noticesMode && kind != null) ...[
+      if (!noticesMode && !detailsMode && kind != null) ...[
         Text(
           kind == StockMovementKind.restock
               ? t.stockRestockHelp
@@ -1392,6 +1619,51 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
         unit: container!.unit,
       ),
     ]);
+  }
+}
+
+/// Saved pack-detail revisions. Movement revisions do not create metadata
+/// rows, so the version numbers honestly identify metadata edits only.
+class StockMetadataHistory extends ConsumerWidget {
+  const StockMetadataHistory({
+    super.key,
+    required this.personId,
+    required this.containerId,
+  });
+  final String personId, containerId;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
+    final query = (personId: personId, containerId: containerId);
+    return ref
+        .watch(stockMetadataHistoryProvider(query))
+        .when(
+          loading: () => Text(t.loadingRecords),
+          error: (_, _) => LoadFailure(
+            onRetry: () => ref.invalidate(stockMetadataHistoryProvider(query)),
+          ),
+          data: (rows) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (rows.isEmpty) Text(t.featureStockMetadataMigrated),
+              for (final row in rows)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    t.featureStockMetadataEntry(
+                      switch (row.source) {
+                        'created' => t.featureStockMetadataCreated,
+                        'edited' => t.featureStockMetadataEdited,
+                        _ => t.featureStockMetadataMigrated,
+                      },
+                      row.revision,
+                      displayStamp(context, ref, row.recordedAt),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
   }
 }
 

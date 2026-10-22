@@ -1,4 +1,5 @@
 import '../../app/display_preferences.dart';
+import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,6 +68,69 @@ class StockBalanceText extends StatelessWidget {
         else if (container.isLow)
           Text(t.stockLow),
       ],
+    );
+  }
+}
+
+/// Optional pack facts kept with the container identity. Expiry is factual and
+/// never blocks recording; capacity is descriptive and never caps a balance.
+class StockPackFacts extends StatelessWidget {
+  const StockPackFacts({
+    super.key,
+    required this.container,
+    this.detailed = false,
+  });
+  final StoredStockContainer container;
+  final bool detailed;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final colors = StitchColors(context);
+    final today = CivilDate.fromDateTime(DateTime.now());
+    final expiry = container.expiryDate;
+    final expiryState = container.expiryState(today);
+    final rows = <Widget>[
+      if (container.lot case final lot?)
+        Text(t.featureStockLotValue(lot), style: StitchType.caption),
+      if (expiry != null)
+        Text(
+          switch (expiryState) {
+            StockExpiryState.expired => t.featureStockExpiryExpired(
+              expiry.toString(),
+            ),
+            StockExpiryState.today => t.featureStockExpiryToday,
+            _ => t.featureStockExpiryFuture(expiry.toString()),
+          },
+          style: StitchType.caption.copyWith(
+            color: expiryState == StockExpiryState.expired
+                ? colors.danger
+                : expiryState == StockExpiryState.today
+                ? colors.amber
+                : colors.muted,
+          ),
+        ),
+      if (container.capacity case final capacity?)
+        Text(
+          t.featureStockCapacityValue(
+            stockAmountText(t, capacity, container.unit),
+          ),
+          style: StitchType.caption.copyWith(color: colors.muted),
+        )
+      else if (detailed)
+        Text(
+          t.featureStockCapacityUnknown,
+          style: StitchType.caption.copyWith(color: colors.muted),
+        ),
+    ];
+    if (rows.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: rows,
+      ),
     );
   }
 }

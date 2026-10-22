@@ -116,7 +116,7 @@ void main() {
       expect((await store.draftById(draft.id))!.fields, draft.fields);
       final check = raw();
       addTearDown(check.close);
-      expect(check.select('PRAGMA user_version').single.values.single, 23);
+      expect(check.select('PRAGMA user_version').single.values.single, currentRecordSchemaVersion);
       expect(
         check.select('SELECT COUNT(*) AS n FROM revision').single['n'],
         beforeCount,

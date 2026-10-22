@@ -6586,7 +6586,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get screenStockGaps =>
-      'Pack scanning, batch lots, expiry, capacity and runout forecasts are not available yet.';
+      'Pack scanning and refill delivery are not available yet.';
 
   @override
   String get screenStockLoadedOnly => 'Only the loaded page is shown.';
@@ -7515,4 +7515,93 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get featureLabsMetadataHelp =>
       'Selected lab records include saved categories and accession or report identifiers. Notes stay private unless selected.';
+
+  @override
+  String get featureStockDetails => 'Container details';
+
+  @override
+  String get featureStockDetailsHelp =>
+      'Optional facts about this pack. They do not change its recorded balance.';
+
+  @override
+  String get featureStockLot => 'Lot or batch';
+
+  @override
+  String get featureStockLotHelp =>
+      'Optional. Leave blank when no lot or batch is printed.';
+
+  @override
+  String get featureStockLotInvalid =>
+      'Use a lot or batch of 200 characters or fewer.';
+
+  @override
+  String get featureStockExpiry => 'Expiry date';
+
+  @override
+  String get featureStockExpiryHelp => 'Optional. Use YYYY-MM-DD.';
+
+  @override
+  String get featureStockExpiryInvalid => 'Enter a real date as YYYY-MM-DD.';
+
+  @override
+  String get featureStockCapacity => 'Pack capacity';
+
+  @override
+  String featureStockCapacityHelp(String unit) {
+    return 'Optional. The full pack amount in $unit. Use a number or a fraction such as 1/3. It does not limit recorded stock.';
+  }
+
+  @override
+  String get featureStockCapacityInvalid =>
+      'Enter a capacity greater than zero as a number or fraction, up to 9,000,000,000.';
+
+  @override
+  String get featureStockMetadataSaved => 'Container details saved.';
+
+  @override
+  String get featureStockMetadataHistory => 'Details history';
+
+  @override
+  String get featureStockMetadataCreated => 'Added';
+
+  @override
+  String get featureStockMetadataEdited => 'Edited';
+
+  @override
+  String get featureStockMetadataMigrated => 'Carried forward';
+
+  @override
+  String featureStockMetadataEntry(String source, int revision, String date) {
+    return '$source, version $revision, $date';
+  }
+
+  @override
+  String featureStockLotValue(String lot) {
+    return 'Lot: $lot';
+  }
+
+  @override
+  String featureStockExpiryExpired(String date) {
+    return 'Expired $date';
+  }
+
+  @override
+  String get featureStockExpiryToday => 'Expires today';
+
+  @override
+  String featureStockExpiryFuture(String date) {
+    return 'Expires $date';
+  }
+
+  @override
+  String featureStockCapacityValue(String amount) {
+    return 'Capacity: $amount';
+  }
+
+  @override
+  String get featureStockCapacityUnknown => 'Capacity not set';
+
+  @override
+  String get featureStockRestockHelp =>
+      'Adds supply to this container and keeps its lot and strength. Add a container when the lot or strength changes.';
 }

@@ -7631,9 +7631,9 @@
   "@screenStockContainers": {
     "description": "Stock screen. Section heading for the bounded container page."
   },
-  "screenStockGaps": "Pack scanning, batch lots, expiry, capacity and runout forecasts are not available yet.",
+  "screenStockGaps": "Pack scanning and refill delivery are not available yet.",
   "@screenStockGaps": {
-    "description": "Stock screen. Names unavailable D13 to D15 capabilities; never presents example lot, expiry or forecast data."
+    "description": "Stock screen. Names the remaining D15 capabilities; lot, expiry, capacity and run-out forecasts are implemented."
   },
   "screenStockLoadedOnly": "Only the loaded page is shown.",
   "@screenStockLoadedOnly": {
@@ -8821,5 +8821,137 @@
   "featureLabsMetadataHelp": "Selected lab records include saved categories and accession or report identifiers. Notes stay private unless selected.",
   "@featureLabsMetadataHelp": {
     "description": "Discloses source metadata included with selected lab records in reports and exports."
+  },
+  "featureStockDetails": "Container details",
+  "@featureStockDetails": {
+    "description": "Disclosure heading and page heading for optional pack facts such as lot, expiry and capacity."
+  },
+  "featureStockDetailsHelp": "Optional facts about this pack. They do not change its recorded balance.",
+  "@featureStockDetailsHelp": {
+    "description": "Explains that lot, expiry and capacity are descriptive and never limit stock or recording."
+  },
+  "featureStockLot": "Lot or batch",
+  "@featureStockLot": {
+    "description": "Optional field label for a user-entered lot or batch printed on the container."
+  },
+  "featureStockLotHelp": "Optional. Leave blank when no lot or batch is printed.",
+  "@featureStockLotHelp": {
+    "description": "Helper text for the optional lot or batch field."
+  },
+  "featureStockLotInvalid": "Use a lot or batch of 200 characters or fewer.",
+  "@featureStockLotInvalid": {
+    "description": "Validation message for a lot or batch entry that is too long."
+  },
+  "featureStockExpiry": "Expiry date",
+  "@featureStockExpiry": {
+    "description": "Field label for the optional civil expiry date printed on the pack."
+  },
+  "featureStockExpiryHelp": "Optional. Use YYYY-MM-DD.",
+  "@featureStockExpiryHelp": {
+    "description": "Helper text for the optional expiry date field."
+  },
+  "featureStockExpiryInvalid": "Enter a real date as YYYY-MM-DD.",
+  "@featureStockExpiryInvalid": {
+    "description": "Validation message for an invalid expiry date."
+  },
+  "featureStockCapacity": "Pack capacity",
+  "@featureStockCapacity": {
+    "description": "Field label for the optional full pack amount in the container unit."
+  },
+  "featureStockCapacityHelp": "Optional. The full pack amount in {unit}. Use a number or a fraction such as 1/3. It does not limit recorded stock.",
+  "@featureStockCapacityHelp": {
+    "description": "Explains that capacity is descriptive and never a balance cap.",
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "featureStockCapacityInvalid": "Enter a capacity greater than zero as a number or fraction, up to 9,000,000,000.",
+  "@featureStockCapacityInvalid": {
+    "description": "Validation message for an invalid pack capacity."
+  },
+  "featureStockMetadataSaved": "Container details saved.",
+  "@featureStockMetadataSaved": {
+    "description": "Confirmation after saving pack details."
+  },
+  "featureStockMetadataHistory": "Details history",
+  "@featureStockMetadataHistory": {
+    "description": "Disclosure heading for saved pack-detail revisions."
+  },
+  "featureStockMetadataCreated": "Added",
+  "@featureStockMetadataCreated": {
+    "description": "Source label for the first saved pack details."
+  },
+  "featureStockMetadataEdited": "Edited",
+  "@featureStockMetadataEdited": {
+    "description": "Source label for an edited pack-detail revision."
+  },
+  "featureStockMetadataMigrated": "Carried forward",
+  "@featureStockMetadataMigrated": {
+    "description": "Source label for pack details carried forward by the schema migration."
+  },
+  "featureStockMetadataEntry": "{source}, version {revision}, {date}",
+  "@featureStockMetadataEntry": {
+    "description": "One pack-detail history line with source, revision and recorded time.",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      },
+      "revision": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "featureStockLotValue": "Lot: {lot}",
+  "@featureStockLotValue": {
+    "description": "Read-only lot or batch value.",
+    "placeholders": {
+      "lot": {
+        "type": "String"
+      }
+    }
+  },
+  "featureStockExpiryExpired": "Expired {date}",
+  "@featureStockExpiryExpired": {
+    "description": "Expiry badge for a date before today.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "featureStockExpiryToday": "Expires today",
+  "@featureStockExpiryToday": {
+    "description": "Expiry badge for the current local day."
+  },
+  "featureStockExpiryFuture": "Expires {date}",
+  "@featureStockExpiryFuture": {
+    "description": "Expiry badge for a future date.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "featureStockCapacityValue": "Capacity: {amount}",
+  "@featureStockCapacityValue": {
+    "description": "Read-only pack capacity with its exact amount and unit.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "featureStockCapacityUnknown": "Capacity not set",
+  "@featureStockCapacityUnknown": {
+    "description": "Shown when no pack capacity is recorded. No proportion is invented."
+  },
+  "featureStockRestockHelp": "Adds supply to this container and keeps its lot and strength. Add a container when the lot or strength changes.",
+  "@featureStockRestockHelp": {
+    "description": "Explains that restocking the same container never changes its lot or strength snapshots."
   }
 }

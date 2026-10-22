@@ -115,6 +115,9 @@ final class OrdinaryDraft {
         'openingKnown',
         'threshold',
         'refill',
+        'lot',
+        'expiry',
+        'capacity',
       },
       DraftKind.stockAdjustment => {
         'kind',
@@ -122,6 +125,9 @@ final class OrdinaryDraft {
         'unknown',
         'reason',
         'clearThreshold',
+        'lot',
+        'expiry',
+        'capacity',
       },
       DraftKind.dose || DraftKind.correction => {
         'amount',
@@ -327,7 +333,11 @@ final class OrdinaryDraft {
       '/types/$personId/edit${targetId == null ? '' : '?type=$targetId'}',
     DraftKind.stockContainer => '/stock/$personId/create?item=$targetId',
     DraftKind.stockAdjustment =>
-      '/stock/$personId/adjust/$targetId${fields['kind'] == 'notices' ? '?notices=true' : ''}',
+      '/stock/$personId/adjust/$targetId${fields['kind'] == 'notices'
+          ? '?notices=true'
+          : fields['kind'] == 'details'
+          ? '?details=true'
+          : ''}',
     DraftKind.dose => '/record/$targetId',
     DraftKind.correction => '/correct/$targetId?person=$personId',
     DraftKind.dailyPlan => '/schedule/$targetId?plan=${fields['planId']}',

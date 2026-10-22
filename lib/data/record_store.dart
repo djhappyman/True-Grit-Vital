@@ -85,7 +85,7 @@ part 'backup_store.dart';
 part 'restore_store.dart';
 
 /// Current durable record schema, also used by backup and restore validation.
-const currentRecordSchemaVersion = 23;
+const currentRecordSchemaVersion = 24;
 
 // No generated table layer is needed for this bounded, explicitly versioned SQL schema.
 final class _Database extends drift.GeneratedDatabase {
@@ -151,9 +151,12 @@ final class _Database extends drift.GeneratedDatabase {
       await _migrateSupportingVoidV21(this);
       await _migrateItemDetailV22(this);
       await _migrateDoseContextV23(this);
+      for (final sql in stockMetadataSchemaV24) {
+        await customStatement(sql);
+      }
     }),
     onUpgrade: (_, from, to) => transaction(() async {
-      if (from < 1 || from > 22 || to != 23) {
+      if (from < 1 || from > 23 || to != 24) {
         throw StateError('unsupported_schema');
       }
       if (from == 1) {
@@ -232,6 +235,11 @@ final class _Database extends drift.GeneratedDatabase {
       if (from < 21) await _migrateSupportingVoidV21(this);
       if (from < 22) await _migrateItemDetailV22(this);
       if (from < 23) await _migrateDoseContextV23(this);
+      if (from < 24) {
+        for (final sql in stockMetadataSchemaV24) {
+          await customStatement(sql);
+        }
+      }
     }),
   );
   Future<void> _addProfiles() async {

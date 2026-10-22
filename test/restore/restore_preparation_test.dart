@@ -210,7 +210,7 @@ void main() {
           db.select('SELECT count(*) c FROM attachment_chunk').single['c'],
           1,
         );
-        expect(db.select('PRAGMA user_version').single.values.single, 23);
+        expect(db.select('PRAGMA user_version').single.values.single, currentRecordSchemaVersion);
       } finally {
         db.close();
       }

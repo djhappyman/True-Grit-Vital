@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:true_grit_vital/domain/exports/exports.dart';
-import 'package:true_grit_vital/domain/scheduling/daily_plan.dart';
 import 'package:true_grit_vital/domain/records.dart';
 import 'package:true_grit_vital/domain/stock/stored_stock.dart';
 

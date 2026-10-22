@@ -19,6 +19,24 @@ const stockSchemaV8 = [
   'DROP TABLE ordinary_draft_v7',
 ];
 
+/// Schema 24 adds optional, descriptive pack details to an existing container
+/// identity. Every column is additive and older rows read null. Capacity is
+/// stored as the same exact rational pair as every other quantity; it is never
+/// used as a balance cap. Each created or edited metadata state is retained in
+/// an immutable history table, separate from movement revisions.
+const stockMetadataSchemaV24 = [
+  'ALTER TABLE stock_container ADD COLUMN lot TEXT',
+  'ALTER TABLE stock_container ADD COLUMN expiry_date TEXT',
+  'ALTER TABLE stock_container ADD COLUMN capacity_n TEXT',
+  'ALTER TABLE stock_container ADD COLUMN capacity_d TEXT',
+  '''CREATE TABLE stock_container_metadata(container TEXT NOT NULL,revision INTEGER NOT NULL CHECK(revision>0),lot TEXT,expiry_date TEXT,capacity_n TEXT,capacity_d TEXT,source TEXT NOT NULL CHECK(source IN ('created','edited','migrated')),recorded_at INTEGER NOT NULL,PRIMARY KEY(container,revision),FOREIGN KEY(container) REFERENCES stock_container(id) ON DELETE CASCADE,CHECK((capacity_n IS NULL)=(capacity_d IS NULL))) STRICT''',
+  'CREATE INDEX stock_container_metadata_owner ON stock_container_metadata(container,revision DESC)',
+  "CREATE TRIGGER stock_pack_details_insert BEFORE INSERT ON stock_container WHEN (NEW.capacity_n IS NULL)<>(NEW.capacity_d IS NULL) OR (NEW.capacity_n IS NOT NULL AND (NEW.capacity_n GLOB '*[^0-9]*' OR substr(NEW.capacity_n,1,1) NOT BETWEEN '1' AND '9' OR NEW.capacity_d GLOB '*[^0-9]*' OR substr(NEW.capacity_d,1,1) NOT BETWEEN '1' AND '9')) OR (NEW.lot IS NOT NULL AND length(NEW.lot) NOT BETWEEN 1 AND 200) OR (NEW.expiry_date IS NOT NULL AND NEW.expiry_date NOT GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]') BEGIN SELECT RAISE(ABORT,'stock_pack_details'); END",
+  "CREATE TRIGGER stock_pack_details_update BEFORE UPDATE OF lot,expiry_date,capacity_n,capacity_d ON stock_container WHEN (NEW.capacity_n IS NULL)<>(NEW.capacity_d IS NULL) OR (NEW.capacity_n IS NOT NULL AND (NEW.capacity_n GLOB '*[^0-9]*' OR substr(NEW.capacity_n,1,1) NOT BETWEEN '1' AND '9' OR NEW.capacity_d GLOB '*[^0-9]*' OR substr(NEW.capacity_d,1,1) NOT BETWEEN '1' AND '9')) OR (NEW.lot IS NOT NULL AND length(NEW.lot) NOT BETWEEN 1 AND 200) OR (NEW.expiry_date IS NOT NULL AND NEW.expiry_date NOT GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]') BEGIN SELECT RAISE(ABORT,'stock_pack_details'); END",
+  "CREATE TRIGGER stock_metadata_immutable BEFORE UPDATE ON stock_container_metadata BEGIN SELECT RAISE(ABORT,'immutable_stock_metadata'); END",
+  "INSERT INTO stock_container_metadata(container,revision,lot,expiry_date,capacity_n,capacity_d,source,recorded_at) SELECT id,revision,NULL,NULL,NULL,NULL,'migrated',0 FROM stock_container",
+];
+
 List<String>? _stockPair(ExactAmount? a) =>
     a == null ? null : [a.numerator.toString(), a.denominator.toString()];
 Map<String, Object?> _strengthJson(LabelledStrength s) => {
@@ -178,6 +196,12 @@ extension StockRecordStore on RecordStore {
         limitReached: r['balance_status'] == 'limit',
       ),
       lowThreshold: _storedPair(r, 'threshold_n', 'threshold_d'),
+      lot: r['lot'] as String?,
+      expiryDate: switch (r['expiry_date']) {
+        final String value when value.isNotEmpty => CivilDate.parse(value),
+        _ => null,
+      },
+      capacity: _storedPair(r, 'capacity_n', 'capacity_d'),
       refillEnabled: r['refill'] == 1,
       alreadyCommitted: r['replay'] == true,
     );
@@ -254,6 +278,9 @@ extension StockRecordStore on RecordStore {
     ProductLabelSnapshot? productLabel,
     ExactAmount? opening,
     ExactAmount? lowThreshold,
+    String? lot,
+    CivilDate? expiryDate,
+    ExactAmount? capacity,
     bool refillEnabled = false,
     bool failBeforeCommit = false,
   }) async {
@@ -268,6 +295,8 @@ extension StockRecordStore on RecordStore {
     _stockAmountBound(opening, nonnegative: true);
     _stockAmountBound(lowThreshold, nonnegative: true);
     _stockStrengthBound(strength);
+    final packLot = _stockLot(lot);
+    final packCapacity = _stockCapacity(capacity);
     final snapshot = jsonEncode(_strengthJson(strength));
     return _stockContainer(
       await _command(
@@ -283,6 +312,13 @@ extension StockRecordStore on RecordStore {
           _stockPair(lowThreshold),
           refillEnabled,
           expectedPersonRevision,
+          if (packLot != null ||
+              expiryDate != null ||
+              packCapacity != null) ...[
+            packLot,
+            expiryDate?.toString(),
+            _stockPair(packCapacity),
+          ],
           if (productLabel != null) productLabel.toJson(),
         ],
         () async {
@@ -303,7 +339,7 @@ extension StockRecordStore on RecordStore {
           }
           final id = newCommandId();
           await _db.customStatement(
-            'INSERT INTO stock_container(id,person,item,label,unit,strength,revision,sequence,measurement_sequence,balance_status,numerator,denominator,threshold_n,threshold_d,refill,product_label) VALUES (?,?,?,?,?,?,1,0,0,\'unknown\',NULL,NULL,?,?,?,?)',
+            'INSERT INTO stock_container(id,person,item,label,unit,strength,revision,sequence,measurement_sequence,balance_status,numerator,denominator,threshold_n,threshold_d,refill,product_label,lot,expiry_date,capacity_n,capacity_d) VALUES (?,?,?,?,?,?,1,0,0,\'unknown\',NULL,NULL,?,?,?,?,?,?,?,?)',
             [
               id,
               personId,
@@ -315,6 +351,21 @@ extension StockRecordStore on RecordStore {
               lowThreshold?.denominator.toString(),
               refillEnabled ? 1 : 0,
               productLabel == null ? null : jsonEncode(productLabel.toJson()),
+              packLot,
+              expiryDate?.toString(),
+              packCapacity?.numerator.toString(),
+              packCapacity?.denominator.toString(),
+            ],
+          );
+          await _db.customStatement(
+            'INSERT INTO stock_container_metadata(container,revision,lot,expiry_date,capacity_n,capacity_d,source,recorded_at) VALUES (?,1,?,?,?,?,\'created\',?)',
+            [
+              id,
+              packLot,
+              expiryDate?.toString(),
+              packCapacity?.numerator.toString(),
+              packCapacity?.denominator.toString(),
+              DateTime.now().microsecondsSinceEpoch,
             ],
           );
           final row = (await _rows('SELECT * FROM stock_container WHERE id=?', [
@@ -335,6 +386,137 @@ extension StockRecordStore on RecordStore {
     );
   }
 
+  /// Trims an optional lot or batch. Empty entry means no lot is recorded.
+  String? _stockLot(String? value) {
+    final text = value?.trim();
+    if (text == null || text.isEmpty) return null;
+    if (text.length > 200) throw const FormatException('stock_lot');
+    return text;
+  }
+
+  /// Capacity is descriptive and must be a positive exact amount in the
+  /// container's own unit. It never becomes a balance limit.
+  ExactAmount? _stockCapacity(ExactAmount? value) {
+    if (value == null) return null;
+    if (value <= ExactAmount.zero) {
+      throw const FormatException('stock_capacity');
+    }
+    _stockAmountBound(value);
+    return value;
+  }
+
+  /// Edits the optional pack facts without touching the ledger, the balance,
+  /// the current strength snapshot or any saved movement. The container
+  /// revision is the optimistic guard; the command identity makes a retry
+  /// after a lost reply idempotent.
+  Future<StoredStockContainer> updateStockMetadata({
+    required String commandId,
+    required String personId,
+    required int expectedPersonRevision,
+    required String expectedGeneration,
+    required String containerId,
+    required int expectedContainerRevision,
+    String? lot,
+    CivilDate? expiryDate,
+    ExactAmount? capacity,
+  }) async {
+    _stockGeneration(expectedGeneration);
+    final packLot = _stockLot(lot);
+    final packCapacity = _stockCapacity(capacity);
+    return _stockContainer(
+      await _command(
+        commandId,
+        [
+          'stock_metadata',
+          personId,
+          containerId,
+          expectedContainerRevision,
+          expectedPersonRevision,
+          packLot,
+          expiryDate?.toString(),
+          _stockPair(packCapacity),
+        ],
+        () async {
+          await _activeOwner(personId, expectedPersonRevision);
+          await _stockContext(personId, containerId, expectedContainerRevision);
+          await _db.customStatement(
+            'UPDATE stock_container SET lot=?,expiry_date=?,capacity_n=?,capacity_d=?,revision=revision+1 WHERE id=?',
+            [
+              packLot,
+              expiryDate?.toString(),
+              packCapacity?.numerator.toString(),
+              packCapacity?.denominator.toString(),
+              containerId,
+            ],
+          );
+          final row = (await _rows(
+            'SELECT revision FROM stock_container WHERE id=?',
+            [containerId],
+          )).single;
+          await _db.customStatement(
+            'INSERT INTO stock_container_metadata(container,revision,lot,expiry_date,capacity_n,capacity_d,source,recorded_at) VALUES (?,?,?,?,?,?,\'edited\',?)',
+            [
+              containerId,
+              row['revision'],
+              packLot,
+              expiryDate?.toString(),
+              packCapacity?.numerator.toString(),
+              packCapacity?.denominator.toString(),
+              DateTime.now().microsecondsSinceEpoch,
+            ],
+          );
+          return (await _rows('SELECT * FROM stock_container WHERE id=?', [
+            containerId,
+          ])).single;
+        },
+      ),
+    );
+  }
+
+  /// Immutable pack-detail history, newest first. Movement revisions are not
+  /// metadata edits and therefore do not create rows here.
+  Future<List<StoredStockMetadataRevision>> stockMetadataHistory({
+    required String personId,
+    required String containerId,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    _pageBounds(limit, offset);
+    final rows = await _rows(
+      'SELECT m.* FROM stock_container_metadata m JOIN stock_container c ON c.id=m.container AND c.person=? WHERE m.container=? ORDER BY m.revision DESC LIMIT ? OFFSET ?',
+      [personId, containerId, limit, offset],
+    );
+    return [
+      for (final row in rows)
+        StoredStockMetadataRevision(
+          containerId: row['container'] as String,
+          revision: row['revision'] as int,
+          lot: row['lot'] as String?,
+          expiryDate: switch (row['expiry_date']) {
+            final String value when value.isNotEmpty => CivilDate.parse(value),
+            _ => null,
+          },
+          capacity: _storedPair(row, 'capacity_n', 'capacity_d'),
+          source: row['source'] as String,
+          recordedAt: DateTime.fromMicrosecondsSinceEpoch(
+            row['recorded_at'] as int,
+            isUtc: true,
+          ),
+        ),
+    ];
+  }
+
+  Stream<List<StoredStockMetadataRevision>> watchStockMetadataHistory({
+    required String personId,
+    required String containerId,
+    int limit = 20,
+  }) => _watch(
+    () => stockMetadataHistory(
+      personId: personId,
+      containerId: containerId,
+      limit: limit,
+    ),
+  );
   Future<StoredStockContainer> configureStockNotices({
     required String commandId,
     required String personId,

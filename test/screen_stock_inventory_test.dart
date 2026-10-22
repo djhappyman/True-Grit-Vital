@@ -160,9 +160,7 @@ void main() {
     await settle(tester);
     await waitForText(tester, 'Add container');
     expect(
-      find.text(
-        'Pack scanning, batch lots, expiry, capacity and runout forecasts are not available yet.',
-      ),
+      find.text('Pack scanning and refill delivery are not available yet.'),
       findsOneWidget,
     );
     await tester.ensureVisible(find.byKey(const ValueKey('stock-add-action')));

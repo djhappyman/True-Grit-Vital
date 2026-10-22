@@ -1,10 +1,15 @@
 import 'exact_amount.dart';
 import '../products/products.dart';
+import '../scheduling/daily_plan.dart' show CivilDate;
 import 'stock_ledger.dart';
 export 'exact_amount.dart';
 export 'stock_ledger.dart';
+export '../scheduling/daily_plan.dart' show CivilDate;
 
 enum StockNoticeState { none, low, refill, unknown, limitReached }
+
+/// A civil expiry date compared with the person's current local day.
+enum StockExpiryState { none, expired, today, future }
 
 final class StockReplacement {
   const StockReplacement({
@@ -46,6 +51,9 @@ final class StoredStockContainer {
     required this.sequence,
     this.productLabel,
     this.lowThreshold,
+    this.lot,
+    this.expiryDate,
+    this.capacity,
     required this.refillEnabled,
     this.alreadyCommitted = false,
   });
@@ -55,7 +63,26 @@ final class StoredStockContainer {
   final int revision, sequence;
   final StockBalance balance;
   final ExactAmount? lowThreshold;
+
+  /// Optional user-entered pack facts. Older rows read all three as null.
+  /// They are descriptive: neither limits a recorded balance nor blocks use.
+  final String? lot;
+  final CivilDate? expiryDate;
+  final ExactAmount? capacity;
+
   final bool refillEnabled, alreadyCommitted;
+
+  StockExpiryState expiryState(CivilDate today) {
+    final expiry = expiryDate;
+    if (expiry == null) return StockExpiryState.none;
+    final order = expiry.compareTo(today);
+    return order < 0
+        ? StockExpiryState.expired
+        : order == 0
+        ? StockExpiryState.today
+        : StockExpiryState.future;
+  }
+
   StockNoticeState get notice {
     if (balance.limitReached) return StockNoticeState.limitReached;
     final value = balance.value;
@@ -120,4 +147,25 @@ final class StockNoticePage {
   }) : rows = List.unmodifiable(rows);
   final List<StockNoticeRow> rows;
   final bool hasMore;
+}
+
+/// One saved container metadata revision. The source says whether the row was
+/// created, edited or carried forward by the schema 24 migration.
+final class StoredStockMetadataRevision {
+  const StoredStockMetadataRevision({
+    required this.containerId,
+    required this.revision,
+    required this.recordedAt,
+    required this.source,
+    this.lot,
+    this.expiryDate,
+    this.capacity,
+  });
+  final String containerId;
+  final int revision;
+  final DateTime recordedAt;
+  final String source;
+  final String? lot;
+  final CivilDate? expiryDate;
+  final ExactAmount? capacity;
 }

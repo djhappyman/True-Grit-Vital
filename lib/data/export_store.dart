@@ -111,7 +111,7 @@ extension ExportRecordStore on RecordStore {
       final chunk = ids.skip(offset).take(limits.chunk).toList();
       final marks = List.filled(chunk.length, '?').join(',');
       final rows = await _rows(
-        '''SELECT a.id,a.item,a.actual AS current_actual,a.revision AS current_revision,r.*,s.source,c.catalogue_snapshot,q.numerator AS actual_n,q.denominator AS actual_d,q.unit AS actual_unit,q.entered AS original_entry,q.entered_unit AS original_unit,q.strength AS quantity_strength,q.replacement AS quantity_replacement,x.snapshot AS product_snapshot,(SELECT label FROM site_event WHERE record=a.id AND person=a.person AND record_revision<=r.revision ORDER BY sequence DESC LIMIT 1) AS site_label,(SELECT action FROM combined_member WHERE record=a.id AND person=a.person) AS combined_action FROM administration a JOIN revision r ON r.record=a.id AND r.person=a.person LEFT JOIN revision_source s ON s.record=r.record AND s.revision=r.revision LEFT JOIN revision_catalogue c ON c.record=r.record AND c.revision=r.revision LEFT JOIN revision_quantity q ON q.record=r.record AND q.revision=r.revision LEFT JOIN revision_product x ON x.record=r.record AND x.revision=r.revision WHERE a.person=? AND a.id IN ($marks) LIMIT ?''',
+        '''SELECT a.id,a.item,a.actual AS current_actual,a.revision AS current_revision,r.*,s.source,c.catalogue_snapshot,q.numerator AS actual_n,q.denominator AS actual_d,q.unit AS actual_unit,q.entered AS original_entry,q.entered_unit AS original_unit,q.strength AS quantity_strength,q.replacement AS quantity_replacement,x.snapshot AS product_snapshot,(SELECT label FROM site_event WHERE record=a.id AND person=a.person AND record_revision<=r.revision ORDER BY sequence DESC LIMIT 1) AS site_label,(SELECT action FROM combined_member WHERE record=a.id AND person=a.person) AS combined_action,sc.id AS stock_container_id,sc.label AS stock_container_label,sc.unit AS stock_unit,sc.lot AS stock_lot,sc.expiry_date AS stock_expiry_date,sc.capacity_n AS stock_capacity_n,sc.capacity_d AS stock_capacity_d FROM administration a JOIN revision r ON r.record=a.id AND r.person=a.person LEFT JOIN revision_source s ON s.record=r.record AND s.revision=r.revision LEFT JOIN revision_catalogue c ON c.record=r.record AND c.revision=r.revision LEFT JOIN revision_quantity q ON q.record=r.record AND q.revision=r.revision LEFT JOIN revision_product x ON x.record=r.record AND x.revision=r.revision LEFT JOIN stock_movement sm ON sm.record=a.id AND sm.person=a.person AND sm.kind='actualUse' LEFT JOIN stock_container sc ON sc.id=sm.container AND sc.person=sm.person WHERE a.person=? AND a.id IN ($marks) LIMIT ?''',
         [
           selection.personId,
           ...chunk,
@@ -143,12 +143,33 @@ extension ExportRecordStore on RecordStore {
     for (final row in result) {
       cancellation?.throwIfCancelled();
       final detail = details[row['item'] as String];
+      final stockContainerId = row['stock_container_id'] as String?;
+      final stockSource = stockContainerId == null
+          ? null
+          : ExportStockSource(
+              containerId: stockContainerId,
+              label: row['stock_container_label'] as String,
+              unit: row['stock_unit'] as String,
+              lot: row['stock_lot'] as String?,
+              expiryDate: switch (row['stock_expiry_date']) {
+                final String value when value.isNotEmpty => CivilDate.parse(
+                  value,
+                ),
+                _ => null,
+              },
+              capacity: _storedPair(
+                row,
+                'stock_capacity_n',
+                'stock_capacity_d',
+              ),
+            );
       final revision = ExportDoseRevision.fromRecord(
         _record(row),
         currentRevision: row['current_revision'] as int,
         itemInstructions: detail?.instructions,
         itemNotes: detail?.notes,
         includeNotes: selection.includeNotes,
+        stockSource: stockSource,
       );
       estimated += utf8.encode(jsonEncode(revision.toJson())).length + 2;
       if (estimated > limits.maxBytes) {

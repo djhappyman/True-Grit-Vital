@@ -10269,10 +10269,10 @@ abstract class AppLocalizations {
   /// **'Active containers'**
   String get screenStockContainers;
 
-  /// Stock screen. Names unavailable D13 to D15 capabilities; never presents example lot, expiry or forecast data.
+  /// Stock screen. Names the remaining D15 capabilities; lot, expiry, capacity and run-out forecasts are implemented.
   ///
   /// In en, this message translates to:
-  /// **'Pack scanning, batch lots, expiry, capacity and runout forecasts are not available yet.'**
+  /// **'Pack scanning and refill delivery are not available yet.'**
   String get screenStockGaps;
 
   /// Stock screen. Truthful paging caption because no whole-collection stock filter is applied.
@@ -11642,6 +11642,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Selected lab records include saved categories and accession or report identifiers. Notes stay private unless selected.'**
   String get featureLabsMetadataHelp;
+
+  /// Disclosure heading and page heading for optional pack facts such as lot, expiry and capacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Container details'**
+  String get featureStockDetails;
+
+  /// Explains that lot, expiry and capacity are descriptive and never limit stock or recording.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional facts about this pack. They do not change its recorded balance.'**
+  String get featureStockDetailsHelp;
+
+  /// Optional field label for a user-entered lot or batch printed on the container.
+  ///
+  /// In en, this message translates to:
+  /// **'Lot or batch'**
+  String get featureStockLot;
+
+  /// Helper text for the optional lot or batch field.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Leave blank when no lot or batch is printed.'**
+  String get featureStockLotHelp;
+
+  /// Validation message for a lot or batch entry that is too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a lot or batch of 200 characters or fewer.'**
+  String get featureStockLotInvalid;
+
+  /// Field label for the optional civil expiry date printed on the pack.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry date'**
+  String get featureStockExpiry;
+
+  /// Helper text for the optional expiry date field.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Use YYYY-MM-DD.'**
+  String get featureStockExpiryHelp;
+
+  /// Validation message for an invalid expiry date.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a real date as YYYY-MM-DD.'**
+  String get featureStockExpiryInvalid;
+
+  /// Field label for the optional full pack amount in the container unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Pack capacity'**
+  String get featureStockCapacity;
+
+  /// Explains that capacity is descriptive and never a balance cap.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. The full pack amount in {unit}. Use a number or a fraction such as 1/3. It does not limit recorded stock.'**
+  String featureStockCapacityHelp(String unit);
+
+  /// Validation message for an invalid pack capacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a capacity greater than zero as a number or fraction, up to 9,000,000,000.'**
+  String get featureStockCapacityInvalid;
+
+  /// Confirmation after saving pack details.
+  ///
+  /// In en, this message translates to:
+  /// **'Container details saved.'**
+  String get featureStockMetadataSaved;
+
+  /// Disclosure heading for saved pack-detail revisions.
+  ///
+  /// In en, this message translates to:
+  /// **'Details history'**
+  String get featureStockMetadataHistory;
+
+  /// Source label for the first saved pack details.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get featureStockMetadataCreated;
+
+  /// Source label for an edited pack-detail revision.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited'**
+  String get featureStockMetadataEdited;
+
+  /// Source label for pack details carried forward by the schema migration.
+  ///
+  /// In en, this message translates to:
+  /// **'Carried forward'**
+  String get featureStockMetadataMigrated;
+
+  /// One pack-detail history line with source, revision and recorded time.
+  ///
+  /// In en, this message translates to:
+  /// **'{source}, version {revision}, {date}'**
+  String featureStockMetadataEntry(String source, int revision, String date);
+
+  /// Read-only lot or batch value.
+  ///
+  /// In en, this message translates to:
+  /// **'Lot: {lot}'**
+  String featureStockLotValue(String lot);
+
+  /// Expiry badge for a date before today.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired {date}'**
+  String featureStockExpiryExpired(String date);
+
+  /// Expiry badge for the current local day.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires today'**
+  String get featureStockExpiryToday;
+
+  /// Expiry badge for a future date.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires {date}'**
+  String featureStockExpiryFuture(String date);
+
+  /// Read-only pack capacity with its exact amount and unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity: {amount}'**
+  String featureStockCapacityValue(String amount);
+
+  /// Shown when no pack capacity is recorded. No proportion is invented.
+  ///
+  /// In en, this message translates to:
+  /// **'Capacity not set'**
+  String get featureStockCapacityUnknown;
+
+  /// Explains that restocking the same container never changes its lot or strength snapshots.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds supply to this container and keeps its lot and strength. Add a container when the lot or strength changes.'**
+  String get featureStockRestockHelp;
 }
 
 class _AppLocalizationsDelegate

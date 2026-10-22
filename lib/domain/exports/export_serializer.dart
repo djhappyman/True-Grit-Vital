@@ -106,6 +106,11 @@ const exportCsvHeader = <String>[
   'skip_saved_date',
   'skip_plan_zone',
   'skip_plan_name',
+  'stock_container',
+  'stock_lot',
+  'stock_expiry_date',
+  'stock_capacity_exact',
+  'stock_capacity_unit',
   'supporting_category',
   'supporting_accession',
   'supporting_report_identifier',
@@ -186,6 +191,11 @@ List<Object?> _doseCsvRow(ExportDoseRevision row) {
     null,
     null,
     null,
+    row.stockSource?.containerId,
+    row.stockSource?.lot,
+    row.stockSource?.expiryDate?.toString(),
+    row.stockSource?.capacity?.toString(),
+    row.stockSource?.unit,
   ];
 }
 
@@ -227,6 +237,7 @@ List<Object?> _skipCsvRow(ExportSkippedAction row) => [
   row.savedDate.toString(),
   row.planZone,
   row.planName,
+  ..._emptyStockColumns,
 ];
 
 List<List<Object?>> _supportingCsvRows(ExportSupportingRevision row) {
@@ -287,6 +298,7 @@ List<List<Object?>> _supportingCsvRows(ExportSupportingRevision row) {
         null,
         null,
         null,
+        ..._emptyStockColumns,
         null,
         snapshot.provenance.accessionNumber,
         snapshot.provenance.reportIdentifier,
@@ -325,12 +337,15 @@ List<List<Object?>> _supportingCsvRows(ExportSupportingRevision row) {
         null,
         null,
         null,
+        ..._emptyStockColumns,
         result.category,
         (result.provenance ?? snapshot.provenance).accessionNumber,
         (result.provenance ?? snapshot.provenance).reportIdentifier,
       ],
   ];
 }
+
+const _emptyStockColumns = <Object?>[null, null, null, null, null];
 
 String _supportingDate(SupportingDate date) =>
     date.civilDate?.toString() ??

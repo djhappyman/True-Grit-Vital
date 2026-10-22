@@ -7,7 +7,35 @@ import 'export_selection.dart';
 
 /// Current portable export schema. Change only with a documented semantics
 /// change; readers treat an unknown version as unsupported.
-const exportSchemaVersion = 1;
+const exportSchemaVersion = 2;
+
+/// The exact container that supplied a recorded dose, when one was chosen.
+/// Lot, expiry and capacity are the container's saved facts at capture time.
+/// They never imply a verified product identity or a clinical source.
+final class ExportStockSource {
+  const ExportStockSource({
+    required this.containerId,
+    required this.label,
+    required this.unit,
+    this.lot,
+    this.expiryDate,
+    this.capacity,
+  });
+  final String containerId, label, unit;
+  final String? lot;
+  final CivilDate? expiryDate;
+  final ExactAmount? capacity;
+
+  Map<String, Object?> toJson() => {
+    'containerId': containerId,
+    'label': label,
+    'unit': unit,
+    'lot': lot,
+    'expiryDate': expiryDate?.toString(),
+    'capacityExact': capacity?.toString(),
+    'capacityDecimal': capacity == null ? null : exactDecimal(capacity!),
+  };
+}
 
 /// Exact decimal text only when the rational terminates within [maxPlaces].
 ///
@@ -70,6 +98,7 @@ final class ExportDoseRevision {
     this.itemNotes,
     this.notes,
     this.contextTags = const [],
+    this.stockSource,
   });
 
   factory ExportDoseRevision.fromRecord(
@@ -78,6 +107,7 @@ final class ExportDoseRevision {
     String? itemInstructions,
     String? itemNotes,
     required bool includeNotes,
+    ExportStockSource? stockSource,
   }) => ExportDoseRevision(
     recordId: record.id,
     itemId: record.itemId,
@@ -105,6 +135,7 @@ final class ExportDoseRevision {
     itemNotes: itemNotes,
     notes: includeNotes ? record.notes : null,
     contextTags: record.contextTags,
+    stockSource: stockSource,
   );
 
   final String recordId, itemId, itemName, itemForm, itemType, primaryUnit;
@@ -119,6 +150,7 @@ final class ExportDoseRevision {
   final ProductAdministrationSnapshot? productSnapshot;
   final LabelledStrength? labelledStrength;
   final StockReplacement? replacement;
+  final ExportStockSource? stockSource;
   final String? notes;
   final List<String> contextTags;
 
@@ -185,6 +217,7 @@ final class ExportDoseRevision {
           ? null
           : 'ml',
       'replacementResolved': !replacementUnresolved,
+      'stockSource': stockSource?.toJson(),
     },
     'context': {'tags': contextTags, 'note': notes},
   };
@@ -453,6 +486,7 @@ const _semantics = <String, String>{
   'corrections': 'Every saved revision is included. Revision 1 enteredAt is the original entry time. Later enteredAt values are correction times. isCurrent marks the revision used by the app.',
   'context': 'context.tags are neutral labels chosen by the person for the dose. context.note is null unless notesIncluded is true. Neither value is inferred from a substance, label or schedule.',
   'skipped': 'skipped lists explicit skip actions saved inside the selected range when doses content is selected. actionId is the saved daily action identity. occurredAt is the planned instant, or the plan-zone day start for a date-only skip; recordedAt is when the skip itself was saved. reason is null unless notesIncluded is true. A skip has no amount, quantity or revision, and its item values are current item metadata, never inferred content.',
+  'stockSource': 'provenance.stockSource names the exact container saved with a dose when one was chosen. label, lot, expiryDate, capacityExact and unit are the container pack facts at capture time. capacityDecimal is exact only when it terminates within 12 places. These facts are descriptive and do not verify the physical product or its contents.',
   'privacy': 'Only the selected adult is exported. Supporting notes, authored substance instructions and notes, dose notes and skip reasons appear only when notesIncluded is true. Dose context tags are structured metadata chosen by the person and are always included. Skip facts and their action identity are always included. File attachments and their internal references are never included.',
   'omissions': 'Supporting records whose collection date is unknown or partial have no positionable date inside the selected range and are excluded. omissions.collectionDateUnknownOrPartial discloses how many were omitted, never their content. counted false means they exceeded the bounded counting window and records is null.',
 };

@@ -76,6 +76,53 @@ final stockMovementsProvider = FutureProvider.autoDispose
       );
     });
 
+/// Exact, editable text for a saved capacity. A rational that terminates
+/// within six places becomes a decimal; any other exact value stays a
+/// numerator/denominator fraction, never a rounded display value.
+String stockExactAmountEntry(ExactAmount value) {
+  var denominator = value.denominator;
+  var twos = 0, fives = 0;
+  while (denominator % BigInt.two == BigInt.zero) {
+    denominator ~/= BigInt.two;
+    twos++;
+  }
+  while (denominator % BigInt.from(5) == BigInt.zero) {
+    denominator ~/= BigInt.from(5);
+    fives++;
+  }
+  final places = twos > fives ? twos : fives;
+  if (denominator == BigInt.one && places <= 6) {
+    var text = value.roundedDecimal(places: places);
+    if (text.contains('.')) {
+      text = text
+          .replaceFirst(RegExp(r'0+$'), '')
+          .replaceFirst(RegExp(r'\.$'), '');
+    }
+    return text;
+  }
+  return '${value.numerator}/${value.denominator}';
+}
+
+/// Parses a positive capacity entered as an exact decimal or a fraction such
+/// as 1/3. Fractions keep their exact value and are never rounded.
+ExactAmount stockCapacityEntry(String input) {
+  final text = input.trim();
+  final fraction = RegExp(r'^(\d+)\s*/\s*(\d+)$').firstMatch(text);
+  if (fraction != null) {
+    final numerator = BigInt.parse(fraction.group(1)!);
+    final denominator = BigInt.parse(fraction.group(2)!);
+    if (denominator == BigInt.zero) {
+      throw const FormatException('capacity_fraction');
+    }
+    final value = ExactAmount(numerator, denominator);
+    if (value <= ExactAmount.zero || value > ExactAmount.maxEntered) {
+      throw RangeError('capacity_range');
+    }
+    return value;
+  }
+  return ExactAmount.parseEntry(stockDecimal(text));
+}
+
 bool sameStockStrength(LabelledStrength first, LabelledStrength second) {
   if (first.ingredientId != second.ingredientId) return false;
   if (first.mgPerMl != null && second.mgPerMl != null) {
@@ -92,3 +139,15 @@ final stockNoticeProvider = StreamProvider.autoDispose
             .watchStockNotices(scope: q.scope, limit: 50, offset: q.offset);
       },
     );
+
+final stockMetadataHistoryProvider = StreamProvider.autoDispose
+    .family<
+      List<StoredStockMetadataRevision>,
+      ({String personId, String containerId})
+    >(retry: (_, _) => null, (ref, q) async* {
+      yield* (await ref.watch(recordStoreProvider.future))
+          .watchStockMetadataHistory(
+            personId: q.personId,
+            containerId: q.containerId,
+          );
+    });

@@ -493,7 +493,7 @@ void main() {
     );
     await store.close();
     final upgraded = raw();
-    expect(upgraded.select('PRAGMA user_version').single.values.single, 23);
+    expect(upgraded.select('PRAGMA user_version').single.values.single, currentRecordSchemaVersion);
     for (final t in before.keys) {
       expect(
         jsonEncode(
