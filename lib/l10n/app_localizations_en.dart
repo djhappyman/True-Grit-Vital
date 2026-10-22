@@ -7812,6 +7812,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get directCutoffLabel => 'Expiry cutoff';
 
   @override
+  String get directCutoffMatches => 'Matching containers';
+
+  @override
   String get directCutoffHelp => 'Use YYYY-MM-DD. Includes this date.';
 
   @override

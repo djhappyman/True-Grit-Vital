@@ -366,6 +366,7 @@ class _StockPageState extends ConsumerState<StockPage> {
           _StockContainerList(
             rows: shown,
             counts: snapshot!.counts,
+            filtered: filtered,
             complete: snapshot.complete,
             personRevision: owner.revision,
             archived: archived,
@@ -562,6 +563,7 @@ class _StockContainerList extends StatelessWidget {
   const _StockContainerList({
     required this.rows,
     required this.counts,
+    required this.filtered,
     required this.complete,
     required this.personRevision,
     required this.archived,
@@ -570,6 +572,7 @@ class _StockContainerList extends StatelessWidget {
   });
   final List<StoredStockContainer> rows;
   final StockInventoryCounts counts;
+  final bool filtered;
   final bool complete;
   final int personRevision;
   final bool archived;
@@ -579,13 +582,17 @@ class _StockContainerList extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final paging = onNext != null;
+    final heading = filtered ? t.directCutoffMatches : t.screenStockContainers;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _StockSectionTitle(
           label: complete
-              ? t.stitchFilterCount(t.screenStockContainers, counts.all)
-              : t.screenStockContainers,
+              ? t.stitchFilterCount(
+                  heading,
+                  filtered ? inventory.containers.length : counts.all,
+                )
+              : heading,
           trailing: paging ? t.screenStockLoadedOnly : null,
         ),
         const SizedBox(height: 12),

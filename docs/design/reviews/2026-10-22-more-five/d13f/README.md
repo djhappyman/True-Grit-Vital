@@ -52,6 +52,9 @@ Real Flutter fixtures rendered through `VitalApp` with synthetic records:
 
 - `light-cutoff.png`, `light-cutoff-full.png`, `light-cutoff-narrow.png`
 - `dark-cutoff.png`, `dark-cutoff-full.png`, `dark-cutoff-narrow.png`
+- [Light narrow filter sheet](light-cutoff-sheet-narrow.png) and
+  [dark narrow filter sheet](dark-cutoff-sheet-narrow.png), entered directly
+  at 320 px with double text.
 
 Regenerate with:
 
@@ -61,13 +64,30 @@ Regenerate with:
   --dart-define=VITAL_EXPIRY_CUTOFF_CAPTURES="$PWD/docs/design/reviews/2026-10-22-more-five/d13f"
 ```
 
-## Limitations
+## Lead integration
 
-The functional narrow-width test applies the cutoff at 390 px, then resizes the
-page to 320 px at double text to verify the chip, filtered rows and layout. The
-shared `VitalLocalOptions` adaptive sheet does not enter its open position in
-the current widget harness when an animation controller is supplied; this
-pre-existing shared behaviour also affects the existing filters at widths below
-360 px or text scale above 1.5. The real sheet layout and keyboard behaviour at
-320 px therefore remain for lead/host verification, and no shared presenter
-file was changed in this slice.
+Filtered result headings now say Matching containers and count the full matched
+snapshot before paging, while the selection chips retain their collection-wide
+counts. A final 22-check cutoff/inventory/shared-filter run passed after this
+correction; captures were regenerated with matching totals.
+
+The original worker identified an adaptive-sheet problem and limited its
+narrow check to resizing after entry. The lead reproduced the failure by
+entering the cutoff directly at 320 px/2x, then fixed the shared presenter.
+Pinned shadcn 0.0.55 deliberately leaves external animation controllers to the
+caller; Vital now starts that controller with the shared arrival curve and
+sheet duration. Teardown also skips removal of an already completed overlay.
+No package source was changed.
+
+The direct narrow test failed before the fix and passed afterwards. Final
+verification passed 44 cutoff/store/inventory/motion checks, including both
+themes entered directly at 320 px/2x, keyboard insets, reduced motion and
+reopening. One further shared check opens/closes filters in Stock, History,
+Substances and Labs and verifies lock coverage. Both new narrow sheet captures
+and the loaded light/dark inventory captures were reviewed.
+
+The lead additionally read the installed `debugging-wizard` and
+`flutter-fix-layout-issues` skills. Diagnostic before/after evidence stays in
+task-owned `bug_fix_artifacts/vital-more-five-*.log`; focused run records remain
+under the batch's `.scratch/vital-implementation/` evidence directory after
+cleanup. Physical-device, screen-reader and measured-performance gates stay open.

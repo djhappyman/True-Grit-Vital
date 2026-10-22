@@ -247,7 +247,8 @@ class _VitalLocalOptionsState extends State<VitalLocalOptions>
 
   @override
   void dispose() {
-    _overlay?.remove();
+    final overlay = _overlay;
+    if (overlay != null && !overlay.isCompleted) overlay.remove();
     _animation.dispose();
     _content.dispose();
     super.dispose();
@@ -296,12 +297,15 @@ class _VitalLocalOptionsState extends State<VitalLocalOptions>
       ),
     );
     if (narrow) {
+      _animation.value = 0;
       _overlay = SheetConfiguration(
         animationController: _animation,
         position: OverlayPosition.bottom,
         useSafeArea: true,
         constraints: const BoxConstraints(maxWidth: 640),
       ).show<void>(anchor, body);
+      // shadcn leaves custom controllers with their owner, including opening.
+      _animation.animateTo(1, curve: VitalMotion.arrival);
     } else {
       _overlay = PopoverConfiguration(
         follow: false,

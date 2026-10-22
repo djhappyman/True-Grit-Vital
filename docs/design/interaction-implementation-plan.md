@@ -153,3 +153,11 @@ shared dialog changes only the browsed day on explicit confirmation, preserves
 filters and shows the effective day-bound zone. Cancel/Escape/Back restore
 focus; lock or a changed zone prevents a pending date from applying.
 [Host evidence](reviews/2026-10-22-more-five/d19c/README.md).
+
+D13f adds an explicit inclusive expiry cutoff inside the existing inventory
+filter disclosure, with a full-date active chip and reset. Lead review also
+fixed the shared adaptive sheet: its custom controller now starts the opening
+animation, and teardown does not complete a closed overlay twice. Direct
+320 px/2x entry, keyboard insets, reduced motion, reopening and all four
+collection filter destinations are host checked.
+[Evidence](reviews/2026-10-22-more-five/d13f/README.md).

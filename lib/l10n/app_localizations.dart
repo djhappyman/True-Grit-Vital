@@ -12129,6 +12129,12 @@ abstract class AppLocalizations {
   /// **'Expiry cutoff'**
   String get directCutoffLabel;
 
+  /// Heading for the whole matched inventory before UI paging, when search or any filter is active. A count is shown only when the bounded read is complete.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching containers'**
+  String get directCutoffMatches;
+
   /// Format example and inclusive behaviour for the stock expiry cutoff date.
   ///
   /// In en, this message translates to:

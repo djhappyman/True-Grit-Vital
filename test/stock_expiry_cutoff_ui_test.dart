@@ -196,6 +196,7 @@ void main() {
     expect(find.text('Cutoff bottle'), findsOneWidget);
     expect(find.text('Later bottle'), findsNothing);
     expect(find.text('No expiry bottle'), findsNothing);
+    expect(find.text('Matching containers (2)'), findsOneWidget);
     expect(
       find.text('Expiry 2027-01-11 or earlier'),
       findsWidgets,
@@ -346,11 +347,21 @@ void main() {
     appTest('cutoff fits ${theme.name} at 320 px and double text', (
       tester,
     ) async {
-      tester.view.physicalSize = const Size(390, 844);
+      tester.view.physicalSize = const Size(320, 740);
       tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
       addTearDown(tester.view.reset);
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       final f = await launch(tester);
+      final boundaryKey = GlobalKey();
+      if (captures.isNotEmpty) {
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: f.container,
+            child: RepaintBoundary(key: boundaryKey, child: const VitalApp()),
+          ),
+        );
+      }
       await runIo(tester, () async {
         final item = await makeItem(
           f.store,
@@ -374,11 +385,15 @@ void main() {
       await settle(tester);
       await waitForText(tester, 'Later narrow bottle');
       await applyCutoff(tester, '2027-01-11');
+      if (captures.isNotEmpty) {
+        await _revealInFilterSheet(tester, cutoffField());
+        await _capture(
+          tester,
+          boundaryKey,
+          '$captures/${theme.name}-cutoff-sheet-narrow.png',
+        );
+      }
       await dismissFilters(tester);
-      // The applied cutoff is exercised at the narrow 320 px, double-text
-      // layout. The shared adaptive sheet's open state is outside this slice.
-      tester.view.physicalSize = const Size(320, 740);
-      tester.platformDispatcher.textScaleFactorTestValue = 2;
       await settle(tester);
       await waitForText(
         tester,
@@ -472,6 +487,57 @@ void main() {
       }
     });
   }
+
+  appTest(
+    'narrow filters open, accept keyboard entry, close and reopen with reduced motion',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 740);
+      tester.view.devicePixelRatio = 1;
+      tester.view.padding = const FakeViewPadding(top: 24, bottom: 20);
+      tester.view.viewPadding = const FakeViewPadding(top: 24, bottom: 20);
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      final f = await launch(tester);
+      await runIo(tester, () async {
+        final medicine = await makeItem(f.store, 'Keyboard cutoff medicine');
+        await makeContainer(
+          f.store,
+          medicine,
+          label: 'Matching bottle',
+          expiry: CivilDate(2027, 1, 11),
+        );
+      });
+      f.container.read(routerProvider).go('/stock/$meId');
+      await waitForText(tester, 'Matching bottle');
+      await tester.tap(find.byIcon(LucideIcons.listFilter).first);
+      await settle(tester);
+      await _revealInFilterSheet(tester, cutoffField());
+      expect(cutoffField().hitTestable(), findsOneWidget);
+      await tester.enterText(cutoffField(), '2027-01-11');
+      tester.view.viewInsets = const FakeViewPadding(bottom: 280);
+      await settle(tester);
+      final apply = find.byKey(const ValueKey('stock-cutoff-apply'));
+      await _revealInFilterSheet(tester, apply);
+      expect(apply.hitTestable(), findsOneWidget);
+      expect(tester.getRect(apply).bottom, lessThanOrEqualTo(460));
+      await tester.tap(apply);
+      await settle(tester);
+      tester.view.viewInsets = const FakeViewPadding();
+      await settle(tester);
+      await dismissFilters(tester);
+      expect(cutoffField(), findsNothing);
+      await applyCutoff(tester, '2027-01-10');
+      await dismissFilters(tester);
+      await waitForText(tester, 'No matching containers');
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
 
 Future<void> _capture(

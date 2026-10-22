@@ -9263,6 +9263,10 @@
     "description": "Explains why expiry counts and filters are unavailable rather than zero."
   },
   "directCutoffLabel": "Expiry cutoff",
+  "directCutoffMatches": "Matching containers",
+  "@directCutoffMatches": {
+    "description": "Heading for the whole matched inventory before UI paging, when search or any filter is active. A count is shown only when the bounded read is complete."
+  },
   "@directCutoffLabel": {
     "description": "Visible label for the user-chosen inclusive last pack expiry date in the stock filter disclosure."
   },
