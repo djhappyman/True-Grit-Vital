@@ -1,50 +1,58 @@
 # True Grit: Vital
 
-**A local-first substance tracker for adults who want a clear record of what they use, when they use it, and what they have left.**
+**A clear, private record of the medicines, supplements and other substances you use, kept on your own device.**
 
-Vital brings medicines, supplements and other substances into one place: doses, schedules, reminders, stock, use periods and history. It is a single-user app, with one local profile and one feed. Optional lab panels and observations provide context alongside recorded use.
+Vital helps you answer simple questions that are easy to forget: what did I take, how much and when? You note your doses and keep an eye on what you have left, and when you want to talk to a doctor or pharmacist, you choose a timeframe and share an exact, readable record. Knowledge is power, and an accurate record turns "I think I was taking it then" into something you can both look at together.
 
-The goal is less guesswork and better-organised information for personal review or conversations with a healthcare professional. Vital records information; it does not diagnose conditions, recommend treatment or establish that a substance caused a change.
+Vital records information. It does not diagnose, recommend treatment or judge your choices, and tracking never makes any substance safe or unsafe. It simply keeps the facts straight so you can understand what you took and share it with a healthcare professional.
 
-## Project status
+## What Vital can do
 
-This is an early development project, public from its first source release. Android is the primary target. Linux runs the same mobile-oriented interface for convenient development. The interface is still being simplified and redesigned; shared components make changes consistent across screens.
+- Build your own substance list with custom names and exact custom amounts and units, including brand and product names and ready-mixed products recorded in one combined entry.
+- Record injectable or oral forms, with a labelled strength per tablet, capsule or millilitre where you know it.
+- Keep each mixed vial separate: its original powder amount, confirmed final volume and exact concentration, because different vials can differ.
+- Store optional half-life details you enter yourself, with form, route and source, as reference information. Vital does not estimate blood levels.
+- Plan multiple doses per day on flexible schedules: daily, chosen weekdays, calendar dates or intervals, with pauses and phases.
+- Track cycles and courses as events, so a course can run its own dates while individual plans pause or resume.
+- Review your full history with corrections and Undo, so changes stay visible rather than erased.
+- Choose a timeframe and export it as a PDF report or a CSV or JSON file. You review, save and share it yourself. Nothing is sent automatically to anyone.
+- Set dose reminders on Android, and opt in to gentle follow-up nudges when a planned dose has not been recorded. An unrecorded dose stays "not recorded" and is never marked as missed.
+- Track routines around your doses with notes, food and context tags and skip reasons tied to each substance record.
+- Manage your stock: current balances, in-app low-stock notices and simple adjust, restock and waste actions.
+- Keep everything private: encrypted local storage, an optional app lock, private drafts and password-protected backups. There are no accounts and no cloud sync.
 
-Implemented areas include:
+## Where the project stands
 
-- One local profile, encrypted storage, private drafts and optional Android app lock.
-- Substances, exact quantities, corrections, Undo, containers and stock.
-- Daily, weekday, calendar and interval schedules, pauses, phases and Android reminders.
-- Ready-mixed products, combined logging, optional sites, cycles and courses.
-- Protected file/photo attachments, bounded image/PDF previews and explicit sharing.
-- History, a medication calendar, charts and source-record inspection.
-- Manual lab panels and supporting observations, with original values, units, source links and ranges.
-- R01 substance summaries, R02 detailed history and R03 event reports, with PDF/text previews and reviewed-artifact saving or sharing.
-- Date-filtered JSON/CSV exports with exact quantities, corrections, private defaults and reviewed-file saving.
-- Password-protected full-installation backups, staged restore, fresh dataset generations and interruption recovery.
-- Settings, your profile, record deletion, local help, bundled licences and bounded redacted diagnostics.
-- Reminder health, bounded reconciliation and release preflight/evidence tools.
+Vital is early in development, aimed at Android first (with a Linux build used for development). Most features above are implemented and tested on the development host, but these are still being built:
 
-The 21 October implementation pass completed 30 focused improvements to history and charts, stock drafts, protected attachments, reports and exports, reminder receipts, settings reloads, and backup/restore cleanup. These changes strengthen the existing app; the release and physical-device checks below remain open.
+- **Follow-up nudges** after an unrecorded planned dose. Basic Android dose reminders exist today.
+- **On-time and late labels** in history. Timing rules are still being defined.
+- **Native low-stock notices** from the operating system. In-app stock notices exist today.
+- **Automatic backups** on a schedule. Manual password-protected backups work today.
 
-**Not a finished or clinically validated release.** The new flows are implemented and host tested. Physical-device accessibility, performance, Android lifecycle and destination behaviour, backup-format review and distribution clearance remain open. See [current progress and next work](docs/public/STATUS.md) and the [20 October implementation report](docs/public/IMPLEMENTATION-2026-10-20.md).
+The app is not a finished or clinically validated release, and physical-device checks remain open. See the [development checkpoint](docs/public/STATUS.md) for current progress and the [implementation roadmap](docs/design/roadmap.md) for planned work.
 
-There are no remote user accounts or cloud record synchronisation. Watch integrations and a general wellness dashboard are outside the current scope.
+## Your records are yours
 
-## Design references
+Records and attachments are stored encrypted. Android protects the key with Keystore and Linux uses the desktop keyring. Keep the app and its key intact, because losing either may make records unrecoverable. Backups are password protected, and you need that password to restore, so choose it carefully and keep it somewhere safe. Security and recovery behaviour are still being tested, so use synthetic data when evaluating early builds and do not commit real health records to the repository.
 
-UI contributors should start with the [shared component framework](docs/design/components.md) and [Stitch design references](docs/design/README.md). Full-resolution screenshots, original HTML and design metadata are kept in the repository. Reusable panels, headers, typography, fields and controls provide the visual foundation for implemented features. UI pull requests should identify the reference screen and include comparison screenshots.
+## Contributing
 
-## Prerequisites
+Want to help? Start with [CONTRIBUTING.md](CONTRIBUTING.md), which points to the [interaction blueprint](docs/design/interaction-blueprint.md), the [shared components](docs/design/components.md) and the saved design references in [docs/design/README.md](docs/design/README.md).
+
+<details>
+<summary>Setup, building and verification</summary>
+
+### Prerequisites
 
 - Git and **Flutter 3.47.7 stable with its bundled Dart 3.13.5**. The pin is in [`.flutter-version`](.flutter-version).
-- Python 3 for verification scripts; a POSIX shell for `tool/` wrappers.
+- Python 3 for verification scripts and a POSIX shell for `tool/` wrappers.
 - Android: a compatible JDK 17+ and the Android SDK/toolchain required by this Flutter release. Install the required SDK components and accept their terms yourself.
-- Linux: Flutter Linux build dependencies (C/C++ compiler, CMake, Ninja, pkg-config, GTK 3 development libraries), plus an unlocked Secret Service keyring. Runtime helpers include `secret-tool`, `gdbus`, `flock`, `install`, `chmod`, `sync` and `cat`. See [Linux prerequisite notices](docs/implementation/licenses/linux-system-prerequisites.txt).
+- Linux: Flutter Linux build dependencies (C/C++ compiler, CMake, Ninja, pkg-config, GTK 3 development libraries) and an unlocked Secret Service keyring. See [Linux prerequisite notices](docs/implementation/licenses/linux-system-prerequisites.txt).
 
-Install the pinned SDK using the [official Flutter installation instructions](https://docs.flutter.dev/install) and [SDK archive](https://docs.flutter.dev/install/archive). Run `flutter doctor -v` using that SDK to diagnose host requirements.
+Install the pinned SDK with the [official Flutter installation instructions](https://docs.flutter.dev/install) and [SDK archive](https://docs.flutter.dev/install/archive). Run `flutter doctor -v` with that SDK to diagnose host requirements.
 
-## Get started
+### Get started
 
 ```sh
 git clone https://github.com/djhappyman/true_grit_vital.git
@@ -59,22 +67,15 @@ export VITAL_FLUTTER_SDK=/absolute/path/to/flutter-3.47.7
 
 `tool/flutterw` checks both Flutter and Dart versions. An older system-wide `flutter` can fail dependency resolution even if it runs other projects successfully. Keep `pubspec.lock` intact unless intentionally updating dependencies.
 
-### Linux debug app and hot reload
+### Run the app
 
 ```sh
 ./tool/flutterw run -d linux
 ```
 
-Keep the terminal open. Press `r` for hot reload, `R` for hot restart and `q` to stop. Linux intentionally shares the mobile UI. Android authentication and native reminders are not implemented on Linux.
+Keep the terminal open. Press `r` for hot reload, `R` for hot restart and `q` to stop. Linux shares the mobile UI. Android authentication and native reminders are not implemented on Linux.
 
-### Android debug app
-
-Start an emulator or connect an Android phone with USB debugging enabled, then select its ID from `devices`:
-
-```sh
-./tool/flutterw devices
-./tool/flutterw run -d YOUR_DEVICE_ID
-```
+For Android, start an emulator or connect a phone with USB debugging enabled, then run `./tool/flutterw devices`, pick the device ID from the list and run `./tool/flutterw run -d YOUR_DEVICE_ID`.
 
 To compile an installable debug APK without launching it:
 
@@ -82,17 +83,11 @@ To compile an installable debug APK without launching it:
 ./tool/flutterw build apk --debug --no-pub
 ```
 
-Output: `build/app/outputs/flutter-apk/app-debug.apk`. This is a development build, not a signed production release. Release builds fail closed until owner-supplied signing is configured; the source tree contains no release signing material. App distribution still requires the documented release checks.
+Output: `build/app/outputs/flutter-apk/app-debug.apk`. This is a development build, not a signed production release. Release builds fail closed until owner-supplied signing is configured; the source tree contains no release signing material.
 
-### Linux bundle
+For a Linux bundle, run `./tool/package_linux.sh`. The bundle and archive are written under `output/linux/`. Keep its `lib` and `data` directories beside the executable.
 
-```sh
-./tool/package_linux.sh
-```
-
-The complete bundle and archive are written under `output/linux/`. Keep its `lib` and `data` directories with the executable. The packaging script checks required libraries and includes dependency notices. It does not install system integration or change your keyring.
-
-## Verification
+### Verification
 
 ```sh
 # Formatting, analysis, native-asset hook checks, all Flutter tests,
@@ -104,21 +99,14 @@ The complete bundle and archive are written under `output/linux/`. Keep its `lib
 ./tool/flutterw test --no-pub
 
 # Also run native Android ledger tests and compile a debug APK.
-# Requires the admitted Android/Kotlin toolchain and its cached compiler jars.
 ./tool/verify android
 ```
 
 The checks use synthetic test records. Some native/keyring checks are explicitly opt-in. Passing host tests or compiling an APK does not replace physical-device testing.
 
-Android integration tests are under `integration_test/`. Use a dedicated disposable emulator, not a phone containing records you rely on. Read `tool/check_android_integration.py --help` before running it; direct integration installation can affect test-app data.
+Android integration tests are under `integration_test/`. Use a dedicated disposable emulator, not a phone containing records you rely on, and read `tool/check_android_integration.py --help` before running it.
 
-## Data and security
-
-Android uses a Keystore-backed key; Linux uses the desktop Secret Service keyring. Records and attachment originals use encrypted SQLite storage. Keep the database and its key intact; losing either may make records unrecoverable. Password-protected backup and staged restore are implemented, with security and recovery review still required before release.
-
-Do not commit real health records, exported files, credentials or signing keys. Security and recovery behaviour are still being tested; use synthetic data when evaluating early builds.
-
-## Structure
+### Code layout
 
 - `lib/domain/`: record, schedule, quantity and comparison rules.
 - `lib/data/`: encrypted persistence, revisions and migrations.
@@ -128,7 +116,9 @@ Do not commit real health records, exported files, credentials or signing keys. 
 - `test/`, `integration_test/`: automated checks and synthetic migration fixtures.
 - `third_party/pdfium_dart/`: documented PDFium integration patch and pinned native assets.
 
-Riverpod manages shared state, go_router handles navigation and Drift provides database access. Glass treatment can be introduced centrally; it is not applied throughout the current UI.
+Riverpod manages shared state, go_router handles navigation and Drift provides database access.
+
+</details>
 
 ## Licence
 
