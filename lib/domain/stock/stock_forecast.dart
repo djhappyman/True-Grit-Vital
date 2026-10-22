@@ -1,5 +1,6 @@
 import 'stored_stock.dart';
 import '../scheduling/daily_plan.dart';
+import '../scheduling/daily_resolver.dart';
 import '../scheduling/iana_clock.dart';
 import '../scheduling/phase_plan.dart';
 
@@ -55,6 +56,23 @@ final class StockRunOutForecast {
 /// promise; passing the bound is reported as "more than a year".
 const stockForecastHorizonDays = 366;
 
+/// Bounded fixed-interval occurrence work for one projection.
+///
+/// A schedule with more occurrences inside the window stays explicitly
+/// unavailable rather than returning a silently truncated or guessed date.
+const stockForecastMaxIntervalOccurrences = 50000;
+
+/// A resolver issue that prevents a truthful run-out day.
+StockForecastReason _forecastExpansionReason(DailyCalculationIssue? issue) =>
+    switch (issue) {
+      DailyCalculationIssue.unsupportedTimezoneRange ||
+      DailyCalculationIssue.observedZoneUnavailable =>
+        StockForecastReason.unresolvedZone,
+      DailyCalculationIssue.intervalNoAnchor =>
+        StockForecastReason.intervalSchedule,
+      _ => StockForecastReason.unsupportedSchedule,
+    };
+
 /// Planned use from tomorrow in the plan's own zone. Today's remaining planned
 /// use is deliberately excluded because already-recorded doses cannot be
 /// separated from untimed once-daily plans without guessing.
@@ -97,7 +115,13 @@ StockRunOutForecast forecastStockRunOut({
   var anyAsNeeded = false;
   for (final plan in plans) {
     final timings = plan.phases.map((phase) => phase.timing).toList();
-    if (timings.any((timing) => timing is ElapsedInterval)) {
+    if (timings.any(
+      (timing) =>
+          timing is ElapsedInterval &&
+          timing.mode == IntervalMode.qualifyingActual,
+    )) {
+      // This projection has no captured future anchor. Deriving further doses
+      // from the last actual would invent use the person never reported.
       return const StockRunOutForecast.unavailable(
         StockForecastReason.intervalSchedule,
       );
@@ -199,13 +223,31 @@ StockRunOutForecast forecastStockRunOut({
   final horizonEnd = today.addDays(horizonDays);
   var remaining = remainingAtStart;
   var planned = false;
+  var intervalOccurrences = 0;
   for (var day = 1; day <= horizonDays; day++) {
     final date = today.addDays(day);
     var dayTotal = ExactAmount.zero;
     for (final plan in scheduled) {
       List<DailyExpectation> rows;
       try {
-        rows = resolver.resolveDate(plan, date, observedZone: zone, now: now);
+        // The shared resolver owns phase dates, pauses, exact totals and
+        // elapsed-interval arithmetic. Reading completeness avoids treating a
+        // bounded or unsupported composition as a paused or empty day.
+        final expansion = resolver.expand(
+          plan,
+          from: date,
+          toExclusive: date.addDays(1),
+          observedZone: zone,
+          maxDates: 100000,
+          maxRows: 100000,
+          now: now,
+        );
+        if (!expansion.complete) {
+          return StockRunOutForecast.unavailable(
+            _forecastExpansionReason(expansion.issue),
+          );
+        }
+        rows = expansion.rows;
       } on UnsupportedError {
         return const StockRunOutForecast.unavailable(
           StockForecastReason.unsupportedSchedule,
@@ -220,6 +262,16 @@ StockRunOutForecast forecastStockRunOut({
         );
       }
       for (final row in rows) {
+        if (row.identity.intervalSegmentId != null) {
+          intervalOccurrences++;
+          if (intervalOccurrences > stockForecastMaxIntervalOccurrences) {
+            // The bound is disclosed instead of truncating the sequence or
+            // pretending the remaining stock lasts forever.
+            return const StockRunOutForecast.unavailable(
+              StockForecastReason.unsupportedSchedule,
+            );
+          }
+        }
         if (row.eligibilityConflict != null) {
           return const StockRunOutForecast.unavailable(
             StockForecastReason.unsupportedSchedule,

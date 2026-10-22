@@ -200,16 +200,15 @@ void main() {
     expect(result.date, CivilDate(2026, 10, 27));
   });
 
-  test('interval and unsupported schedules report their own reasons', () {
+  test('actual-anchored interval schedules report their own reason', () {
     expect(
       forecast('10', [
         plan(
           ElapsedInterval(
             segmentId: 'segment',
             duration: ExactElapsed.parseHours('8'),
-            mode: IntervalMode.fixedPlanned,
+            mode: IntervalMode.qualifyingActual,
             amount: planned('1', 'ml'),
-            plannedAnchor: DateTime.utc(2026, 10, 20),
           ),
         ),
       ]).reason,
