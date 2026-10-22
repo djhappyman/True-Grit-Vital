@@ -92,7 +92,7 @@ void main() {
       await capture(tester, boundaryKey, '${theme.name}-events-overview');
 
       await tap(tester, 'Review (0)');
-      await waitForText(tester, 'No events match this filter.');
+      await waitForText(tester, 'No matching events');
       expect(tester.takeException(), isNull);
       await capture(tester, boundaryKey, '${theme.name}-events-review-empty');
     });
@@ -121,9 +121,9 @@ void main() {
     // The horizontal status row stays reachable at this size; Clear is the
     // recovery action once the chosen status has no events.
     await tap(tester, 'Review (0)');
-    await waitForText(tester, 'No events match this filter.');
+    await waitForText(tester, 'No matching events');
     await Scrollable.ensureVisible(
-      tester.element(find.text('No events match this filter.')),
+      tester.element(find.text('No matching events')),
     );
     await settle(tester);
     expect(tester.takeException(), isNull);

@@ -71,7 +71,7 @@ void main() {
     await waitForText(tester, '2 active · 1 upcoming · 1 completed');
 
     await tap(tester, 'Review (0)');
-    await waitForText(tester, 'No events match this filter.');
+    await waitForText(tester, 'No matching events');
     expect(find.text('2 active · 1 upcoming · 1 completed'), findsOneWidget);
     expect(
       find.text('Clear the filter to see the other statuses.'),
@@ -90,7 +90,7 @@ void main() {
 
     await tap(tester, 'Clear');
     await waitForText(tester, 'Autumn Immunity & Recovery Cycle');
-    expect(find.text('No events match this filter.'), findsNothing);
+    expect(find.text('No matching events'), findsNothing);
     expect(find.text('2 active · 1 upcoming · 1 completed'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

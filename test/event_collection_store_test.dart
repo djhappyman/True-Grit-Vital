@@ -263,6 +263,23 @@ void main() {
     },
   );
 
+  test('watches created while locked resume without another write', () async {
+    await save('resume', start: day(10, 1));
+    store.suspendWrites(true);
+    final events = store
+        .watchEventCollection(filter: EventCollectionFilter.all, now: now)
+        .first;
+    final settings = store.watchSettings().first;
+    final drafts = store.watchDrafts().first;
+    await Future<void>.delayed(Duration.zero);
+    store.suspendWrites(false);
+    await Future.wait([
+      events.then((value) => expect(value.counts.all, 1)),
+      settings.then((value) => expect(value, isA<Map<String, String>>())),
+      drafts.then((value) => expect(value, isEmpty)),
+    ]).timeout(const Duration(seconds: 2));
+  });
+
   test('refuses to read the collection while writes are suspended', () async {
     await save('locked', start: day(10, 1));
     store.suspendWrites(true);

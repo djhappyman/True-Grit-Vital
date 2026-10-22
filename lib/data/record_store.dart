@@ -380,7 +380,17 @@ final class RecordStore {
   final _migratedDraftIds =
       <String, ({String operationId, String destinationId})>{};
   bool get writesSuspended => _writesSuspended;
-  void suspendWrites(bool value) => _writesSuspended = value;
+  void suspendWrites(bool value) {
+    final wasSuspended = _writesSuspended;
+    _writesSuspended = value;
+    if (wasSuspended && !value && !_closed) {
+      // Watches can start, or suppress a queued read, while locked. Resume
+      // their current read without requiring an unrelated write after unlock.
+      _changes.add(null);
+      _draftChanges.add(null);
+    }
+  }
+
   void _requireWritable() {
     if (_closed || _writesSuspended) throw const CommandConflict('app_locked');
   }

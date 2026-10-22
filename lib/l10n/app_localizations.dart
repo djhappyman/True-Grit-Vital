@@ -10566,7 +10566,7 @@ abstract class AppLocalizations {
   /// Filtered empty state when the whole collection has events but none match the chosen status.
   ///
   /// In en, this message translates to:
-  /// **'No events match this filter.'**
+  /// **'No matching events'**
   String get featureEventCollectionNoMatches;
 
   /// Recovery hint in the filtered Events empty state.

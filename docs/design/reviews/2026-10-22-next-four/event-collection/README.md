@@ -43,3 +43,27 @@ The narrow captures show the scroll viewport shared with the fixed dock; the
 status row and Clear action remain reachable there. Physical screen-reader,
 device and performance acceptance remain open. This slice adds no clinical
 inference, adherence percentage, planned-total inference or new status meaning.
+
+## Lead integration
+
+The shared watch guard needed a corresponding unlock refresh. A regression
+started record, settings and draft watches while locked, then unlocked without
+performing another write. It timed out before the fix. Resuming writes now
+notifies both watch channels, so all three streams read their current values.
+The focused Events, timing, lock and draft run passed 48 checks after this fix.
+The empty-filter heading was shortened to “No matching events” to follow the
+three-word heading rule; captures were regenerated for that copy change.
+
+## Required skills
+
+The lead verified actual read calls in the worker activity: installed
+`/home/mike/.codex/skills/` sources for `flutter-expert` and its Riverpod/widget
+references, `codebase-memory`, `flutter-apply-architecture-best-practices`,
+`dart-add-unit-test`, `flutter-add-widget-test`,
+`flutter-build-responsive-layout`, `ui-ux-pro-max`,
+`dart-run-static-analysis`, `better-writing` and
+`verification-before-completion`; plus repository
+`.agents/skills/vital-mobile-copy/SKILL.md`. Gitignored specification and
+discovery documents were read from the parent checkout. New source files
+were read directly when parent-graph coverage initially reported them missing;
+the integrated paths subsequently reported no recorded coverage issue.

@@ -43,14 +43,14 @@ These are recorded follow-up work, not completed features. Dependencies refer to
 | D08 | Integrated substance setup | Identity, schedule and optional opening stock in a coherent flow with drafts/recovery; optional authored instructions and notes; follows D04. | Host integrated and verified: resumable optional setup, canonical editors, authored instructions/private notes and privacy-gated outputs |
 | D09 | Dose presets and recording sheet | Exact preset quantities and strength equivalents, visible stock consequence, compact responsive sheet/page, existing validation and durable actions retained. | Integrated on host: exact user-saved/latest-schedule presets, responsive sheet and stock/strength previews; durable guards retained |
 | D10 | Dose context and skip reasons | Persist optional notes, food/context tags and skip reason through edits, history, exports and backup/restore. Optional observation entry links use existing supporting-record semantics. | Host integrated and verified: optional dose context and skip reasons, revision/draft recovery, private outputs and encrypted restore |
-| D11 | Schedule requirements and tolerance | Optional food/bedtime instructions and explicit timing-tolerance rules, reflected consistently in forms, summaries and history. No treatment recommendations or inferred maximum doses. | Partial: versioned authored plan instructions, drafts, shared summaries and encrypted recovery are host verified; timing-tolerance rules still need definition |
+| D11 | Schedule requirements and tolerance | Optional food/bedtime instructions and explicit timing-tolerance rules, reflected consistently in forms, summaries and history. No treatment recommendations or inferred maximum doses. | Partial: versioned authored instructions, drafts, shared summaries, encrypted recovery and optional original-version report/export text are host verified; timing-tolerance rules still need definition |
 | D12 | Reminder follow-ups and alert controls | Explicit opt-in follow-up timing, cancellation/reconciliation after actions, sound/haptic choices and truthful OS limitations. Existing snooze is preserved. Native/device evidence required. | Partial: sound/vibration preferences and real Android channel variants are host verified, with native OS-mute guards; follow-up timing and physical-device evidence remain open |
 | D13 | Stock lots and expiry | Optional lot/batch and expiry metadata, pack capacity and restock flow; schema migrations, history and export/backup round trips. | Host integrated and verified: schema 24, lot/expiry/exact capacity, guarded edits and paged history, structured provenance, encrypted restore and optional capture-time stock details in reports |
 | D14 | Stock forecast and inventory overview | Low/adequate/paused filtering, remaining-capacity display and schedule-based run-out estimates. PRN, unknown balance, incompatible units and incomplete schedules stay explicit; follows D03/D13. | Host integrated and verified: store-backed search/counts/filters, exact capacity proportions and conditional forecast from tomorrow; incomplete inventory reads and unsupported schedules are explicit |
 | D15 | Refill delivery and scanning | Native refill notices extend the currently agreed in-app stock notices. Barcode/pack recognition needs exact source, licence, privacy and ambiguity rules; manual entry always works. | Backlog: bounded design/source review |
-| D16 | Event overview | Status filters/counts, progress cards and linked-substance/recorded/skipped summaries using existing event dates/membership. Surface supported notes and configure/history actions. | Host integrated: saved private notes, whole-event recorded/skipped totals and linked-substance counts; collection status filters still describe the loaded page |
-| D17 | Lab dashboard | Latest-value cards, categories, comparable trends/sparklines, baseline changes and source-range indicators with original units/flags. Existing panels/attachments/trends remain available. | Host integrated: authored categories, dated comparable sparklines with accessible tables and exact prior changes; latest projection remains bounded to 75 records and 60 markers |
-| D18 | Lab panel detail | Categorised results, comparable prior values, context links and protected original-file/hash actions. Add accession/source identifiers only with storage and export support. | Host integrated: grouped results, prior comparisons relative to the viewed panel and saved accession/report identifiers through exports, reports and encrypted restore; prior query discloses its 50-record limit |
+| D16 | Event overview | Status filters/counts, progress cards and linked-substance/recorded/skipped summaries using existing event dates/membership. Surface supported notes and configure/history actions. | Host integrated: saved private notes, whole-event summaries, whole-collection status counts and filter-before-page browsing; captured status instants and filtered-page clamping preserve current context |
+| D17 | Lab dashboard | Latest-value cards, categories, comparable trends/sparklines, baseline changes and source-range indicators with original units/flags. Existing panels/attachments/trends remain available. | Host integrated: latest dated values across the filtered collection with 24-marker pages and exact counts; trends sample 24 points and comparisons 48 results with disclosed limits; duplicate prior results retain uncertainty |
+| D18 | Lab panel detail | Categorised results, comparable prior values, context links and protected original-file/hash actions. Add accession/source identifiers only with storage and export support. | Host integrated: complete current-record prior comparisons relative to the viewed panel, exact source/date matching and order-independent ambiguity; saved accession/report identifiers remain available through outputs and encrypted restore |
 | D19 | History presentation and timing | Compact day groups, filters/counts, weekly summaries and on-time/late indicators using D11 rules; planned slots and actual use remain distinct. Existing reports/CSV/PDF remain available. | Partial: monthly calendar, compact day cards, disclosed filters and exact selected-week aggregates integrated; timing indicators await D11 |
 | D20 | Settings and vault overview | Reference-informed sections/tabs, real storage/record counts and report date shortcuts. Preserve current manual backup/restore, lock, appearance, privacy and support. | Host integrated and verified: live whole-collection counts, measured database storage and reviewed report date shortcuts; device gates remain open |
 | D21 | Automatic protected backups | Define destination, retention, encryption/key availability and interrupted-exit recovery. Never claim a completed backup before durable verification. | Partial foundation: bounded encrypted manual-backup receipts distinguish archive checks from confirmed saves; automatic destination/retention/key/recovery lifecycle remains open |
@@ -98,8 +98,9 @@ All five packages are integrated and host verified. Final verification passed
 reminder engine checks, Android Kotlin compilation and the real Secret Service
 Linux boot/persistence/navigation/export/backup flow. The Linux debug bundle
 built successfully. See the [batch evidence](reviews/2026-10-22-next-five/README.md).
-Device/release gates remain open. Plan-instruction output mapping remains separate
-from this private in-app slice.
+Device/release gates remain open. Plan-instruction output mapping is separate
+from this private in-app slice; the subsequent D11b work below adds it through
+explicit saved action/version links.
 
 ## Next four-task batch
 
@@ -120,6 +121,13 @@ worktrees based on the pushed checkpoint. Acceptance criteria, ownership,
 required skills and delegation identities are retained locally under
 `.scratch/vital-implementation/next-four-2026-10-22/`. Each slice remains in
 progress until its implementation, integration and relevant verification pass.
+All four slices are now integrated and host verified. Their focused review
+records are linked from the [batch evidence](reviews/2026-10-22-next-four/README.md).
+Lead review corrected filtered-page clamping, reload/unlock refresh, fixed-size
+marker paging and comparison ambiguity. Final verification passed 144 combined
+feature/framework/motion checks, clean analysis and the Linux debug build with
+real Secret Service boot, encrypted persistence, navigation, export and backup.
+Physical-device and release gates remain open.
 Timing tolerance, reminder follow-ups, automatic backup lifecycle and physical
 device gates retain their existing open status.
 

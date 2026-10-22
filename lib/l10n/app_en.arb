@@ -7941,7 +7941,7 @@
   "@featureEventCollectionCountsHelp": {
     "description": "Explains that Events status counts and filters cover the whole saved collection."
   },
-  "featureEventCollectionNoMatches": "No events match this filter.",
+  "featureEventCollectionNoMatches": "No matching events",
   "@featureEventCollectionNoMatches": {
     "description": "Filtered empty state when the whole collection has events but none match the chosen status."
   },

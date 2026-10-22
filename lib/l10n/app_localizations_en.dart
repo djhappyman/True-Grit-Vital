@@ -6829,7 +6829,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Counts and filters cover every saved event, not only this page.';
 
   @override
-  String get featureEventCollectionNoMatches => 'No events match this filter.';
+  String get featureEventCollectionNoMatches => 'No matching events';
 
   @override
   String get featureEventCollectionNoMatchesHelp =>

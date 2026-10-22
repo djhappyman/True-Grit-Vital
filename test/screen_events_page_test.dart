@@ -45,7 +45,7 @@ void main() {
     f.container.read(routerProvider).go('/events');
     await settle(tester);
     await waitForText(tester, 'Hypertension Management 2026');
-    expect(find.text('No events match this filter.'), findsNothing);
+    expect(find.text('No matching events'), findsNothing);
     await tap(tester, 'Active (2)');
     expect(find.text('Hypertension Management 2026'), findsOneWidget);
     expect(find.text('Autumn Immunity & Recovery Cycle'), findsOneWidget);
