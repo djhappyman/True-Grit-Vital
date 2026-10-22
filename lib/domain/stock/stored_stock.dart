@@ -83,6 +83,14 @@ final class StoredStockContainer {
         : StockExpiryState.future;
   }
 
+  /// True when the saved pack date is on or before [cutoff]. The cutoff is an
+  /// explicit user-chosen civil date, so it needs no observed local day. A
+  /// container with no saved expiry date is never included.
+  bool expiresOnOrBefore(CivilDate cutoff) {
+    final expiry = expiryDate;
+    return expiry != null && expiry.compareTo(cutoff) <= 0;
+  }
+
   StockNoticeState get notice {
     if (balance.limitReached) return StockNoticeState.limitReached;
     final value = balance.value;
@@ -193,7 +201,15 @@ enum StockInventoryBalance { low, adequate, unknown }
 /// Whole-collection inventory filters. Paused is plan-based and expiry is
 /// pack-date based, so either may overlap a balance state; the popover states
 /// that overlap rather than hiding it.
-enum StockInventoryFilter { all, low, adequate, paused, unknown, expired, today }
+enum StockInventoryFilter {
+  all,
+  low,
+  adequate,
+  paused,
+  unknown,
+  expired,
+  today,
+}
 
 /// The item's current plan shape, kept separate from its stock balance.
 enum StockInventoryPlanState {

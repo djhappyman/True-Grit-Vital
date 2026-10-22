@@ -156,10 +156,12 @@ typedef StockInventoryQuery = ({
   StockInventoryFilter filter,
   DateTime asOf,
   String? zone,
+  CivilDate? cutoff,
 });
 
 /// Whole-collection inventory state, composed from one store-backed search,
-/// item scope and clock snapshot. The loaded page is sliced by the page.
+/// item scope, clock snapshot and optional inclusive expiry cutoff. The loaded
+/// page is sliced by the page.
 final stockInventoryProvider = StreamProvider.autoDispose
     .family<StockInventorySnapshot, StockInventoryQuery>(
       retry: (_, _) => null,
@@ -177,6 +179,7 @@ final stockInventoryProvider = StreamProvider.autoDispose
                 filter: q.filter,
                 now: q.asOf,
                 observedZone: q.zone,
+                expiryCutoff: q.cutoff,
               );
         } on CommandConflict catch (error) {
           if (error.code != 'app_locked') rethrow;

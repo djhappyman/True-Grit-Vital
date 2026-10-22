@@ -9262,6 +9262,49 @@
   "@directExpiryUnavailableBody": {
     "description": "Explains why expiry counts and filters are unavailable rather than zero."
   },
+  "directCutoffLabel": "Expiry cutoff",
+  "@directCutoffLabel": {
+    "description": "Visible label for the user-chosen inclusive last pack expiry date in the stock filter disclosure."
+  },
+  "directCutoffHelp": "Use YYYY-MM-DD. Includes this date.",
+  "@directCutoffHelp": {
+    "description": "Format example and inclusive behaviour for the stock expiry cutoff date."
+  },
+  "directCutoffInvalid": "Enter a date as YYYY-MM-DD.",
+  "@directCutoffInvalid": {
+    "description": "Validation error when the stock expiry cutoff is not a real ISO calendar date."
+  },
+  "directCutoffActive": "Expiry {date} or earlier",
+  "@directCutoffActive": {
+    "description": "Active stock filter chip naming the full inclusive expiry cutoff date.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "directCutoffClearLabel": "Clear expiry cutoff {date}",
+  "@directCutoffClearLabel": {
+    "description": "Accessible name for the active stock cutoff chip, which clears the cutoff when activated.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "directCutoffEmptyTitle": "No matching containers",
+  "@directCutoffEmptyTitle": {
+    "description": "Filtered-empty heading when no saved pack expiry falls on or before the chosen cutoff."
+  },
+  "directCutoffEmptyBody": "No saved container expiry is on or before {date}.",
+  "@directCutoffEmptyBody": {
+    "description": "Filtered-empty recovery text naming the inclusive stock expiry cutoff date.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "featureStockFilterOverlapHelp": "Paused counts the schedule, so a container can also count as low, adequate or unknown.",
   "@featureStockFilterOverlapHelp": {
     "description": "Explains overlapping paused and balance filter counts."

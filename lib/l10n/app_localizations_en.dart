@@ -7809,6 +7809,33 @@ class AppLocalizationsEn extends AppLocalizations {
       'Expiry filters need the device date and time zone.';
 
   @override
+  String get directCutoffLabel => 'Expiry cutoff';
+
+  @override
+  String get directCutoffHelp => 'Use YYYY-MM-DD. Includes this date.';
+
+  @override
+  String get directCutoffInvalid => 'Enter a date as YYYY-MM-DD.';
+
+  @override
+  String directCutoffActive(String date) {
+    return 'Expiry $date or earlier';
+  }
+
+  @override
+  String directCutoffClearLabel(String date) {
+    return 'Clear expiry cutoff $date';
+  }
+
+  @override
+  String get directCutoffEmptyTitle => 'No matching containers';
+
+  @override
+  String directCutoffEmptyBody(String date) {
+    return 'No saved container expiry is on or before $date.';
+  }
+
+  @override
   String get featureStockFilterOverlapHelp =>
       'Paused counts the schedule, so a container can also count as low, adequate or unknown.';
 

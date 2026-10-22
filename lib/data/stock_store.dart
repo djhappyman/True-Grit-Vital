@@ -547,10 +547,13 @@ extension StockRecordStore on RecordStore {
   }
 
   /// Whole-collection inventory read. Search, the item scope, the inventory
-  /// filter and every count use this one store-backed snapshot, never only the
-  /// first loaded page. The plan state comes from the same bounded status
-  /// projection used by the Substances list. Expiry compares each saved pack
-  /// date with the observed local civil day at [now], not with the raw clock.
+  /// filter, an explicit inclusive expiry cutoff and every count use this one
+  /// store-backed snapshot, never only the first loaded page. The plan state
+  /// comes from the same bounded status projection used by the Substances
+  /// list. Expiry compares each saved pack date with the observed local civil
+  /// day at [now], not with the raw clock. [expiryCutoff] is independent of
+  /// that observation: it includes known pack dates on or before the chosen
+  /// civil day and never requires a device time zone.
   Future<StockInventorySnapshot> stockInventory({
     required String personId,
     required DateTime now,
@@ -558,6 +561,7 @@ extension StockRecordStore on RecordStore {
     String? itemId,
     String search = '',
     StockInventoryFilter filter = StockInventoryFilter.all,
+    CivilDate? expiryCutoff,
   }) async {
     _requireWritable();
     return _db.transaction(() async {
@@ -645,7 +649,7 @@ extension StockRecordStore on RecordStore {
       }
 
       final filtered = candidates.where((container) {
-        return switch (filter) {
+        final matches = switch (filter) {
           StockInventoryFilter.all => true,
           StockInventoryFilter.low =>
             balances[container.id] == StockInventoryBalance.low,
@@ -663,6 +667,8 @@ extension StockRecordStore on RecordStore {
             expiryDay != null &&
                 container.expiryState(expiryDay) == StockExpiryState.today,
         };
+        return matches &&
+            (expiryCutoff == null || container.expiresOnOrBefore(expiryCutoff));
       }).toList();
 
       _requireWritable();
@@ -693,6 +699,7 @@ extension StockRecordStore on RecordStore {
     String? itemId,
     String search = '',
     StockInventoryFilter filter = StockInventoryFilter.all,
+    CivilDate? expiryCutoff,
   }) => _watch(
     () => stockInventory(
       personId: personId,
@@ -701,6 +708,7 @@ extension StockRecordStore on RecordStore {
       itemId: itemId,
       search: search,
       filter: filter,
+      expiryCutoff: expiryCutoff,
     ),
   );
 

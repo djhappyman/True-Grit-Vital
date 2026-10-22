@@ -12123,6 +12123,48 @@ abstract class AppLocalizations {
   /// **'Expiry filters need the device date and time zone.'**
   String get directExpiryUnavailableBody;
 
+  /// Visible label for the user-chosen inclusive last pack expiry date in the stock filter disclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry cutoff'**
+  String get directCutoffLabel;
+
+  /// Format example and inclusive behaviour for the stock expiry cutoff date.
+  ///
+  /// In en, this message translates to:
+  /// **'Use YYYY-MM-DD. Includes this date.'**
+  String get directCutoffHelp;
+
+  /// Validation error when the stock expiry cutoff is not a real ISO calendar date.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a date as YYYY-MM-DD.'**
+  String get directCutoffInvalid;
+
+  /// Active stock filter chip naming the full inclusive expiry cutoff date.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry {date} or earlier'**
+  String directCutoffActive(String date);
+
+  /// Accessible name for the active stock cutoff chip, which clears the cutoff when activated.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear expiry cutoff {date}'**
+  String directCutoffClearLabel(String date);
+
+  /// Filtered-empty heading when no saved pack expiry falls on or before the chosen cutoff.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching containers'**
+  String get directCutoffEmptyTitle;
+
+  /// Filtered-empty recovery text naming the inclusive stock expiry cutoff date.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved container expiry is on or before {date}.'**
+  String directCutoffEmptyBody(String date);
+
   /// Explains overlapping paused and balance filter counts.
   ///
   /// In en, this message translates to:

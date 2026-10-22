@@ -32,7 +32,10 @@ class StockPage extends ConsumerStatefulWidget {
 
 class _StockPageState extends ConsumerState<StockPage> {
   final _search = TextEditingController();
+  final _cutoff = TextEditingController();
   StockInventoryFilter _filter = StockInventoryFilter.all;
+  CivilDate? _cutoffDay;
+  String? _cutoffError;
   int _pages = 1;
   Timer? _clockTimer;
 
@@ -53,12 +56,47 @@ class _StockPageState extends ConsumerState<StockPage> {
   void dispose() {
     _clockTimer?.cancel();
     _search.dispose();
+    _cutoff.dispose();
     super.dispose();
   }
 
+  void _applyCutoff() {
+    final text = _cutoff.text.trim();
+    if (text.isEmpty) {
+      setState(() {
+        _cutoffDay = null;
+        _cutoffError = null;
+        _pages = 1;
+      });
+      return;
+    }
+    try {
+      final day = CivilDate.parse(text);
+      setState(() {
+        _cutoffDay = day;
+        _cutoffError = null;
+        _pages = 1;
+      });
+    } on Object {
+      setState(
+        () => _cutoffError = AppLocalizations.of(context).directCutoffInvalid,
+      );
+    }
+  }
+
+  void _clearCutoff() => setState(() {
+    _cutoff.clear();
+    _cutoffDay = null;
+    _cutoffError = null;
+    _pages = 1;
+  });
+
   void _clearFilters() => setState(() {
     _search.clear();
+    _cutoff.clear();
     _filter = StockInventoryFilter.all;
+    _cutoffDay = null;
+    _cutoffError = null;
     _pages = 1;
   });
 
@@ -96,9 +134,13 @@ class _StockPageState extends ConsumerState<StockPage> {
       filter: _filter,
       asOf: asOf,
       zone: zone,
+      cutoff: _cutoffDay,
     );
     final inventory = ref.watch(stockInventoryProvider(query));
-    final filtered = search.isNotEmpty || _filter != StockInventoryFilter.all;
+    final filtered =
+        search.isNotEmpty ||
+        _filter != StockInventoryFilter.all ||
+        _cutoffDay != null;
     final snapshot = inventory.isLoading || inventory.hasError
         ? null
         : inventory.value;
@@ -106,6 +148,8 @@ class _StockPageState extends ConsumerState<StockPage> {
         _filter == StockInventoryFilter.expired ||
         _filter == StockInventoryFilter.today;
     final expiryUnavailable = snapshot != null && snapshot.expiryDay == null;
+    final showExpiryUnavailable =
+        expiryUnavailable && (_cutoffDay == null || expiryFilter);
     final rows = snapshot?.containers ?? const <StoredStockContainer>[];
     final shown = rows.take(_pages * 50).toList();
     return EntryPage(
@@ -174,7 +218,33 @@ class _StockPageState extends ConsumerState<StockPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(t.featureStockFilterOverlapHelp),
-                    if (expiryUnavailable) ...[
+                    const SizedBox(height: 12),
+                    LabelledInput(
+                      key: const ValueKey('stock-cutoff-field'),
+                      label: t.directCutoffLabel,
+                      controller: _cutoff,
+                      keyboardType: TextInputType.datetime,
+                      helper: t.directCutoffHelp,
+                      error: _cutoffError,
+                    ),
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: StitchButton(
+                        key: const ValueKey('stock-cutoff-apply'),
+                        onPressed: _applyCutoff,
+                        child: Text(t.apply),
+                      ),
+                    ),
+                    if (_cutoffDay != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        t.directCutoffActive(_cutoffDay.toString()),
+                        style: StitchType.caption.copyWith(
+                          color: StitchColors(context).muted,
+                        ),
+                      ),
+                    ],
+                    if (showExpiryUnavailable) ...[
                       const SizedBox(height: 8),
                       Text(
                         t.directExpiryUnavailableBody,
@@ -210,6 +280,27 @@ class _StockPageState extends ConsumerState<StockPage> {
               _pages = 1;
             }),
           ),
+          if (_cutoffDay != null) ...[
+            const SizedBox(height: 6),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Semantics(
+                label: t.directCutoffClearLabel(_cutoffDay.toString()),
+                button: true,
+                child: StitchButton(
+                  key: const ValueKey('stock-cutoff-chip'),
+                  primary: true,
+                  compact: true,
+                  icon: LucideIcons.x,
+                  onPressed: _clearCutoff,
+                  child: Text(
+                    t.directCutoffActive(_cutoffDay.toString()),
+                    style: StitchType.small,
+                  ),
+                ),
+              ),
+            ),
+          ],
           if (snapshot != null && !snapshot.complete) ...[
             const SizedBox(height: 6),
             Text(
@@ -245,6 +336,16 @@ class _StockPageState extends ConsumerState<StockPage> {
           VitalEmptyState(
             title: t.directExpiryUnavailableTitle,
             description: t.directExpiryUnavailableBody,
+            icon: LucideIcons.calendarClock,
+            action: VitalButton.secondary(
+              onPressed: _clearFilters,
+              child: Text(t.clear),
+            ),
+          )
+        else if (rows.isEmpty && _cutoffDay != null)
+          VitalEmptyState(
+            title: t.directCutoffEmptyTitle,
+            description: t.directCutoffEmptyBody(_cutoffDay.toString()),
             icon: LucideIcons.calendarClock,
             action: VitalButton.secondary(
               onPressed: _clearFilters,
