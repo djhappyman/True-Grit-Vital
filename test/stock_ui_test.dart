@@ -291,7 +291,7 @@ void main() {
       ))!;
       f.container.read(routerProvider).go('/today');
       await settle(tester);
-      await waitForText(tester, 'Low stock');
+      await waitForText(tester, 'Stock needs attention');
       await waitForText(tester, i.name);
       f.container
           .read(routerProvider)
@@ -331,7 +331,8 @@ void main() {
       );
       f.container.read(routerProvider).go('/today');
       await settle(tester);
-      await tap(tester, 'Manage');
+      f.container.read(routerProvider).go('/stock/$meId');
+      await settle(tester);
       await waitForText(
         tester,
         'Stock unknown. Measure the remaining amount to establish a balance.',
@@ -584,14 +585,15 @@ void main() {
       await select(tester, c.id);
       final hero = find.byWidgetPredicate(
         (w) =>
-            w is DailyRowCard && w.presentation == DailyCardPresentation.hero,
+            w is DailyRowCard &&
+            w.presentation == DailyCardPresentation.timeline,
       );
       final taken = find.descendant(of: hero, matching: find.text('Taken'));
       await tester.ensureVisible(taken);
       await settle(tester);
       await tester.tap(taken);
       await settle(tester);
-      await waitForText(tester, '1 of 1 doses recorded, 0 skipped.');
+      await waitForText(tester, '1 recorded, 0 skipped, 1 planned');
       expect(
         (await runIo(
           tester,
@@ -610,7 +612,7 @@ void main() {
       await settle(tester);
       expect(find.text('Bottle A'), findsWidgets);
       await tap(tester, 'Reverse entry');
-      await waitForText(tester, '0 of 1 doses recorded, 0 skipped.');
+      await waitForText(tester, '0 recorded, 0 skipped, 1 planned');
       expect(
         (await runIo(
           tester,

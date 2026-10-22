@@ -1,5 +1,3 @@
-import 'package:true_grit_vital/features/plans/dashboard_favourites.dart';
-
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -14,6 +12,7 @@ import 'package:true_grit_vital/app/display_preferences.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/plans/daily_feed.dart';
+import 'package:true_grit_vital/features/recording/quick_record_sheet.dart';
 import 'package:true_grit_vital/features/substances/stitch_substance_card.dart';
 import 'package:true_grit_vital/features/substances/substance_summary_providers.dart';
 
@@ -194,11 +193,20 @@ void main() {
           await settle(tester);
           expect(tester.takeException(), isNull);
           if (screen == 'today') {
-            expect(find.textContaining('Next dose in'), findsWidgets);
-            expect(find.text('Today’s sequence'), findsOneWidget);
+            expect(find.text('SCHEDULE'), findsOneWidget);
+            final rows = tester.widgetList<DailyRowCard>(
+              find.byType(DailyRowCard),
+            );
+            expect(rows, isNotEmpty);
             expect(
-              find.text('2 of 6 doses recorded, 0 skipped.'),
-              findsOneWidget,
+              rows.every(
+                (row) => row.presentation == DailyCardPresentation.timeline,
+              ),
+              isTrue,
+            );
+            expect(
+              rows.map((row) => row.row.itemName).toSet().length,
+              rows.length,
             );
           } else {
             await waitForText(tester, 'Magnesium Glycinate');
@@ -248,23 +256,23 @@ void main() {
   }
 
   appTest(
-    'Stitch hero and timeline retain durable Taken and Undo, and configuring favourites saves no doses',
+    'Stitch timeline retains durable Taken and Undo, and opening quick entry saves no doses',
     (tester) async {
       final f = await launch(tester, todayClock: referenceNow);
       await seedReference(tester, f.store);
       final before = (await runIo(tester, () => f.store.records()))!.length;
-      final hero = tester.widget<DailyRowCard>(
-        find.byWidgetPredicate(
-          (w) =>
-              w is DailyRowCard && w.presentation == DailyCardPresentation.hero,
-        ),
-      );
-      final name = hero.row.itemName;
+      final pending = find
+          .byWidgetPredicate(
+            (w) =>
+                w is DailyRowCard &&
+                w.presentation == DailyCardPresentation.timeline &&
+                !w.row.isResolved,
+          )
+          .first;
+      final name = tester.widget<DailyRowCard>(pending).row.itemName;
+      await tap(tester, name);
       final primary = find.descendant(
-        of: find.byWidgetPredicate(
-          (w) =>
-              w is DailyRowCard && w.presentation == DailyCardPresentation.hero,
-        ),
+        of: pending,
         matching: find.widgetWithText(Button, 'Taken'),
       );
       expect(tester.widget<Button>(primary).onPressed, isNotNull);
@@ -316,9 +324,10 @@ void main() {
             .join(' | '),
       );
       expect(undone.id, taken.id);
-      await tap(tester, 'Configure');
-      expect(find.byType(DashboardFavouritesDialog), findsOneWidget);
-      await tap(tester, 'Cancel');
+      await tap(tester, 'Add');
+      expect(find.byType(QuickRecordSheet), findsOneWidget);
+      f.container.read(routerProvider).pop();
+      await settle(tester);
       expect(
         (await runIo(
           tester,

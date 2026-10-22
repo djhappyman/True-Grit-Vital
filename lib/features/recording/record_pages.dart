@@ -299,7 +299,6 @@ class RecordCollection extends ConsumerStatefulWidget {
 }
 
 class _RecordCollectionState extends ConsumerState<RecordCollection> {
-  bool _recordedExpanded = false;
   Destination get destination => widget.destination;
   @override
   Widget build(BuildContext context) {
@@ -340,47 +339,6 @@ class _RecordCollectionState extends ConsumerState<RecordCollection> {
           const DraftList(),
           const AttachmentJobs(),
           DailyFeed(scope: scope),
-          const SizedBox(height: 16),
-          StitchSurface(
-            inset: true,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    const Icon(LucideIcons.circleCheck, size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(t.statusRecorded, style: StitchType.name),
-                    ),
-                    Semantics(
-                      label: t.statusRecorded,
-                      expanded: _recordedExpanded,
-                      child: StitchButton(
-                        quiet: true,
-                        compact: true,
-                        onPressed: () => setState(
-                          () => _recordedExpanded = !_recordedExpanded,
-                        ),
-                        child: Icon(
-                          _recordedExpanded
-                              ? LucideIcons.chevronUp
-                              : LucideIcons.chevronDown,
-                          size: 18,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (_recordedExpanded)
-                  PagedRecordList(
-                    key: ValueKey(scope),
-                    query: query,
-                    emptyBody: t.todayReady,
-                  ),
-              ],
-            ),
-          ),
         ],
       );
     }
@@ -1352,12 +1310,25 @@ abstract class DurableFormState<T extends ConsumerStatefulWidget>
 }
 
 class ItemForm extends ConsumerStatefulWidget {
-  const ItemForm({super.key});
+  const ItemForm({
+    super.key,
+    this.quick = false,
+    this.day,
+    this.plan = false,
+    this.initialTime,
+  });
+  final String? initialTime;
+  final bool quick, plan;
+  final CivilDate? day;
   @override
   ConsumerState<ItemForm> createState() => _ItemFormState();
 }
 
 class _ItemFormState extends DurableFormState<ItemForm> {
+  @override
+  String? get entryDraftVariant => widget.quick
+      ? 'quick:${widget.plan}:${widget.day ?? 'today'}${widget.initialTime == null ? '' : ':${widget.initialTime}'}'
+      : null;
   @override
   DraftKind get entryKind => DraftKind.item;
   @override
@@ -1370,6 +1341,11 @@ class _ItemFormState extends DurableFormState<ItemForm> {
   String? get entryTarget => null;
   @override
   Map<String, String> captureEntry() => {
+    if (widget.quick) 'quick': 'true',
+    if (widget.quick && widget.day != null) 'day': widget.day.toString(),
+    if (widget.quick) 'plan': '${widget.plan}',
+    if (widget.quick && widget.initialTime != null)
+      'quickTime': widget.initialTime!,
     'name': name.text,
     'form': form.text,
     'unit': unit.text,
@@ -1447,6 +1423,10 @@ class _ItemFormState extends DurableFormState<ItemForm> {
       setState(() => error = t.nameRequired);
       return;
     }
+    if (widget.quick && unit.text.trim().isEmpty) {
+      setState(() => error = t.dashboardUnitRequired);
+      return;
+    }
     if ([name, form, unit, type].any(
       (c) =>
           c.text.trim().isEmpty ||
@@ -1491,17 +1471,34 @@ class _ItemFormState extends DurableFormState<ItemForm> {
               productComponents: components,
               profile: profile,
             );
-        setupPath = '/substance/${created.id}/setup';
+        setupPath = widget.quick
+            ? quickNext(created.id)
+            : '/substance/${created.id}/setup';
       },
       successPath: '/substances',
       successPathAfterSave: () async {
         if (setupPath != null) return setupPath!;
         final created = await (await ref.read(recordStoreProvider.future))
             .itemIdForOperation(commandId!);
-        return created == null ? '/substances' : '/substance/$created/setup';
+        return created == null
+            ? '/substances'
+            : widget.quick
+            ? quickNext(created)
+            : '/substance/$created/setup';
       },
     );
   }
+
+  String quickNext(String id) => Uri(
+    path: widget.plan ? '/schedule/$id' : '/unplanned',
+    queryParameters: {
+      if (!widget.plan) 'item': id,
+      if (widget.day != null)
+        (widget.plan ? 'start' : 'day'): widget.day.toString(),
+      if (widget.plan && widget.initialTime != null)
+        'time': widget.initialTime!,
+    },
+  ).toString();
 
   String? setupPath;
 
@@ -1962,6 +1959,10 @@ class _ItemFormState extends DurableFormState<ItemForm> {
       dirty = false;
       return EntryPage(children: [Text(t.profileUnavailable)]);
     }
+    if (widget.quick && !draftReady && form.text.isEmpty) {
+      form.text = t.dashboardUnknownForm;
+      type.text = t.dashboardMedicineType;
+    }
     if (!prepareDraft()) return EntryPage(children: [Text(t.loadingRecords)]);
     final ownerValid = people.value!.any(
       (p) =>
@@ -1969,6 +1970,48 @@ class _ItemFormState extends DurableFormState<ItemForm> {
           !p.isArchived &&
           p.revision == capturedPersonRevision,
     );
+    if (widget.quick) {
+      return wrap([
+        Heading(t.dashboardQuickCreate),
+        Text(t.dashboardQuickCreateHelp, style: StitchType.caption),
+        const SizedBox(height: 16),
+        LabelledInput(
+          label: t.dashboardName,
+          controller: name,
+          error: error == t.nameRequired ? error : null,
+          enabled: ownerValid && !busy && !uncertain,
+        ),
+        LabelledInput(
+          label: t.unitLabel,
+          controller: unit,
+          enabled: ownerValid && !busy && !uncertain,
+          error: error == t.dashboardUnitRequired ? error : null,
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final value in ['mg', 'ml', 'count'])
+              _chip(
+                label: value == 'count' ? t.dashboardUnitCount : value,
+                selected: unit.text == value,
+                onPressed: ownerValid && !busy && !uncertain
+                    ? () => setState(() {
+                        unit.text = value;
+                        entryChanged();
+                      })
+                    : null,
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(t.dashboardUnitHelp, style: StitchType.caption),
+        const SizedBox(height: 16),
+        ?failure(),
+        _actions(t, ownerValid: ownerValid),
+      ]);
+    }
     return wrap([
       _introCard(context, t),
       if (!ownerValid) ...[const SizedBox(height: 12), Text(t.profileChanged)],
@@ -1999,7 +2042,9 @@ class DoseForm extends ConsumerStatefulWidget {
     this.recordId,
     this.personId = meId,
     this.returnLocation,
+    this.initialDay,
   });
+  final CivilDate? initialDay;
   final String? itemId, recordId;
   final String? returnLocation;
   final String personId;
@@ -2142,6 +2187,7 @@ class _DoseFormState extends DurableFormState<DoseForm> {
     super.initState();
     final now = DateTime.now();
     date.text =
+        widget.initialDay?.toString() ??
         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
     time.text =
         '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';

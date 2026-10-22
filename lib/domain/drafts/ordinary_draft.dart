@@ -42,7 +42,14 @@ final class OrdinaryDraft {
   }) : fields = Map.unmodifiable(fields) {
     final allowed = switch (kind) {
       DraftKind.supportingVoid => {'isVoided'},
-      DraftKind.itemDetails => {'instructions', 'notes', 'profile'},
+      DraftKind.itemDetails => {
+        'instructions',
+        'notes',
+        'profile',
+        'name',
+        'form',
+        'itemRevision',
+      },
       DraftKind.attachmentRename => {'name', 'frozen'},
       DraftKind.labPanel ||
       DraftKind.supportingObservation => {'payload', 'frozen'},
@@ -90,6 +97,10 @@ final class OrdinaryDraft {
       },
       DraftKind.siteEdit => {'site'},
       DraftKind.item => {
+        'quick',
+        'quickTime',
+        'day',
+        'plan',
         'profile',
         'name',
         'form',
@@ -337,7 +348,18 @@ final class OrdinaryDraft {
     DraftKind.combinedDose => '/combined/$personId',
     DraftKind.combinedCorrection =>
       '/combined/$personId/edit/$targetId${fields['voided'] == 'true' ? '?undo=true' : ''}',
-    DraftKind.item => '/create?person=$personId',
+    DraftKind.item =>
+      fields['quick'] == 'true'
+          ? Uri(
+              path: '/unplanned',
+              queryParameters: {
+                'new': '1',
+                'plan': fields['plan'] == 'true' ? '1' : '0',
+                if (fields['day'] != null) 'day': fields['day']!,
+                if (fields['quickTime'] != null) 'time': fields['quickTime']!,
+              },
+            ).toString()
+          : '/create?person=$personId',
     DraftKind.itemDetails => '/substance/$targetId/details',
     DraftKind.productLabel => '/products/$personId/label/$targetId',
     DraftKind.itemType =>

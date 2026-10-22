@@ -1,3 +1,5 @@
+import '../recording/quick_record_sheet.dart';
+
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,24 +16,14 @@ import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 import '../recording/record_pages.dart' show LoadFailure, PagedRecordList;
 import '../stock/stock_providers.dart';
-import '../stock/stock_widgets.dart' show stockAmountNumber, StockNotices;
 import 'daily_feed.dart';
-import 'dashboard_favourites.dart';
 import 'dashboard_week.dart';
 import 'plan_providers.dart';
 import 'today_hero.dart';
 import 'today_model.dart';
-import 'today_plan_rows.dart';
-import 'today_prn.dart';
 
-/// Composition transcribed from Dashboard — Timeline & Velocity in Stitch.
-///
-/// The week strip browses real civil days, the weekly summary separates
-/// planned, recorded and skipped slots, and the as-needed row has a durable
-/// saved subset and order. Today keeps its one-tap Taken, Skip, Snooze, Edit
-/// and Undo actions. A browsed date is inspection only; its Record action opens
-/// the existing explicit-time form so a current-time command can never be
-/// applied silently to another day.
+/// The owner's focused Today layout, using the shared Stitch surfaces.
+/// Calendar browsing and selected-day identity are deliberately independent.
 class StitchDashboard extends ConsumerStatefulWidget {
   const StitchDashboard({super.key, required this.scope});
   final FeedScope scope;
@@ -40,58 +32,29 @@ class StitchDashboard extends ConsumerStatefulWidget {
 }
 
 class _StitchDashboardState extends ConsumerState<StitchDashboard> {
-  bool management = false;
-  Timer? rollover;
-  DateTime? dayEnd;
   CivilDate? selectedDay;
   bool followToday = true;
-
+  Timer? rollover;
+  DateTime? dayEnd;
   @override
   void dispose() {
     rollover?.cancel();
     super.dispose();
   }
 
-  void selectDay(CivilDate day, CivilDate today) {
-    setState(() {
-      selectedDay = day;
-      followToday = day == today;
-    });
-  }
-
+  void selectDay(CivilDate day, CivilDate today) => setState(() {
+    selectedDay = day;
+    followToday = day == today;
+  });
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context), c = StitchColors(context);
-    final scope = widget.scope;
-    final displayZone = ref.watch(displayZoneProvider);
+    final zone = ref.watch(displayZoneProvider);
     final now = ref.watch(todayNowProvider)();
-    final today = DisplayTime().instant(now, displayZone).civilDate;
+    final today = DisplayTime().instant(now, zone).civilDate;
     if (selectedDay == null || followToday) selectedDay = today;
     final selected = selectedDay!;
-    final selectedIsToday = selected == today;
-    final weekStart = dashboardWeekStart(selected);
-    // Keep Today's established now-based read (including overdue interval
-    // rows and its capture rules) and use the dated read only for a browsed day.
-    final daily = selectedIsToday
-        ? ref.watch(dailyFeedProvider(scope))
-        : ref.watch(dailyDayFeedProvider((scope: scope, day: selected)));
-    final week = ref.watch(
-      dailyWeekFeedProvider((scope: scope, weekStart: weekStart)),
-    );
-
-    final plans = ref.watch(scopePlansProvider(scope));
-    final next = ref.watch(nextDailyPlansProvider(scope));
-    final zone = ref.watch(observedDeviceZoneProvider).value?.zoneId;
-    final rows = daily.value?.rows ?? const <DailyRow>[];
-    final summary = week.value == null
-        ? null
-        : dashboardWeekSummary(week.value!);
-    final count = todayUseCount(rows);
-    final known =
-        daily.hasValue &&
-        daily.value!.complete &&
-        rows.every((r) => r.actionsComplete);
-    final end = DisplayTime().dayBounds(today, displayZone).endExclusive;
+    final end = DisplayTime().dayBounds(today, zone).endExclusive;
     if (dayEnd != end) {
       dayEnd = end;
       rollover?.cancel();
@@ -99,424 +62,455 @@ class _StitchDashboardState extends ConsumerState<StitchDashboard> {
         end.difference(now) + const Duration(milliseconds: 1),
         () {
           if (!mounted) return;
-          setState(() {
-            dayEnd = null;
-            if (followToday) {
-              selectedDay = DisplayTime()
-                  .instant(
-                    ref.read(todayNowProvider)(),
-                    ref.read(displayZoneProvider),
-                  )
-                  .civilDate;
-            }
-          });
-          ref.invalidate(dailyFeedProvider(scope));
-          ref.invalidate(nextDailyPlansProvider(scope));
+          setState(() => dayEnd = null);
+          ref.invalidate(dailyFeedProvider(widget.scope));
         },
       );
     }
-    final pending = selectedIsToday
-        ? todayNextPendingRow(rows)?.$1 ??
-              rows.where((r) => !r.isResolved).firstOrNull
-        : null;
-    final groups = groupTodayRows(
-      rows,
-      timeLabel: (row, start) {
-        final time = DisplayTime().instant(start, row.expectation.zoneId);
-        return TodayTimeLabel(
-          key: '${row.expectation.zoneId}|${time.time24}',
-          title: displayWallTime(
-            context,
-            ref,
-            WallTime(time.hour, time.minute),
-          ),
+    final daily = selected == today
+        ? ref.watch(dailyFeedProvider(widget.scope))
+        : ref.watch(dailyDayFeedProvider((scope: widget.scope, day: selected)));
+    // Warm only the neighbouring dates. Week browsing itself changes no dose
+    // query or selected date; background arrivals do not rebuild this widget.
+    for (final delta in [-1, 1]) {
+      final date = selected.calendarValue.add(Duration(days: delta));
+      if (date.year >= 1 && date.year <= 9999) {
+        ref.listen(
+          dailyDayFeedProvider((
+            scope: widget.scope,
+            day: CivilDate.fromDateTime(date),
+          )),
+          (_, _) {},
         );
-      },
-      untimedTitle: t.todayDue,
-    );
+      }
+    }
+    final rows = daily.isLoading || daily.hasError
+        ? <DailyRow>[]
+        : daily.value?.rows ?? <DailyRow>[];
+    final groups = <int, List<DailyRow>>{};
+    for (final row in rows) {
+      final start = todayRowStart(row);
+      final hour = start == null
+          ? null
+          : DisplayTime().instant(start, row.expectation.zoneId).hour;
+      final part = hour == null
+          ? 4
+          : hour < 6
+          ? 0
+          : hour < 12
+          ? 1
+          : hour < 18
+          ? 2
+          : 3;
+      (groups[part] ??= []).add(row);
+    }
+    String title(int part) => switch (part) {
+      0 => t.dashboardNightTitle,
+      1 => t.dashboardMorningTitle,
+      2 => t.dashboardAfternoonTitle,
+      3 => t.dashboardEveningTitle,
+      _ => t.dashboardUntimedTitle,
+    };
+    Widget status(int part) {
+      final entries = groups[part] ?? <DailyRow>[];
+      if (entries.isEmpty) return VitalBadge(t.dashboardEmpty, compact: true);
+      if (!daily.requireValue.complete ||
+          entries.any((row) => !row.actionsComplete)) {
+        return VitalBadge(t.stitchPartial, compact: true);
+      }
+      final taken = entries.fold<int>(0, (sum, row) => sum + row.takenCount);
+      final planned = entries.fold<int>(
+        0,
+        (sum, row) => sum + row.plannedCount,
+      );
+      return VitalBadge(
+        t.dashboardTakenCount(taken, planned),
+        compact: true,
+        tone: taken > 0 ? VitalTone.positive : VitalTone.neutral,
+      );
+    }
+
+    final empty =
+        daily.hasValue && !daily.isLoading && !daily.hasError && rows.isEmpty;
     return DefaultTextStyle.merge(
       style: StitchType.body.copyWith(color: c.ink),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Icon(LucideIcons.badgeCheck, size: 18, color: c.accent),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Text(t.stitchDailyProgress, style: StitchType.label),
-              ),
-              if (known && count.planned > 0) ...[
-                Text(
-                  '${(count.recorded / count.planned * 100).round()}%',
-                  style: StitchType.label.copyWith(
-                    color: c.accent,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 5),
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    value: (count.recorded / count.planned).clamp(0, 1),
-                  ),
-                ),
-              ] else
-                Text(
-                  known ? t.stitchGroupCount(0) : t.stitchPartial,
-                  style: StitchType.small.copyWith(color: c.muted),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
           _DashboardWeekBar(
             today: today,
             selected: selected,
-            zoneKnown: zone != null,
+            zoneKnown:
+                ref.watch(observedDeviceZoneProvider).value?.zoneId != null,
             onSelect: (day) => selectDay(day, today),
-            onPrevious: () => selectDay(selected.addDays(-7), today),
-            onNext: () => selectDay(selected.addDays(7), today),
             onToday: () => selectDay(today, today),
           ),
-          const SizedBox(height: 12),
-          _DashboardWeekSummaryCard(
-            result: week,
-            summary: summary,
-            onRetry: () => ref.invalidate(
-              dailyWeekFeedProvider((scope: scope, weekStart: weekStart)),
+          const SizedBox(height: 24),
+          Semantics(
+            header: true,
+            child: Text(
+              t.dashboardSchedule.toUpperCase(),
+              style: StitchType.label.copyWith(
+                color: c.muted,
+                letterSpacing: .6,
+              ),
             ),
           ),
-          const SizedBox(height: 16),
-          if (!selectedIsToday) ...[
-            _BrowsingNotice(day: selected),
-            const SizedBox(height: 12),
-          ],
+          const SizedBox(height: 14),
           if (daily.hasError)
             LoadFailure(
-              onRetry: () => selectedIsToday
-                  ? ref.invalidate(dailyFeedProvider(scope))
+              onRetry: () => selected == today
+                  ? ref.invalidate(dailyFeedProvider(widget.scope))
                   : ref.invalidate(
-                      dailyDayFeedProvider((scope: scope, day: selected)),
+                      dailyDayFeedProvider((
+                        scope: widget.scope,
+                        day: selected,
+                      )),
                     ),
             )
-          else if (selectedIsToday && pending != null)
-            DailyRowCard(
-              key: ValueKey(('hero', pending.expectation.identity)),
-              row: pending,
-              presentation: DailyCardPresentation.hero,
-            )
-          else if (selectedIsToday)
-            StitchSurface(
-              radius: 16,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  StitchBadge(t.stitchNextDose, dot: true),
-                  const SizedBox(height: 14),
-                  Text(
-                    daily.isLoading ? t.loadingRecords : t.stitchNoNext,
-                    style: StitchType.heading,
-                  ),
-                  const SizedBox(height: 8),
-                  // The existing future resolver supplies the next expectation
-                  // even when today's rows are empty or resolved.
-                  if (next.value?.rows.any((r) => r.result.next != null) ??
-                      false)
-                    TodayFutureDose(next: next, zone: zone, now: now)
-                  else
-                    Text(
-                      t.stitchNextHelp,
-                      style: StitchType.body.copyWith(color: c.muted),
-                    ),
-                  const SizedBox(height: 16),
-                  StitchButton(
-                    primary: true,
-                    icon: LucideIcons.plus,
-                    onPressed: () => context.push('/create'),
-                    child: Text(t.create),
-                  ),
-                ],
+          else if (daily.isLoading || !daily.hasValue)
+            SizedBox(
+              height: 180,
+              child: Align(
+                alignment: AlignmentDirectional.topStart,
+                child: Text(t.loadingRecords, style: StitchType.caption),
               ),
-            ),
-          if (daily.hasValue && !known) ...[
-            const SizedBox(height: 8),
-            Text(
-              daily.value!.issue ==
-                      DailyCalculationIssue.observedZoneUnavailable
-                  ? t.planZoneUnavailable
-                  : t.planIncomplete,
-              style: StitchType.caption.copyWith(color: c.amber),
-            ),
-          ],
-          if (known)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Semantics(
-                liveRegion: true,
+            )
+          else ...[
+            if (!daily.requireValue.complete ||
+                rows.any((row) => !row.actionsComplete))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
                 child: Text(
-                  count.planned == 0
-                      ? (selectedIsToday
-                            ? t.designTodayNothingPlanned
-                            : t.featureWeekNothingPlanned)
-                      : t.designTodayRecorded(
-                          count.recorded,
-                          count.planned,
-                          count.skipped,
+                  t.planIncomplete,
+                  style: StitchType.caption.copyWith(color: c.amber),
+                ),
+              ),
+            for (final part
+                in empty ? [1, 2, 3] : (groups.keys.toList()..sort())) ...[
+              StitchSectionCard(
+                key: ValueKey('schedule-part-$part'),
+                title: title(part),
+                trailing: status(part),
+                icon: switch (part) {
+                  0 => LucideIcons.moon,
+                  1 => LucideIcons.sunrise,
+                  2 => LucideIcons.sun,
+                  3 => LucideIcons.moon,
+                  _ => LucideIcons.clock,
+                },
+                subtitle: part == 4
+                    ? null
+                    : t.dashboardPeriodRange(
+                        displayWallTime(
+                          context,
+                          ref,
+                          WallTime(switch (part) {
+                            0 => 0,
+                            1 => 6,
+                            2 => 12,
+                            _ => 18,
+                          }, 0),
                         ),
-                  style: StitchType.small.copyWith(color: c.muted),
-                ),
+                        displayWallTime(
+                          context,
+                          ref,
+                          WallTime(switch (part) {
+                            0 => 6,
+                            1 => 12,
+                            2 => 18,
+                            _ => 0,
+                          }, 0),
+                        ),
+                      ),
+                child: empty
+                    ? StitchEmptySlot(
+                        label: t.dashboardPlanPeriod(title(part)),
+                        onPressed: () => context.push(
+                          '/unplanned?plan=1&day=$selected&time=${switch (part) {
+                            1 => '08:00',
+                            2 => '14:00',
+                            _ => '20:00',
+                          }}',
+                        ),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (final row in groups[part]!)
+                            if (selected == today)
+                              DailyRowCard(
+                                key: ValueKey(row.expectation.identity),
+                                row: row,
+                                presentation: DailyCardPresentation.timeline,
+                              )
+                            else
+                              _BrowsedDayRow(
+                                key: ValueKey(row.expectation.identity),
+                                row: row,
+                                day: selected,
+                              ),
+                        ],
+                      ),
               ),
-            ),
-          const SizedBox(height: 24),
-          DashboardQuickRecord(scope: scope),
-          const SizedBox(height: 24),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  selectedIsToday ? t.stitchSequence : t.featureWeekDaySequence,
-                  style: StitchType.heading,
-                ),
-              ),
-              if (daily.hasValue)
-                Text(
-                  t.stitchSubstanceCount(
-                    rows.map((r) => r.expectation.itemId).toSet().length,
-                  ),
-                  style: StitchType.small.copyWith(color: c.muted),
-                ),
+              const SizedBox(height: 16),
             ],
-          ),
-          const SizedBox(height: 16),
-          for (final group in groups)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: StitchSurface(
-                radius: 16,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 9,
-                          height: 9,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: group.rows.every((r) => r.isResolved)
-                                ? c.accent
-                                : c.amber,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(group.title, style: StitchType.heading),
-                        ),
-                        StitchBadge(
-                          t.stitchGroupCount(
-                            group.rows.fold<int>(
-                              0,
-                              (n, r) => n + r.plannedCount,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    for (final row in group.rows)
-                      if (selectedIsToday)
-                        DailyRowCard(
-                          key: ValueKey(row.expectation.identity),
-                          row: row,
-                          presentation: DailyCardPresentation.timeline,
-                        )
-                      else
-                        _BrowsedDayRow(
-                          key: ValueKey(row.expectation.identity),
-                          row: row,
-                        ),
-                  ],
-                ),
-              ),
-            ),
-          if (daily.hasValue && rows.isEmpty)
-            StitchSurface(
-              radius: 16,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    selectedIsToday
-                        ? t.planNothingToday
-                        : t.featureWeekNothingPlanned,
-                    style: StitchType.body.copyWith(color: c.muted),
-                  ),
-                  const SizedBox(height: 12),
-                  StitchButton(
-                    icon: LucideIcons.plus,
-                    onPressed: () => context.push('/create'),
-                    child: Text(t.create),
-                  ),
-                ],
-              ),
-            ),
-          const SizedBox(height: 8),
-          const _ContextCards(),
-          const SizedBox(height: 16),
-          StitchButton(
-            quiet: true,
-            compact: true,
-            onPressed: () => setState(() => management = !management),
-            icon: management ? LucideIcons.chevronUp : LucideIcons.chevronDown,
-            child: Text(t.stitchScheduleManage),
-          ),
-          VitalReveal(
-            expanded: management,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                StockNotices(scope: scope),
-                TodayPrnPanel(plans: plans, scope: scope),
-                TodayPlanRows(scope: scope, next: next),
-              ],
-            ),
-          ),
-          if (!selectedIsToday) ...[
-            const SizedBox(height: 16),
-            DashboardDayRecorded(
-              key: ValueKey(('recorded', selected)),
-              scope: scope,
-              day: selected,
+            StitchButton(
+              outlined: true,
+              icon: LucideIcons.calendarPlus,
+              onPressed: () => context.push('/unplanned?plan=1&day=$selected'),
+              child: Text(t.dashboardPlanAction),
             ),
           ],
+          const SizedBox(height: 8),
+          UnplannedMedication(day: selected, today: today),
+          const SizedBox(height: 20),
+          const _ContextCards(),
+          StitchSectionCard(
+            icon: LucideIcons.activity,
+            title: t.dashboardObservations,
+            subtitle: t.dashboardObservationsHelp,
+            trailing: StitchBadge(t.dashboardComingSoon),
+          ),
         ],
       ),
     );
   }
 }
 
-/// Week navigation and the Monday-based day strip.
-class _DashboardWeekBar extends StatelessWidget {
+/// The visible week belongs to the pager, independently of the chosen day.
+/// A drag never starts a day read or silently selects Monday.
+class _DashboardWeekBar extends StatefulWidget {
   const _DashboardWeekBar({
     required this.today,
     required this.selected,
     required this.zoneKnown,
     required this.onSelect,
-    required this.onPrevious,
-    required this.onNext,
     required this.onToday,
   });
   final CivilDate today, selected;
   final bool zoneKnown;
   final ValueChanged<CivilDate> onSelect;
-  final VoidCallback onPrevious, onNext, onToday;
+  final VoidCallback onToday;
+  @override
+  State<_DashboardWeekBar> createState() => _DashboardWeekBarState();
+}
+
+class _DashboardWeekBarState extends State<_DashboardWeekBar> {
+  late CivilDate visibleWeek = dashboardWeekStart(widget.selected);
+  static final lastWeek =
+      DateTime.utc(9999, 12, 31).difference(DateTime.utc(1, 1, 1)).inDays ~/ 7;
+  int weekIndex(CivilDate day) =>
+      dashboardWeekStart(day).calendarValue
+          .difference(DateTime.utc(1, 1, 1))
+          .inDays ~/
+      7;
+  @override
+  void didUpdateWidget(_DashboardWeekBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selected != widget.selected) {
+      visibleWeek = dashboardWeekStart(widget.selected);
+    }
+  }
+
+  void move(int delta) {
+    final index = weekIndex(visibleWeek) + delta;
+    if (index >= 0 && index <= lastWeek) {
+      setState(() => visibleWeek = CivilDate(1, 1, 1).addDays(index * 7));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = StitchColors(context), t = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final start = dashboardWeekStart(selected);
-    final end = start.addDays(6);
-    final sameYear = start.year == end.year;
-    final pattern = sameYear ? 'd MMM' : 'd MMM y';
-    final range = t.featureWeekRange(
-      DateFormat(pattern, locale).format(start.calendarValue),
-      DateFormat(pattern, locale).format(end.calendarValue),
-    );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            _WeekArrow(
-              icon: LucideIcons.chevronLeft,
-              label: t.featureWeekPrevious,
-              onPressed: onPrevious,
-            ),
-            Expanded(
-              child: Text(
-                range,
-                textAlign: TextAlign.center,
-                style: StitchType.small.copyWith(color: c.muted),
-              ),
-            ),
-            _WeekArrow(
-              icon: LucideIcons.chevronRight,
-              label: t.featureWeekNext,
-              onPressed: onNext,
-            ),
-            if (selected != today)
-              StitchButton(
-                quiet: true,
-                compact: true,
-                onPressed: onToday,
-                child: Text(
-                  t.today,
-                  style: StitchType.small.copyWith(color: c.accent),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 64 * (MediaQuery.textScalerOf(context).scale(14) / 14),
-          child: VitalPager(
-            index:
-                start.calendarValue.difference(DateTime.utc(1, 1, 1)).inDays ~/
-                7,
-            itemCount:
-                DateTime.utc(
-                      9999,
-                      12,
-                      31,
-                    ).difference(DateTime.utc(1, 1, 1)).inDays ~/
-                    7 +
-                1,
-            duration: VitalMotion.calendar,
-            retainPages: false,
-            onChanged: (index) =>
-                onSelect(CivilDate(1, 1, 1).addDays(index * 7)),
-            itemBuilder: (_, index) {
-              final weekStart = CivilDate(1, 1, 1).addDays(index * 7);
-              return LayoutBuilder(
-                builder: (context, constraints) {
-                  final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
-                  final fits = constraints.maxWidth >= 7 * 48 * scale;
-                  final days = [
-                    for (final day in dashboardWeekDays(weekStart))
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 1),
-                        child: _DayPill(
-                          day: day,
-                          active: day == selected,
-                          onPressed: () => onSelect(day),
+    final start = visibleWeek.calendarValue;
+    final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+    final showToday =
+        widget.selected != widget.today ||
+        weekIndex(widget.today) != weekIndex(visibleWeek);
+    return StitchSurface(
+      key: const ValueKey('dashboard-calendar-frame'),
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              key: const ValueKey('dashboard-calendar-heading'),
+              height: scale > 1.35
+                  ? 20 * scale + 56
+                  : 48 * (scale < 1 ? 1 : scale),
+              child: scale > 1.35
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          DateFormat('MMMM y', locale).format(start),
+                          style: StitchType.body.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                  ];
-                  if (fits) {
-                    return Row(
-                      children: [for (final day in days) Expanded(child: day)],
-                    );
-                  }
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(children: days),
-                  );
-                },
-              );
-            },
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Visibility(
+                              visible: showToday,
+                              maintainSize: true,
+                              maintainAnimation: true,
+                              maintainState: true,
+                              child: StitchButton(
+                                quiet: true,
+                                compact: true,
+                                onPressed: () {
+                                  setState(
+                                    () => visibleWeek = dashboardWeekStart(
+                                      widget.today,
+                                    ),
+                                  );
+                                  widget.onToday();
+                                },
+                                child: Text(t.today),
+                              ),
+                            ),
+                            _WeekArrow(
+                              icon: LucideIcons.chevronLeft,
+                              label: t.featureWeekPrevious,
+                              onPressed: () => move(-1),
+                            ),
+                            _WeekArrow(
+                              icon: LucideIcons.chevronRight,
+                              label: t.featureWeekNext,
+                              onPressed: () => move(1),
+                            ),
+                          ],
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            DateFormat('MMMM y', locale).format(start),
+                            style: StitchType.body.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        Visibility(
+                          visible: showToday,
+                          maintainSize: true,
+                          maintainAnimation: true,
+                          maintainState: true,
+                          child: StitchButton(
+                            quiet: true,
+                            compact: true,
+                            onPressed: () {
+                              setState(
+                                () => visibleWeek = dashboardWeekStart(
+                                  widget.today,
+                                ),
+                              );
+                              widget.onToday();
+                            },
+                            child: Text(t.today),
+                          ),
+                        ),
+                        _WeekArrow(
+                          icon: LucideIcons.chevronLeft,
+                          label: t.featureWeekPrevious,
+                          onPressed: () => move(-1),
+                        ),
+                        _WeekArrow(
+                          icon: LucideIcons.chevronRight,
+                          label: t.featureWeekNext,
+                          onPressed: () => move(1),
+                        ),
+                      ],
+                    ),
+            ),
           ),
-        ),
-        if (!zoneKnown) ...[
-          const SizedBox(height: 6),
-          Text(
-            t.featureWeekUtc,
-            style: StitchType.caption.copyWith(color: c.amber),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+                final columns =
+                    (constraints.maxWidth / (48 * (scale < 1 ? 1 : scale)))
+                        .floor()
+                        .clamp(1, 7);
+                final lineCount = (7 / columns).ceil();
+                return SizedBox(
+                  height:
+                      lineCount * 76 * (scale < 1 ? 1 : scale) +
+                      (lineCount - 1) * 4,
+                  child: VitalPager(
+                    key: const ValueKey('dashboard-calendar-dates'),
+                    retainPages: false,
+                    index: weekIndex(visibleWeek),
+                    itemCount: lastWeek + 1,
+                    duration: VitalMotion.calendar,
+                    onChanged: (index) => setState(
+                      () => visibleWeek = CivilDate(1, 1, 1).addDays(index * 7),
+                    ),
+                    itemBuilder: (_, index) => Column(
+                      children: [
+                        for (var line = 0; line < lineCount; line++)
+                          Padding(
+                            padding: EdgeInsets.only(top: line == 0 ? 0 : 4),
+                            child: Row(
+                              children: [
+                                for (var col = 0; col < columns; col++)
+                                  Expanded(
+                                    child: Builder(
+                                      builder: (_) {
+                                        final offset = line * columns + col;
+                                        final date = DateTime.utc(1, 1, 1).add(
+                                          Duration(days: index * 7 + offset),
+                                        );
+                                        if (offset > 6 || date.year > 9999) {
+                                          return const SizedBox.shrink();
+                                        }
+                                        final day = CivilDate.fromDateTime(
+                                          date,
+                                        );
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 1,
+                                          ),
+                                          child: _DayPill(
+                                            day: day,
+                                            active: day == widget.selected,
+                                            onPressed: () =>
+                                                widget.onSelect(day),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
+          if (!widget.zoneKnown)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Text(
+                t.featureWeekUtc,
+                style: StitchType.caption.copyWith(color: c.muted),
+              ),
+            ),
         ],
-      ],
+      ),
     );
   }
 }
@@ -559,8 +553,6 @@ class _DayPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = StitchColors(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
-    final width = (active ? 56.0 : 48.0) * (scale > 1 ? scale : 1);
     final label = DateFormat.yMMMMEEEEd(locale).format(day.calendarValue);
     return Semantics(
       button: true,
@@ -570,15 +562,16 @@ class _DayPill extends StatelessWidget {
       child: ExcludeSemantics(
         child: Clickable(
           onPressed: onPressed,
-          child: Container(
-            width: width,
-            constraints: const BoxConstraints(minWidth: 48, minHeight: 64),
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          child: AnimatedContainer(
+            duration: VitalMotion.duration(context, VitalMotion.choice),
+            curve: VitalMotion.geometry,
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 76),
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
             decoration: BoxDecoration(
-              color: active
-                  ? (c.dark ? const Color(0xff1a5c52) : c.accent)
-                  : (c.dark ? c.surface : c.inset),
-              borderRadius: BorderRadius.circular(999),
+              color: active ? c.accent : c.inset,
+              borderRadius: BorderRadius.circular(VitalLayout.sectionRadius),
+              border: Border.all(color: active ? c.accent : c.line),
             ),
             child: Column(
               children: [
@@ -586,15 +579,13 @@ class _DayPill extends StatelessWidget {
                   DateFormat.E(locale).format(day.calendarValue),
                   textAlign: TextAlign.center,
                   style: StitchType.small.copyWith(
-                    color: active
-                        ? (c.dark ? c.accent : Colors.white)
-                        : c.muted,
+                    color: active ? c.accentInk : c.muted,
                   ),
                 ),
                 Text(
                   '${day.day}',
                   style: StitchType.name.copyWith(
-                    color: active && !c.dark ? Colors.white : c.ink,
+                    color: active ? c.accentInk : c.ink,
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -603,9 +594,7 @@ class _DayPill extends StatelessWidget {
                   height: active ? 6 : 5,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: active
-                        ? (c.dark ? c.accent : Colors.white)
-                        : c.muted.withValues(alpha: .3),
+                    color: active ? c.accentInk : Colors.transparent,
                   ),
                 ),
               ],
@@ -617,133 +606,13 @@ class _DayPill extends StatelessWidget {
   }
 }
 
-/// Factual weekly totals. A bounded, zone-blocked or incomplete action history
-/// keeps the card labelled partial and never draws a whole-week ratio.
-class _DashboardWeekSummaryCard extends StatelessWidget {
-  const _DashboardWeekSummaryCard({
-    required this.result,
-    required this.summary,
-    required this.onRetry,
-  });
-  final AsyncValue<DailyRows> result;
-  final DashboardWeekSummary? summary;
-  final VoidCallback onRetry;
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context), c = StitchColors(context);
-    if (result.hasError) return LoadFailure(onRetry: onRetry);
-    final summary = this.summary;
-    return StitchSurface(
-      radius: 16,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(t.featureWeekSummary, style: StitchType.heading),
-              ),
-              if (summary != null && !summary.complete)
-                StitchBadge(t.stitchPartial, warning: true),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            t.featureWeekSummaryHelp,
-            style: StitchType.caption.copyWith(color: c.muted),
-          ),
-          if (summary == null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                t.loadingRecords,
-                style: StitchType.caption.copyWith(color: c.muted),
-              ),
-            )
-          else ...[
-            if (!summary.complete) ...[
-              const SizedBox(height: 6),
-              Text(
-                result.value?.issue ==
-                        DailyCalculationIssue.observedZoneUnavailable
-                    ? t.planZoneUnavailable
-                    : t.featureWeekIncomplete,
-                style: StitchType.caption.copyWith(color: c.amber),
-              ),
-            ],
-            const SizedBox(height: 6),
-            if (!summary.hasPlans)
-              Text(
-                t.featureWeekNoPlans,
-                style: StitchType.body.copyWith(color: c.muted),
-              )
-            else
-              Wrap(
-                spacing: VitalLayout.gap,
-                runSpacing: VitalLayout.gap,
-                children: [
-                  VitalMetric(
-                    label: t.featureWeekPlanned,
-                    value: '${summary.planned}',
-                  ),
-                  VitalMetric(
-                    label: t.featureWeekRecorded,
-                    value: '${summary.recorded}',
-                  ),
-                  VitalMetric(
-                    label: t.featureWeekSkipped,
-                    value: '${summary.skipped}',
-                  ),
-                ],
-              ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _BrowsingNotice extends StatelessWidget {
-  const _BrowsingNotice({required this.day});
-  final CivilDate day;
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context), c = StitchColors(context);
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    return StitchSurface(
-      inset: true,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              StitchBadge(t.featureWeekViewing, warning: true),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  DateFormat.yMMMMEEEEd(locale).format(day.calendarValue),
-                  style: StitchType.name,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            t.featureWeekViewingHelp,
-            style: StitchType.caption.copyWith(color: c.muted),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// A read-only expectation for a browsed date. Record opens the existing
 /// explicit-time form; no Taken, Skip or Snooze command is offered for a date
 /// that is not today.
 class _BrowsedDayRow extends StatelessWidget {
-  const _BrowsedDayRow({super.key, required this.row});
+  const _BrowsedDayRow({super.key, required this.row, required this.day});
   final DailyRow row;
+  final CivilDate day;
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
@@ -757,8 +626,9 @@ class _BrowsedDayRow extends StatelessWidget {
             child: StitchButton(
               compact: true,
               icon: LucideIcons.plus,
-              onPressed: () =>
-                  context.push('/record/${row.expectation.itemId}'),
+              onPressed: () => context.push(
+                '/unplanned?item=${row.expectation.itemId}&day=$day',
+              ),
               child: Text(t.record),
             ),
           ),
@@ -911,67 +781,34 @@ class _ContextCards extends ConsumerWidget {
     );
     final container = notices.value?.rows.firstOrNull?.container;
     final itemName = notices.value?.rows.firstOrNull?.itemName;
-    final quantity = container?.balance.value;
     if (container == null) return const SizedBox.shrink();
-    final cards = [
-      StitchSurface(
-        radius: 16,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return StitchSurface(
+      inset: true,
+      radius: 16,
+      child: Row(
+        children: [
+          Icon(LucideIcons.triangleAlert, size: 20, color: c.amber),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Text(
-                    t.stitchRefillBuffer.toUpperCase(),
-                    style: StitchType.small.copyWith(color: c.muted),
-                  ),
+                Text(t.dashboardStockAttention, style: StitchType.body),
+                Text(
+                  itemName ?? container.label,
+                  style: StitchType.caption.copyWith(color: c.muted),
                 ),
-                Icon(LucideIcons.triangleAlert, size: 16, color: c.amber),
               ],
             ),
-            const SizedBox(height: 6),
-            Text(
-              quantity == null
-                  ? container.balance.limitReached
-                        ? t.stockLimit
-                        : t.stockUnknownValue
-                  : t.stockQuantity(
-                      stockAmountNumber(t, quantity),
-                      container.unit,
-                    ),
-              style: StitchType.heading.copyWith(
-                color: c.amber,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            StitchBadge(
-              container.balance.value == null ? t.stockUnknown : t.stockLow,
-              warning: true,
-            ),
-            Text(
-              itemName ?? t.stitchForecastPending,
-              style: StitchType.caption.copyWith(color: c.muted),
-            ),
-            const SizedBox(height: 12),
-            StitchButton(
-              compact: true,
-              onPressed: notices.hasError
-                  ? () => ref.invalidate(
-                      stockNoticeProvider((
-                        scope: const FeedScope.me(),
-                        offset: 0,
-                      )),
-                    )
-                  : () => context.push('/stock/$meId'),
-              icon: LucideIcons.packagePlus,
-              primary: true,
-              child: Text(notices.hasError ? t.retry : t.stock),
-            ),
-          ],
-        ),
+          ),
+          StitchButton(
+            quiet: true,
+            compact: true,
+            onPressed: () => context.push('/stock/$meId'),
+            child: Text(t.review),
+          ),
+        ],
       ),
-    ];
-    return cards.single;
+    );
   }
 }

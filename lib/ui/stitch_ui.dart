@@ -156,12 +156,13 @@ class StitchButton extends StatelessWidget {
     this.warning = false,
     this.destructive = false,
     this.compact = false,
+    this.outlined = false,
     this.focusNode,
   });
   final Widget child;
   final VoidCallback? onPressed;
   final IconData? icon;
-  final bool primary, quiet, warning, compact, destructive;
+  final bool primary, quiet, warning, compact, destructive, outlined;
   final FocusNode? focusNode;
   @override
   Widget build(BuildContext context) {
@@ -174,6 +175,7 @@ class StitchButton extends StatelessWidget {
           ? VitalControlTone.primary
           : VitalControlTone.secondary,
       quiet: quiet,
+      outlined: outlined,
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 12 : 18,
         vertical: compact ? 8 : 14,
@@ -220,4 +222,108 @@ Future<void> showStitchPlaceholder(BuildContext context, String feature) {
       ],
     ),
   );
+}
+
+/// A reusable framed section with a consistent icon, title and optional context.
+/// The surface, controls and type all inherit the app's shared foundation.
+class StitchSectionCard extends StatelessWidget {
+  const StitchSectionCard({
+    super.key,
+    required this.title,
+    this.icon,
+    this.subtitle,
+    this.trailing,
+    this.child,
+  });
+  final String title;
+  final IconData? icon;
+  final String? subtitle;
+  final Widget? trailing, child;
+  @override
+  Widget build(BuildContext context) {
+    final c = StitchColors(context);
+    final stacked = MediaQuery.textScalerOf(context).scale(14) > 20;
+    return StitchSurface(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (icon != null) ...[
+                VitalIconTile(icon!, size: 36, selected: false),
+                const SizedBox(width: 12),
+              ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Semantics(
+                            header: true,
+                            child: Text(title, style: StitchType.name),
+                          ),
+                        ),
+                        if (!stacked && trailing != null) ...[
+                          const SizedBox(width: 8),
+                          trailing!,
+                        ],
+                      ],
+                    ),
+                    if (subtitle != null)
+                      Text(
+                        subtitle!,
+                        style: StitchType.caption.copyWith(color: c.muted),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (stacked && trailing != null) ...[
+            const SizedBox(height: 8),
+            Align(alignment: AlignmentDirectional.centerEnd, child: trailing!),
+          ],
+          if (child != null) ...[const SizedBox(height: 14), child!],
+        ],
+      ),
+    );
+  }
+}
+
+/// Borderless inset with one quiet, centred action and a complete accessible name.
+class StitchEmptySlot extends StatelessWidget {
+  const StitchEmptySlot({
+    super.key,
+    required this.label,
+    required this.onPressed,
+  });
+  final String label;
+  final VoidCallback onPressed;
+  @override
+  Widget build(BuildContext context) {
+    final c = StitchColors(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.inset,
+        borderRadius: BorderRadius.circular(VitalLayout.sectionRadius),
+      ),
+      child: Semantics(
+        label: label,
+        button: true,
+        onTap: onPressed,
+        child: ExcludeSemantics(
+          child: StitchButton(
+            quiet: true,
+            onPressed: onPressed,
+            child: Center(
+              child: Icon(LucideIcons.plus, size: 18, color: c.muted),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

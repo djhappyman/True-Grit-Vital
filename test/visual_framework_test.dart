@@ -1,3 +1,5 @@
+import 'package:true_grit_vital/features/stock/stock_providers.dart';
+
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -10,7 +12,6 @@ import 'package:true_grit_vital/app/appearance.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/plans/daily_feed.dart';
-import 'package:true_grit_vital/features/stock/stock_providers.dart';
 import 'package:true_grit_vital/ui/vital_ui.dart';
 
 import 'vital_app_test.dart' show appTest, launch, runIo, settle, waitForText;
@@ -201,16 +202,6 @@ void main() {
             await waitForText(tester, '1 day recorded this month');
           }
           if (route.key == 'stock') {
-            await runIo(
-              tester,
-              () => fixture.container.read(
-                stockContainersProvider((
-                  personId: meId,
-                  itemId: items.first.id,
-                  offset: 0,
-                )).future,
-              ),
-            );
             await waitForText(tester, 'No containers');
           }
           if (route.key == 'today') {

@@ -30,6 +30,8 @@ class ItemDetailsForm extends ConsumerStatefulWidget {
 }
 
 class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
+  final name = TextEditingController(), form = TextEditingController();
+  int? itemRevision;
   final instructions = TextEditingController();
   final notes = TextEditingController();
   late final profileEditor = SubstanceProfileEditorData(entryChanged);
@@ -52,6 +54,9 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
 
   @override
   Map<String, String> captureEntry() => {
+    'name': name.text,
+    'form': form.text,
+    'itemRevision': '$itemRevision',
     'instructions': instructions.text,
     'notes': notes.text,
     'profile': profileEditor.encode(),
@@ -59,6 +64,9 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
 
   @override
   void restoreEntry(Map<String, String> fields) {
+    if (fields['name'] case final value?) name.text = value;
+    if (fields['form'] case final value?) form.text = value;
+    itemRevision = int.tryParse(fields['itemRevision'] ?? '') ?? itemRevision;
     instructions.text = fields['instructions'] ?? '';
     notes.text = fields['notes'] ?? '';
     if (fields['profile'] case final encoded?) profileEditor.restore(encoded);
@@ -66,6 +74,8 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
 
   @override
   void dispose() {
+    name.dispose();
+    form.dispose();
     profileEditor.dispose();
     instructions.dispose();
     notes.dispose();
@@ -74,6 +84,15 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
 
   Future<void> save() async {
     final t = AppLocalizations.of(context);
+    if (name.text.trim().isEmpty) {
+      setState(() => error = t.nameRequired);
+      return;
+    }
+    if (form.text.trim().isEmpty) form.text = t.dashboardUnknownForm;
+    if (name.text.length > 2048 || form.text.length > 2048) {
+      setState(() => error = t.dashboardIdentityTooLong);
+      return;
+    }
     if (instructions.text.length > 8000 || notes.text.length > 8000) {
       setState(() => error = t.featureSetupDetailsTooLong);
       return;
@@ -99,6 +118,9 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
           commandId: command,
           expectedGeneration: capturedGeneration,
           itemId: widget.itemId,
+          name: name.text,
+          form: form.text,
+          expectedItemRevision: itemRevision,
           expectedRevision: capturedTargetRevision,
           expectedPersonRevision: capturedPersonRevision,
           instructions: instructions.text,
@@ -155,6 +177,11 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
     }
     if (!initialised) {
       owner = liveOwner;
+      name.text = item.name;
+      form.text = item.form;
+      itemRevision = item.revision;
+      name.addListener(entryChanged);
+      form.addListener(entryChanged);
       detailRevision = detail.value?.revision;
       instructions.text = detail.value?.instructions ?? '';
       notes.text = detail.value?.notes ?? '';
@@ -167,11 +194,19 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
     final valid =
         !liveOwner.isArchived &&
         liveOwner.revision == capturedPersonRevision &&
-        detail.value?.revision == capturedTargetRevision;
+        detail.value?.revision == capturedTargetRevision &&
+        item.revision == itemRevision;
     final enabled = valid && !busy && !uncertain && !conflict;
     return wrap([
       Heading(t.featureSetupDetails),
-      Text(item.name),
+      LabelledInput(
+        label: t.dashboardName,
+        controller: name,
+        enabled: enabled,
+        error: error == t.nameRequired ? error : null,
+      ),
+      LabelledInput(label: t.formLabel, controller: form, enabled: enabled),
+      Text(t.dashboardEditHelp, style: VitalType.metadata),
       Text(
         t.featureSetupDetailsFormHelp,
         style: VitalType.metadata.copyWith(
@@ -183,7 +218,13 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
         data: profileEditor,
         blend: product.value != null,
         enabled: enabled,
-        onChanged: () => setState(() {}),
+        onChanged: () => setState(() {
+          if (profileEditor.form case final selected?) {
+            form.text = selected == SubstanceForm.other
+                ? profileEditor.other.text
+                : substanceFormLabel(t, selected);
+          }
+        }),
       ),
       const SizedBox(height: 16),
       LabelledInput(

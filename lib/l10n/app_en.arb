@@ -9625,5 +9625,77 @@
         "type": "String"
       }
     }
-  }
+  },
+  "dashboardMorning": "Good morning, {name}",
+  "@dashboardMorning": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardAfternoon": "Good afternoon, {name}",
+  "@dashboardAfternoon": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardEvening": "Good evening, {name}",
+  "@dashboardEvening": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardMorningTitle": "Morning",
+  "dashboardAfternoonTitle": "Afternoon",
+  "dashboardEveningTitle": "Evening",
+  "dashboardNightTitle": "Night",
+  "dashboardUntimedTitle": "No set time",
+  "dashboardNoDoses": "No doses planned.",
+  "dashboardPlanTitle": "Plan a dose",
+  "dashboardPlanHelp": "Choose a medicine and set when to take it.",
+  "dashboardPlanAction": "Plan",
+  "dashboardUnplanned": "Unplanned medication",
+  "dashboardUnplannedHelp": "Took something that was not on this day’s schedule? Add it here.",
+  "dashboardUnplannedEmptyToday": "No unplanned medication today.",
+  "dashboardUnplannedEmptyDay": "No unplanned medication on this day.",
+  "dashboardQuickTitle": "Record medication",
+  "dashboardQuickHelp": "Choose a medicine or create one. You can add more details later.",
+  "dashboardQuickCreate": "New medicine",
+  "dashboardQuickCreateHelp": "Start with a name and the unit you use. Add other details whenever you like.",
+  "dashboardUnknownForm": "Not specified",
+  "dashboardMedicineType": "Medicine",
+  "dashboardUnitCount": "Items",
+  "dashboardUnitHelp": "Use the unit on the label. Items means tablets, capsules or similar pieces.",
+  "dashboardObservations": "Observations",
+  "dashboardComingSoon": "Coming soon",
+  "dashboardObservationsHelp": "A place to note blood pressure, weight or how you feel.",
+  "dashboardObservationPreview": "Quick observations are coming soon.",
+  "dashboardStockAttention": "Stock needs attention",
+  "dashboardSelectedDate": "Selected: {date}",
+  "@dashboardSelectedDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardEditHelp": "Changes apply to future entries. Past doses keep their saved details.",
+  "dashboardIdentityTooLong": "Keep the name and form to 2,048 characters each.",
+  "dashboardSkipped": "Skipped",
+  "dashboardUnitRequired": "Choose or enter the unit on the label.",
+  "dashboardEmpty": "Empty",
+  "dashboardTakenCount": "{taken}/{planned} taken",
+  "@dashboardTakenCount": {"placeholders": {"taken": {"type": "int"}, "planned": {"type": "int"}}},
+  "dashboardPlanPeriod": "Plan for {period}",
+  "@dashboardPlanPeriod": {"placeholders": {"period": {"type": "String"}}},
+  "dashboardUnplannedSubtitle": "For medicine you take outside your schedule.",
+  "dashboardSchedule": "Schedule",
+  "dashboardPeriodRange": "{start} to {end}",
+  "@dashboardPeriodRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "dashboardName": "Name"
 }

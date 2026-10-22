@@ -1,13 +1,16 @@
 import 'dart:ui' show Tristate;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:true_grit_vital/app/supporting.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/recording/record_pages.dart';
 import 'package:true_grit_vital/features/supporting/supporting_trends.dart';
 
-import 'vital_app_test.dart' show appTest, launch, runIo, settle, tap;
+import 'vital_app_test.dart'
+    show appTest, launch, runIo, settle, tap, waitForText;
 
 Future<void> enter(WidgetTester tester, String label, String value) async {
   final field = find
@@ -88,15 +91,34 @@ void main() {
     tester,
   ) async {
     final f = await launch(tester);
-    f.store.suspendWrites(true);
+    var failRead = true;
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: f.container,
+        child: ProviderScope(
+          overrides: [
+            supportingPageProvider.overrideWith((ref, request) async* {
+              if (failRead) {
+                throw StateError('Synthetic supporting read failure');
+              }
+              yield* f.store.watchSupportingRecords(
+                request.query,
+                cursor: request.cursor,
+              );
+            }),
+          ],
+          child: const VitalApp(),
+        ),
+      ),
+    );
     f.container.read(routerProvider).go('/supporting?person=$meId');
     await settle(tester);
-    expect(
-      find.text('Unable to load supporting records. Retry this view.'),
-      findsOneWidget,
+    await waitForText(
+      tester,
+      'Unable to load supporting records. Retry this view.',
     );
-    f.store.suspendWrites(false);
-    await tester.tap(find.text('Retry'));
+    failRead = false;
+    await tap(tester, 'Retry');
     await settle(tester);
     expect(
       find.text('Unable to load supporting records. Retry this view.'),

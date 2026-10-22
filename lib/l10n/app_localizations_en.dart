@@ -8162,4 +8162,151 @@ class AppLocalizationsEn extends AppLocalizations {
   String substanceCountEquivalent(String amount) {
     return 'Equivalent: approximately $amount tablet/capsule.';
   }
+
+  @override
+  String dashboardMorning(String name) {
+    return 'Good morning, $name';
+  }
+
+  @override
+  String dashboardAfternoon(String name) {
+    return 'Good afternoon, $name';
+  }
+
+  @override
+  String dashboardEvening(String name) {
+    return 'Good evening, $name';
+  }
+
+  @override
+  String get dashboardMorningTitle => 'Morning';
+
+  @override
+  String get dashboardAfternoonTitle => 'Afternoon';
+
+  @override
+  String get dashboardEveningTitle => 'Evening';
+
+  @override
+  String get dashboardNightTitle => 'Night';
+
+  @override
+  String get dashboardUntimedTitle => 'No set time';
+
+  @override
+  String get dashboardNoDoses => 'No doses planned.';
+
+  @override
+  String get dashboardPlanTitle => 'Plan a dose';
+
+  @override
+  String get dashboardPlanHelp => 'Choose a medicine and set when to take it.';
+
+  @override
+  String get dashboardPlanAction => 'Plan';
+
+  @override
+  String get dashboardUnplanned => 'Unplanned medication';
+
+  @override
+  String get dashboardUnplannedHelp =>
+      'Took something that was not on this day’s schedule? Add it here.';
+
+  @override
+  String get dashboardUnplannedEmptyToday => 'No unplanned medication today.';
+
+  @override
+  String get dashboardUnplannedEmptyDay =>
+      'No unplanned medication on this day.';
+
+  @override
+  String get dashboardQuickTitle => 'Record medication';
+
+  @override
+  String get dashboardQuickHelp =>
+      'Choose a medicine or create one. You can add more details later.';
+
+  @override
+  String get dashboardQuickCreate => 'New medicine';
+
+  @override
+  String get dashboardQuickCreateHelp =>
+      'Start with a name and the unit you use. Add other details whenever you like.';
+
+  @override
+  String get dashboardUnknownForm => 'Not specified';
+
+  @override
+  String get dashboardMedicineType => 'Medicine';
+
+  @override
+  String get dashboardUnitCount => 'Items';
+
+  @override
+  String get dashboardUnitHelp =>
+      'Use the unit on the label. Items means tablets, capsules or similar pieces.';
+
+  @override
+  String get dashboardObservations => 'Observations';
+
+  @override
+  String get dashboardComingSoon => 'Coming soon';
+
+  @override
+  String get dashboardObservationsHelp =>
+      'A place to note blood pressure, weight or how you feel.';
+
+  @override
+  String get dashboardObservationPreview =>
+      'Quick observations are coming soon.';
+
+  @override
+  String get dashboardStockAttention => 'Stock needs attention';
+
+  @override
+  String dashboardSelectedDate(String date) {
+    return 'Selected: $date';
+  }
+
+  @override
+  String get dashboardEditHelp =>
+      'Changes apply to future entries. Past doses keep their saved details.';
+
+  @override
+  String get dashboardIdentityTooLong =>
+      'Keep the name and form to 2,048 characters each.';
+
+  @override
+  String get dashboardSkipped => 'Skipped';
+
+  @override
+  String get dashboardUnitRequired => 'Choose or enter the unit on the label.';
+
+  @override
+  String get dashboardEmpty => 'Empty';
+
+  @override
+  String dashboardTakenCount(int taken, int planned) {
+    return '$taken/$planned taken';
+  }
+
+  @override
+  String dashboardPlanPeriod(String period) {
+    return 'Plan for $period';
+  }
+
+  @override
+  String get dashboardUnplannedSubtitle =>
+      'For medicine you take outside your schedule.';
+
+  @override
+  String get dashboardSchedule => 'Schedule';
+
+  @override
+  String dashboardPeriodRange(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String get dashboardName => 'Name';
 }

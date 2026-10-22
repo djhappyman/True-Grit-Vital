@@ -159,7 +159,7 @@ class _VitalSurfaceFrameState extends State<VitalSurfaceFrame> {
       decoration: BoxDecoration(
         color: widget.inset ? c.inset : c.surface,
         borderRadius: BorderRadius.circular(widget.radius),
-        border: c.dark ? null : Border.all(color: c.line.withValues(alpha: .7)),
+        border: Border.all(color: c.line.withValues(alpha: .8)),
         boxShadow: widget.inset
             ? null
             : [
@@ -199,11 +199,12 @@ class VitalControlStyle extends StatelessWidget {
     this.tone = VitalControlTone.secondary,
     this.quiet = false,
     this.isLoading = false,
+    this.outlined = false,
     this.padding = const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
   });
   final Widget child;
   final VitalControlTone tone;
-  final bool quiet, isLoading;
+  final bool quiet, isLoading, outlined;
   final EdgeInsetsGeometry padding;
   @override
   Widget build(BuildContext context) {
@@ -237,7 +238,11 @@ class VitalControlStyle extends StatelessWidget {
             return decoration.copyWith(
               color: disabled ? c.inset : fill,
               border: Border.all(
-                color: disabled ? c.muted : Colors.transparent,
+                color: disabled
+                    ? c.muted
+                    : outlined
+                    ? c.line
+                    : Colors.transparent,
               ),
               borderRadius: BorderRadius.circular(VitalLayout.pillRadius),
               boxShadow: const [],

@@ -366,44 +366,62 @@ class _DailyRowCardState extends ConsumerState<DailyRowCard> {
               const SizedBox(width: 12),
             ],
             Expanded(
-              child: Clickable(
-                onPressed: hero
-                    ? null
-                    : () => setState(() => showDetails = true),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      row.itemName,
-                      style: hero ? StitchType.heading : StitchType.name,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: (hero ? StitchType.body : StitchType.caption)
-                          .copyWith(color: c.muted),
-                    ),
-                    if (ref.watch(observedDeviceZoneProvider).value?.zoneId !=
-                        e.zoneId)
+              child: Semantics(
+                label: hero ? null : t.details,
+                button: !hero,
+                child: Clickable(
+                  onPressed: hero
+                      ? null
+                      : () => setState(() => showDetails = true),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        e.zoneId,
-                        style: StitchType.small.copyWith(color: c.muted),
+                        row.itemName,
+                        style: hero ? StitchType.heading : StitchType.name,
                       ),
-                    if (currentlyPaused)
+                      const SizedBox(height: 2),
                       Text(
-                        t.pauseState,
-                        style: StitchType.small.copyWith(color: c.amber),
+                        subtitle,
+                        style: (hero ? StitchType.body : StitchType.caption)
+                            .copyWith(color: c.muted),
                       ),
-                    if (!hero && row.plannedCount > 1)
-                      Text(
-                        t.planProgress(
-                          row.takenCount,
-                          row.skippedCount,
-                          row.plannedCount,
+                      if (!hero && time != null)
+                        Text(
+                          displayWallTime(
+                            context,
+                            ref,
+                            WallTime(time.hour, time.minute),
+                          ),
+                          style: StitchType.caption.copyWith(color: c.muted),
                         ),
-                        style: StitchType.small.copyWith(color: c.muted),
-                      ),
-                  ],
+                      if (!hero && resolved && row.plannedCount == 1)
+                        Text(
+                          row.takenCount > 0 ? t.taken : t.dashboardSkipped,
+                          style: StitchType.small.copyWith(color: c.muted),
+                        ),
+                      if (ref.watch(observedDeviceZoneProvider).value?.zoneId !=
+                          e.zoneId)
+                        Text(
+                          e.zoneId,
+                          style: StitchType.small.copyWith(color: c.muted),
+                        ),
+                      if (currentlyPaused)
+                        Text(
+                          t.pauseState,
+                          style: StitchType.small.copyWith(color: c.amber),
+                        ),
+                      if (!hero && row.plannedCount > 1)
+                        Text(
+                          t.planProgress(
+                            row.takenCount,
+                            row.skippedCount,
+                            row.plannedCount,
+                          ),
+                          style: StitchType.small.copyWith(color: c.muted),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),

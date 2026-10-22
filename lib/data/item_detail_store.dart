@@ -126,11 +126,19 @@ extension ItemDetailRecords on RecordStore {
     required String notes,
     required int? expectedRevision,
     SubstanceProfile? profile,
+    String? name,
+    String? form,
+    int? expectedItemRevision,
     String personId = meId,
     int? expectedPersonRevision,
   }) async {
     if (expectedGeneration != null && expectedGeneration != generation) {
       throw const CommandConflict('generation');
+    }
+    if ((name != null && (name.trim().isEmpty || name.length > 2048)) ||
+        (form != null && (form.trim().isEmpty || form.length > 2048)) ||
+        ((name != null || form != null) && expectedItemRevision == null)) {
+      throw const FormatException('item_fields');
     }
     if (instructions.length > 8000 || notes.length > 8000) {
       throw const FormatException('item_detail_fields');
@@ -146,14 +154,20 @@ extension ItemDetailRecords on RecordStore {
         ?expectedRevision,
         ?expectedPersonRevision,
         if (profile != null) profile.toJson(),
+        if (name != null || form != null)
+          {'name': name, 'form': form, 'itemRevision': expectedItemRevision},
       ],
       () async {
         await _activeOwner(personId, expectedPersonRevision ?? 1);
         final item = await _rows(
-          'SELECT id FROM item WHERE id=? AND person=?',
+          'SELECT id,item_revision FROM item WHERE id=? AND person=?',
           [itemId, personId],
         );
         if (item.isEmpty) throw const CommandConflict('item');
+        if (expectedItemRevision != null &&
+            item.single['item_revision'] != expectedItemRevision) {
+          throw const CommandConflict('revision');
+        }
         final current = await _rows(
           'SELECT revision,profile FROM item_detail WHERE item=? AND person=?',
           [itemId, personId],
@@ -198,6 +212,12 @@ extension ItemDetailRecords on RecordStore {
               itemId,
               personId,
             ],
+          );
+        }
+        if (name != null || form != null) {
+          await _db.customStatement(
+            'UPDATE item SET name=COALESCE(?,name),form=COALESCE(?,form),item_revision=item_revision+1 WHERE id=? AND person=?',
+            [name?.trim(), form?.trim(), itemId, personId],
           );
         }
         return {

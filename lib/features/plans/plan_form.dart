@@ -53,7 +53,11 @@ class DailyPlanForm extends ConsumerStatefulWidget {
     required this.itemId,
     this.planId,
     this.returnToSetup = false,
+    this.initialDay,
+    this.initialTime,
   });
+  final CivilDate? initialDay;
+  final String? initialTime;
   final String itemId;
   final String? planId;
   final bool returnToSetup;
@@ -168,11 +172,18 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     for (final c in calendar.controllers) {
       c.addListener(changed);
     }
-    start.text = today.toString();
+    start.text = (widget.initialDay ?? today).toString();
     for (final c in [start, end, count, amount, home, instructions]) {
       c.addListener(changed);
     }
-    addSlot();
+    if (widget.planId == null &&
+        RegExp(r'^(?:[01][0-9]|2[0-3]):[0-5][0-9]$')
+            .hasMatch(widget.initialTime ?? '')) {
+      mode = 'slots';
+      addSlot(time: widget.initialTime!);
+    } else {
+      addSlot();
+    }
   }
 
   void addSlot({

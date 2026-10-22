@@ -31,7 +31,7 @@ void main() {
       'INSERT INTO administration VALUES (?, ?, ?, 1, ?)',
     );
     final revision = raw.prepare(
-      'INSERT INTO revision VALUES (?,?,1,?,?,?,?,?,?,?,?,0)',
+      'INSERT INTO revision(record,person,revision,name,form,unit,type,amount,entered,actual,entered_at,voided) VALUES (?,?,1,?,?,?,?,?,?,?,?,0)',
     );
     final operation = raw.prepare('INSERT INTO operation VALUES (?,?,?)');
     final day = DateTime.utc(2026, 10, 19);

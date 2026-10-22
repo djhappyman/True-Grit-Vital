@@ -105,13 +105,8 @@ void main() {
     expect(f.container.read(routerProvider).canPop(), false);
     await tap(tester, 'Back');
     expect(find.text('Today'), findsWidgets);
-    final recorded = find.byWidgetPredicate(
-      (w) => w is Semantics && w.properties.label == 'Recorded',
-    );
-    await tester.ensureVisible(recorded);
-    await tester.tap(recorded);
-    await settle(tester);
-    expect(find.text('Nothing recorded'), findsOneWidget);
+    expect(find.text('Morning'), findsOneWidget);
+    expect(find.text('Empty'), findsNWidgets(3));
   });
   test('effective effects honour system and validation combinations', () {
     for (final opaque in [false, true]) {

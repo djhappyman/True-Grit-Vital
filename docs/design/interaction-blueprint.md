@@ -1,6 +1,6 @@
 # Vital interaction blueprint
 
-Version 1. Owner approved 21 October 2026. This is the definitive presentation and motion standard for existing and future screens. Implementation status is tracked separately in the [rollout plan](interaction-implementation-plan.md); approval of this standard does not mean every screen has migrated.
+Version 4. Owner approved the standard on 21 October 2026 and the Today simplification and framed Schedule direction on 22 October 2026. This is the definitive presentation and motion standard for existing and future screens. Implementation status is tracked separately in the [rollout plan](interaction-implementation-plan.md); approval of this standard does not mean every screen has migrated.
 
 Use this blueprint with the [shared components](components.md), [design references](README.md), single-user specification and mobile copy contract. The original Stitch exports remain visual evidence; the owner's later History calendar and interaction decisions take precedence. Changes to this blueprint require an explicit explanation of the changed rule and updated examples/tests. Keep one current rule rather than adding contradictory exceptions.
 
@@ -24,7 +24,7 @@ Filters change a collection; they are not separate destinations. Keep name searc
 
 The initial view contains identity, the current task, essential state and its primary action. Keep exact quantities, units, consequential source/strength choices, validation and pending/conflict states visible when needed to complete that task.
 
-Move optional context into Details, More, a contextual menu or the appropriate secondary screen. Keep full provenance, source versions, checksums and audit information reachable without displaying them on every card. Remove unfinished-feature advertisements from ordinary workflows; the roadmap records missing capabilities. A source flag/range is factual context, not permission to invent a clinical classification.
+Move optional context into Details, More, a contextual menu or the appropriate secondary screen. Keep full provenance, source versions, checksums and audit information reachable without displaying them on every card. Keep unfinished capabilities in the roadmap. The owner explicitly requested one quiet Coming soon observation preview on Today; it has no entry action and does not open the existing detailed observation editor. A source flag/range is factual context, not permission to invent a clinical classification.
 
 Use one scrolling owner for each visible page/sheet/tab. Each state has a deliberate loading, empty, filtered-empty, error, unavailable and locked presentation. Refresh existing data in place. Stable record keys preserve expansion, focus and scroll across updates.
 
@@ -34,7 +34,7 @@ Use one scrolling owner for each visible page/sheet/tab. Each state has a delibe
 - Dock taps use a bounded transition; distant taps avoid rapidly sweeping unrelated pages past the reader. Finger-driven movement follows the gesture and settles naturally.
 - Nested calendar and section pagers own horizontal drags within their bounds. Root paging handles the surrounding page. Chart panning, text selection and modal gestures retain their own interaction area.
 - History uses a six-week month grid with predictable height. Preserve actual date bounds, original counts, selected-date identity and timezone semantics. Keep large-text/narrow-screen alternatives accessible, including an agenda view where a month grid cannot provide usable targets.
-- Week paging changes the queried week/day, not merely the decoration. Calendar arrows and Today are available to touch, keyboard and assistive technology.
+- Today week paging browses dates without changing the selected day or its records. A date tap selects the queried day; Today restores both the current week and day. Keep the outer calendar surface and month controls stationary. Only the date strip moves within the PageView. Omit the selected-date footer and divider; preserve pill positions and avoid rebuilding the feed on week drags. History month paging retains its existing query/selection policy. Calendar arrows and Today remain available to touch, keyboard and assistive technology.
 - Hidden pages do not accept focus or announce content; suspend their decorative tickers. Preserve platform Back, deep links and return locations. Modal presentation sits above the active branch.
 
 ## Modal task sheets
@@ -46,6 +46,16 @@ Single-dose recording initially shows substance identity, amount/presets, actual
 Reuse the current durable form controller/command path. Every dismissal path, including scrim, drag, Escape and system Back, enters the same safe-exit policy. Keep/discard decisions preserve the draft on cancellation. A pending or uncertain write is resolved before another save or unsafe dismissal. Restore focus to the invoking control or a surviving neighbour.
 
 Preserve record/correction deep links. A directly opened sheet receives a valid underlying destination. Confirm success only after durable commit; communicate saved/failure once and retain existing review/Undo paths. Privacy lock immediately covers the sheet and its underlying records.
+
+## Today composition
+
+The profile control sits on the left of the app bar. Today uses a local-time greeting and the saved profile name. Keep the shared chrome, fixed dock and device safe areas. At large text sizes, put the greeting on its own full-width row and keep dock labels in one horizontally scrollable row, preserving space for the page and full-size text.
+
+Use one timeline for planned doses. Group by expected Morning, Afternoon and Evening; show Night or No set time only when needed. With planned entries, omit empty groups. With none, show the three daytime headings and quiet inset empty states. Label this area Schedule. Place a borderless status chip on the right of each daypart title: Empty, an exact taken/planned count, or Partial when the read is incomplete. Skipped doses do not count as taken; never invent totals. Each empty daypart uses the shared framed section component with a meaningful icon and time range. Its borderless empty inset contains only a quiet centred plus with a descriptive accessible planning label. Keep one full-width outlined Plan button beneath the timeline, including empty days. The contextual plus seeds a visible suggested time in the existing editor: Morning 08:00, Afternoon 14:00, Evening 20:00. The person reviews quantities and time before Preview/Save; no plan or dose is automatically committed. Preserve exact quantities, expected times, Taken, Skip, Snooze, Extra, Edit, Undo, incomplete calculation warnings and source/strength review through the existing row component. Do not duplicate a next-dose hero, progress row, weekly summary or separate Recorded/Manage section.
+
+Unplanned medication means actual use without an active planned-dose action. Its information dialog explains this in plain English. Add opens `/unplanned`, a guarded task sheet containing whole-collection search, existing medicine selection or minimal creation. Choosing a medicine uses the existing dose editor, with the selected date visible and editable. Plan uses the same chooser and then the existing schedule editor, seeded with the selected date. Minimal creation saves a medicine identity first; the dose is a separate confirmed save. Cancelling the dose retains the medicine. Its name, form and other details remain editable in the existing Details editor; saved doses keep their original snapshots and units. Quick-create drafts retain their original day and task context.
+
+Keep unplanned entries scoped to the displayed day, with exact actual quantities/units and correction access. Existing drafts, pending attachment jobs and consequential stock warnings remain reachable. Observations remains the explicitly requested compact Coming soon card, with no entry action. The unplanned section uses one enclosing shared surface, a plain-English subtitle and compact correction rows showing only full medicine name and exact amount/unit. Its Add command sits beneath the card and matches the full-width outlined Plan button. The [latest refinements](reviews/2026-10-22-dashboard-refined/README.md) supersede the footer, dashed empty inset and primary Add treatment in the approved [reference](reviews/2026-10-22-dashboard-schedule/owner-reference.png). Use the same semantic typography, framed surfaces and controls as the rest of the app.
 
 ## Shared motion
 

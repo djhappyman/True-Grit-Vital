@@ -38,8 +38,11 @@ Future<void> tap(WidgetTester tester, String text) async {
   await settle(tester);
   if (find.text(text).evaluate().isEmpty) await waitForText(tester, text);
   final target = find.text(text).last;
-  await tester.ensureVisible(target);
-  await settle(tester);
+  for (var attempt = 0; attempt < 3; attempt++) {
+    await tester.ensureVisible(target);
+    await settle(tester);
+    if (target.hitTestable().evaluate().isNotEmpty) break;
+  }
   await tester.tap(target);
   await settle(tester);
   await settle(tester);
@@ -144,9 +147,9 @@ void main() {
       await settle(tester);
       await waitForText(tester, '0 recorded, 0 skipped, 2 planned');
       expect(find.text('0 recorded, 0 skipped, 2 planned'), findsOneWidget);
-      expect(find.text('Due'), findsOneWidget);
+      expect(find.text('No set time'), findsOneWidget);
       expect(find.text('Upcoming'), findsNothing);
-      expect(find.text('Recorded'), findsWidgets);
+      expect(find.text('Recorded'), findsNothing);
       final plannedRowState = tester.state(
         find
             .byWidgetPredicate(
@@ -156,13 +159,7 @@ void main() {
             )
             .first,
       );
-      await tap(tester, 'Manage');
-      expect(
-        find.text(
-          'Next planned date: ${CivilDate.fromDateTime(DateTime.now())}',
-        ),
-        findsOneWidget,
-      );
+      await tap(tester, f.item.name);
       await tap(tester, 'Taken');
       await waitForText(tester, '1 recorded, 0 skipped, 2 planned');
       expect(find.text('1 recorded, 0 skipped, 2 planned'), findsOneWidget);
@@ -201,7 +198,7 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), '1.00');
     await tap(tester, 'Preview');
     await tap(tester, 'Save');
-    await waitForText(tester, '0 of 1 doses recorded, 0 skipped.');
+    await waitForText(tester, 'Taken');
     final details = find
         .byWidgetPredicate(
           (w) => w is Semantics && w.properties.label == 'Details',
@@ -220,7 +217,7 @@ void main() {
       'Felt unwell',
     );
     await tap(tester, 'Skip');
-    await waitForText(tester, '0 of 1 doses recorded, 1 skipped.');
+    await waitForText(tester, '0 recorded, 1 skipped, 1 planned');
     final rows = (await runIo(tester, f.store.capturedDailyRows))!;
     expect(rows.rows.single.actions.single.reason, 'Felt unwell');
     expect(tester.takeException(), isNull);
@@ -291,10 +288,16 @@ void main() {
       final f = await launchPlan(tester);
       await tap(tester, 'As needed');
       await tap(tester, 'Home zone');
-      await tester.enterText(find.byType(TextField).last, 'Europe/London');
+      await tester.enterText(
+        find.descendant(
+          of: find.widgetWithText(LabelledInput, 'Named home zone'),
+          matching: find.byType(TextField),
+        ),
+        'Europe/London',
+      );
       await tap(tester, 'Preview');
       await tap(tester, 'Save');
-      expect(find.text('As needed'), findsOneWidget);
+      expect(find.text('Unplanned medication'), findsOneWidget);
       expect(find.text('Taken'), findsNothing);
       final plan = (await runIo(
         tester,
@@ -512,7 +515,13 @@ void main() {
       await tester.enterText(find.byType(TextField).at(0), '1');
       await tester.enterText(find.byType(TextField).at(1), '1.00');
       await tap(tester, 'Home zone');
-      await tester.enterText(find.byType(TextField).last, 'Europe/London');
+      await tester.enterText(
+        find.descendant(
+          of: find.widgetWithText(LabelledInput, 'Named home zone'),
+          matching: find.byType(TextField),
+        ),
+        'Europe/London',
+      );
       await tap(tester, 'Preview');
       await tap(tester, 'Save');
       await waitForText(tester, 'Taken');
@@ -527,13 +536,6 @@ void main() {
       await tester.tap(details);
       await settle(tester);
       expect(find.textContaining('untimed in Europe/London'), findsOneWidget);
-      await tap(tester, 'Manage');
-      expect(
-        find.text(
-          'Next planned date: ${CivilDate.fromDateTime(DateTime.now())}',
-        ),
-        findsOneWidget,
-      );
     },
   );
   appTest(

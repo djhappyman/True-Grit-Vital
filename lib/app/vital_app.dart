@@ -1,3 +1,8 @@
+import 'dart:async';
+
+import '../domain/scheduling/daily_plan.dart' show CivilDate;
+import '../features/recording/quick_record_sheet.dart';
+import '../features/plans/today_hero.dart' show todayNowProvider;
 import '../features/supporting/supporting_pages.dart';
 import '../features/supporting/supporting_form.dart';
 import '../features/supporting/supporting_trends.dart';
@@ -64,6 +69,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      vitalRoute(
+        path: '/unplanned',
+        builder: (_, state) => StorageGate(
+          child: QuickRecordSheet(location: state.uri.toString()),
+        ),
+      ),
+
       vitalRoute(
         path: '/supporting',
         builder: (_, state) => StorageGate(
@@ -566,6 +578,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           child: DailyPlanForm(
             itemId: state.pathParameters['id']!,
             planId: state.uri.queryParameters['plan'],
+            initialTime: state.uri.queryParameters['time'],
+            initialDay: switch (DateTime.tryParse(
+              state.uri.queryParameters['start'] ?? '',
+            )) {
+              final date? when date.year >= 1 && date.year <= 9999 =>
+                CivilDate.fromDateTime(date),
+              _ => null,
+            },
             returnToSetup: state.uri.queryParameters['setup'] == 'true',
           ),
         ),
@@ -689,6 +709,76 @@ enum Destination {
   };
 }
 
+/// Refreshes only the greeting, without requerying or rebuilding the timeline.
+class _TodayGreeting extends ConsumerStatefulWidget {
+  const _TodayGreeting();
+  @override
+  ConsumerState<_TodayGreeting> createState() => _TodayGreetingState();
+}
+
+class _TodayGreetingState extends ConsumerState<_TodayGreeting>
+    with WidgetsBindingObserver {
+  Timer? timer;
+  void startTimer() {
+    timer?.cancel();
+    timer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted && TickerMode.valuesOf(context).enabled) setState(() {});
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    startTimer();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    timer?.cancel();
+    if (state == AppLifecycleState.resumed) {
+      startTimer();
+      if (mounted) setState(() {});
+    }
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final name =
+        ref
+            .watch(profilesProvider)
+            .value
+            ?.where((p) => p.id == meId)
+            .firstOrNull
+            ?.name ??
+        t.me;
+    final hour = DisplayTime()
+        .instant(ref.watch(todayNowProvider)(), ref.watch(displayZoneProvider))
+        .hour;
+    final greeting = hour < 12
+        ? t.dashboardMorning(name)
+        : hour < 18
+        ? t.dashboardAfternoon(name)
+        : t.dashboardEvening(name);
+    return Text(
+      greeting,
+      style: VitalType.detailTitle.copyWith(
+        color: StitchColors(context).ink,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -.8,
+      ),
+    );
+  }
+}
+
 /// App chrome remains fixed while feature content scrolls.
 class VitalShell extends StatelessWidget {
   const VitalShell({
@@ -707,74 +797,85 @@ class VitalShell extends StatelessWidget {
     final destination = Destination.values
         .where((d) => d.path == path)
         .firstOrNull;
+    final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
+    Widget title() => path == '/today'
+        ? const _TodayGreeting()
+        : Text(
+            destination?.label(text) ?? text.today,
+            style: StitchType.name.copyWith(color: c.ink),
+          );
     return Scaffold(
       headers: [
         const RestoreRecoveryBanner(),
         SafeArea(
           bottom: false,
           child: VitalPageBody(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      const StitchMark(),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              text.appTitle.toUpperCase(),
-                              style: StitchType.small.copyWith(color: c.muted),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Semantics(
+                            label: text.profile,
+                            button: true,
+                            child: StitchButton(
+                              onPressed: () => context.push('/profile'),
+                              compact: true,
+                              outlined: true,
+                              child: const ExcludeSemantics(
+                                child: Icon(LucideIcons.userRound, size: 22),
+                              ),
                             ),
-                            Text(
-                              destination?.label(text) ?? text.today,
-                              style: StitchType.name.copyWith(color: c.ink),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  text.appTitle.toUpperCase(),
+                                  style: StitchType.small.copyWith(
+                                    color: c.accent,
+                                    letterSpacing: 1.4,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (!largeText) title(),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                Tooltip(
-                  tooltip: (_) => TooltipContainer(child: Text(text.settings)),
-                  child: Semantics(
-                    label: text.settings,
-                    button: true,
-                    child: StitchButton(
-                      onPressed: () => context.push('/settings'),
-                      quiet: true,
-                      compact: true,
-                      child: ExcludeSemantics(
-                        child: Icon(
-                          LucideIcons.settings,
-                          size: 22,
-                          color: c.muted,
+                    ),
+                    Tooltip(
+                      tooltip: (_) =>
+                          TooltipContainer(child: Text(text.settings)),
+                      child: Semantics(
+                        label: text.settings,
+                        button: true,
+                        child: StitchButton(
+                          onPressed: () => context.push('/settings'),
+                          outlined: true,
+                          compact: true,
+                          child: ExcludeSemantics(
+                            child: Icon(
+                              LucideIcons.settings,
+                              size: 22,
+                              color: c.muted,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 4),
-                Semantics(
-                  label: text.profile,
-                  button: true,
-                  child: StitchButton(
-                    onPressed: () => context.push('/profile'),
-                    compact: true,
-                    child: ExcludeSemantics(
-                      child: Icon(
-                        LucideIcons.userRound,
-                        size: 18,
-                        color: c.accent,
-                      ),
-                    ),
-                  ),
-                ),
+                if (largeText) ...[const SizedBox(height: 8), title()],
               ],
             ),
           ),
@@ -827,12 +928,12 @@ class ShellNavigation extends StatelessWidget {
       return Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
         child: VitalChrome(
-          child: Padding(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.all(8),
-            child: Wrap(
-              alignment: WrapAlignment.center,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               spacing: 8,
-              runSpacing: 8,
               children: [
                 for (final destination in Destination.values)
                   Semantics(
@@ -1205,6 +1306,7 @@ GoRoute vitalRoute({
           ? null
           : (context, state) {
               final task = const {
+                '/unplanned',
                 '/record/:id',
                 '/correct/:id',
                 '/combined/:person',

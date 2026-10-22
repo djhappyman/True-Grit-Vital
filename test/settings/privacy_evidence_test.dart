@@ -52,7 +52,9 @@ void main() {
       expect(source, isNot(contains('dart:io')));
       expect(source, isNot(contains('HttpClient')));
       expect(source, isNot(contains('package:http')));
-      expect(source, isNot(contains('Uri.parse')));
+      // Local report routes also use Uri.parse; guard network transports.
+      expect(source, isNot(contains('package:dio')));
+      expect(source, isNot(contains('Uri.http')));
     }
   });
 

@@ -10,6 +10,7 @@ import 'package:true_grit_vital/app/app_lock.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/plans/daily_feed.dart';
+import 'package:true_grit_vital/features/recording/quick_record_sheet.dart';
 import 'package:true_grit_vital/features/plans/today_hero.dart';
 import 'package:true_grit_vital/platform/artifact_transfer.dart';
 import 'package:true_grit_vital/platform/device_zone.dart';
@@ -141,12 +142,13 @@ void main() {
         timings: [DailyCount(2, _oneMg())],
         todayNow: () => DateTime.now().toUtc(),
       );
-      expect(find.text('Today’s sequence'), findsOneWidget);
-      expect(find.text('0 of 2 doses recorded, 0 skipped.'), findsOneWidget);
-      expect(find.text('0%'), findsOneWidget);
+      expect(find.text('Today’s sequence'), findsNothing);
+      expect(find.text('No set time'), findsOneWidget);
+      expect(find.text('0/2 taken'), findsOneWidget);
+      expect(find.text('0%'), findsNothing);
       // A pending untimed expectation never offers a countdown or guess.
-      expect(find.text('Anytime'), findsOneWidget);
-      expect(find.text('Due'), findsOneWidget);
+      expect(find.text('Anytime'), findsNothing);
+      expect(find.text('Due'), findsNothing);
       expect(find.text('Upcoming'), findsNothing);
       expect(
         find.byWidgetPredicate(
@@ -167,7 +169,7 @@ void main() {
       );
       await tap(tester, 'Taken');
       await waitForText(tester, '1 recorded, 0 skipped, 2 planned');
-      expect(find.text('1 of 2 doses recorded, 0 skipped.'), findsOneWidget);
+      expect(find.text('1/2 taken'), findsOneWidget);
       // The planned row keeps its element identity across recording.
       expect(
         tester.state(
@@ -181,9 +183,11 @@ void main() {
         ),
         same(rowState),
       );
+      await tap(tester, 'Synthetic full substance name 0');
       await tap(tester, 'Skip');
       await waitForText(tester, '1 recorded, 1 skipped, 2 planned');
-      expect(find.text('1 of 2 doses recorded, 1 skipped.'), findsOneWidget);
+      expect(find.text('1/2 taken'), findsOneWidget);
+      expect(find.text('1 of 2 doses recorded, 1 skipped.'), findsNothing);
       // Skips resolve an expectation; the hero stops advertising pending work.
       expect(find.text('The next dose has no expected time.'), findsNothing);
       expect(find.text('2 remaining'), findsNothing);
@@ -204,7 +208,7 @@ void main() {
     },
   );
 
-  appTest('slot plans group under the expected wall time with a countdown', (
+  appTest('slot plans share a daypart and retain the expected wall time', (
     tester,
   ) async {
     // Fake the hero clock on the real shown date: 09:00 London against a
@@ -230,8 +234,8 @@ void main() {
       ],
       todayNow: () => fakedNow,
     );
-    expect(find.text('Today’s sequence'), findsOneWidget);
-    expect(find.text('0 of 1 doses recorded, 0 skipped.'), findsOneWidget);
+    expect(find.text('Today’s sequence'), findsNothing);
+    expect(find.text('Morning'), findsOneWidget);
     // The group title uses the plan zone's shown wall time. The full app keeps
     // the 12/24-hour system preference, so both renderings stay valid here.
     final group =
@@ -239,13 +243,13 @@ void main() {
         find.text('09:30').evaluate().isNotEmpty;
     expect(group, isTrue);
     expect(find.text('Synthetic full substance name 0'), findsWidgets);
-    expect(find.text('Next dose in 30 minutes.'), findsOneWidget);
+    expect(find.text('Next dose in 30 minutes.'), findsNothing);
     expect(find.text('Due'), findsNothing);
     expect(find.text('Upcoming'), findsNothing);
     // Recording resolves the slot row inside its group.
     await tap(tester, 'Taken');
     await settle(tester);
-    await waitForText(tester, '1 of 1 doses recorded, 0 skipped.');
+    await waitForText(tester, 'Undo');
     final plans = (await runIo(
       tester,
       () => store.dailyPlans(itemId: item.id),
@@ -261,11 +265,18 @@ void main() {
       timings: [const AsNeeded()],
       todayNow: () => DateTime.now().toUtc(),
     );
-    expect(find.text('No doses are planned today.'), findsOneWidget);
+    expect(find.text('Empty'), findsNWidgets(3));
     // No scheduled rows and no plan-completion framing for a PRN-only day.
     expect(find.text('Due'), findsNothing);
     expect(find.byType(DailyRowCard), findsNothing);
-    expect(find.text('As needed'), findsOneWidget);
+    expect(find.text('Unplanned medication'), findsOneWidget);
+    await tapFinder(
+      tester,
+      find.descendant(
+        of: find.byType(UnplannedMedication),
+        matching: find.text('Add'),
+      ),
+    );
     expect(find.text('Synthetic full substance name 0'), findsOneWidget);
     final chip = find.text('Synthetic full substance name 0');
     await tester.ensureVisible(chip);
@@ -285,7 +296,8 @@ void main() {
       );
       final card = find.byWidgetPredicate(
         (w) =>
-            w is DailyRowCard && w.presentation == DailyCardPresentation.hero,
+            w is DailyRowCard &&
+            w.presentation == DailyCardPresentation.timeline,
       );
       expect(card, findsOneWidget);
       // The compact reference row keeps the logging pair and the stock source
@@ -296,7 +308,7 @@ void main() {
       );
       expect(
         find.descendant(of: card, matching: find.text('Skip')),
-        findsOneWidget,
+        findsNothing,
       );
       expect(
         find.descendant(of: card, matching: find.text('Source')),
@@ -314,7 +326,8 @@ void main() {
         find.descendant(of: card, matching: find.text('Edit')),
         findsNothing,
       );
-      await tester.tap(
+      await tapFinder(
+        tester,
         find.descendant(
           of: card,
           matching: find.byWidgetPredicate(
@@ -338,11 +351,11 @@ void main() {
         find.descendant(of: card, matching: find.text('Undo')),
         findsOneWidget,
       );
-      expect(find.textContaining('1 of 2 doses recorded'), findsOneWidget);
+      expect(find.text('1 recorded, 0 skipped, 2 planned'), findsOneWidget);
     },
   );
 
-  appTest('narrow large-text Today keeps hero, groups and actions reachable', (
+  appTest('narrow large-text Today keeps timeline and actions reachable', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(375, 812);
@@ -368,8 +381,9 @@ void main() {
       ],
       todayNow: () => DateTime.now().toUtc(),
     );
-    expect(find.text('Today’s sequence'), findsOneWidget);
-    expect(find.text('0 of 3 doses recorded, 0 skipped.'), findsOneWidget);
+    expect(find.text('Today’s sequence'), findsNothing);
+    expect(find.text('Morning'), findsOneWidget);
+    expect(find.text('No set time'), findsOneWidget);
     expect(
       find.byWidgetPredicate(
         (w) =>

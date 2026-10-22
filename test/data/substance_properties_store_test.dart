@@ -253,6 +253,10 @@ void main() {
       final hex = key.map((v) => v.toRadixString(16).padLeft(2, '0')).join();
       db.execute("PRAGMA key=\"x'$hex'\"");
       db.execute('ALTER TABLE item_detail DROP COLUMN profile');
+      // Reconstruct the pre-v26 fixture rather than retaining future tables.
+      db.execute('DROP TABLE stock_notice_request');
+      db.execute('DROP TABLE stock_notice_episode');
+      db.execute('DROP TABLE stock_notice_config');
       db.execute('PRAGMA user_version=24');
       db.close();
       store = await RecordStore.open(

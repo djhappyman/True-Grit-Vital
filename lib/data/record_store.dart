@@ -1608,6 +1608,29 @@ final class RecordStore {
     if (limit < 1 || limit > 500 || offset < 0) throw RangeError('page_bounds');
   }
 
+  /// Actual uses without an active planned-dose action, over one exact day.
+  /// This does not infer a plan match from names, quantities or nearby times.
+  Future<List<UseRecord>> unplannedUses({
+    required DateTime from,
+    required DateTime before,
+    int limit = 51,
+  }) async {
+    _requireWritable();
+    if (limit < 1 || limit > 500 || !before.isAfter(from)) {
+      throw RangeError('page_bounds');
+    }
+    return (await _rows(
+      "$_current WHERE a.person=? AND a.actual>=? AND a.actual<? AND r.voided=0 AND NOT EXISTS(SELECT 1 FROM daily_action d WHERE d.record=a.id AND d.person=a.person AND d.kind='taken' AND d.undone=0) ORDER BY a.actual,a.id LIMIT ?",
+      [meId, from.microsecondsSinceEpoch, before.microsecondsSinceEpoch, limit],
+    )).map(_record).toList();
+  }
+
+  Stream<List<UseRecord>> watchUnplannedUses({
+    required DateTime from,
+    required DateTime before,
+    int limit = 51,
+  }) => _watch(() => unplannedUses(from: from, before: before, limit: limit));
+
   Future<List<UseRecord>> records({
     String personId = meId,
     FeedScope? scope,

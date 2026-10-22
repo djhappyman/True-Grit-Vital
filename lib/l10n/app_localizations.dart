@@ -12686,6 +12686,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equivalent: approximately {amount} tablet/capsule.'**
   String substanceCountEquivalent(String amount);
+
+  /// No description provided for @dashboardMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning, {name}'**
+  String dashboardMorning(String name);
+
+  /// No description provided for @dashboardAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon, {name}'**
+  String dashboardAfternoon(String name);
+
+  /// No description provided for @dashboardEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening, {name}'**
+  String dashboardEvening(String name);
+
+  /// No description provided for @dashboardMorningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get dashboardMorningTitle;
+
+  /// No description provided for @dashboardAfternoonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Afternoon'**
+  String get dashboardAfternoonTitle;
+
+  /// No description provided for @dashboardEveningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening'**
+  String get dashboardEveningTitle;
+
+  /// No description provided for @dashboardNightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Night'**
+  String get dashboardNightTitle;
+
+  /// No description provided for @dashboardUntimedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No set time'**
+  String get dashboardUntimedTitle;
+
+  /// No description provided for @dashboardNoDoses.
+  ///
+  /// In en, this message translates to:
+  /// **'No doses planned.'**
+  String get dashboardNoDoses;
+
+  /// No description provided for @dashboardPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan a dose'**
+  String get dashboardPlanTitle;
+
+  /// No description provided for @dashboardPlanHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a medicine and set when to take it.'**
+  String get dashboardPlanHelp;
+
+  /// No description provided for @dashboardPlanAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get dashboardPlanAction;
+
+  /// No description provided for @dashboardUnplanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Unplanned medication'**
+  String get dashboardUnplanned;
+
+  /// No description provided for @dashboardUnplannedHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Took something that was not on this day’s schedule? Add it here.'**
+  String get dashboardUnplannedHelp;
+
+  /// No description provided for @dashboardUnplannedEmptyToday.
+  ///
+  /// In en, this message translates to:
+  /// **'No unplanned medication today.'**
+  String get dashboardUnplannedEmptyToday;
+
+  /// No description provided for @dashboardUnplannedEmptyDay.
+  ///
+  /// In en, this message translates to:
+  /// **'No unplanned medication on this day.'**
+  String get dashboardUnplannedEmptyDay;
+
+  /// No description provided for @dashboardQuickTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Record medication'**
+  String get dashboardQuickTitle;
+
+  /// No description provided for @dashboardQuickHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a medicine or create one. You can add more details later.'**
+  String get dashboardQuickHelp;
+
+  /// No description provided for @dashboardQuickCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'New medicine'**
+  String get dashboardQuickCreate;
+
+  /// No description provided for @dashboardQuickCreateHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with a name and the unit you use. Add other details whenever you like.'**
+  String get dashboardQuickCreateHelp;
+
+  /// No description provided for @dashboardUnknownForm.
+  ///
+  /// In en, this message translates to:
+  /// **'Not specified'**
+  String get dashboardUnknownForm;
+
+  /// No description provided for @dashboardMedicineType.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine'**
+  String get dashboardMedicineType;
+
+  /// No description provided for @dashboardUnitCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Items'**
+  String get dashboardUnitCount;
+
+  /// No description provided for @dashboardUnitHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the unit on the label. Items means tablets, capsules or similar pieces.'**
+  String get dashboardUnitHelp;
+
+  /// No description provided for @dashboardObservations.
+  ///
+  /// In en, this message translates to:
+  /// **'Observations'**
+  String get dashboardObservations;
+
+  /// No description provided for @dashboardComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get dashboardComingSoon;
+
+  /// No description provided for @dashboardObservationsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'A place to note blood pressure, weight or how you feel.'**
+  String get dashboardObservationsHelp;
+
+  /// No description provided for @dashboardObservationPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick observations are coming soon.'**
+  String get dashboardObservationPreview;
+
+  /// No description provided for @dashboardStockAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock needs attention'**
+  String get dashboardStockAttention;
+
+  /// No description provided for @dashboardSelectedDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected: {date}'**
+  String dashboardSelectedDate(String date);
+
+  /// No description provided for @dashboardEditHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes apply to future entries. Past doses keep their saved details.'**
+  String get dashboardEditHelp;
+
+  /// No description provided for @dashboardIdentityTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the name and form to 2,048 characters each.'**
+  String get dashboardIdentityTooLong;
+
+  /// No description provided for @dashboardSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get dashboardSkipped;
+
+  /// No description provided for @dashboardUnitRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose or enter the unit on the label.'**
+  String get dashboardUnitRequired;
+
+  /// No description provided for @dashboardEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty'**
+  String get dashboardEmpty;
+
+  /// No description provided for @dashboardTakenCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{taken}/{planned} taken'**
+  String dashboardTakenCount(int taken, int planned);
+
+  /// No description provided for @dashboardPlanPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan for {period}'**
+  String dashboardPlanPeriod(String period);
+
+  /// No description provided for @dashboardUnplannedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'For medicine you take outside your schedule.'**
+  String get dashboardUnplannedSubtitle;
+
+  /// No description provided for @dashboardSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get dashboardSchedule;
+
+  /// No description provided for @dashboardPeriodRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String dashboardPeriodRange(String start, String end);
+
+  /// No description provided for @dashboardName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get dashboardName;
 }
 
 class _AppLocalizationsDelegate

@@ -47,6 +47,43 @@ void main() {
     unit: 'mg',
     type: 'medicine',
   );
+  test('quick creation drafts retain selected day and task across encrypted reopen', () async {
+    final quick = OrdinaryDraft(
+      id: 'quick-day',
+      generation: store.generation,
+      operationId: 'quick-create',
+      kind: DraftKind.item,
+      personId: meId,
+      personRevision: 1,
+      targetId: null,
+      targetRevision: null,
+      fields: {
+        'name': 'Quick draft',
+        'form': 'Not specified',
+        'unit': 'mcg',
+        'type': 'Medicine',
+        'quick': 'true',
+        'quickTime': '20:00',
+        'day': '2026-10-20',
+        'plan': 'true',
+      },
+    );
+    await store.saveDraft(quick);
+    await store.close();
+    store = await RecordStore.open(path: path, key: key, isNew: false);
+    final restored = (await store.drafts()).single;
+    expect(restored.fields['unit'], 'mcg');
+    final route = Uri.parse(restored.route);
+    expect(route.path, '/unplanned');
+    expect(route.queryParameters, {
+      'new': '1',
+      'plan': '1',
+      'day': '2026-10-20',
+      'time': '20:00',
+    });
+    expect(restored.operationId, 'quick-create');
+  });
+
   test('encrypted unfinished entries survive reopen, save clears atomically, replay precedes stale owner', () async {
     await store.saveDraft(draft());
     await store.close();

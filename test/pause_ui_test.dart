@@ -188,6 +188,7 @@ void main() {
         () => f.store.saveBrowsingScope(FeedScope.person(f.item.personId)),
       );
       await settle(tester);
+      await tap(tester, f.item.name);
       final taken = tester.widget<PlanCommand>(
         find.byWidgetPredicate((w) => w is PlanCommand && w.label == 'Taken'),
       );

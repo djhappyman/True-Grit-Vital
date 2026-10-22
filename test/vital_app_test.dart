@@ -254,20 +254,22 @@ void main() {
       find.byType(TextField).at(0),
       'Synthetic full substance name',
     );
-    await tester.enterText(find.byType(TextField).at(1), 'Tablet');
-    await tap(tester, 'mg');
-    await tester.enterText(find.byType(TextField).at(2), 'Supplement');
+    await tester.enterText(find.byType(TextField).at(1), 'Supplement');
+    await tap(tester, 'Oral');
+    await tap(tester, 'Tablet');
     await tap(tester, 'Create');
-    expect(find.text('Synthetic full substance name'), findsOneWidget);
-    await tap(tester, 'Synthetic full substance name');
+    await waitForText(tester, 'Setup');
+    final item = (await runIo(tester, () => fixture.store.items()))!.single;
+    fixture.container.read(routerProvider).go('/substance/${item.id}');
+    await waitForText(tester, 'Synthetic full substance name');
     await tap(tester, 'Record');
     await tester.enterText(find.byType(TextField).at(0), '0.125000');
     await tap(tester, 'Save');
-    expect(find.text('Me: 0.125000 mg'), findsOneWidget);
+    expect(find.text('Me: 0.125000 count'), findsOneWidget);
     await tap(tester, 'Correct');
     await tester.enterText(find.byType(TextField).at(0), '0.5');
     await tap(tester, 'Save');
-    expect(find.text('Me: 0.5 mg'), findsOneWidget);
+    expect(find.text('Me: 0.5 count'), findsOneWidget);
     await tap(tester, 'Undo');
     expect(find.text('Voided'), findsOneWidget);
     final rows = await runIo(tester, fixture.store.records);

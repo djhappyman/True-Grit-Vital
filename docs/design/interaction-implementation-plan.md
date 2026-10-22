@@ -21,11 +21,12 @@ Use explicit evidence and commits for each completed step. Screens remain canoni
 
 | Screen / existing paths | Target presentation and visible content |
 | --- | --- |
-| Today `/today` | Root page; week pager, next action, compact timeline and collapsed recorded section. Favourites configure in a focused task overlay. |
+| Today `/today` | Root page; left profile and named greeting, independently browsed week pager, one daypart timeline, Plan action, day-scoped Unplanned medication and the owner-requested observation preview. No progress/week-summary/duplicate hero/Recorded/Manage blocks. |
 | Substances `/substances` | Root page; search and compact cards. Name/type/status queries stay store-backed. Filter popover, selected chips and contextual management menu. |
 | Events `/events` | Root page; compact factual summaries, status filtering and per-event overflow commands. |
 | History `/history` | Root page; month pager and selected-day cards. Filters in popover/adaptive sheet, dates in a picker, report/export tools in contextual actions. Preserve scoped/anchored links. |
 | Overview `/substance/:id` | One screen with Overview/Schedule/Stock/History PageView sections. Full identity, Record and essential stock warnings remain prominent. |
+| Quick entry `/unplanned` | Searchable task sheet reusing the existing ItemForm and DoseForm. Create a minimal identity, record with explicit amount/unit/date, edit details later. Plan selection continues into the canonical schedule editor. |
 | Record `/record/:id` | Modal task sheet using the same durable form. Amount/presets, time, relevant source/consequence and Save initially visible. |
 | Correct `/correct/:id` | Same sheet in correction mode; retain original source/strength/revision and required physical-correction choices. |
 | Combined `/combined/:person`, `/combined/:person/edit/:action` | Expanded recording sheet, complete per-source identities/quantities, original atomic command and correction/Undo guards. |
@@ -91,3 +92,25 @@ reveal motion. No new route is introduced. Counts load when opened; query,
 dataset and lock changes hide retained values. Keyboard activation and
 collapse geometry, both themes and 320/390/430 px at 2x text are covered by
 `test/history_routine_activity_test.dart`.
+
+## Today simplification, 22 October
+
+The owner replaced the earlier Today composition with the current blueprint.
+Week drags browse without selecting Monday or refreshing the selected day.
+Empty days keep three quiet dayparts; populated days show only used groups.
+The new chooser reuses the durable creation/recording engines and shared task
+frame. Medicine identity edits preserve historical dose snapshots. Observations
+remains a Coming soon preview without an entry action by explicit owner choice.
+See [dashboard evidence](reviews/2026-10-22-dashboard-simple/README.md).
+
+The subsequent framed Schedule revision follows the owner’s new reference:
+shared bordered surfaces, daypart cards with contextual Plan actions, a compact
+observation preview, and a stationary calendar frame whose dates alone page.
+Morning/Afternoon/Evening planning seeds a visible suggested time; the existing
+preview, draft, lock and command guards remain authoritative.
+See [Schedule review](reviews/2026-10-22-dashboard-schedule/README.md).
+
+The final refinement removes the calendar footer/divider, puts borderless status
+chips on each daypart title, replaces empty text/actions with a quiet centred
+plus, and pairs one outlined Plan button with a matching Add button beneath
+compact unplanned records. See [current evidence](reviews/2026-10-22-dashboard-refined/README.md).

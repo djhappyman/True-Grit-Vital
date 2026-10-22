@@ -9,9 +9,10 @@ import 'package:true_grit_vital/app/device_zone.dart';
 import 'package:true_grit_vital/platform/device_zone.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
+import 'package:true_grit_vital/features/recording/record_pages.dart';
 import 'package:true_grit_vital/platform/storage_bootstrap.dart';
 
-import '../vital_app_test.dart' show appTest, launch, settle, tap;
+import '../vital_app_test.dart' show appTest, launch, settle, tap, waitForText;
 
 void main() {
   appTest('keyring failure retries without showing an empty dataset', (
@@ -72,7 +73,10 @@ void main() {
     await tester.pumpAndSettle();
     await tap(tester, 'Substances');
     await tap(tester, 'Create');
-    final name = find.byType(TextField).at(0);
+    final name = find.descendant(
+      of: find.widgetWithText(LabelledInput, 'Full name'),
+      matching: find.byType(TextField),
+    );
     await tester.enterText(name, 'Synthetic desktop full substance name');
     final initialFocus = FocusManager.instance.primaryFocus;
     await tester.sendKeyEvent(LogicalKeyboardKey.tab);
@@ -92,11 +96,18 @@ void main() {
       );
       expect(tester.takeException(), isNull);
     }
-    await tester.enterText(find.byType(TextField).at(1), 'Tablet');
-    await tap(tester, 'mg');
-    await tester.enterText(find.byType(TextField).at(2), 'Supplement');
+    await tester.enterText(
+      find.descendant(
+        of: find.widgetWithText(LabelledInput, 'Type'),
+        matching: find.byType(TextField),
+      ),
+      'Supplement',
+    );
+    await tap(tester, 'Oral');
+    await tap(tester, 'Tablet');
     await tap(tester, 'Create');
-    expect(find.text('Synthetic desktop full substance name'), findsOneWidget);
+    await waitForText(tester, 'Setup');
+    await waitForText(tester, 'Synthetic desktop full substance name');
     expect(tester.takeException(), isNull);
     await settle(tester);
   });

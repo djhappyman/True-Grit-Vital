@@ -142,6 +142,61 @@ void main() {
     },
   );
 
+  test('identity edits are revision guarded, replay safely and preserve past doses', () async {
+    final item = await createItem();
+    final dose = await store.record(
+      commandId: 'dose',
+      itemId: item.id,
+      amount: '0.125',
+      actualAt: DateTime.utc(2026, 10, 22, 8),
+    );
+    Future<SubstanceDetail> edit({
+      String command = 'identity',
+      String name = 'Completed name',
+      int? itemRevision,
+    }) => store.saveItemDetail(
+      commandId: command,
+      itemId: item.id,
+      expectedGeneration: store.generation,
+      expectedRevision: null,
+      expectedItemRevision: itemRevision ?? item.revision,
+      name: name,
+      form: 'Capsule',
+      instructions: 'Exact instructions',
+      notes: '',
+    );
+    final saved = await edit();
+    final replay = await edit();
+    expect(replay.revision, saved.revision);
+    expect((await store.itemById(item.id))!.revision, item.revision + 1);
+    expect((await store.itemById(item.id))!.name, 'Completed name');
+    final old = (await store.recordById(dose.id))!;
+    expect(old.name, item.name);
+    expect(old.form, item.form);
+    expect(old.actualAmount, ExactAmount.parseEntry('0.125'));
+    expect(old.actualUnit, 'mg');
+    final conflict = throwsA(
+      isA<CommandConflict>().having((e) => e.code, 'code', 'revision'),
+    );
+    await expectLater(edit(command: 'stale', name: 'Stale'), conflict);
+    expect((await store.itemDetail(item.id))!.revision, saved.revision);
+    expect((await store.itemById(item.id))!.name, 'Completed name');
+    await expectLater(
+      store.saveItemDetail(
+        commandId: 'old-detail',
+        itemId: item.id,
+        expectedRevision: 0,
+        expectedItemRevision: item.revision + 1,
+        name: 'Rejected',
+        form: 'Liquid',
+        instructions: '',
+        notes: '',
+      ),
+      conflict,
+    );
+    expect((await store.itemById(item.id))!.name, 'Completed name');
+  });
+
   test('detail revisions fence stale writers and command reuse', () async {
     final item = await createItem();
     final first = await saveDetail(

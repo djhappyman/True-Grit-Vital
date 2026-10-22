@@ -26,6 +26,8 @@ The owner selected the strongest components from the [Stitch references](stitch/
 | `VitalMetric` | A complete labelled value with optional detail; an unknown value stays explicitly unknown. |
 | `VitalProgress` | A factual proportion with visible values and denominator; `noTotal` and `unknown` show explanatory text without a progress bar. |
 | `VitalNotice` | Information or a problem kept together with its recovery action. |
+| `StitchSectionCard` | Framed section with a shared icon, heading, optional subtitle/status and content; trailing content stacks at large text sizes. |
+| `StitchEmptySlot` | Borderless inset empty slot with a quiet centred plus and a descriptive accessible action. |
 | `VitalEmptyState` | Clear orientation and an optional next action for an empty collection. |
 | `VitalIconTile` | Consistent decorative icon container beside a meaningful label. |
 | `VitalDialog` | Bounded dialog with scrolling content and reachable actions. |
@@ -43,7 +45,7 @@ The owner selected the strongest components from the [Stitch references](stitch/
 
 `StitchType` aliases `VitalType` and transcribes the export's 28/20/17/14/13/12/11 px hierarchy and line heights. `StitchSans` bundles the original archive's Noto Sans weights 400/500/600/700; provenance and licence are in `assets/fonts/STITCH.md`. `StitchColors` reads the same shadcn semantic palette as existing widgets. Light secondary text is slightly darker than the export to retain readable contrast on inset controls. `StitchSurface`, `StitchButton`, `StitchBadge`, `StitchIcon` and `StitchScrollBody` supply the reference geometry with native shadcn interactions and device insets. Targets remain at least 48 px; text can wrap.
 
-The dashboard composition comes from `dashboard-timeline-velocity-dark-mode--42445af1`; Substances comes from `substances-dark-mode--1ecd8e65`, with saved light variants informing the white theme. These are the only design sources. Preserve complete names and quantities and keep real commands connected. The owner's subsequent direction permits explicit placeholders for missing features: they must identify unavailable behaviour and must never save example data.
+The dashboard composition comes from `dashboard-timeline-velocity-dark-mode--42445af1`; Substances comes from `substances-dark-mode--1ecd8e65`, with saved light variants informing the white theme. The owner’s 22 October [dashboard reference](reviews/2026-10-22-dashboard-schedule/owner-reference.png) now takes precedence for Today composition; the original Stitch exports remain authoritative for other screens. Preserve complete names and quantities and keep real commands connected. The owner's subsequent direction permits explicit placeholders for missing features: they must identify unavailable behaviour and must never save example data.
 
 ## A feature screen
 
@@ -93,6 +95,6 @@ Run `./tool/flutterw test --no-pub test/visual_framework_test.dart test/design_s
 
 For a focused capture, add `--dart-define=VITAL_UI_ROUTES=substances` (or comma-separated route keys from the visual test). Omitting it checks every listed route; unknown keys fail instead of silently skipping the check.
 
-Today uses a measured daily completion ring, the next actionable dose card and compact time groups. Taken and Undo call the existing durable commands. The hero activity icon opens Details, including stock source, Extra and editing; stock/interval/stale-data/clock guards retain their complete review UI. Manage reveals full stock notices and schedule controls. Substances uses live bounded summaries; tapping a card opens the existing unified overview, including Record, schedule, stock and history.
+Today uses the owner’s framed calendar and daypart Schedule cards. Only the date strip pages; the surrounding surface and month controls stay stationary; no selected-date footer or divider is shown. Borderless Empty/taken-count chips sit on the period title row. Empty periods offer a centred plus with a visible suggested time in the existing schedule editor. One outlined Plan button sits below the timeline. Unplanned medication uses a plain-English subtitle, compact name/amount rows and an outlined Add command beneath the card matching Plan. Observations remains a compact Coming soon preview. The greeting uses the shared detail-title type role; card borders and optional outlined shadcn commands are rendered by the shared foundation. Taken and Undo retain their durable commands, while source/interval/stale-data/clock guards retain their existing review UI. Substances keeps its live bounded summaries and unified overview.
 
 Regenerate this closer reference review with `./tool/flutterw test --no-pub test/stitch_reference_screens_test.dart --dart-define=VITAL_STITCH_CAPTURES=output/stitch-review`. The fixture uses synthetic records only and captures loaded light/dark viewport and full-content screens. Physical-device accessibility and performance remain separate gates.

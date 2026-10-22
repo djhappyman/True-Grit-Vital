@@ -253,3 +253,32 @@ and a friendly README explaining the project's safety-minded purpose.
 All four slices are integrated. Final host checks are recorded in the
 [batch review](reviews/2026-10-22-function-batch/README.md). Briefs and identities are retained
 under `.scratch/vital-implementation/function-batch-2026-10-22/`.
+
+## Today simplification, 22 October
+
+Owner-directed D01 revision: left profile control and named local-time greeting,
+independent week browsing/day selection, one compact daypart timeline and quiet
+empty groups. Removed the progress row, week summary, duplicate next-dose hero,
+Recorded block and Manage block. Unplanned medication has day-specific records,
+an information dialog and a shared quick-entry sheet for existing or minimal
+new medicines. Plan continues into the existing schedule editor. Name/form
+edits apply to future records while saved doses retain their snapshots.
+Observations stays a Coming soon preview by explicit owner request; its working
+detailed editor remains available through its existing routes.
+The [blueprint](interaction-blueprint.md) and
+[review](reviews/2026-10-22-dashboard-simple/README.md) define the new composition
+and record verification limits. This UI revision does not close device gates
+or unrelated feature backlog.
+
+The owner subsequently approved the framed dashboard reference, with Schedule
+wording and a stationary calendar frame. The shared surface/control foundation
+and reusable section/empty-slot components now supply that treatment. Contextual
+Plan actions retain the day and suggested time through medicine selection or
+creation; the existing schedule preview/save remains mandatory. See the
+[Schedule implementation](reviews/2026-10-22-dashboard-schedule/README.md).
+
+The final dashboard refinement removes the calendar footer/divider, adds
+borderless daypart status chips and plus-only empty insets, and uses matching
+Plan/Add commands. Unplanned records show only full name and exact amount;
+all existing correction and guarded entry flows remain connected. See
+[current dashboard evidence](reviews/2026-10-22-dashboard-refined/README.md).

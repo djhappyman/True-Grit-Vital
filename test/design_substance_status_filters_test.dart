@@ -265,8 +265,21 @@ void main() {
     final field = find.byType(TextField).first;
     await tester.ensureVisible(field);
     await tester.enterText(field, 'Range 55');
-    await settle(tester);
+    // The search field itself contains Range 55 before its live query finishes.
+    await waitForText(tester, 'All statuses (1)');
+    final resultsDeadline = Stopwatch()..start();
+    while (cards(tester) != 1 &&
+        resultsDeadline.elapsed < const Duration(seconds: 30)) {
+      await settle(tester);
+    }
     expect(cards(tester), 1);
+    expect(
+      find.descendant(
+        of: find.byType(SubstanceIdentityCard),
+        matching: find.text('Range 55'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('More'), findsNothing);
   });
 

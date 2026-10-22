@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' show Size;
 
-import 'package:flutter/widgets.dart' show Semantics;
+import 'package:flutter/widgets.dart' show Semantics, ValueKey;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:true_grit_vital/app/artifact_transfer.dart';
@@ -13,6 +13,7 @@ import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/plans/today_hero.dart';
 import 'package:true_grit_vital/features/plans/plan_providers.dart';
+import 'package:true_grit_vital/features/recording/quick_record_sheet.dart';
 import 'package:true_grit_vital/platform/artifact_transfer.dart';
 import 'package:true_grit_vital/platform/device_zone.dart';
 
@@ -179,8 +180,8 @@ void main() {
         ),
       ],
     );
-    expect(find.text('Week summary'), findsOneWidget);
-    expect(find.text('Planned'), findsOneWidget);
+    expect(find.text('Week summary'), findsNothing);
+    expect(find.text('No set time'), findsOneWidget);
     expect(find.text('Today only'), findsWidgets);
     expect(find.text('Yesterday only'), findsNothing);
     expect(find.text('Taken'), findsWidgets);
@@ -194,8 +195,11 @@ void main() {
 
     expect(find.text('Yesterday only'), findsWidgets);
     expect(find.text('Today only'), findsNothing);
-    expect(find.text('Day sequence'), findsOneWidget);
-    expect(find.text('Viewing'), findsOneWidget);
+    expect(find.text('No set time'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('dashboard-calendar-selection')),
+      findsNothing,
+    );
     // A browsed date has no one-tap current-time commands.
     expect(find.text('Taken'), findsNothing);
     expect(find.text('Skip'), findsNothing);
@@ -206,56 +210,113 @@ void main() {
     await _tap(tester, find.text('Record').first);
     expect(
       fixture.container.read(routerProvider).routerDelegate.state.uri.path,
-      startsWith('/record/'),
+      '/unplanned',
     );
-  });
-
-  appTest('saved quick-record order opens the real record route', (
-    tester,
-  ) async {
-    final fixture = await _launch(
-      tester,
-      plans: [
-        (
-          name: 'Alpha PRN',
-          timing: const AsNeeded(),
-          start: _today.addDays(-5),
-          end: null,
-        ),
-        (
-          name: 'Beta PRN',
-          timing: const AsNeeded(),
-          start: _today.addDays(-5),
-          end: null,
-        ),
-      ],
-      favourites: ['plan-1', 'plan-0'],
-    );
-    expect(find.text('Beta PRN'), findsWidgets);
     expect(
-      tester.getTopLeft(find.text('Beta PRN').last).dx,
-      lessThan(tester.getTopLeft(find.text('Alpha PRN').last).dx),
+      fixture.container.read(routerProvider).state.uri.queryParameters['day'],
+      '2026-10-20',
     );
-    // Configuration is the real dialog, not a placeholder.
-    await _tap(tester, find.text('Configure'));
-    expect(find.text('Quick record'), findsOneWidget);
-    expect(
-      find.text('Choose as-needed plans and their order.'),
-      findsOneWidget,
-    );
-    await _tap(tester, find.text('Cancel'));
-    expect(find.text('Quick record'), findsNothing);
-
-    await _tap(tester, find.text('Alpha PRN').last);
-    expect(
-      fixture.container.read(routerProvider).routerDelegate.state.uri.path,
-      '/record/${fixture.itemIds['Alpha PRN']}',
-    );
-    expect((await runIo(tester, fixture.store.records))!, isEmpty);
   });
 
   appTest(
-    'narrow large-text week browsing keeps the summary and day reachable',
+    'unplanned medication chooses any existing medicine without favourites',
+    (tester) async {
+      final fixture = await _launch(
+        tester,
+        plans: [
+          (
+            name: 'Alpha PRN',
+            timing: const AsNeeded(),
+            start: _today.addDays(-5),
+            end: null,
+          ),
+          (
+            name: 'Beta PRN',
+            timing: const AsNeeded(),
+            start: _today.addDays(-5),
+            end: null,
+          ),
+        ],
+        favourites: ['plan-1', 'plan-0'],
+      );
+      expect(find.text('Configure'), findsNothing);
+      expect(find.text('No unplanned medication today.'), findsOneWidget);
+      await _tap(
+        tester,
+        find.descendant(
+          of: find.byType(UnplannedMedication),
+          matching: find.text('Add'),
+        ),
+      );
+      expect(find.text('Beta PRN'), findsOneWidget);
+      expect(find.text('Alpha PRN'), findsOneWidget);
+      await _tap(tester, find.text('Alpha PRN'));
+      final uri = fixture.container.read(routerProvider).state.uri;
+      expect(uri.path, '/unplanned');
+      expect(uri.queryParameters['item'], fixture.itemIds['Alpha PRN']);
+      expect((await runIo(tester, fixture.store.records))!, isEmpty);
+    },
+  );
+
+  appTest('planned doses share one timeline and unused dayparts stay hidden', (
+    tester,
+  ) async {
+    DailySlots at(int hour) => DailySlots([
+      DailySlot(
+        id: 'slot',
+        time: WallTime(hour, 0),
+        amount: _amount(),
+        reminderEnabled: false,
+      ),
+    ]);
+    final f = await _launch(
+      tester,
+      plans: [
+        (name: 'Morning medicine', timing: at(8), start: _today, end: null),
+        (name: 'Evening medicine', timing: at(20), start: _today, end: null),
+      ],
+    );
+    expect(find.text('Morning'), findsOneWidget);
+    expect(find.text('Afternoon'), findsNothing);
+    expect(find.text('Evening'), findsOneWidget);
+    expect(find.text('Morning medicine'), findsOneWidget);
+    expect(find.text('Evening medicine'), findsOneWidget);
+    final rows = (await runIo(
+      tester,
+      () => f.store.dailyRows(
+        from: _today,
+        toExclusive: _today.addDays(1),
+        observedZone: _zone,
+      ),
+    ))!.rows;
+    await runIo(
+      tester,
+      () => f.store.actDaily(
+        commandId: 'take-morning',
+        row: rows.first,
+        kind: DailyActionKind.taken,
+        actualAt: _now,
+      ),
+    );
+    await settle(tester);
+    expect(find.text('Morning medicine'), findsOneWidget);
+    expect(find.text('Evening medicine'), findsOneWidget);
+    expect(find.text('Recorded'), findsNothing);
+    expect(
+      (await runIo(
+        tester,
+        () => f.store.unplannedUses(
+          from: DateTime.utc(2026, 10, 20, 23),
+          before: DateTime.utc(2026, 10, 21, 23),
+        ),
+      ))!,
+      isEmpty,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  appTest(
+    'narrow large-text week browsing keeps the day and full names reachable',
     (tester) async {
       tester.view.physicalSize = const Size(320, 800);
       tester.view.devicePixelRatio = 1;
@@ -276,7 +337,7 @@ void main() {
           ),
         ],
       );
-      expect(find.text('Week summary'), findsOneWidget);
+      expect(find.text('Week summary'), findsNothing);
       expect(find.text('Synthetic full substance name'), findsWidgets);
       expect(find.text('Taken'), findsWidgets);
       expect(tester.takeException(), isNull);

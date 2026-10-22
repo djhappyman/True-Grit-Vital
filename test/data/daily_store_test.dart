@@ -92,6 +92,73 @@ void main() {
     kind: DailyActionKind.taken,
     actualAt: DateTime.utc(2026, 10, 19, 7),
   );
+  test(
+    'unplanned day uses keep manual doses distinct from planned actions',
+    () async {
+      await save(plan(timed: true));
+      final scheduled = await take(await row());
+      final start = DateTime.utc(2026, 10, 18, 23),
+          end = DateTime.utc(2026, 10, 19, 23);
+      final before = await store.record(
+        commandId: 'before',
+        itemId: item.id,
+        amount: '1',
+        actualAt: start.subtract(const Duration(microseconds: 1)),
+      );
+      final manual = await store.record(
+        commandId: 'manual',
+        itemId: item.id,
+        amount: '0.125',
+        actualAt: start,
+      );
+      await store.record(
+        commandId: 'after',
+        itemId: item.id,
+        amount: '1',
+        actualAt: end,
+      );
+      final uses = await store.unplannedUses(from: start, before: end);
+      expect(uses.map((r) => r.id), [manual.id]);
+      expect(uses.single.actualAmount, ExactAmount.parseEntry('0.125'));
+      expect(uses.single.actualUnit, 'mg');
+      await store.correct(
+        commandId: 'move-in',
+        recordId: before.id,
+        expectedRevision: 1,
+        amount: '0.25',
+        actualAt: start.add(const Duration(hours: 1)),
+      );
+      expect(
+        (await store.unplannedUses(from: start, before: end)).map((r) => r.id),
+        [manual.id, before.id],
+      );
+      await store.voidRecord(
+        commandId: 'void',
+        recordId: manual.id,
+        expectedRevision: 1,
+      );
+      final current = await row();
+      await store.undoDaily(
+        commandId: 'undo-planned',
+        row: current,
+        action: current.actions.single,
+      );
+      expect((await store.recordById(scheduled.recordId!))!.isVoided, isTrue);
+      expect(
+        (await store.unplannedUses(from: start, before: end)).map((r) => r.id),
+        [before.id],
+      );
+      await expectLater(
+        store.unplannedUses(from: start, before: end, limit: 501),
+        throwsRangeError,
+      );
+      await expectLater(
+        store.unplannedUses(from: end, before: start),
+        throwsRangeError,
+      );
+    },
+  );
+
   test('plan and frozen expectation encrypted restart retain exact lexeme and historical zone', () async {
     await save(plan(timed: true));
     final action = await take(await row());
@@ -1122,7 +1189,10 @@ void main() {
     final hex = key.map((v) => v.toRadixString(16).padLeft(2, '0')).join();
     db.execute("PRAGMA cipher='chacha20'");
     db.execute("PRAGMA key=\"x'$hex'\"");
-    expect(db.select('PRAGMA user_version').single.values.single, currentRecordSchemaVersion);
+    expect(
+      db.select('PRAGMA user_version').single.values.single,
+      currentRecordSchemaVersion,
+    );
     for (final table in ['daily_version', 'daily_version_audit']) {
       db.execute(
         "UPDATE $table SET snapshot=json_remove(snapshot,'\$.calendar')",

@@ -495,7 +495,7 @@ Future<_ScaleFixture> _buildFixture() async {
   final historyCumulative = _cumulative(adults, recent: false);
   final head = raw.prepare('INSERT INTO administration VALUES (?,?,?,1,?)');
   final revision = raw.prepare(
-    'INSERT INTO revision VALUES (?,?,1,?,?,?,?,?,?,?,?,?)',
+    'INSERT INTO revision(record,person,revision,name,form,unit,type,amount,entered,actual,entered_at,voided) VALUES (?,?,1,?,?,?,?,?,?,?,?,?)',
   );
   final source = raw.prepare('INSERT INTO revision_source VALUES (?,?,?)');
   final tieAt = groups[2].records.first.actualAt.microsecondsSinceEpoch;

@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-22",
+  "flutter": "3.47.7",
+  "dart": "3.13.5",
+  "fullSuite": {
+    "passed": 2230,
+    "skipped": 1,
+    "failed": 1,
+    "resolvedBy": "test-only search synchronization correction"
+  },
+  "correctedStatusFile": {
+    "passed": 7,
+    "failed": 0
+  },
+  "focusedLayoutAndInteractions": {
+    "passed": 27,
+    "failed": 0
+  },
+  "analysis": "no issues found",
+  "nativeLinuxBoot": "passed",
+  "android": {
+    "variant": "debug",
+    "versionName": "0.1.0",
+    "versionCode": 2,
+    "signatureVerified": true,
+    "sha256": "4ac9a174ce5045cb87660834c9c87c14f40688edbe9bd809249016c32c971102"
+  },
+  "physicalAndroidAcceptance": false
+}
