@@ -9,7 +9,12 @@ Flutter/copy skills and interaction blueprint. No new dependencies or schema.
 - [Inventory sorting](d13g/README.md), DeepSeek and lead integration: explicit
   Name/Expiry ordering across the bounded filtered collection before paging.
 
-The stock-source, substance-report and event-History packages remain assigned;
+- [Substance reports](reports-item/README.md), DeepSeek and lead integration:
+  canonical report selection starts with exactly one substance. Invalid scope/date
+  links stay in recovery, active drafts need Replace, and the scope notice follows
+  the reviewed selection.
+
+The stock-source and event-History packages remain assigned;
 this checkpoint is not a completion or release claim. Task briefs, identities
 and original results are retained locally under
 `.scratch/vital-implementation/third-five-2026-10-22/`.
@@ -31,3 +36,7 @@ an additional wide-popover Escape/focus/reopen check passed. Analysis was clean.
 Timing tolerance, reminder follow-ups, automatic-backup lifecycle, scanning/
 FHIR decisions and physical Android/accessibility/delivery/performance gates
 remain open. Focused results do not establish a whole-suite or device pass.
+
+Substance report integration: 69 focused item/event/report/overview checks passed
+after the lead fixes, with clean project analysis. Additional isolated keyboard
+and malformed-date checks passed. Both reported bugs failed before their fixes.

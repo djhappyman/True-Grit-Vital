@@ -10,7 +10,7 @@ timing, scanning, automatic-backup and release decisions remain open.
 | --- | --- | --- | --- |
 | D13g | Explicit Name/Expiry inventory sorting before paging | DeepSeek | Host verified |
 | D13h | Inspect the saved dose behind a stock movement | DeepSeek | Assigned |
-| D20b | Review a report scoped to one substance from its overview | DeepSeek | Assigned |
+| D20b | Review a report scoped to one substance from its overview | DeepSeek | Host verified |
 | D16d | Open complete explicitly linked event History | DeepSeek | Assigned |
 | D21c | Inspect saved/check-only backup receipts with consistent latest-save facts | Lead | Host verified |
 

@@ -178,3 +178,10 @@ Stock, History, Substances and Labs. D21c keeps Backup receipt inspection inside
 the existing disclosure, with shared filter segments and separate creation/check/
 save dates. Settings and Backup share the latest confirmed-save calculation.
 See [batch evidence](reviews/2026-10-22-third-five/README.md).
+
+D20b adds Report to the existing substance overflow and seeds the canonical
+Reports editor with one exact item. The existing editor remains reviewable;
+its context notice follows the actual selected items. Invalid item/date links
+retain recovery instead of broadening the report, and another active selection
+needs explicit Replace. Keyboard entry and return to the mounted overview are
+covered in the [item-report evidence](reviews/2026-10-22-third-five/reports-item/README.md).

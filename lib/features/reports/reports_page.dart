@@ -56,6 +56,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
   bool initialised = false, openedPreview = false;
   ReportSelection? _requestedSeed, _pendingSelection;
   bool _seedBlocked = false, _seedScheduled = false;
+  bool _itemSeedDatesUnavailable = false;
 
   @override
   void initState() {
@@ -131,6 +132,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     try {
       final displayZone = ref.read(displayZoneProvider);
       final shown = DisplayTime().instant(now.toUtc(), displayZone);
+      if (itemId != null && shown.zoneFallback) return null;
       final today = shown.zoneFallback
           ? CivilDate(now.year, now.month, now.day)
           : shown.civilDate;
@@ -138,6 +140,14 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       final requestedBefore = widget.before == null
           ? null
           : parseDate(widget.before!);
+      final requestedFrom = widget.from == null
+          ? null
+          : parseDate(widget.from!);
+      if (itemId != null &&
+          ((widget.before != null && requestedBefore == null) ||
+              (widget.from != null && requestedFrom == null))) {
+        return null;
+      }
       final beforeDate = requestedBefore ?? fallbackBefore;
       if (beforeDate == null) return null;
       final event = widget.event;
@@ -146,7 +156,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
             ? template
             : ReportTemplateId.r01SubstanceSummary,
         personId: personId,
-        fromDate: parseDate(widget.from ?? '') ?? CivilDate(today.year, 1, 1),
+        fromDate: requestedFrom ?? CivilDate(today.year, 1, 1),
         beforeDate: beforeDate,
         displayZone: displayZone,
         eventId:
@@ -305,6 +315,9 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
               !reportItemOwnedBy(requestedItem, selected)) {
             return _ReportItemRecovery(message: t.reportItemMissing);
           }
+          if (_itemSeedDatesUnavailable) {
+            return _ReportItemRecovery(message: t.reportItemDates);
+          }
           if (!initialised) {
             initialised = true;
             final requestedSelection = _requestedSelection(
@@ -315,6 +328,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
             );
             if (requestedSelection == null) {
               if (widget.item != null) {
+                _itemSeedDatesUnavailable = true;
                 return _ReportItemRecovery(message: t.reportItemDates);
               }
               dateError = t.historyDateError;
@@ -342,7 +356,19 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _seedScheduled = false;
               if (!mounted || ref.read(appLockProvider).locked) return;
-              ref.read(reportControllerProvider.notifier).select(pending);
+              final active = ref.read(reportControllerProvider).selection;
+              if (active != null && active.identity != pending.identity) {
+                setState(() {
+                  _seedBlocked = true;
+                  _requestedSeed = pending;
+                  _pendingSelection = null;
+                });
+                _applySelection(active);
+                return;
+              }
+              if (active == null) {
+                ref.read(reportControllerProvider.notifier).select(pending);
+              }
               if (mounted &&
                   ref.read(reportControllerProvider).selection?.identity ==
                       pending.identity) {
@@ -411,7 +437,10 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
               ],
               Heading(t.reportsTitle),
               Text(t.reportScopeHelp),
-              if (requestedItem != null && !_seedBlocked) ...[
+              if (requestedItem != null &&
+                  !_seedBlocked &&
+                  effective.itemIds.length == 1 &&
+                  effective.itemIds.contains(requestedItem.id)) ...[
                 const SizedBox(height: 16),
                 VitalNotice(
                   key: const ValueKey('report-item-selected'),

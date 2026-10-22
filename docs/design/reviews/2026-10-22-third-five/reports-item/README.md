@@ -85,3 +85,22 @@ Synthetic records only, captured with:
   store prevents creating a second owner solely for a widget fixture.
 - The report period uses the current display zone. An unavailable zone is
   reported before seeding rather than guessed.
+
+## Lead integration
+
+The lead reproduced two review findings before correcting them:
+
+- Invalid item-date links lost their recovery state when the item lookup rebuilt.
+  Recovery now persists; malformed explicit dates never become a default range.
+- Selecting All items left the one-item notice visible. The notice now follows
+  the actual selection rather than the entry URL.
+
+Deferred initial selection also rechecks another active selection before applying
+its seed, so a selection that arrives during the first frame needs Replace.
+Keyboard activation of the overview overflow and Report command is now exercised.
+The original synthetic light/dark captures were inspected during integration;
+these fixes retain the captured valid one-item composition.
+
+Final lead verification: 69 item/report/event/overview checks passed, plus isolated
+keyboard and malformed-date checks. Whole-project analysis reported no issues.
+Focused evidence does not establish physical-device or full-suite acceptance.

@@ -325,6 +325,94 @@ void main() {
     expect(f.container.read(reportControllerProvider).selection, isNull);
     expect(find.text('All items'), findsNothing);
     expect(tester.takeException(), isNull);
+    f.container.read(appearanceProvider.notifier).setMode(ThemeMode.dark);
+    await settle(tester);
+    expect(find.byKey(const ValueKey('report-item-recovery')), findsOneWidget);
+    expect(find.text('All items'), findsNothing);
+    expect(find.text('Preview'), findsNothing);
+    expect(f.container.read(reportControllerProvider).selection, isNull);
+  });
+
+  appTest('item notice follows the reviewed substance selection', (
+    tester,
+  ) async {
+    final f = await launch(tester, todayClock: _now);
+    final item = await _createItem(
+      tester,
+      f.store,
+      commandId: 'scope-notice',
+      name: 'Scope notice medicine',
+    );
+    f.container.read(routerProvider).push('/reports?item=${item.id}');
+    await waitForText(tester, 'Only this item is included.');
+    await tap(tester, 'All items');
+    expect(
+      f.container.read(reportControllerProvider).selection!.itemIds,
+      isEmpty,
+    );
+    expect(find.text('Only this item is included.'), findsNothing);
+    expect(find.byKey(const ValueKey('report-item-selected')), findsNothing);
+    expect(f.container.read(reportControllerProvider).phase, ReportPhase.idle);
+  });
+
+  appTest('item report entry accepts keyboard activation', (tester) async {
+    final f = await launch(tester, todayClock: _now);
+    final item = await _createItem(
+      tester,
+      f.store,
+      commandId: 'keyboard-item-report',
+      name: 'Keyboard report medicine',
+    );
+    await _openOverview(tester, f.container, item);
+    Focus.of(
+      tester.element(
+        find
+            .descendant(
+              of: find.byType(VitalOverflow),
+              matching: find.byType(Icon),
+            )
+            .first,
+      ),
+    ).requestFocus();
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await settle(tester);
+    Focus.of(tester.element(find.text('Report'))).requestFocus();
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await waitForText(tester, 'Only this item is included.');
+    expect(f.container.read(reportControllerProvider).selection!.itemIds, {
+      item.id,
+    });
+    expect(f.container.read(reportControllerProvider).phase, ReportPhase.idle);
+  });
+
+  appTest('malformed item report dates never become default ranges', (
+    tester,
+  ) async {
+    final f = await launch(tester, todayClock: _now);
+    final item = await _createItem(
+      tester,
+      f.store,
+      commandId: 'invalid-date-item',
+      name: 'Date-link medicine',
+    );
+    for (final query in ['from=bad', 'before=bad', 'from=2026-02-30']) {
+      f.container.read(routerProvider).go('/reports?item=${item.id}&$query');
+      await waitForText(
+        tester,
+        'The report dates are unavailable. Check the link, then try again.',
+      );
+      f.container.invalidate(itemLookupProvider(item.id));
+      await settle(tester);
+      expect(
+        find.byKey(const ValueKey('report-item-recovery')),
+        findsOneWidget,
+      );
+      expect(find.text('Preview'), findsNothing);
+      expect(f.container.read(reportControllerProvider).selection, isNull);
+      expect(tester.takeException(), isNull);
+    }
   });
 
   appTest('a different report draft needs explicit Replace', (tester) async {
@@ -428,6 +516,13 @@ void main() {
     expect(f.container.read(reportControllerProvider).selection, isNull);
     expect(find.text('All items'), findsNothing);
     expect(tester.takeException(), isNull);
+    f.container.read(appearanceProvider.notifier).setMode(ThemeMode.dark);
+    f.container.invalidate(itemLookupProvider(item.id));
+    await settle(tester);
+    expect(find.byKey(const ValueKey('report-item-recovery')), findsOneWidget);
+    expect(find.text('All items'), findsNothing);
+    expect(find.text('Preview'), findsNothing);
+    expect(f.container.read(reportControllerProvider).selection, isNull);
   });
 
   appTest('a busy report blocks the item shortcut without replacing it', (
