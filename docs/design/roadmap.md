@@ -305,3 +305,21 @@ All five slices are integrated. Lead review aligned stock-card expiry labels
 with the filter's captured day, hid retained inventory during loading/errors,
 bounded interval expansion before allocation and checked source-link identity.
 See the [batch evidence](reviews/2026-10-22-next-five-direct/README.md).
+
+## Further five tasks, 22 October
+
+The owner authorised the same four direct DeepSeek workers plus lead pattern.
+These scoped extensions follow `2b283a5`; clinical timing, automatic backup,
+scanning, FHIR and physical-device gates remain open.
+
+| Slice | Outcome | Owner | State |
+| --- | --- | --- | --- |
+| D13f | Filter stock by an explicit inclusive expiry cutoff | DeepSeek | In progress |
+| D18b | Open the original earlier lab record from a panel comparison | DeepSeek | In progress |
+| D16c | Prepare an event-specific report in the existing report editor | DeepSeek | In progress |
+| D19c | Jump directly to an exact date in History | DeepSeek | In progress |
+| D14d | Inspect exact projected quantities and forecast assumptions | Lead | In progress |
+
+Every slice retains the canonical screens, shared controls, copy and motion
+standards, exact records and guarded actions. Worker results require lead
+integration and meaningful host verification before the state changes.
