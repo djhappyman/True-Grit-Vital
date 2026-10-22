@@ -233,7 +233,7 @@ extension BackupRecordStore on RecordStore {
 
   Future<BackupInventory> _backupInventory([
     BackupCancellationToken? token,
-    void Function(int validatedRows)? onValidatedBatch,
+    FutureOr<void> Function(int validatedRows)? onValidatedBatch,
   ]) async {
     token?.throwIfCancelled();
     if ((await _rows('PRAGMA integrity_check')).single.values.single != 'ok') {
@@ -382,16 +382,18 @@ extension BackupRecordStore on RecordStore {
   /// SQL integrity does not establish the meaning of quantity text. Validate
   /// every historical revision and exact pair before accepting an archive.
   ///
-  /// [onValidatedBatch] is an optional synchronous inspection progress
-  /// observer. It is called after each completed nonempty bounded validation
+  /// [onValidatedBatch] is an optional inspection progress observer. It is
+  /// called after each completed nonempty bounded validation
   /// batch with the cumulative count of validated rows. The count describes
   /// row work done for inspection only; it is NOT a clinical dose count or a
   /// byte volume. Production callers omit it. Cancellation is re-checked at
   /// the next boundary after the observer returns and before further work, so
   /// an observer that cancels the token stops the scan before the next batch.
+  /// The snapshot worker awaits the originating isolate's acknowledgement of
+  /// its synchronous observer before crossing that boundary.
   Future<void> _validateBackupQuantities([
     BackupCancellationToken? token,
-    void Function(int validatedRows)? onValidatedBatch,
+    FutureOr<void> Function(int validatedRows)? onValidatedBatch,
   ]) async {
     // Validate new structured facts as well as exact quantity columns. Pages
     // bound memory and cancellation remains available between each row.
@@ -475,7 +477,7 @@ extension BackupRecordStore on RecordStore {
         // validated row count whether or not a cancellation token exists.
         if (rows.isNotEmpty) {
           validatedRows += rows.length;
-          onValidatedBatch?.call(validatedRows);
+          await onValidatedBatch?.call(validatedRows);
         }
         // Next-boundary position: honour a cancellation the observer issued
         // (or one that arrived mid-batch) before any further validation work.
@@ -502,13 +504,12 @@ Future<BackupInventory> inspectBackupSnapshot({
   BackupCancellationToken? token,
   void Function(int validatedRows)? onValidatedBatch,
 }) async {
-  token?.throwIfCancelled();
-  final store = await RecordStore.open(path: path, key: key, isNew: false);
-  try {
-    return await store._backupInventory(token, onValidatedBatch);
-  } finally {
-    await store.close();
-  }
+  return (await _runBackupSnapshot(
+    path: path,
+    key: key,
+    token: token,
+    onValidatedBatch: onValidatedBatch,
+  ))!;
 }
 
 /// Re-keys a decrypted staged snapshot for a new installation. The old key is
@@ -521,6 +522,138 @@ Future<void> rekeyBackupSnapshot({
   if (newKey.length != 32 || newKey.any((b) => b < 0 || b > 255)) {
     throw const BackupFailure('backup_key');
   }
+  await _runBackupSnapshot(path: path, key: currentKey, newKey: newKey);
+}
+
+typedef _BackupSnapshotRequest = ({
+  String path,
+  List<int> key,
+  List<int>? newKey,
+  SendPort events,
+  bool reportBatches,
+});
+
+/// A snapshot owns its database registration and executor in a short-lived
+/// isolate. Drift 2.35 counts instances by runtimeType within an isolate, even
+/// when their executors and encrypted files are independent. Keeping exactly
+/// one snapshot store here leaves duplicate-live-store detection enabled in
+/// the app isolate, without a global warning flag or a special runtimeType.
+///
+/// Only paths, key copies and messages cross the boundary. Completion (including
+/// failure/cancellation) follows awaited executor closure; never kill this
+/// isolate while its background Drift connection still owns the snapshot.
+Future<BackupInventory?> _runBackupSnapshot({
+  required String path,
+  required List<int> key,
+  List<int>? newKey,
+  BackupCancellationToken? token,
+  void Function(int validatedRows)? onValidatedBatch,
+}) async {
+  token?.throwIfCancelled();
+  final events = ReceivePort();
+  SendPort? control;
+  (Object, StackTrace)? observerFailure;
+  void cancel() => control?.send(null);
+  final subscription = events.listen((message) {
+    if (message is SendPort) {
+      control = message;
+      if (token?.isCancelled ?? false) cancel();
+    } else {
+      final (rows, acknowledgement) = message as (int, SendPort);
+      try {
+        onValidatedBatch?.call(rows);
+      } catch (error, stack) {
+        observerFailure = (error, stack);
+      }
+      // Await the observer across the isolate boundary before scanning again.
+      // Its cancellation or exception must stop at this same batch boundary.
+      acknowledgement.send(
+        observerFailure == null && !(token?.isCancelled ?? false),
+      );
+    }
+  });
+  token?.addListener(cancel);
+  final request = (
+    path: path,
+    key: List<int>.of(key),
+    newKey: newKey == null ? null : List<int>.of(newKey),
+    events: events.sendPort,
+    reportBatches: onValidatedBatch != null,
+  );
+  try {
+    final result = await _startBackupSnapshot(request);
+    token?.throwIfCancelled();
+    return result;
+  } catch (_) {
+    final failure = observerFailure;
+    if (failure != null) Error.throwWithStackTrace(failure.$1, failure.$2);
+    rethrow;
+  } finally {
+    token?.removeListener(cancel);
+    await subscription.cancel();
+    events.close();
+  }
+}
+
+// Build the isolate closure in a scope containing only the sendable request.
+// A closure in _runBackupSnapshot can capture its sibling listener's context,
+// including the observer and the live database it refers to.
+Future<BackupInventory?> _startBackupSnapshot(_BackupSnapshotRequest request) =>
+    Isolate.run(
+      () => _backupSnapshotMain(request),
+      debugName: 'vital-backup-snapshot',
+    );
+
+Future<BackupInventory?> _backupSnapshotMain(
+  _BackupSnapshotRequest request,
+) async {
+  final control = ReceivePort();
+  final token = BackupCancellationToken();
+  control.listen((_) => token.cancel());
+  request.events.send(control.sendPort);
+  try {
+    final newKey = request.newKey;
+    if (newKey != null) {
+      await _rekeyBackupSnapshot(
+        path: request.path,
+        currentKey: request.key,
+        newKey: newKey,
+      );
+      return null;
+    }
+    final store = await RecordStore.open(
+      path: request.path,
+      key: request.key,
+      isNew: false,
+    );
+    try {
+      return await store._backupInventory(
+        token,
+        request.reportBatches
+            ? (rows) async {
+                final acknowledgement = ReceivePort();
+                try {
+                  request.events.send((rows, acknowledgement.sendPort));
+                  if (await acknowledgement.first != true) token.cancel();
+                } finally {
+                  acknowledgement.close();
+                }
+              }
+            : null,
+      );
+    } finally {
+      await store.close();
+    }
+  } finally {
+    control.close();
+  }
+}
+
+Future<void> _rekeyBackupSnapshot({
+  required String path,
+  required List<int> currentKey,
+  required List<int> newKey,
+}) async {
   final store = await RecordStore.open(
     path: path,
     key: currentKey,

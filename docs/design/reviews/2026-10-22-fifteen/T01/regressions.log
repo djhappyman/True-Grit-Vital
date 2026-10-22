@@ -1,0 +1,54 @@
+00:00 +0: loading /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_snapshot_isolation_test.dart
+00:00 +0: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_snapshot_isolation_test.dart: inspect and rekey use isolated executors without muting live warnings
+00:00 +1: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_inspection_cancellation_test.dart: cancelling a validation scan fails closed and keeps the live dataset
+00:00 +2: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_inspection_cancellation_test.dart: cancelling a validation scan fails closed and keeps the live dataset
+00:00 +3: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_inspection_cancellation_test.dart: cancelling a validation scan fails closed and keeps the live dataset
+00:00 +4: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_inspection_cancellation_test.dart: cancelling a validation scan fails closed and keeps the live dataset
+00:00 +5: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_inspection_cancellation_test.dart: cancelling a validation scan fails closed and keeps the live dataset
+00:01 +6: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_inspection_cancellation_test.dart: cancelling a validation scan fails closed and keeps the live dataset
+00:01 +7: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_inspection_cancellation_test.dart: cancelling a validation scan fails closed and keeps the live dataset
+00:01 +7: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/data/backup_store_test.dart: staged snapshot can be re-keyed without exposing the archive key
+WARNING (drift): It looks like you've created the database class _Database multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _Database (package:true_grit_vital/data/record_store.dart)
+#4      RecordStore.open (package:true_grit_vital/data/record_store.dart:452:16)
+<asynchronous suspension>
+#5      Throws._matchFuture (package:matcher/src/expect/throws_matcher.dart:103:19)
+<asynchronous suspension>
+#6      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+#7      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+#8      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#9      main.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/data/backup_store_test.dart:207:7)
+<asynchronous suspension>
+#10     Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#11     Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#12     Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:01 +8: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_inspection_cancellation_test.dart: cancelling a validation scan fails closed and keeps the live dataset
+00:01 +9: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_inspection_cancellation_test.dart: cancelling a validation scan fails closed and keeps the live dataset
+00:01 +10: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_service_test.dart: creates, validates and saves a complete archive
+00:01 +11: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_service_test.dart: creates, validates and saves a complete archive
+00:02 +12: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_snapshot_isolation_test.dart: cancelled creation preserves prior valid output and concurrent live writes
+00:03 +13: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_snapshot_isolation_test.dart: cancelled creation preserves prior valid output and concurrent live writes
+00:03 +14: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_service_test.dart: wrong password and tampered archive fail closed
+00:04 +15: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_service_test.dart: wrong password and tampered archive fail closed
+00:04 +16: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_inspection_cancellation_test.dart: restore validation of a pre-cancelled command reads no archive
+00:05 +17: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_inspection_cancellation_test.dart: restore validation of a pre-cancelled command reads no archive
+00:05 +18: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_service_test.dart: a well-formed container with a non-database snapshot is rejected
+00:05 +19: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_service_test.dart: only one protected capture can run in a process
+00:06 +20: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_service_test.dart: a cancelled save retains the archive for another attempt
+00:07 +21: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_service_test.dart: successful save stays successful when receipt persistence is locked
+00:09 +22: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_service_test.dart: failed save never records an external save acknowledgement
+00:10 +23: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_service_test.dart: a failed capture keeps live records usable
+00:10 +24: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_service_test.dart: startup cleanup removes only known abandoned staging files
+00:10 +25: All tests passed!

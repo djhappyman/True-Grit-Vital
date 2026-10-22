@@ -1,0 +1,285 @@
+00:00 +0: loading /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_snapshot_isolation_test.dart
+00:00 +0: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_snapshot_isolation_test.dart: inspect and rekey use isolated executors without muting live warnings
+00:00 +0: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart: an old archive cannot disable the installation app lock
+WARNING (drift): It looks like you've created the database class _Database multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _Database (package:true_grit_vital/data/record_store.dart)
+#4      RecordStore.open (package:true_grit_vital/data/record_store.dart:452:16)
+<asynchronous suspension>
+#5      RestoreRecordStore.prepareRestoredDatabase (package:true_grit_vital/data/restore_store.dart:49:16)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart:49:5)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#8      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#9      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+WARNING (drift): It looks like you've created the database class _Database multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _Database (package:true_grit_vital/data/record_store.dart)
+#4      RecordStore.open (package:true_grit_vital/data/record_store.dart:452:16)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart:53:22)
+<asynchronous suspension>
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:00 +1: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_snapshot_isolation_test.dart: inspect and rekey use isolated executors without muting live warnings
+00:00 +2: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart: migrates, re-keys and clears device-local state while preserving history
+WARNING (drift): It looks like you've created the database class _Database multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _Database (package:true_grit_vital/data/record_store.dart)
+#4      RecordStore.open (package:true_grit_vital/data/record_store.dart:452:16)
+<asynchronous suspension>
+#5      RestoreRecordStore.prepareRestoredDatabase (package:true_grit_vital/data/restore_store.dart:49:16)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart:91:24)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#8      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#9      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+WARNING (drift): It looks like you've created the database class _Database multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _Database (package:true_grit_vital/data/record_store.dart)
+#4      RecordStore.open (package:true_grit_vital/data/record_store.dart:452:16)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart:110:24)
+<asynchronous suspension>
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:00 +3: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_snapshot_isolation_test.dart: wrong keys, thrown observers and cancellation close snapshot handles
+00:00 +3: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart: rejects quantity text that disagrees with its stored scale
+WARNING (drift): It looks like you've created the database class _Database multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _Database (package:true_grit_vital/data/record_store.dart)
+#4      RecordStore.open (package:true_grit_vital/data/record_store.dart:452:16)
+<asynchronous suspension>
+#5      RestoreRecordStore.prepareRestoredDatabase (package:true_grit_vital/data/restore_store.dart:49:16)
+<asynchronous suspension>
+#6      Throws._matchFuture (package:matcher/src/expect/throws_matcher.dart:103:19)
+<asynchronous suspension>
+#7      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+#9      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#10     main.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart:238:5)
+<asynchronous suspension>
+#11     Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#12     Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#13     Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:00 +4: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart: rejects quantity text that disagrees with its stored scale
+00:00 +5: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_snapshot_isolation_test.dart: live writes during inspection leave the captured inventory unchanged
+00:00 +5: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart: restore keeps authored details and retires local setup progress
+WARNING (drift): It looks like you've created the database class _Database multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _Database (package:true_grit_vital/data/record_store.dart)
+#4      RecordStore.open (package:true_grit_vital/data/record_store.dart:452:16)
+<asynchronous suspension>
+#5      RestoreRecordStore.prepareRestoredDatabase (package:true_grit_vital/data/restore_store.dart:49:16)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart:292:7)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#8      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#9      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+WARNING (drift): It looks like you've created the database class _Database multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _Database (package:true_grit_vital/data/record_store.dart)
+#4      RecordStore.open (package:true_grit_vital/data/record_store.dart:452:16)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart:297:24)
+<asynchronous suspension>
+#6      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#8      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:00 +6: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart: restore keeps authored details and retires local setup progress
+00:00 +7: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_snapshot_isolation_test.dart: invalid quantity validation closes its executor and preserves the live dataset
+00:00 +7: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart: rejects a staged snapshot with broken ownership or links
+WARNING (drift): It looks like you've created the database class _Database multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _Database (package:true_grit_vital/data/record_store.dart)
+#4      RecordStore.open (package:true_grit_vital/data/record_store.dart:452:16)
+<asynchronous suspension>
+#5      RestoreRecordStore.prepareRestoredDatabase (package:true_grit_vital/data/restore_store.dart:49:16)
+<asynchronous suspension>
+#6      Throws._matchFuture (package:matcher/src/expect/throws_matcher.dart:103:19)
+<asynchronous suspension>
+#7      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+#9      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#10     main.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_test.dart:331:5)
+<asynchronous suspension>
+#11     Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#12     Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#13     Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:00 +8: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_snapshot_isolation_test.dart: invalid quantity validation closes its executor and preserves the live dataset
+00:00 +9: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_snapshot_isolation_test.dart: concurrent rekey and live writes use different encrypted files
+00:00 +10: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_snapshot_isolation_test.dart: cancelled creation preserves prior valid output and concurrent live writes
+00:01 +11: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/backup/backup_snapshot_isolation_test.dart: cancelled creation preserves prior valid output and concurrent live writes
+00:03 +12: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_flow_test.dart: validated archive previews and replaces with a fresh generation
+00:03 +12: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_cancellation_test.dart: preparation cancellation cancelling after the first manifest batch rolls back scrub and stamping
+WARNING (drift): It looks like you've created the database class _Database multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _Database (package:true_grit_vital/data/record_store.dart)
+#4      RecordStore.open (package:true_grit_vital/data/record_store.dart:452:16)
+<asynchronous suspension>
+#5      RestoreRecordStore.prepareRestoredDatabase (package:true_grit_vital/data/restore_store.dart:49:16)
+<asynchronous suspension>
+#6      Throws._matchFuture (package:matcher/src/expect/throws_matcher.dart:103:19)
+<asynchronous suspension>
+#7      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:153:17)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+#9      expectLater.<anonymous closure> (package:flutter_test/src/widget_tester.dart:508:19)
+<asynchronous suspension>
+#10     main.<anonymous closure>.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_cancellation_test.dart:294:9)
+<asynchronous suspension>
+#11     Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#12     Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#13     Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:03 +13: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_flow_test.dart: validated archive previews and replaces with a fresh generation
+00:03 +13: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_cancellation_test.dart: preparation cancellation a live token still prepares and rebinds every manifest
+WARNING (drift): It looks like you've created the database class _Database multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _Database (package:true_grit_vital/data/record_store.dart)
+#4      RecordStore.open (package:true_grit_vital/data/record_store.dart:452:16)
+<asynchronous suspension>
+#5      RestoreRecordStore.prepareRestoredDatabase (package:true_grit_vital/data/restore_store.dart:49:16)
+<asynchronous suspension>
+#6      main.<anonymous closure>.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_preparation_cancellation_test.dart:364:24)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#8      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#9      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:03 +14: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_flow_test.dart: validated archive previews and replaces with a fresh generation
+00:03 +15: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_flow_test.dart: validated archive previews and replaces with a fresh generation
+00:03 +16: /home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_flow_test.dart: validated archive previews and replaces with a fresh generation
+WARNING (drift): It looks like you've created the database class _Database multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _Database (package:true_grit_vital/data/record_store.dart)
+#4      RecordStore.open (package:true_grit_vital/data/record_store.dart:452:16)
+<asynchronous suspension>
+#5      RestoreRecordStore.prepareRestoredDatabase (package:true_grit_vital/data/restore_store.dart:49:16)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_flow_test.dart:129:24)
+<asynchronous suspension>
+#7      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#8      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#9      Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+WARNING (drift): It looks like you've created the database class _Database multiple times. When these two databases use the same QueryExecutor, race conditions will occur and might corrupt the database.
+Try to follow the advice at https://drift.simonbinder.eu/faq/#using-the-database or, if you know what you're doing, set driftRuntimeOptions.dontWarnAboutMultipleDatabases = true
+Here is the stacktrace from when the database was opened a second time:
+#0      GeneratedDatabase._handleInstantiated (package:drift/src/runtime/api/db_base.dart:96:30)
+#1      GeneratedDatabase._whenConstructed (package:drift/src/runtime/api/db_base.dart:73:12)
+#2      new GeneratedDatabase (package:drift/src/runtime/api/db_base.dart:64:5)
+#3      new _Database (package:true_grit_vital/data/record_store.dart)
+#4      RecordStore.open (package:true_grit_vital/data/record_store.dart:452:16)
+<asynchronous suspension>
+#5      RestoreActivation._generation (package:true_grit_vital/restore/restore_activation.dart:237:21)
+<asynchronous suspension>
+#6      RestoreActivation.activate (package:true_grit_vital/restore/restore_activation.dart:145:11)
+<asynchronous suspension>
+#7      main.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-a58713a3/test/restore/restore_flow_test.dart:138:22)
+<asynchronous suspension>
+#8      Declarer.test.<anonymous closure>.<anonymous closure> (package:test_api/src/backend/declarer.dart:253:15)
+<asynchronous suspension>
+#9      Declarer.test.<anonymous closure> (package:test_api/src/backend/declarer.dart:250:11)
+<asynchronous suspension>
+#10     Invoker._waitForOutstandingCallbacks.<anonymous closure> (package:test_api/src/backend/invoker.dart:318:9)
+<asynchronous suspension>
+This warning will only appear on debug builds.
+00:04 +17: All tests passed!
