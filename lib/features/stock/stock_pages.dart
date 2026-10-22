@@ -91,14 +91,27 @@ class _StockPageState extends ConsumerState<StockPage> {
     _pages = 1;
   });
 
-  void _clearFilters() => setState(() {
+  void _clearFilters() {
     _search.clear();
-    _cutoff.clear();
-    _filter = StockInventoryFilter.all;
-    _cutoffDay = null;
-    _cutoffError = null;
-    _pages = 1;
-  });
+    ref.read(stockInventorySortProvider.notifier).reset();
+    setState(() {
+      _cutoff.clear();
+      _filter = StockInventoryFilter.all;
+      _cutoffDay = null;
+      _cutoffError = null;
+      _pages = 1;
+    });
+  }
+
+  void _selectSort(StockInventorySort sort) {
+    setState(() => _pages = 1);
+    ref.read(stockInventorySortProvider.notifier).select(sort);
+  }
+
+  void _resetSort() {
+    setState(() => _pages = 1);
+    ref.read(stockInventorySortProvider.notifier).reset();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,6 +150,7 @@ class _StockPageState extends ConsumerState<StockPage> {
       cutoff: _cutoffDay,
     );
     final inventory = ref.watch(stockInventoryProvider(query));
+    final sort = ref.watch(stockInventorySortProvider);
     final filtered =
         search.isNotEmpty ||
         _filter != StockInventoryFilter.all ||
@@ -219,6 +233,20 @@ class _StockPageState extends ConsumerState<StockPage> {
                     const SizedBox(height: 8),
                     Text(t.featureStockFilterOverlapHelp),
                     const SizedBox(height: 12),
+                    Text(t.featureStockSortLabel, style: VitalType.section),
+                    const SizedBox(height: 8),
+                    StockInventorySortOptions(
+                      selected: sort,
+                      onSelected: _selectSort,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      t.featureStockSortHelp,
+                      style: StitchType.caption.copyWith(
+                        color: StitchColors(context).muted,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     LabelledInput(
                       key: const ValueKey('stock-cutoff-field'),
                       label: t.directCutoffLabel,
@@ -295,6 +323,27 @@ class _StockPageState extends ConsumerState<StockPage> {
                   onPressed: _clearCutoff,
                   child: Text(
                     t.directCutoffActive(_cutoffDay.toString()),
+                    style: StitchType.small,
+                  ),
+                ),
+              ),
+            ),
+          ],
+          if (sort != StockInventorySort.name) ...[
+            const SizedBox(height: 6),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Semantics(
+                label: t.featureStockSortResetLabel,
+                button: true,
+                child: StitchButton(
+                  key: const ValueKey('stock-sort-chip'),
+                  primary: true,
+                  compact: true,
+                  icon: LucideIcons.calendarClock,
+                  onPressed: _resetSort,
+                  child: Text(
+                    t.featureStockSortActive,
                     style: StitchType.small,
                   ),
                 ),
@@ -682,6 +731,51 @@ class StockInventoryFilters extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Explicit whole-collection ordering. Name keeps the established item name
+/// and id order. Expiry orders saved full dates ascending and puts containers
+/// without a date last. The choice is not a time window and never implies an
+/// early result beyond the bounded read.
+class StockInventorySortOptions extends StatelessWidget {
+  const StockInventorySortOptions({
+    super.key,
+    required this.selected,
+    required this.onSelected,
+  });
+  final StockInventorySort selected;
+  final ValueChanged<StockInventorySort> onSelected;
+
+  String _name(AppLocalizations t, StockInventorySort sort) => switch (sort) {
+    StockInventorySort.name => t.featureStockSortName,
+    StockInventorySort.expiry => t.featureStockSortExpiry,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    return Semantics(
+      container: true,
+      label: t.featureStockSortLabel,
+      child: Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: [
+          for (final sort in StockInventorySort.values)
+            Semantics(
+              selected: selected == sort,
+              child: StitchButton(
+                key: ValueKey('stock-sort-${sort.name}'),
+                primary: selected == sort,
+                compact: true,
+                onPressed: () => onSelected(sort),
+                child: Text(_name(t, sort), style: StitchType.small),
+              ),
+            ),
+        ],
       ),
     );
   }

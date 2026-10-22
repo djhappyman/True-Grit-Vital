@@ -159,13 +159,33 @@ typedef StockInventoryQuery = ({
   CivilDate? cutoff,
 });
 
+/// Explicit inventory ordering chosen in the existing filter disclosure.
+/// Defaults to the established name order. It stays outside
+/// [StockInventoryQuery] so existing record-typed callers keep the same
+/// default without changing their shape.
+class StockInventorySortController extends Notifier<StockInventorySort> {
+  @override
+  StockInventorySort build() => StockInventorySort.name;
+
+  void select(StockInventorySort sort) => state = sort;
+
+  void reset() => state = StockInventorySort.name;
+}
+
+final stockInventorySortProvider =
+    NotifierProvider.autoDispose<
+      StockInventorySortController,
+      StockInventorySort
+    >(StockInventorySortController.new);
+
 /// Whole-collection inventory state, composed from one store-backed search,
-/// item scope, clock snapshot and optional inclusive expiry cutoff. The loaded
-/// page is sliced by the page.
+/// item scope, clock snapshot, optional inclusive expiry cutoff and the
+/// explicit sort choice. The loaded page is sliced by the page.
 final stockInventoryProvider = StreamProvider.autoDispose
     .family<StockInventorySnapshot, StockInventoryQuery>(
       retry: (_, _) => null,
       (ref, q) async* {
+        final sort = ref.watch(stockInventorySortProvider);
         if (ref.watch(appLockProvider.select((state) => state.locked))) {
           yield StockInventorySnapshot.empty();
           return;
@@ -180,6 +200,7 @@ final stockInventoryProvider = StreamProvider.autoDispose
                 now: q.asOf,
                 observedZone: q.zone,
                 expiryCutoff: q.cutoff,
+                sort: sort,
               );
         } on CommandConflict catch (error) {
           if (error.code != 'app_locked') rethrow;

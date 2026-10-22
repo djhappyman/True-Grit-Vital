@@ -7887,6 +7887,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Paused counts the schedule, so a container can also count as low, adequate or unknown.';
 
   @override
+  String get featureStockSortLabel => 'Sort';
+
+  @override
+  String get featureStockSortName => 'Name';
+
+  @override
+  String get featureStockSortExpiry => 'Expiry';
+
+  @override
+  String get featureStockSortHelp =>
+      'Expiry lists saved dates from the earliest, with containers without a date last.';
+
+  @override
+  String get featureStockSortActive => 'Sorted by expiry';
+
+  @override
+  String get featureStockSortResetLabel => 'Reset sort. Sorted by expiry.';
+
+  @override
   String get featureStockFilterEmptyTitle => 'No matches';
 
   @override

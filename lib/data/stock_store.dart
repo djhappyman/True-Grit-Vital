@@ -553,7 +553,9 @@ extension StockRecordStore on RecordStore {
   /// list. Expiry compares each saved pack date with the observed local civil
   /// day at [now], not with the raw clock. [expiryCutoff] is independent of
   /// that observation: it includes known pack dates on or before the chosen
-  /// civil day and never requires a device time zone.
+  /// civil day and never requires a device time zone. [sort] orders the whole
+  /// filtered snapshot before the UI slices a page. Expiry ordering uses only
+  /// saved full dates, so it needs no observed day either.
   Future<StockInventorySnapshot> stockInventory({
     required String personId,
     required DateTime now,
@@ -562,6 +564,7 @@ extension StockRecordStore on RecordStore {
     String search = '',
     StockInventoryFilter filter = StockInventoryFilter.all,
     CivilDate? expiryCutoff,
+    StockInventorySort sort = StockInventorySort.name,
   }) async {
     _requireWritable();
     return _db.transaction(() async {
@@ -587,10 +590,13 @@ extension StockRecordStore on RecordStore {
         [...args, _stockInventoryBound + 1],
       );
       final complete = rows.length <= _stockInventoryBound;
-      final candidates = rows
-          .take(_stockInventoryBound)
-          .map(_stockContainer)
-          .toList();
+      final candidates = <StoredStockContainer>[];
+      final itemNames = <String, String>{};
+      for (final row in rows.take(_stockInventoryBound)) {
+        final container = _stockContainer(row);
+        candidates.add(container);
+        itemNames[container.id] = row['item_name'] as String;
+      }
 
       final statuses = await substanceStatusSnapshot(
         personId: personId,
@@ -671,6 +677,28 @@ extension StockRecordStore on RecordStore {
             (expiryCutoff == null || container.expiresOnOrBefore(expiryCutoff));
       }).toList();
 
+      // The SQL read already supplies the established name/id order. Expiry
+      // ordering is applied to the whole filtered bounded snapshot, before the
+      // UI slices a page, so unknown dates stay last and ties stay stable.
+      if (sort == StockInventorySort.expiry) {
+        filtered.sort((a, b) {
+          final aExpiry = a.expiryDate, bExpiry = b.expiryDate;
+          if (aExpiry != null && bExpiry != null) {
+            final byExpiry = aExpiry.compareTo(bExpiry);
+            if (byExpiry != 0) return byExpiry;
+          } else if (aExpiry != null) {
+            return -1;
+          } else if (bExpiry != null) {
+            return 1;
+          }
+          final byName = (itemNames[a.id] ?? a.label).compareTo(
+            itemNames[b.id] ?? b.label,
+          );
+          if (byName != 0) return byName;
+          return a.id.compareTo(b.id);
+        });
+      }
+
       _requireWritable();
       return StockInventorySnapshot(
         containers: filtered,
@@ -700,6 +728,7 @@ extension StockRecordStore on RecordStore {
     String search = '',
     StockInventoryFilter filter = StockInventoryFilter.all,
     CivilDate? expiryCutoff,
+    StockInventorySort sort = StockInventorySort.name,
   }) => _watch(
     () => stockInventory(
       personId: personId,
@@ -709,6 +738,7 @@ extension StockRecordStore on RecordStore {
       search: search,
       filter: filter,
       expiryCutoff: expiryCutoff,
+      sort: sort,
     ),
   );
 

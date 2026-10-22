@@ -9366,6 +9366,30 @@
   "@featureStockFilterOverlapHelp": {
     "description": "Explains overlapping paused and balance filter counts."
   },
+  "featureStockSortLabel": "Sort",
+  "@featureStockSortLabel": {
+    "description": "Heading above the explicit inventory sort choices in the stock filter disclosure."
+  },
+  "featureStockSortName": "Name",
+  "@featureStockSortName": {
+    "description": "Inventory sort choice keeping the established saved item name and container order."
+  },
+  "featureStockSortExpiry": "Expiry",
+  "@featureStockSortExpiry": {
+    "description": "Inventory sort choice ordering known saved pack dates from the earliest and placing containers without a date last."
+  },
+  "featureStockSortHelp": "Expiry lists saved dates from the earliest, with containers without a date last.",
+  "@featureStockSortHelp": {
+    "description": "Explains the expiry sort rule. It does not claim a whole-collection earliest result when the bounded read is incomplete."
+  },
+  "featureStockSortActive": "Sorted by expiry",
+  "@featureStockSortActive": {
+    "description": "Visible chip naming the active non-default inventory sort."
+  },
+  "featureStockSortResetLabel": "Reset sort. Sorted by expiry.",
+  "@featureStockSortResetLabel": {
+    "description": "Accessible name for the active sort chip, which returns the inventory to its default name order when activated."
+  },
   "featureStockFilterEmptyTitle": "No matches",
   "@featureStockFilterEmptyTitle": {
     "description": "Filtered-empty heading for the stock inventory."

@@ -12249,6 +12249,42 @@ abstract class AppLocalizations {
   /// **'Paused counts the schedule, so a container can also count as low, adequate or unknown.'**
   String get featureStockFilterOverlapHelp;
 
+  /// Heading above the explicit inventory sort choices in the stock filter disclosure.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get featureStockSortLabel;
+
+  /// Inventory sort choice keeping the established saved item name and container order.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get featureStockSortName;
+
+  /// Inventory sort choice ordering known saved pack dates from the earliest and placing containers without a date last.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry'**
+  String get featureStockSortExpiry;
+
+  /// Explains the expiry sort rule. It does not claim a whole-collection earliest result when the bounded read is incomplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry lists saved dates from the earliest, with containers without a date last.'**
+  String get featureStockSortHelp;
+
+  /// Visible chip naming the active non-default inventory sort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted by expiry'**
+  String get featureStockSortActive;
+
+  /// Accessible name for the active sort chip, which returns the inventory to its default name order when activated.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset sort. Sorted by expiry.'**
+  String get featureStockSortResetLabel;
+
   /// Filtered-empty heading for the stock inventory.
   ///
   /// In en, this message translates to:

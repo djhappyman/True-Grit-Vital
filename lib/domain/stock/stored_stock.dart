@@ -211,6 +211,14 @@ enum StockInventoryFilter {
   today,
 }
 
+/// Explicit ordering for the whole bounded inventory snapshot. `name` keeps
+/// the established saved item name and container id order. `expiry` orders
+/// known saved pack dates ascending and puts containers without a saved date
+/// last, using the same name and id tie break. Neither choice needs an observed
+/// civil day or time zone, and neither claims anything about rows outside the
+/// bounded read.
+enum StockInventorySort { name, expiry }
+
 /// The item's current plan shape, kept separate from its stock balance.
 enum StockInventoryPlanState {
   active,
@@ -261,7 +269,8 @@ final class StockInventoryCounts {
 }
 
 /// One whole-collection inventory read under one search and clock snapshot.
-/// [containers] is the filtered list before the UI's page slice.
+/// [containers] is the filtered list in the requested sort order, before the
+/// UI's page slice.
 final class StockInventorySnapshot {
   StockInventorySnapshot({
     required Iterable<StoredStockContainer> containers,
