@@ -801,7 +801,7 @@ class _ReportItemRecovery extends StatelessWidget {
     return PageContent(
       panelled: true,
       children: [
-        Heading(t.reportItemUnavailableTitle),
+        Heading(t.reportsTitle),
         const SizedBox(height: 12),
         VitalNotice(
           key: const ValueKey('report-item-recovery'),

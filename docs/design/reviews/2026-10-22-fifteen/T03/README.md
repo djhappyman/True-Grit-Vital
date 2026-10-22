@@ -58,6 +58,8 @@ Real Flutter widget captures use synthetic local records and bundled text/icon f
 
 These are host widget captures, not physical-device or screen-reader acceptance. Native build/boot, physical TalkBack/VoiceOver, release gates and measured device performance remain with the lead and existing gate register. This task does not close tickets 20/21 or G04 by itself.
 
+Lead layout review shortened the recovery heading to the existing “Reports” label after the 320 px / 2x capture split “unavailable” inside a word. The detailed recovery message remains unchanged. Both theme/layout checks passed again and all six captures were refreshed; system text scaling is preserved.
+
 ## Loaded skills
 
 All paths below were directly readable and loaded; no native skill loader was required and no skill-file access failed:
