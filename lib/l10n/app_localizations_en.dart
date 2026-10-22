@@ -2624,6 +2624,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get eventReport => 'Report';
+
+  @override
+  String eventReportFor(String name) {
+    return 'Report for $name';
+  }
+
+  @override
+  String get eventReportNeedsStart =>
+      'A start date is needed before preparing a report for this event.';
+
+  @override
+  String get eventReportNeedsEnd =>
+      'An end date is needed before preparing a report for this event.';
+
+  @override
+  String get eventReportDatesReview =>
+      'Event dates need review before preparing a report for this event.';
+
+  @override
   String get eventNotRecorded => 'Not recorded';
 
   @override
@@ -5311,6 +5331,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get reportEventOngoing => 'No event end is recorded.';
+
+  @override
   String reportEventRangeAction(String from, String through) {
     return 'The selected dates do not include this event. Apply $from to $through to cover its recorded start and end.';
   }
@@ -5324,6 +5347,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String reportEventApplyRangeLabel(String from, String through) {
     return 'Apply report dates from $from to $through';
   }
+
+  @override
+  String get reportSelectedTitle => 'Report selected';
+
+  @override
+  String get reportSelectedBody =>
+      'The report editor already has a selection. Replace it with this event report, or finish that report first.';
+
+  @override
+  String get reportBusyTitle => 'Report in progress';
+
+  @override
+  String get reportBusyBody =>
+      'A report is being prepared. Wait for it to finish or cancel it before preparing this event report.';
+
+  @override
+  String get reportReplaceTitle => 'Replace report?';
+
+  @override
+  String get reportReplaceBody =>
+      'The report editor has a different selection. Replace it with this event report?';
 
   @override
   String get reportNoEvents => 'No events are available.';

@@ -10,17 +10,25 @@ import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
 import '../events/event_pages.dart'
     show eventDateLabel, eventLookupProvider, eventPageProvider;
+import '../events/event_report_location.dart';
 import '../../ui/vital_ui.dart';
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
 
 /// Stable entry point for the current report template.
-const reportsLocation = '/reports';
+const reportsLocation = eventReportsLocation;
 const reportPreviewLocation = '/reports/preview';
 
 class ReportsPage extends ConsumerStatefulWidget {
-  const ReportsPage({super.key, this.from, this.before, this.returnLocation});
-  final String? from, before, returnLocation;
+  const ReportsPage({
+    super.key,
+    this.from,
+    this.before,
+    this.returnLocation,
+    this.event,
+    this.template,
+  });
+  final String? from, before, returnLocation, event, template;
   @override
   ConsumerState<ReportsPage> createState() => _ReportsPageState();
 }
@@ -31,6 +39,8 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
       reportName = TextEditingController();
   String? dateError;
   bool initialised = false, openedPreview = false;
+  ReportSelection? _requestedSeed;
+  bool _seedBlocked = false;
 
   @override
   void initState() {
@@ -78,6 +88,74 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     ref
         .read(reportControllerProvider.notifier)
         .setReportName(value.isEmpty ? null : value);
+  }
+
+  ReportTemplateId _requestedTemplate() {
+    final requested = widget.template?.trim().toLowerCase();
+    return switch (requested) {
+      'event' || 'r03' || 'r03eventreview' => ReportTemplateId.r03EventReview,
+      'history' ||
+      'r02' ||
+      'r02detailedhistory' => ReportTemplateId.r02DetailedHistory,
+      'summary' ||
+      'r01' ||
+      'r01substancesummary' => ReportTemplateId.r01SubstanceSummary,
+      _ =>
+        widget.event == null
+            ? ReportTemplateId.r01SubstanceSummary
+            : ReportTemplateId.r03EventReview,
+    };
+  }
+
+  ReportSelection _requestedSelection(
+    DateTime now,
+    String personId,
+    ReportTemplateId template,
+  ) {
+    final fromText = widget.from ?? '${now.year}-01-01';
+    final throughText =
+        (widget.before == null
+            ? null
+            : parseDate(widget.before!)?.addDays(-1).toString()) ??
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-'
+            '${now.day.toString().padLeft(2, '0')}';
+    final event = widget.event;
+    return ReportSelection(
+      template: template,
+      personId: personId,
+      fromDate: parseDate(fromText) ?? CivilDate(now.year, 1, 1),
+      beforeDate:
+          (parseDate(throughText) ?? CivilDate(now.year, now.month, now.day))
+              .addDays(1),
+      displayZone: ref.read(displayZoneProvider),
+      eventId:
+          template.requiresEvent &&
+              event != null &&
+              RegExp(r'^[A-Za-z0-9_-]{1,128}$').hasMatch(event)
+          ? event
+          : null,
+    );
+  }
+
+  void _applySelection(ReportSelection selection) {
+    from.text = selection.fromDate.toString();
+    through.text = selection.beforeDate.addDays(-1).toString();
+    reportName.text = selection.reportName ?? '';
+  }
+
+  void _replaceSeed() {
+    final seed = _requestedSeed;
+    if (seed == null) return;
+    ref.read(reportControllerProvider.notifier).select(seed);
+    if (ref.read(reportControllerProvider).selection?.identity !=
+        seed.identity) {
+      return;
+    }
+    setState(() {
+      _seedBlocked = false;
+      _requestedSeed = null;
+    });
+    _applySelection(seed);
   }
 
   CivilDate? parseDate(String text) {
@@ -162,28 +240,27 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
           const selected = meId;
           if (!initialised) {
             initialised = true;
-            final now = DateTime.now();
-            from.text = widget.from ?? '${now.year}-01-01';
-            through.text =
-                (widget.before == null
-                    ? null
-                    : parseDate(widget.before!)?.addDays(-1).toString()) ??
-                '${now.year}-${now.month.toString().padLeft(2, '0')}-'
-                    '${now.day.toString().padLeft(2, '0')}';
-            final selection = ReportSelection(
-              personId: selected,
-              fromDate: parseDate(from.text) ?? CivilDate(now.year, 1, 1),
-              beforeDate:
-                  (parseDate(through.text) ??
-                          CivilDate(now.year, now.month, now.day))
-                      .addDays(1),
-              displayZone: ref.read(displayZoneProvider),
+            final requested = _requestedSelection(
+              DateTime.now(),
+              selected,
+              _requestedTemplate(),
             );
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) {
-                ref.read(reportControllerProvider.notifier).select(selection);
-              }
-            });
+            final active = ref.read(reportControllerProvider).selection;
+            if (active != null && active.identity != requested.identity) {
+              _seedBlocked = true;
+              _requestedSeed = requested;
+              _applySelection(active);
+            } else {
+              _applySelection(requested);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!mounted) return;
+                final state = ref.read(reportControllerProvider);
+                if (state.selection == null ||
+                    state.selection!.identity == requested.identity) {
+                  ref.read(reportControllerProvider.notifier).select(requested);
+                }
+              });
+            }
           }
           final current = state.selection;
           final effective =
@@ -202,7 +279,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
           final selectedEvent = eventLookup?.value;
           final eventGuidance = selectedEvent == null
               ? null
-              : _eventRangeGuidance(selectedEvent, effective);
+              : eventReportRange(selectedEvent, effective);
           final selectedEventMissing =
               eventLookup != null &&
               eventLookup.hasValue &&
@@ -216,6 +293,28 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
           return PageContent(
             panelled: true,
             children: [
+              if (_seedBlocked) ...[
+                VitalNotice(
+                  action: VitalButton.secondary(
+                    onPressed: state.busy || state.handoffBusy
+                        ? null
+                        : _replaceSeed,
+                    child: Text(t.replace),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        t.reportSelectedTitle,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(t.reportSelectedBody),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
               Heading(t.reportsTitle),
               Text(t.reportScopeHelp),
               const SizedBox(height: 16),
@@ -455,7 +554,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     ref.read(reportControllerProvider.notifier).setItems(ids);
   }
 
-  void _applyEventDates(_EventRangeGuidance guidance) {
+  void _applyEventDates(EventReportRange guidance) {
     from.text = guidance.fromDate.toString();
     through.text = guidance.throughDate.toString();
   }
@@ -503,7 +602,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
         return;
       }
       if (event != null) {
-        final guidance = _eventRangeGuidance(event, next);
+        final guidance = eventReportRange(event, next);
         if (!guidance.covers) {
           setState(() => dateError = _eventRangeMessage(t, guidance));
           return;
@@ -717,7 +816,7 @@ class _SelectedEventReview extends StatelessWidget {
     required this.onRetry,
   });
   final AsyncValue<EventRecord?> lookup;
-  final _EventRangeGuidance? guidance;
+  final EventReportRange? guidance;
   final bool enabled;
   final VoidCallback? onApplyDates;
   final VoidCallback onRetry;
@@ -750,6 +849,8 @@ class _SelectedEventReview extends StatelessWidget {
                 ),
               ),
             Text(t.reportEventZoneValue(event.zoneId)),
+            if (event.actualEnd == null && !event.completed)
+              Text(t.reportEventOngoing),
             if (event.completed) Text(t.eventCompleted),
             if (guidance != null && !guidance!.covers) ...[
               const SizedBox(height: 8),
@@ -782,82 +883,7 @@ class _SelectedEventReview extends StatelessWidget {
   }
 }
 
-/// The report window that covers the event's known boundaries, expressed in
-/// the selected display zone so the date inputs and backend day bounds match.
-///
-/// Missing boundaries keep the corresponding entered date. They are never
-/// replaced with an unrecorded or guessed date.
-final class _EventRangeGuidance {
-  const _EventRangeGuidance({
-    required this.covers,
-    required this.fromDate,
-    required this.throughDate,
-    required this.startKnown,
-    required this.endKnown,
-  });
-  final bool covers;
-  final CivilDate fromDate, throughDate;
-  final bool startKnown, endKnown;
-}
-
-_EventRangeGuidance _eventRangeGuidance(
-  EventRecord event,
-  ReportSelection selection,
-) {
-  final display = DisplayTime();
-  CivilDate? displayDate(DateTime? instant) => instant == null
-      ? null
-      : display.instant(instant, selection.displayZone).civilDate;
-  final start = displayDate(
-    _eventBoundaryInstant(
-      event.actualStart ?? event.plannedStart,
-      event.zoneId,
-    ),
-  );
-  final endDate = event.actualEnd;
-  final endInstant =
-      _eventBoundaryInstant(endDate, event.zoneId, endOfDay: true) ??
-      event.completedAt;
-  var end = displayDate(endInstant);
-  if (end != null &&
-      endDate?.precision == EventDatePrecision.day &&
-      display.dayBounds(end, selection.displayZone).start == endInstant) {
-    // A final day includes that whole day. The exclusive boundary belongs to
-    // the next day, so the last included report date is the day before it.
-    end = end.addDays(-1);
-  }
-  var from = start ?? selection.fromDate;
-  var through = end ?? selection.beforeDate.addDays(-1);
-  if (end != null && end.compareTo(from) < 0) from = end;
-  if (start != null && through.compareTo(start) < 0) through = start;
-  return _EventRangeGuidance(
-    covers: eventSelectionCovers(event, selection),
-    fromDate: from,
-    throughDate: through,
-    startKnown: start != null,
-    endKnown: end != null,
-  );
-}
-
-DateTime? _eventBoundaryInstant(
-  EventDate? date,
-  String zone, {
-  bool endOfDay = false,
-}) {
-  switch (date?.precision) {
-    case EventDatePrecision.exact:
-      return DateTime.parse(date!.value!).toUtc();
-    case EventDatePrecision.day:
-      final day = CivilDate.parse(date!.value!);
-      return DisplayTime()
-          .dayBounds(endOfDay ? day.addDays(1) : day, zone)
-          .start;
-    default:
-      return null;
-  }
-}
-
-String _eventRangeMessage(AppLocalizations t, _EventRangeGuidance guidance) =>
+String _eventRangeMessage(AppLocalizations t, EventReportRange guidance) =>
     guidance.startKnown && guidance.endKnown
     ? t.reportEventRangeAction(
         guidance.fromDate.toString(),

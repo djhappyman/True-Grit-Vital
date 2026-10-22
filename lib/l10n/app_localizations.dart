@@ -4320,6 +4320,36 @@ abstract class AppLocalizations {
   /// **'Actual: {start} to {end}'**
   String eventActualLabel(String start, String end);
 
+  /// One-word action opening the report editor for this event.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get eventReport;
+
+  /// Accessible name for the one-word Report action. Preserve the full event name.
+  ///
+  /// In en, this message translates to:
+  /// **'Report for {name}'**
+  String eventReportFor(String name);
+
+  /// Explains why the event report action is unavailable when the event start cannot be resolved.
+  ///
+  /// In en, this message translates to:
+  /// **'A start date is needed before preparing a report for this event.'**
+  String get eventReportNeedsStart;
+
+  /// Explains why the event report action is unavailable when a completed event has no resolvable end date.
+  ///
+  /// In en, this message translates to:
+  /// **'An end date is needed before preparing a report for this event.'**
+  String get eventReportNeedsEnd;
+
+  /// Explains why the event report action is unavailable when an event boundary or zone cannot be resolved safely.
+  ///
+  /// In en, this message translates to:
+  /// **'Event dates need review before preparing a report for this event.'**
+  String get eventReportDatesReview;
+
   /// No description provided for @eventNotRecorded.
   ///
   /// In en, this message translates to:
@@ -8502,6 +8532,12 @@ abstract class AppLocalizations {
   /// **'Event zone: {zone}'**
   String reportEventZoneValue(String zone);
 
+  /// Shown when the selected event has no recorded actual end or completion.
+  ///
+  /// In en, this message translates to:
+  /// **'No event end is recorded.'**
+  String get reportEventOngoing;
+
   /// Actionable range explanation when both event boundaries are known.
   ///
   /// In en, this message translates to:
@@ -8519,6 +8555,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply report dates from {from} to {through}'**
   String reportEventApplyRangeLabel(String from, String through);
+
+  /// Heading for the notice shown when another report selection is already open.
+  ///
+  /// In en, this message translates to:
+  /// **'Report selected'**
+  String get reportSelectedTitle;
+
+  /// Explains how to keep an existing report selection or replace it with the requested event report.
+  ///
+  /// In en, this message translates to:
+  /// **'The report editor already has a selection. Replace it with this event report, or finish that report first.'**
+  String get reportSelectedBody;
+
+  /// Heading shown when the event report cannot replace a report that is already being prepared.
+  ///
+  /// In en, this message translates to:
+  /// **'Report in progress'**
+  String get reportBusyTitle;
+
+  /// Explains why the event report action cannot replace a busy report.
+  ///
+  /// In en, this message translates to:
+  /// **'A report is being prepared. Wait for it to finish or cancel it before preparing this event report.'**
+  String get reportBusyBody;
+
+  /// Short confirmation heading before replacing another report selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace report?'**
+  String get reportReplaceTitle;
+
+  /// Asks whether to replace the current report selection with the requested event report.
+  ///
+  /// In en, this message translates to:
+  /// **'The report editor has a different selection. Replace it with this event report?'**
+  String get reportReplaceBody;
 
   /// Report selection or validation message.
   ///

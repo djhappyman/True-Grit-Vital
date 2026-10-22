@@ -13,6 +13,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../app/storage.dart';
 import '../../app/settings_toggle_row.dart';
 import '../../app/app_lock.dart';
+import '../../app/reports.dart' show reportControllerProvider;
 import '../../data/record_store.dart';
 import '../../domain/scheduling/iana_clock.dart';
 import '../../l10n/app_localizations.dart';
@@ -20,6 +21,7 @@ import '../../ui/stitch_ui.dart';
 import '../plans/today_hero.dart' show todayNowProvider;
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
+import 'event_report_location.dart';
 import 'event_summary_widgets.dart';
 
 export '../../domain/events/event_collection.dart' show cycleTiming;
@@ -1106,6 +1108,12 @@ class EventDetailPage extends ConsumerWidget {
     final event = result.requireValue;
     if (event == null) return EntryPage(children: [Text(t.draftUnavailable)]);
     final now = ref.watch(todayNowProvider)();
+    final displayZone = ref.watch(displayZoneProvider);
+    final reportPlan = eventReportPlan(
+      event,
+      displayZone: displayZone,
+      now: now,
+    );
     final timing = cycleTiming(event, now);
     final phase = _eventPhase(event, now);
     final completed = phase == _EventPhase.completed;
@@ -1191,6 +1199,24 @@ class EventDetailPage extends ConsumerWidget {
                   child: Text(t.review),
                 ),
               ),
+            Semantics(
+              label: t.eventReportFor(event.name),
+              button: true,
+              enabled: reportPlan is EventReportReady,
+              child: StitchButton(
+                onPressed: reportPlan is EventReportReady
+                    ? () => _openEventReport(
+                        context,
+                        ref,
+                        t,
+                        event,
+                        reportPlan,
+                        displayZone,
+                      )
+                    : null,
+                child: Text(t.eventReport),
+              ),
+            ),
             StitchButton(
               onPressed: () => context.push(
                 supportingLocation(
@@ -1203,6 +1229,14 @@ class EventDetailPage extends ConsumerWidget {
             ),
           ],
         ),
+        if (reportPlan is EventReportBlocked)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              _eventReportBlockedText(t, reportPlan.reason),
+              style: StitchType.caption.copyWith(color: c.muted),
+            ),
+          ),
         const SizedBox(height: 20),
         Semantics(
           header: true,
@@ -1326,6 +1360,76 @@ class EventDetailPage extends ConsumerWidget {
     );
   }
 }
+
+Future<void> _openEventReport(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations t,
+  EventRecord event,
+  EventReportReady plan,
+  String displayZone,
+) async {
+  final seed = eventReportSelection(event, plan, displayZone: displayZone);
+  final state = ref.read(reportControllerProvider);
+  final active = state.selection;
+  if (active != null && active.identity != seed.identity) {
+    if (state.busy || state.handoffBusy) {
+      await showVitalDialog<void>(
+        context: context,
+        builder: (dialog) => VitalDialog(
+          title: Text(t.reportBusyTitle),
+          content: Text(t.reportBusyBody),
+          actions: [
+            VitalButton(
+              onPressed: () => Navigator.of(dialog).pop(),
+              child: Text(t.done),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    final replace = await showVitalDialog<bool>(
+      context: context,
+      builder: (dialog) => VitalDialog(
+        title: Text(t.reportReplaceTitle),
+        content: Text(t.reportReplaceBody),
+        actions: [
+          VitalButton.secondary(
+            onPressed: () => Navigator.of(dialog).pop(false),
+            child: Text(t.cancel),
+          ),
+          VitalButton(
+            onPressed: () => Navigator.of(dialog).pop(true),
+            child: Text(t.replace),
+          ),
+        ],
+      ),
+    );
+    if (replace != true || !context.mounted) return;
+    ref.read(reportControllerProvider.notifier).select(seed);
+    if (ref.read(reportControllerProvider).selection?.identity !=
+        seed.identity) {
+      return;
+    }
+  }
+  if (!context.mounted) return;
+  context.push(
+    eventReportLocation(
+      eventId: event.id,
+      fromDate: plan.fromDate,
+      beforeDate: plan.beforeDate,
+      returnLocation: '/event/${event.id}',
+    ),
+  );
+}
+
+String _eventReportBlockedText(AppLocalizations t, EventReportBlock reason) =>
+    switch (reason) {
+      EventReportBlock.startUnavailable => t.eventReportNeedsStart,
+      EventReportBlock.endUnavailable => t.eventReportNeedsEnd,
+      EventReportBlock.datesUnavailable => t.eventReportDatesReview,
+    };
 
 class _EventFact extends StatelessWidget {
   const _EventFact({required this.label, required this.value});

@@ -3144,6 +3144,31 @@
       }
     }
   },
+  "eventReport": "Report",
+  "@eventReport": {
+    "description": "One-word action opening the report editor for this event."
+  },
+  "eventReportFor": "Report for {name}",
+  "@eventReportFor": {
+    "description": "Accessible name for the one-word Report action. Preserve the full event name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "eventReportNeedsStart": "A start date is needed before preparing a report for this event.",
+  "@eventReportNeedsStart": {
+    "description": "Explains why the event report action is unavailable when the event start cannot be resolved."
+  },
+  "eventReportNeedsEnd": "An end date is needed before preparing a report for this event.",
+  "@eventReportNeedsEnd": {
+    "description": "Explains why the event report action is unavailable when a completed event has no resolvable end date."
+  },
+  "eventReportDatesReview": "Event dates need review before preparing a report for this event.",
+  "@eventReportDatesReview": {
+    "description": "Explains why the event report action is unavailable when an event boundary or zone cannot be resolved safely."
+  },
   "eventNotRecorded": "Not recorded",
   "eventOpen": "Open",
   "eventEndReview": "End review",
@@ -6008,6 +6033,10 @@
       }
     }
   },
+  "reportEventOngoing": "No event end is recorded.",
+  "@reportEventOngoing": {
+    "description": "Shown when the selected event has no recorded actual end or completion."
+  },
   "reportEventRangeAction": "The selected dates do not include this event. Apply {from} to {through} to cover its recorded start and end.",
   "@reportEventRangeAction": {
     "description": "Actionable range explanation when both event boundaries are known.",
@@ -6043,6 +6072,30 @@
         "type": "String"
       }
     }
+  },
+  "reportSelectedTitle": "Report selected",
+  "@reportSelectedTitle": {
+    "description": "Heading for the notice shown when another report selection is already open."
+  },
+  "reportSelectedBody": "The report editor already has a selection. Replace it with this event report, or finish that report first.",
+  "@reportSelectedBody": {
+    "description": "Explains how to keep an existing report selection or replace it with the requested event report."
+  },
+  "reportBusyTitle": "Report in progress",
+  "@reportBusyTitle": {
+    "description": "Heading shown when the event report cannot replace a report that is already being prepared."
+  },
+  "reportBusyBody": "A report is being prepared. Wait for it to finish or cancel it before preparing this event report.",
+  "@reportBusyBody": {
+    "description": "Explains why the event report action cannot replace a busy report."
+  },
+  "reportReplaceTitle": "Replace report?",
+  "@reportReplaceTitle": {
+    "description": "Short confirmation heading before replacing another report selection."
+  },
+  "reportReplaceBody": "The report editor has a different selection. Replace it with this event report?",
+  "@reportReplaceBody": {
+    "description": "Asks whether to replace the current report selection with the requested event report."
   },
   "reportNoEvents": "No events are available.",
   "@reportNoEvents": {
