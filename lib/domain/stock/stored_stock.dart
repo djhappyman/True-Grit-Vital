@@ -190,9 +190,10 @@ final class StoredStockMetadataRevision {
 /// Adequate; an unknown or aggregate-limited balance stays its own state.
 enum StockInventoryBalance { low, adequate, unknown }
 
-/// Whole-collection inventory filters. Paused is plan-based and may overlap a
-/// balance state; the popover states that overlap rather than hiding it.
-enum StockInventoryFilter { all, low, adequate, paused, unknown }
+/// Whole-collection inventory filters. Paused is plan-based and expiry is
+/// pack-date based, so either may overlap a balance state; the popover states
+/// that overlap rather than hiding it.
+enum StockInventoryFilter { all, low, adequate, paused, unknown, expired, today }
 
 /// The item's current plan shape, kept separate from its stock balance.
 enum StockInventoryPlanState {
@@ -212,6 +213,8 @@ final class StockInventoryCounts {
     required this.paused,
     required this.unknown,
     required this.unresolved,
+    this.expired,
+    this.today,
   });
   const StockInventoryCounts.empty()
     : all = 0,
@@ -219,15 +222,25 @@ final class StockInventoryCounts {
       adequate = 0,
       paused = 0,
       unknown = 0,
-      unresolved = 0;
+      unresolved = 0,
+      expired = null,
+      today = null;
   final int all, low, adequate, paused, unknown, unresolved;
 
-  int count(StockInventoryFilter filter) => switch (filter) {
+  /// Expiry counts are null when no observed local civil day was available.
+  /// They are never reported as zero from an unknown date or time zone.
+  final int? expired, today;
+
+  bool get expiryKnown => expired != null && today != null;
+
+  int? count(StockInventoryFilter filter) => switch (filter) {
     StockInventoryFilter.all => all,
     StockInventoryFilter.low => low,
     StockInventoryFilter.adequate => adequate,
     StockInventoryFilter.paused => paused,
     StockInventoryFilter.unknown => unknown,
+    StockInventoryFilter.expired => expired,
+    StockInventoryFilter.today => today,
   };
 }
 
@@ -240,6 +253,7 @@ final class StockInventorySnapshot {
     required Map<String, StockInventoryPlanState> planStates,
     required this.counts,
     required this.complete,
+    this.expiryDay,
   }) : containers = List.unmodifiable(containers),
        balances = Map.unmodifiable(balances),
        planStates = Map.unmodifiable(planStates);
@@ -248,11 +262,17 @@ final class StockInventorySnapshot {
       balances = const {},
       planStates = const {},
       counts = const StockInventoryCounts.empty(),
-      complete = true;
+      complete = true,
+      expiryDay = null;
   final List<StoredStockContainer> containers;
   final Map<String, StockInventoryBalance> balances;
   final Map<String, StockInventoryPlanState> planStates;
   final StockInventoryCounts counts;
+
+  /// The observed local civil day used for expiry comparison. Null means no
+  /// valid date and zone were available, so expiry counts and filters stay
+  /// unavailable instead of falling back to UTC or claiming zero.
+  final CivilDate? expiryDay;
 
   /// False when the bounded whole-collection read hit its row bound. Counts
   /// and filters then stay visibly incomplete rather than claiming a total.

@@ -12051,6 +12051,30 @@ abstract class AppLocalizations {
   /// **'Unknown'**
   String get featureStockFilterUnknown;
 
+  /// Inventory filter for a container whose saved pack date is before the observed local day.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get directExpiryFilterExpired;
+
+  /// Inventory filter for a container whose saved pack date is the observed local day.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires today'**
+  String get directExpiryFilterToday;
+
+  /// Heading when pack expiry cannot be compared without a device date and time zone.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry unavailable'**
+  String get directExpiryUnavailableTitle;
+
+  /// Explains why expiry counts and filters are unavailable rather than zero.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry filters need the device date and time zone.'**
+  String get directExpiryUnavailableBody;
+
   /// Explains overlapping paused and balance filter counts.
   ///
   /// In en, this message translates to:

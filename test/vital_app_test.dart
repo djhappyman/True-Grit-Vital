@@ -99,6 +99,7 @@ launch(
   ProfilePrivacyActions? privacyActions,
   Future<String> Function(String asset)? licenceLoader,
   DateTime Function()? todayClock,
+  DeviceZoneObservation? zoneObservation,
 }) async {
   final directory = await runIo(
     tester,
@@ -140,7 +141,9 @@ launch(
       if (catalogueLoader != null)
         catalogueLoaderProvider.overrideWithValue(catalogueLoader),
       observedDeviceZoneProvider.overrideWith(
-        (ref) => Stream.value(DeviceZoneObservation.fromId('Europe/London')),
+        (ref) => Stream.value(
+          zoneObservation ?? DeviceZoneObservation.fromId('Europe/London'),
+        ),
       ),
       storeLoaderProvider.overrideWithValue(() => Future.value(store)),
       artifactTransferGatewayProvider.overrideWithValue(

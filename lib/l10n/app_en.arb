@@ -9187,6 +9187,22 @@
   "@featureStockFilterUnknown": {
     "description": "Inventory filter for an unknown or aggregate-limited stock balance."
   },
+  "directExpiryFilterExpired": "Expired",
+  "@directExpiryFilterExpired": {
+    "description": "Inventory filter for a container whose saved pack date is before the observed local day."
+  },
+  "directExpiryFilterToday": "Expires today",
+  "@directExpiryFilterToday": {
+    "description": "Inventory filter for a container whose saved pack date is the observed local day."
+  },
+  "directExpiryUnavailableTitle": "Expiry unavailable",
+  "@directExpiryUnavailableTitle": {
+    "description": "Heading when pack expiry cannot be compared without a device date and time zone."
+  },
+  "directExpiryUnavailableBody": "Expiry filters need the device date and time zone.",
+  "@directExpiryUnavailableBody": {
+    "description": "Explains why expiry counts and filters are unavailable rather than zero."
+  },
   "featureStockFilterOverlapHelp": "Paused counts the schedule, so a container can also count as low, adequate or unknown.",
   "@featureStockFilterOverlapHelp": {
     "description": "Explains overlapping paused and balance filter counts."

@@ -10,7 +10,9 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:true_grit_vital/app/appearance.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
+import 'package:true_grit_vital/domain/scheduling/iana_clock.dart';
 import 'package:true_grit_vital/features/substances/substance_collection.dart';
+import 'package:true_grit_vital/platform/device_zone.dart';
 
 import 'vital_app_test.dart' show appTest, launch, runIo, settle, tap, waitForText;
 
@@ -180,6 +182,178 @@ void main() {
       );
       expect(saved!.balance.value, ExactAmount.parseEntry('1'));
     });
+  });
+
+  appTest('expiry filters cover the collection and refresh after edits', (
+    tester,
+  ) async {
+    final f = await launch(tester);
+    final today = IanaClock().dateAt(DateTime.now().toUtc(), 'Europe/London');
+    final records = (await runIo(tester, () async {
+      final item = await makeItem(f.store, 'Expiry item');
+      return (
+        item,
+        await makeContainer(
+          f.store,
+          item,
+          label: 'Expired pack',
+          opening: '10',
+          expiry: today.addDays(-1),
+        ),
+        await makeContainer(
+          f.store,
+          item,
+          label: 'Today pack',
+          opening: '10',
+          expiry: today,
+        ),
+        await makeContainer(
+          f.store,
+          item,
+          label: 'Future pack',
+          opening: '10',
+          expiry: today.addDays(1),
+        ),
+        await makeContainer(
+          f.store,
+          item,
+          label: 'No expiry pack',
+          opening: '10',
+        ),
+      );
+    }))!;
+    final futureBottle = records.$4;
+    f.container.read(routerProvider).go('/stock/$meId');
+    await settle(tester);
+    await waitForText(tester, 'Expired pack');
+    expect(find.text('Expired (1)'), findsOneWidget);
+    expect(find.text('Expires today (1)'), findsOneWidget);
+
+    await tap(tester, 'Expired (1)');
+    await waitForText(tester, 'Expired pack');
+    expect(find.text('Today pack'), findsNothing);
+    expect(find.text('Future pack'), findsNothing);
+    expect(find.text('No expiry pack'), findsNothing);
+
+    await tap(tester, 'Expires today (1)');
+    await waitForText(tester, 'Today pack');
+    expect(find.text('Expired pack'), findsNothing);
+
+    await tester.enterText(find.byType(TextField).first, 'pack');
+    await settle(tester);
+    await waitForText(tester, 'All (4)');
+    await tap(tester, 'All (4)');
+    await waitForText(tester, 'No expiry pack');
+    expect(find.text('Expired pack'), findsOneWidget);
+    expect(find.text('Today pack'), findsOneWidget);
+
+    await tap(tester, 'Expired (1)');
+    await waitForText(tester, 'Expired pack');
+    await runIo(tester, () async {
+      await f.store.updateStockMetadata(
+        commandId: newCommandId(),
+        personId: meId,
+        expectedPersonRevision: (await f.store.profileById(meId))!.revision,
+        expectedGeneration: f.store.generation,
+        containerId: futureBottle.id,
+        expectedContainerRevision: futureBottle.revision,
+        expiryDate: today.addDays(-1),
+      );
+    });
+    await waitForText(tester, 'Future pack');
+    expect(find.text('Expired (2)'), findsOneWidget);
+
+    await tester.tap(find.byIcon(LucideIcons.listFilter).first);
+    await settle(tester);
+    await tap(tester, 'Clear');
+    await settle(tester);
+    await waitForText(tester, 'No expiry pack');
+    expect(find.text('Expired pack'), findsOneWidget);
+    expect(find.text('Today pack'), findsOneWidget);
+    expect(find.text('Future pack'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final theme in [ThemeMode.dark, ThemeMode.light]) {
+    appTest('expiry filter fits ${theme.name} narrow large text', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 740);
+      tester.view.devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      final f = await launch(tester);
+      final today = IanaClock().dateAt(DateTime.now().toUtc(), 'Europe/London');
+      await runIo(tester, () async {
+        final item = await makeItem(f.store, 'Expiry layout item');
+        await makeContainer(
+          f.store,
+          item,
+          label: 'Expired narrow bottle',
+          opening: '10',
+          expiry: today.addDays(-1),
+        );
+        await makeContainer(
+          f.store,
+          item,
+          label: 'Future narrow bottle',
+          opening: '10',
+          expiry: today.addDays(1),
+        );
+      });
+      f.container.read(appearanceProvider.notifier).setMode(theme);
+      f.container.read(routerProvider).go('/stock/$meId');
+      await settle(tester);
+      await waitForText(tester, 'Expired narrow bottle');
+      expect(tester.takeException(), isNull);
+      await tap(tester, 'Expired (1)');
+      await waitForText(tester, 'Expired narrow bottle');
+      expect(find.text('Future narrow bottle'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  appTest('expiry filter stays unavailable without a device zone', (
+    tester,
+  ) async {
+    final f = await launch(
+      tester,
+      zoneObservation: const DeviceZoneObservation.unavailable(),
+    );
+    await runIo(tester, () async {
+      final item = await makeItem(f.store, 'No zone item');
+      await makeContainer(
+        f.store,
+        item,
+        label: 'Expired pack',
+        opening: '10',
+        expiry: CivilDate(2026, 10, 21),
+      );
+      await makeContainer(
+        f.store,
+        item,
+        label: 'Today pack',
+        opening: '10',
+        expiry: CivilDate(2026, 10, 22),
+      );
+    });
+    f.container.read(routerProvider).go('/stock/$meId');
+    await settle(tester);
+    await waitForText(tester, 'Expired pack');
+    expect(find.text('All (2)'), findsOneWidget);
+    expect(find.text('Expired'), findsWidgets);
+    expect(find.text('Expires today'), findsWidgets);
+    expect(find.textContaining('Expired ('), findsNothing);
+    expect(find.textContaining('Expires today ('), findsNothing);
+    await tap(tester, 'Expired');
+    await waitForText(tester, 'Expiry unavailable');
+    expect(
+      find.text('Expiry filters need the device date and time zone.'),
+      findsOneWidget,
+    );
+    expect(find.text('No matches'), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   appTest('stock Add is real for one substance and names the limit otherwise', (

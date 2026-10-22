@@ -534,10 +534,23 @@ extension StockRecordStore on RecordStore {
     return StockInventoryBalance.low;
   }
 
+  /// The observed local civil day for pack expiry. A missing or invalid zone,
+  /// or a clock outside the verified zone asset, leaves expiry unavailable;
+  /// UTC is never substituted for an observation.
+  CivilDate? _stockInventoryExpiryDay(DateTime now, String? observedZone) {
+    if (observedZone == null || observedZone.isEmpty) return null;
+    try {
+      return IanaClock().dateAt(now, observedZone);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Whole-collection inventory read. Search, the item scope, the inventory
   /// filter and every count use this one store-backed snapshot, never only the
   /// first loaded page. The plan state comes from the same bounded status
-  /// projection used by the Substances list.
+  /// projection used by the Substances list. Expiry compares each saved pack
+  /// date with the observed local civil day at [now], not with the raw clock.
   Future<StockInventorySnapshot> stockInventory({
     required String personId,
     required DateTime now,
@@ -584,7 +597,9 @@ extension StockRecordStore on RecordStore {
 
       final balances = <String, StockInventoryBalance>{};
       final planStates = <String, StockInventoryPlanState>{};
+      final expiryDay = _stockInventoryExpiryDay(now, observedZone);
       var low = 0, adequate = 0, unknown = 0, paused = 0, unresolved = 0;
+      var expired = 0, expiresToday = 0;
       for (final container in candidates) {
         final balance = _stockInventoryBalance(container);
         balances[container.id] = balance;
@@ -595,6 +610,17 @@ extension StockRecordStore on RecordStore {
             adequate++;
           case StockInventoryBalance.unknown:
             unknown++;
+        }
+        if (expiryDay != null) {
+          switch (container.expiryState(expiryDay)) {
+            case StockExpiryState.expired:
+              expired++;
+            case StockExpiryState.today:
+              expiresToday++;
+            case StockExpiryState.none:
+            case StockExpiryState.future:
+              break;
+          }
         }
         final itemStatuses = statuses.statusesFor(container.itemId);
         final itemUnresolved = statuses.isUnresolved(container.itemId);
@@ -630,6 +656,12 @@ extension StockRecordStore on RecordStore {
           StockInventoryFilter.paused =>
             planStates[container.id] == StockInventoryPlanState.paused ||
                 planStates[container.id] == StockInventoryPlanState.mixed,
+          StockInventoryFilter.expired =>
+            expiryDay != null &&
+                container.expiryState(expiryDay) == StockExpiryState.expired,
+          StockInventoryFilter.today =>
+            expiryDay != null &&
+                container.expiryState(expiryDay) == StockExpiryState.today,
         };
       }).toList();
 
@@ -639,6 +671,7 @@ extension StockRecordStore on RecordStore {
         balances: balances,
         planStates: planStates,
         complete: complete,
+        expiryDay: expiryDay,
         counts: StockInventoryCounts(
           all: candidates.length,
           low: low,
@@ -646,6 +679,8 @@ extension StockRecordStore on RecordStore {
           paused: paused,
           unknown: unknown,
           unresolved: unresolved,
+          expired: expiryDay == null ? null : expired,
+          today: expiryDay == null ? null : expiresToday,
         ),
       );
     });

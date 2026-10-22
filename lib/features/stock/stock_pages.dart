@@ -100,6 +100,10 @@ class _StockPageState extends ConsumerState<StockPage> {
     final inventory = ref.watch(stockInventoryProvider(query));
     final filtered = search.isNotEmpty || _filter != StockInventoryFilter.all;
     final snapshot = inventory.value;
+    final expiryFilter =
+        _filter == StockInventoryFilter.expired ||
+        _filter == StockInventoryFilter.today;
+    final expiryUnavailable = snapshot != null && snapshot.expiryDay == null;
     final rows = snapshot?.containers ?? const <StoredStockContainer>[];
     final shown = rows.take(_pages * 50).toList();
     return EntryPage(
@@ -168,6 +172,15 @@ class _StockPageState extends ConsumerState<StockPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(t.featureStockFilterOverlapHelp),
+                    if (expiryUnavailable) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        t.directExpiryUnavailableBody,
+                        style: StitchType.caption.copyWith(
+                          color: StitchColors(context).amber,
+                        ),
+                      ),
+                    ],
                     if ((snapshot?.counts.unresolved ?? 0) > 0) ...[
                       const SizedBox(height: 8),
                       Text(
@@ -225,6 +238,16 @@ class _StockPageState extends ConsumerState<StockPage> {
             title: t.screenStockNoContainers,
             description: t.screenStockNoContainersHelp,
             icon: LucideIcons.boxes,
+          )
+        else if (rows.isEmpty && expiryFilter && expiryUnavailable)
+          VitalEmptyState(
+            title: t.directExpiryUnavailableTitle,
+            description: t.directExpiryUnavailableBody,
+            icon: LucideIcons.calendarClock,
+            action: VitalButton.secondary(
+              onPressed: _clearFilters,
+              child: Text(t.clear),
+            ),
           )
         else if (rows.isEmpty)
           VitalEmptyState(
@@ -513,6 +536,8 @@ class StockInventoryFilters extends StatelessWidget {
         StockInventoryFilter.adequate => t.featureStockFilterAdequate,
         StockInventoryFilter.paused => t.featureStockFilterPaused,
         StockInventoryFilter.unknown => t.featureStockFilterUnknown,
+        StockInventoryFilter.expired => t.directExpiryFilterExpired,
+        StockInventoryFilter.today => t.directExpiryFilterToday,
       };
 
   @override
@@ -535,12 +560,13 @@ class StockInventoryFilters extends StatelessWidget {
                     compact: true,
                     onPressed: () => onSelected(filter),
                     child: Text(
-                      counts == null
-                          ? _name(t, filter)
-                          : t.stitchFilterCount(
-                              _name(t, filter),
-                              counts!.count(filter),
-                            ),
+                      switch (counts?.count(filter)) {
+                        final int count => t.stitchFilterCount(
+                          _name(t, filter),
+                          count,
+                        ),
+                        null => _name(t, filter),
+                      },
                       style: StitchType.small,
                     ),
                   ),

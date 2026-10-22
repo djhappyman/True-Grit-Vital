@@ -7765,6 +7765,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get featureStockFilterUnknown => 'Unknown';
 
   @override
+  String get directExpiryFilterExpired => 'Expired';
+
+  @override
+  String get directExpiryFilterToday => 'Expires today';
+
+  @override
+  String get directExpiryUnavailableTitle => 'Expiry unavailable';
+
+  @override
+  String get directExpiryUnavailableBody =>
+      'Expiry filters need the device date and time zone.';
+
+  @override
   String get featureStockFilterOverlapHelp =>
       'Paused counts the schedule, so a container can also count as low, adequate or unknown.';
 
