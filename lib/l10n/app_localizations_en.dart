@@ -7948,6 +7948,27 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get directBackupStatusHeading => 'Backup status';
+
+  @override
+  String get directBackupStatusEmpty => 'No confirmed save.';
+
+  @override
+  String get directBackupStatusLoading => 'Checking backup status.';
+
+  @override
+  String get directBackupStatusFailed => 'Backup status could not be loaded.';
+
+  @override
+  String directBackupStatusSaved(String date) {
+    return 'Last save: $date';
+  }
+
+  @override
+  String get directBackupStatusHelp =>
+      'This records the save. It does not prove the saved file still exists or can be restored.';
+
+  @override
   String get featureReminderAlertsHeading => 'Alert options';
 
   @override

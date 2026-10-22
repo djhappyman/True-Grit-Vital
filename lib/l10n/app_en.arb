@@ -9424,6 +9424,35 @@
       }
     }
   },
+  "directBackupStatusHeading": "Backup status",
+  "@directBackupStatusHeading": {
+    "description": "Settings Data summary of the latest confirmed backup save. Read-only; no backup starts from this heading."
+  },
+  "directBackupStatusEmpty": "No confirmed save.",
+  "@directBackupStatusEmpty": {
+    "description": "Settings Data backup summary when retained receipts have no confirmed save."
+  },
+  "directBackupStatusLoading": "Checking backup status.",
+  "@directBackupStatusLoading": {
+    "description": "Settings Data backup summary while retained receipts load."
+  },
+  "directBackupStatusFailed": "Backup status could not be loaded.",
+  "@directBackupStatusFailed": {
+    "description": "Settings Data backup summary load failure. The nearby Retry command repeats the read."
+  },
+  "directBackupStatusSaved": "Last save: {date}",
+  "@directBackupStatusSaved": {
+    "description": "Latest confirmed save time from current-generation receipts. The date includes the device display time zone.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "directBackupStatusHelp": "This records the save. It does not prove the saved file still exists or can be restored.",
+  "@directBackupStatusHelp": {
+    "description": "Limits of a local backup receipt. It never claims external file retention or recovery."
+  },
   "featureReminderAlertsHeading": "Alert options",
   "@featureReminderAlertsHeading": {
     "description": "Section heading for reminder sound and vibration choices."

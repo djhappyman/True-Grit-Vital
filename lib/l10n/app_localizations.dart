@@ -12327,6 +12327,42 @@ abstract class AppLocalizations {
   /// **'SHA-256: {hash}'**
   String featureBackupHistoryHash(String hash);
 
+  /// Settings Data summary of the latest confirmed backup save. Read-only; no backup starts from this heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup status'**
+  String get directBackupStatusHeading;
+
+  /// Settings Data backup summary when retained receipts have no confirmed save.
+  ///
+  /// In en, this message translates to:
+  /// **'No confirmed save.'**
+  String get directBackupStatusEmpty;
+
+  /// Settings Data backup summary while retained receipts load.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking backup status.'**
+  String get directBackupStatusLoading;
+
+  /// Settings Data backup summary load failure. The nearby Retry command repeats the read.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup status could not be loaded.'**
+  String get directBackupStatusFailed;
+
+  /// Latest confirmed save time from current-generation receipts. The date includes the device display time zone.
+  ///
+  /// In en, this message translates to:
+  /// **'Last save: {date}'**
+  String directBackupStatusSaved(String date);
+
+  /// Limits of a local backup receipt. It never claims external file retention or recovery.
+  ///
+  /// In en, this message translates to:
+  /// **'This records the save. It does not prove the saved file still exists or can be restored.'**
+  String get directBackupStatusHelp;
+
   /// Section heading for reminder sound and vibration choices.
   ///
   /// In en, this message translates to:

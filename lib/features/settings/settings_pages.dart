@@ -7,6 +7,7 @@ import '../../app/display_preferences.dart';
 import '../../app/privacy.dart';
 import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
+import 'settings_backup_status.dart';
 import 'settings_widgets.dart';
 import 'settings_vault.dart';
 
@@ -135,13 +136,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               description: t.settingsExportsBody,
               onPressed: () => context.push(capabilities.exportsPath!),
             ),
-          if (capabilities.hasBackup)
-            SettingsNavigationRow(
-              icon: LucideIcons.lockKeyhole,
-              label: t.backup,
-              description: t.settingsBackupBody,
-              onPressed: () => context.push(capabilities.backupPath!),
-            ),
+          SettingsBackupStatus(backupPath: capabilities.backupPath),
           if (capabilities.hasRestore)
             SettingsNavigationRow(
               icon: LucideIcons.upload,
