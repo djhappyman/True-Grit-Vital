@@ -47,7 +47,7 @@ These are recorded follow-up work, not completed features. Dependencies refer to
 | D12 | Reminder follow-ups and alert controls | Explicit opt-in follow-up timing, cancellation/reconciliation after actions, sound/haptic choices and truthful OS limitations. Existing snooze is preserved. Native/device evidence required. | Partial: sound/vibration preferences and real Android channel variants are host verified, with native OS-mute guards; follow-up timing and physical-device evidence remain open |
 | D13 | Stock lots and expiry | Optional lot/batch and expiry metadata, pack capacity and restock flow; schema migrations, history and export/backup round trips. | Host integrated and verified: schema 24, lot/expiry/exact capacity, guarded edits and paged history, structured provenance, encrypted restore and optional capture-time stock details in reports |
 | D14 | Stock forecast and inventory overview | Low/adequate/paused filtering, remaining-capacity display and schedule-based run-out estimates. PRN, unknown balance, incompatible units and incomplete schedules stay explicit; follows D03/D13. | Host integrated and verified: store-backed search/counts/filters, exact capacity proportions and conditional forecast from tomorrow; incomplete inventory reads and unsupported schedules are explicit |
-| D15 | Refill delivery and scanning | Native refill notices extend the currently agreed in-app stock notices. Barcode/pack recognition needs exact source, licence, privacy and ambiguity rules; manual entry always works. | Backlog: bounded design/source review |
+| D15 | Refill delivery and scanning | Native refill notices extend the currently agreed in-app stock notices. Barcode/pack recognition needs exact source, licence, privacy and ambiguity rules; manual entry always works. | Partial: opt-in Android low-stock/refill notices implemented and host verified; scanning remains backlog, physical delivery open |
 | D16 | Event overview | Status filters/counts, progress cards and linked-substance/recorded/skipped summaries using existing event dates/membership. Surface supported notes and configure/history actions. | Host integrated: saved private notes, whole-event summaries, whole-collection status counts and filter-before-page browsing; captured status instants and filtered-page clamping preserve current context |
 | D17 | Lab dashboard | Latest-value cards, categories, comparable trends/sparklines, baseline changes and source-range indicators with original units/flags. Existing panels/attachments/trends remain available. | Host integrated: latest dated values across the filtered collection with 24-marker pages and exact counts; trends sample 24 points and comparisons 48 results with disclosed limits; duplicate prior results retain uncertainty |
 | D18 | Lab panel detail | Categorised results, comparable prior values, context links and protected original-file/hash actions. Add accession/source identifiers only with storage and export support. | Host integrated: complete current-record prior comparisons relative to the viewed panel, exact source/date matching and order-independent ambiguity; saved accession/report identifiers remain available through outputs and encrypted restore |
@@ -227,8 +227,11 @@ and a friendly README explaining the project's safety-minded purpose.
 
 - D15a: opt-in native Android low-stock notices for configured containers, one
   durable alert episode, existing reminder reconciliation and private Open-only
-  actions. Paid direct-API DeepSeek owns implementation; device delivery stays a
-  separate evidence gate. Scanning remains outside this slice.
+  actions. Paid direct-API DeepSeek implemented it; lead review fixed posted
+  Open authority, immutable deferred deadlines and stale preference writes.
+  Eight pending native slots remain separate from dose/event capacity. Schema
+  26 upgrades preserve records with alerts off. Device delivery stays a separate
+  evidence gate; evaluation is foreground/repair-driven. Scanning is backlog.
 - D19b: factual monthly routine activity is integrated using full calendar
   aggregates and active History filters. Free DeepSeek reached its usage limit;
   the lead recovered, finished and verified the work. Counts describe entries,
@@ -247,5 +250,6 @@ and a friendly README explaining the project's safety-minded purpose.
 - README: GLM5.3Flash Free produced the reader-focused draft. Lead review
   corrected current/planned claims and retained contributor instructions.
 
-The stock assignment remains in review. Briefs and identities are retained
+All four slices are integrated. Final host checks are recorded in the
+[batch review](reviews/2026-10-22-function-batch/README.md). Briefs and identities are retained
 under `.scratch/vital-implementation/function-batch-2026-10-22/`.

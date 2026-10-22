@@ -18,7 +18,7 @@ The aim is to support informed conversations with a doctor or pharmacist through
 - Choose a timeframe and export it as a PDF report or a CSV or JSON file. You review, save and share it yourself. Nothing is sent automatically to anyone.
 - Set dose reminders on Android. An unrecorded dose stays "not recorded" rather than being assumed missed. Gentle opt-in follow-up nudges are planned.
 - Track routines around your doses with notes, food and context tags and skip reasons tied to each substance record. A monthly History summary shows recorded days and entries, with skips and voids kept separate.
-- Manage your stock: current balances, in-app low-stock notices and simple adjust, restock and waste actions.
+- Manage your stock: current balances, low-stock notices and simple adjust, restock and waste actions. Opt in to Android stock alerts for configured containers, without repeated notices while the same container stays low.
 - Keep everything private: encrypted local storage, an optional app lock, private drafts and password-protected backups. There are no accounts and no cloud sync.
 
 ## Where the project stands
@@ -27,7 +27,6 @@ Vital is early in development, aimed at Android first (with a Linux build used f
 
 - **Follow-up nudges** after an unrecorded planned dose. Basic Android dose reminders exist today.
 - **On-time and late labels** in history. Timing rules are still being defined.
-- **Native low-stock notices** from the operating system. In-app stock notices exist today.
 - **Automatic backups** on a schedule. Manual password-protected backups work today.
 
 The app is not a finished or clinically validated release, and physical-device checks remain open. See the [development checkpoint](docs/public/STATUS.md) for current progress and the [implementation roadmap](docs/design/roadmap.md) for planned work.

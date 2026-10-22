@@ -359,5 +359,29 @@ fun main() {
         check(receipt(e.apply("epoch1", 2, listOf(stock), emptyList()), "stock") == "cancelled")
         f.wall = 2000; e.fire("epoch1", "stock"); check(f.posts == 0)
     }
+    test("posted stock Open survives foreground reconciliation until cancelled") {
+        for (uncertain in listOf(false, true)) {
+        val j = MemoryJournal(); val f = Effects(); var e = ReminderEngine(j, f)
+        val stock = request("stock").copy(purpose = "stockLow")
+        e.apply("epoch1", 1, listOf(stock), emptyList())
+        f.postFailure = uncertain
+        f.wall = 2000; e.fire("epoch1", "stock")
+        e.apply("epoch1", 2, emptyList(), emptyList())
+        e = ReminderEngine(j, f)
+        check(e.capture("epoch1", "stock", "stock", "open"))
+        check(f.posts == 1)
+        e.apply("epoch1", 3, emptyList(), listOf("stock"))
+        check(!e.capture("epoch1", "stock", "stock", "open"))
+        }
+    }
+    test("deferred stock uses the same native token after its deadline") {
+        val j = MemoryJournal(); val f = Effects(); val e = ReminderEngine(j, f)
+        val stock = request("stock").copy(purpose = "stockLow")
+        f.wall = 3000
+        check(receipt(e.apply("epoch1", 1, listOf(stock), emptyList()), "stock") == "accepted")
+        e.fire("epoch1", "stock"); check(f.posts == 1)
+        e.apply("epoch1", 2, listOf(stock), emptyList())
+        e.fire("epoch1", "stock"); check(f.posts == 1)
+    }
     println("$passed reminder engine tests passed")
 }

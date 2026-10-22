@@ -92,8 +92,8 @@ class _ReminderHostState extends ConsumerState<ReminderHost> {
   }
 
   void openStock(StockNoticeOpen open) {
-    _opened.add(open.envelopeId);
     if (ref.read(appLockProvider).locked) return;
+    _opened.add(open.envelopeId);
     ref
         .read(routerProvider)
         .push(
@@ -175,7 +175,6 @@ class _ReminderHostState extends ConsumerState<ReminderHost> {
           '/appearance',
           '/reminders',
         ].contains(path)) {
-      _opened.add(stockOpen.envelopeId);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && !ref.read(appLockProvider).locked) {
           openStock(stockOpen);

@@ -19,9 +19,14 @@ Future<void> _migrateStockAlertsV26(_Database db) async {
 
 /// The saved opt-in. Revision zero means no row exists, which is off.
 final class StockAlertPreference {
-  const StockAlertPreference({required this.enabled, required this.revision});
+  const StockAlertPreference({
+    required this.enabled,
+    required this.revision,
+    required this.generation,
+  });
   final bool enabled;
   final int revision;
+  final String generation;
 }
 
 final class _StockNoticePreparation {
@@ -54,6 +59,7 @@ extension StockAlertRecordStore on RecordStore {
       StockAlertPreference(
         enabled: row['enabled'] == 1,
         revision: row['revision'] as int,
+        generation: generation,
       );
 
   Future<StockAlertPreference> stockAlertPreference() async =>
@@ -76,12 +82,15 @@ extension StockAlertRecordStore on RecordStore {
     required String commandId,
     required bool enabled,
     required int expectedRevision,
+    required String expectedGeneration,
   }) async {
     _requireWritable();
+    _stockGeneration(expectedGeneration);
     final result = await _command(
       commandId,
-      ['stock_alerts', enabled, expectedRevision],
+      ['stock_alerts', enabled, expectedRevision, expectedGeneration],
       () async {
+        _stockGeneration(expectedGeneration);
         final current = await _stockAlertConfig();
         if (current['revision'] != expectedRevision) {
           throw const CommandConflict('stock_alert_revision');
@@ -101,6 +110,7 @@ extension StockAlertRecordStore on RecordStore {
     return StockAlertPreference(
       enabled: result['enabled'] == true,
       revision: result['revision'] as int,
+      generation: generation,
     );
   }
 
@@ -320,7 +330,7 @@ extension StockAlertRecordStore on RecordStore {
         '$container\u0000$episode';
     final requestKeys = {
       for (final row in await _rows(
-        'SELECT container,episode FROM stock_notice_request',
+        'SELECT r.container,r.episode FROM stock_notice_request r JOIN stock_notice_episode e ON e.container=r.container AND e.episode=r.episode',
       ))
         requestKey(row['container'] as String, row['episode'] as String),
     };
@@ -401,23 +411,30 @@ extension StockAlertRecordStore on RecordStore {
     final all = <StockNoticeReminder>[];
     for (final row in activeRows.take(1000)) {
       final request = _stockNoticeRead(row);
-      final container = liveRows[request.containerId];
-      // An incomplete inventory read cannot prove this request wrong. Keep it
-      // in the snapshot rather than cancelling an unexamined native notice.
+      var container = liveRows[request.containerId];
+      // Check an existing token directly even when its container falls beyond
+      // the discovery window. Removal or a changed rule still cancels it.
       if (container == null && containers.length > 1000) {
-        all.add(request);
-        continue;
+        final current = await _rows(
+          'SELECT c.*,i.name AS item_name,o.archived,o.reminders_stopped FROM stock_container c JOIN item i ON i.id=c.item AND i.person=c.person JOIN person o ON o.id=c.person WHERE c.id=? AND c.person=?',
+          [request.containerId, request.personId],
+        );
+        container = current.singleOrNull;
       }
       final condition = container == null
           ? null
           : _stockNativeCondition(container);
-      // The request belongs to exactly this episode, owner and known state.
-      // Any mismatch retires it without ever minting a replacement.
-      if (request.namespace != namespace ||
-          container == null ||
+      if (container == null ||
+          container['notice_active'] != 1 ||
           container['archived'] != 0 ||
           container['reminders_stopped'] != 0 ||
-          condition == null ||
+          condition == null) {
+        await _endStockEpisode(request.containerId);
+        continue;
+      }
+      // The request belongs to exactly this episode and namespace. A stale
+      // token cannot retire a newer episode for the same live container.
+      if (request.namespace != namespace ||
           liveEpisodes[request.containerId] != row['episode']) {
         await _db.customStatement(
           "UPDATE stock_notice_request SET active=0,state='pending',reason='cancelled' WHERE token=?",
@@ -447,39 +464,21 @@ extension StockAlertRecordStore on RecordStore {
     }
     final allocation = allocateStockNotices(all);
     if (allocation.excluded.isNotEmpty) complete = false;
+    final uncertain = all
+        .where(
+          (request) => request.repairState == ReminderRepairState.postUncertain,
+        )
+        .toList();
+    if (uncertain.isNotEmpty) complete = false;
     for (final excluded in allocation.excluded) {
       await _db.customStatement(
         "UPDATE stock_notice_request SET state='capacity',reason='capacity' WHERE token=?",
         [excluded.requestToken],
       );
     }
-    // A request that waited behind capacity or a blocked capability carries a
-    // stale absolute deadline. Refresh that same token when it finally gets a
-    // slot so a deferred notice is not silently expired by preparation.
-    final selected = <StockNoticeReminder>[];
-    for (final request in allocation.selected) {
-      if (!request.projectedUtc.isAfter(now) &&
-          [
-            ReminderRepairState.pending,
-            ReminderRepairState.failed,
-            ReminderRepairState.unknown,
-            ReminderRepairState.capacity,
-          ].contains(request.repairState)) {
-        final refreshed = request.copyWith(
-          deadlineMilliseconds: now
-              .toUtc()
-              .add(const Duration(seconds: 60))
-              .millisecondsSinceEpoch,
-        );
-        await _db.customStatement(
-          'UPDATE stock_notice_request SET snapshot=? WHERE token=?',
-          [jsonEncode(_stockNoticeJson(refreshed)), request.requestToken],
-        );
-        selected.add(refreshed);
-      } else {
-        selected.add(request);
-      }
-    }
+    // Native identities are immutable. An overdue stock notice schedules for
+    // review now; its recorded deadline never changes under the same token.
+    final selected = allocation.selected;
     // A settled token from an ended episode can be pruned once the adapter has
     // acknowledged its cancellation. Active episodes keep their single row as
     // the durable no-rearm fence.
@@ -491,6 +490,7 @@ extension StockAlertRecordStore on RecordStore {
     );
     if (obsoleteRows.length > 256) complete = false;
     final attention = <StockNoticeReminder>[
+      ...uncertain,
       for (final request in allocation.excluded)
         request.copyWith(
           repairState: ReminderRepairState.capacity,
@@ -507,6 +507,12 @@ extension StockAlertRecordStore on RecordStore {
       complete: complete,
       exclusions: [
         ...exclusions,
+        for (final request in uncertain)
+          ReminderExclusion(
+            scope: 'stock:${request.containerId}',
+            reason: 'presentation_uncertain',
+            count: 1,
+          ),
         for (final request in allocation.excluded)
           ReminderExclusion(
             scope: 'stock:${request.containerId}',
@@ -605,19 +611,18 @@ extension StockAlertRecordStore on RecordStore {
       ReminderReceipt.failed => 'failed',
       ReminderReceipt.unknown => 'unknown',
     };
-    final settled = [
-      ReminderReceipt.consumed,
-      ReminderReceipt.postUncertain,
-      ReminderReceipt.cancelled,
-    ].contains(receipt);
+    // Consumed/uncertain means never post again, not that Open authority or
+    // cancellation has ended. Keep the live episode until its condition ends.
     await _db.customStatement(
       'UPDATE stock_notice_request SET state=?,fingerprint=?,reason=?,active=?,cancel_ack=? WHERE token=?',
       [
         state,
         fingerprint,
         reason,
-        settled ? 0 : 1,
-        settled || (row['cancel_ack'] as int) == 1 ? 1 : 0,
+        receipt == ReminderReceipt.cancelled ? 0 : 1,
+        receipt == ReminderReceipt.cancelled || (row['cancel_ack'] as int) == 1
+            ? 1
+            : 0,
         token,
       ],
     );

@@ -88,9 +88,12 @@ internal class AndroidReminderEffects(private val context: Context) : ReminderEf
     override fun schedule(request: ReminderRequest) {
         if (!exact()) throw ReminderFailure("exact_alarm_denied")
         // Recheck here to avoid creating a past alarm after a slow journal/capability call.
-        if (request.deadlineMilliseconds <= if (request.clock == "elapsed") nowElapsed() else nowWall()) throw ReminderFailure("deadline_expired")
+        if (request.purpose != "stockLow" && request.deadlineMilliseconds <=
+            if (request.clock == "elapsed") nowElapsed() else nowWall()) throw ReminderFailure("deadline_expired")
+        val scheduledAt = if (request.purpose == "stockLow") maxOf(request.deadlineMilliseconds, nowWall())
+            else request.deadlineMilliseconds
         alarms.setExactAndAllowWhileIdle(if (request.clock == "elapsed") AlarmManager.ELAPSED_REALTIME_WAKEUP else AlarmManager.RTC_WAKEUP,
-            request.deadlineMilliseconds, requireNotNull(pending(request, true)))
+            scheduledAt, requireNotNull(pending(request, true)))
     }
     override fun cancel(request: ReminderRequest) {
         pending(request, false)?.let { alarms.cancel(it); it.cancel() }

@@ -99,6 +99,7 @@ void main() {
         commandId: 'stock-ui-on',
         enabled: true,
         expectedRevision: 0,
+        expectedGeneration: fixture.store.generation,
       );
     });
     await settle(tester);

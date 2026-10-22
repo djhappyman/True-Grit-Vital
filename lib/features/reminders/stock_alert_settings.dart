@@ -25,7 +25,7 @@ class StockAlertSettings extends ConsumerStatefulWidget {
 class _StockAlertSettingsState extends ConsumerState<StockAlertSettings> {
   bool busy = false;
   String? error;
-  ({String command, bool enabled, int revision})? pending;
+  ({String command, bool enabled, int revision, String generation})? pending;
 
   Future<void> save(bool enabled) async {
     if (busy) return;
@@ -35,6 +35,7 @@ class _StockAlertSettingsState extends ConsumerState<StockAlertSettings> {
       command: newCommandId(),
       enabled: enabled,
       revision: saved.revision,
+      generation: saved.generation,
     );
     setState(() {
       busy = true;
@@ -46,6 +47,7 @@ class _StockAlertSettingsState extends ConsumerState<StockAlertSettings> {
         commandId: action.command,
         enabled: action.enabled,
         expectedRevision: action.revision,
+        expectedGeneration: action.generation,
       );
       pending = null;
       ref.invalidate(stockAlertPreferenceProvider);
@@ -86,7 +88,12 @@ class _StockAlertSettingsState extends ConsumerState<StockAlertSettings> {
           label: t.stockAlerts,
           description: supported ? t.stockAlertsHelp : t.reminderUnsupported,
           value: enabled,
-          enabled: supported && !busy && preference.hasValue,
+          enabled:
+              supported &&
+              !busy &&
+              preference.hasValue &&
+              !preference.isLoading &&
+              !preference.hasError,
           reduceMotion: MediaQuery.disableAnimationsOf(context),
           onChanged: save,
         ),

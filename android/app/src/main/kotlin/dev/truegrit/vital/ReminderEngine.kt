@@ -105,7 +105,16 @@ internal class ReminderEngine(private val journal: ReminderJournal, private val 
         }
         if ((s.entries.keys + desired.map { it.requestToken }).size > 8192) return reject("journal_capacity")
         // Atomic durable fence precedes every OS effect, including cancellation.
-        s = s.copy(epoch = epoch, sequence = sequence, snapshot = fingerprint, eligible = desired.map { it.requestToken }.toSet())
+        // Posted stock cards no longer consume a scheduling slot, but their
+        // Open authority lasts until explicit cancellation or epoch retirement.
+        // The existing journal bound also bounds these retained identities.
+        val retainedStock = s.eligible.filter { key ->
+            val entry = s.entries[key]
+            key !in obsolete && entry?.request?.epoch == epoch &&
+                entry.request.purpose == "stockLow" && entry.state in setOf("consumed", "postUncertain")
+        }
+        s = s.copy(epoch = epoch, sequence = sequence, snapshot = fingerprint,
+            eligible = desired.map { it.requestToken }.toSet() + retainedStock)
         journal.save(s)
         val wanted = desired.map { it.requestToken }.toSet()
         val cancel = (obsolete + s.entries.filter { (_, e) -> e.request.epoch == epoch && e.request.requestToken !in wanted && e.state !in terminals }.keys).distinct()
@@ -115,7 +124,8 @@ internal class ReminderEngine(private val journal: ReminderJournal, private val 
             if (prior?.state in terminals) continue
             val invalid = when {
                 request.clock == "elapsed" && (request.bootId == null || request.bootId != effects.bootId(s.installation)) -> "snooze_interrupted"
-                request.deadlineMilliseconds <= (if (request.clock == "elapsed") effects.nowElapsed() else effects.nowWall()) -> "deadline_expired"
+                request.purpose != "stockLow" && request.deadlineMilliseconds <=
+                    (if (request.clock == "elapsed") effects.nowElapsed() else effects.nowWall()) -> "deadline_expired"
                 else -> effects.unavailableReason(s.alert)
             }
             if (invalid != null) {

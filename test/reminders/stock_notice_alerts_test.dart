@@ -65,6 +65,7 @@ void main() {
         commandId: newCommandId(),
         enabled: on,
         expectedRevision: expected,
+        expectedGeneration: store.generation,
       );
 
   Future<ReminderProjection> prepare([DateTime? at]) => store.prepareReminders(
@@ -126,6 +127,85 @@ void main() {
       db.close();
     }
   }
+
+  test(
+    'uncertain presentation stays visible without rearming the notice',
+    () async {
+      final medicine = await item('Uncertain stock');
+      await container(medicine, opening: n(1), threshold: n(5));
+      await enable();
+      final first = await prepare();
+      final request = first.stockNotices.single;
+      await acknowledge(
+        request,
+        ReminderReceipt.postUncertain,
+        sequence: first.sequence,
+      );
+      final next = await prepare();
+      expect(next.stockNotices, isEmpty);
+      expect(
+        next.stockNoticeAttention.single.repairState,
+        ReminderRepairState.postUncertain,
+      );
+      expect(next.complete, isFalse);
+      expect(rawCount('stock_notice_request'), 1);
+      expect(
+        (await store.captureStockNoticeOpen(
+          envelopeId: 'uncertain-open',
+          namespace: request.namespace,
+          requestToken: request.requestToken,
+          actionToken: request.requestToken,
+          action: ReminderActionKind.open,
+        ))?.itemId,
+        medicine.id,
+      );
+    },
+  );
+
+  test('stock preference rejects a previous dataset generation', () async {
+    await expectLater(
+      store.setStockAlerts(
+        commandId: 'stale-preference',
+        enabled: true,
+        expectedRevision: 0,
+        expectedGeneration: 'old-dataset',
+      ),
+      throwsA(isA<CommandConflict>()),
+    );
+    expect((await store.stockAlertPreference()).enabled, isFalse);
+  });
+
+  test(
+    'schema 25 upgrade preserves records and leaves stock alerts off',
+    () async {
+      final medicine = await item('Migration medicine');
+      final dose = await store.record(
+        commandId: 'migration-dose',
+        itemId: medicine.id,
+        amount: '1',
+        actualAt: now,
+      );
+      await store.close();
+      final db = raw();
+      try {
+        for (final table in [
+          'stock_notice_request',
+          'stock_notice_episode',
+          'stock_notice_config',
+        ]) {
+          db.execute('DROP TABLE $table');
+        }
+        db.execute('PRAGMA user_version=25');
+      } finally {
+        db.close();
+      }
+      store = await RecordStore.open(path: path, key: key, isNew: false);
+      expect((await store.records()).single.id, dose.id);
+      expect((await store.stockAlertPreference()).enabled, isFalse);
+      expect(rawCount('stock_notice_episode'), 0);
+      expect(rawCount('stock_notice_request'), 0);
+    },
+  );
 
   test('default is off and unknown configured stock never alerts', () async {
     final known = await item('Known low');
@@ -207,6 +287,7 @@ void main() {
       );
       final above = await prepare();
       expect(above.stockNotices, isEmpty);
+      expect(above.obsoleteTokens, contains(request.requestToken));
       expect(rawCount('stock_notice_episode'), 0);
 
       final restocked = (await store.stockContainerById(
@@ -276,6 +357,7 @@ void main() {
       commandId: 'alerts-on',
       enabled: true,
       expectedRevision: 0,
+      expectedGeneration: store.generation,
     );
     final first = await prepare();
     final token = first.stockNotices.single.requestToken;
@@ -287,6 +369,7 @@ void main() {
       commandId: 'alerts-on',
       enabled: true,
       expectedRevision: 0,
+      expectedGeneration: store.generation,
     );
     expect(replayed.revision, 1);
     expect(
@@ -294,6 +377,7 @@ void main() {
         commandId: 'alerts-on',
         enabled: true,
         expectedRevision: 0,
+        expectedGeneration: store.generation,
       )).revision,
       1,
     );
@@ -397,6 +481,8 @@ void main() {
         isNull,
       );
     }
+    await acknowledge(request, ReminderReceipt.consumed);
+    final afterConsumed = await prepare();
     final opened = await store.captureStockNoticeOpen(
       envelopeId: 'open-envelope',
       namespace: request.namespace,
@@ -418,16 +504,15 @@ void main() {
     );
     expect(await store.records(), isEmpty);
     expect(rawCount('stock_movement'), 1);
-    await acknowledge(request, ReminderReceipt.consumed);
     expect(rawRequest(request.requestToken)?['state'], 'consumed');
-    expect(rawRequest(request.requestToken)?['active'], 0);
+    expect(rawRequest(request.requestToken)?['active'], 1);
     // A late accepted receipt cannot regress the terminal row.
     expect(
       await store.acknowledgeReminder(
         generation: store.generation,
         requestToken: request.requestToken,
         intentRevision: request.intentRevision,
-        sequence: first.sequence,
+        sequence: afterConsumed.sequence,
         receipt: ReminderReceipt.accepted,
         reason: null,
         adapterFingerprint: 'test-adapter',
@@ -457,7 +542,7 @@ void main() {
     expect(projection.complete, isFalse);
   });
 
-  test('a capacity-deferred notice is refreshed when a slot frees', () async {
+  test('a capacity-deferred notice keeps its immutable deadline', () async {
     await enable();
     for (var i = 0; i < 9; i++) {
       final row = await item('Deferred $i');
@@ -477,9 +562,9 @@ void main() {
         .where((notice) => notice.requestToken == deferred.requestToken)
         .single;
     expect(
-      selected.projectedUtc.isAfter(later),
-      isTrue,
-      reason: 'the waiting token must not stay expired',
+      selected.deadlineMilliseconds,
+      deferred.deadlineMilliseconds,
+      reason: 'a native token must keep its original deadline',
     );
     expect(selected.requestToken, deferred.requestToken);
   });
