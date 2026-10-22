@@ -2,12 +2,16 @@ import '../../ui/vital_ui.dart';
 
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../data/catalogue/catalogue_manager.dart';
 import '../../l10n/app_localizations.dart';
 import '../recording/record_pages.dart' show Heading, LabelledInput;
+
+/// Bounded typing pause. Explicit keyboard Search/Enter bypasses it.
+const catalogueSearchDebounce = Duration(milliseconds: 300);
 
 /// Production remains unavailable until G05 admits an exact source release.
 /// Tests inject a reader built by the real manager with explicit synthetic admission.
@@ -23,6 +27,29 @@ final catalogueReaderProvider = FutureProvider.autoDispose<CatalogueReader?>(
   retry: (_, _) => null,
   (ref) => ref.watch(catalogueLoaderProvider)(),
 );
+
+/// The picker's coalescing query surface. The shipped implementation wraps the
+/// installed-reader session. Tests can supply delayed or conflicting replies
+/// without changing catalogue admission or search semantics.
+abstract interface class CatalogueSearchHandle {
+  Future<CatalogueSearchPage?> search(String query);
+  void close();
+}
+
+final class _SessionSearchHandle implements CatalogueSearchHandle {
+  _SessionSearchHandle(CatalogueReader reader)
+    : _session = CatalogueSearchSession(reader);
+  final CatalogueSearchSession _session;
+
+  @override
+  Future<CatalogueSearchPage?> search(String query) => _session.search(query);
+
+  @override
+  void close() => _session.close();
+}
+
+CatalogueSearchHandle _openSession(CatalogueReader reader) =>
+    _SessionSearchHandle(reader);
 
 class CatalogueSource extends StatelessWidget {
   const CatalogueSource({super.key, required this.snapshot});
@@ -52,6 +79,8 @@ class CatalogueSource extends StatelessWidget {
 
 /// A route-local session pins one verified source release throughout selection.
 /// Latest-input generations also cover asynchronous reader loading and errors.
+/// Typing waits for [catalogueSearchDebounce]; Enter/Search flushes once. Results
+/// for a superseded query are neither rendered nor selectable.
 class CataloguePicker extends ConsumerStatefulWidget {
   const CataloguePicker({
     super.key,
@@ -59,65 +88,174 @@ class CataloguePicker extends ConsumerStatefulWidget {
     required this.onSelect,
     required this.onCustom,
     required this.enabled,
+    this.createSearch = _openSession,
   });
   final TextEditingController query;
   final ValueChanged<CatalogueSnapshot> onSelect;
   final ValueChanged<String> onCustom;
   final bool enabled;
+
+  /// Creates the coalescing search surface once the verified reader is pinned.
+  final CatalogueSearchHandle Function(CatalogueReader reader) createSearch;
+
   @override
   ConsumerState<CataloguePicker> createState() => _CataloguePickerState();
 }
 
 class _CataloguePickerState extends ConsumerState<CataloguePicker> {
-  CatalogueSearchSession? session;
+  CatalogueReader? reader;
+  CatalogueSearchHandle? search;
   CatalogueSearchPage? page;
   bool loading = true, unavailable = false, failed = false, invalid = false;
+  bool hasQuery = false;
   int generation = 0;
+  Timer? debounce;
+  String? inFlightQuery;
+  late String lastQuery;
+  final focus = FocusNode();
+
   @override
   void initState() {
     super.initState();
-    widget.query.addListener(search);
-    unawaited(search());
+    lastQuery = widget.query.text;
+    hasQuery = widget.query.text.trim().isNotEmpty;
+    widget.query.addListener(queryChanged);
+    unawaited(runSearch());
+  }
+
+  @override
+  void didUpdateWidget(covariant CataloguePicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final controllerChanged = oldWidget.query != widget.query;
+    if (controllerChanged) {
+      oldWidget.query.removeListener(queryChanged);
+      widget.query.addListener(queryChanged);
+      lastQuery = widget.query.text;
+      hasQuery = widget.query.text.trim().isNotEmpty;
+    }
+    if (controllerChanged || oldWidget.enabled != widget.enabled) {
+      if (!widget.enabled) {
+        debounce?.cancel();
+        generation++;
+        inFlightQuery = null;
+        page = null;
+        loading = false;
+      } else {
+        restart();
+      }
+    }
   }
 
   @override
   void dispose() {
+    debounce?.cancel();
     generation++;
-    widget.query.removeListener(search);
-    session?.close();
+    widget.query.removeListener(queryChanged);
+    search?.close();
+    focus.dispose();
     super.dispose();
   }
 
-  Future<void> search() async {
-    final current = ++generation, query = widget.query.text;
+  /// A newer input always invalidates the previous generation before its reply
+  /// can change loading, error or result state. Empty input resets immediately.
+  void queryChanged() {
+    final query = widget.query.text;
+    if (query == lastQuery) return;
+    lastQuery = query;
+    final nextHasQuery = query.trim().isNotEmpty;
+    debounce?.cancel();
+    inFlightQuery = null;
+    generation++;
+    if (nextHasQuery) {
+      if (!widget.enabled) {
+        setState(() {
+          hasQuery = true;
+          loading = false;
+          failed = false;
+          invalid = false;
+        });
+        return;
+      }
+      setState(() {
+        hasQuery = true;
+        loading = true;
+        failed = false;
+        invalid = false;
+      });
+      debounce = Timer(catalogueSearchDebounce, () => unawaited(runSearch()));
+      return;
+    }
     setState(() {
-      loading = true;
+      hasQuery = false;
+      loading = false;
+      page = null;
       failed = false;
       invalid = false;
-      page = null;
+      if (reader != null) unavailable = false;
+    });
+    if (widget.enabled) unawaited(runSearch(force: true));
+  }
+
+  /// Cancel any pending typing pause and search the current query immediately.
+  /// A repeated flush for the query already in flight stays a single read.
+  Future<void> runSearch({bool force = false}) async {
+    debounce?.cancel();
+    final current = generation;
+    if (!mounted) return;
+    if (!widget.enabled) {
+      if (loading) setState(() => loading = false);
+      return;
+    }
+    final query = widget.query.text, trimmed = query.trim();
+    if (!force) {
+      if (trimmed.isNotEmpty && inFlightQuery == query) return;
+      final visible = page;
+      if (trimmed.isNotEmpty &&
+          visible != null &&
+          visible.query.trim() == trimmed &&
+          !loading &&
+          !failed &&
+          !invalid) {
+        return;
+      }
+    }
+    inFlightQuery = trimmed.isEmpty ? null : query;
+    setState(() {
+      loading = trimmed.isNotEmpty;
+      failed = false;
+      invalid = false;
+      if (trimmed.isEmpty) {
+        page = null;
+        if (reader != null) unavailable = false;
+      }
     });
     try {
       // Watching retains the auto-dispose reader while this picker is mounted.
-      final reader =
-          session?.reader ?? await ref.read(catalogueReaderProvider.future);
-      if (!mounted || current != generation) return;
-      if (reader == null) {
+      var pinned = reader;
+      pinned ??= await ref.read(catalogueReaderProvider.future);
+      if (!mounted || current != generation || !widget.enabled) return;
+      if (pinned == null) {
+        inFlightQuery = null;
         setState(() {
+          page = null;
           unavailable = true;
           loading = false;
         });
         return;
       }
-      session ??= CatalogueSearchSession(reader);
-      if (query.trim().isEmpty) {
+      reader = pinned;
+      search ??= widget.createSearch(pinned);
+      if (trimmed.isEmpty) {
+        inFlightQuery = null;
         setState(() {
           loading = false;
           unavailable = false;
         });
         return;
       }
-      final result = await session!.search(query);
+      final result = await search!.search(query);
       if (!mounted || current != generation || result == null) return;
+      inFlightQuery = null;
       setState(() {
         page = result;
         loading = false;
@@ -125,6 +263,7 @@ class _CataloguePickerState extends ConsumerState<CataloguePicker> {
       });
     } catch (e) {
       if (!mounted || current != generation) return;
+      inFlightQuery = null;
       setState(() {
         failed = e is! FormatException;
         invalid = e is FormatException;
@@ -133,18 +272,63 @@ class _CataloguePickerState extends ConsumerState<CataloguePicker> {
     }
   }
 
+  void submit() {
+    if (!widget.enabled) return;
+    debounce?.cancel();
+    unawaited(runSearch());
+  }
+
+  void clear() {
+    if (!widget.enabled) return;
+    widget.query.clear();
+    focus.requestFocus();
+  }
+
+  void restart() {
+    debounce?.cancel();
+    generation++;
+    inFlightQuery = null;
+    page = null;
+    loading = widget.enabled && hasQuery;
+    if (!widget.enabled || widget.query.text.trim().isEmpty) {
+      unawaited(runSearch(force: true));
+      return;
+    }
+    debounce = Timer(catalogueSearchDebounce, () => unawaited(runSearch()));
+  }
+
   Future<void> retry() async {
     // Failed source loading is cached by Riverpod until invalidated. An existing
     // session remains pinned to its verified release even if the active pointer
     // has changed; retrying its bounded read must not switch the selection.
-    if (session == null) ref.invalidate(catalogueReaderProvider);
-    await search();
+    if (reader == null) ref.invalidate(catalogueReaderProvider);
+    await runSearch(force: true);
   }
 
   @override
   Widget build(BuildContext context) {
     ref.watch(catalogueReaderProvider);
-    final t = AppLocalizations.of(context), result = page;
+    final t = AppLocalizations.of(context);
+    final query = widget.query.text.trim();
+    // Only the reply for the current query may be shown or selected. An older
+    // page is retained for a stable in-place refresh but never rendered.
+    final result = page != null && page!.query.trim() == query ? page : null;
+    final renderedGeneration = generation;
+    final status = unavailable
+        ? t.catalogueUnavailable
+        : invalid
+        ? t.catalogueQueryLimit
+        : failed
+        ? t.catalogueSearchFailure
+        : loading || (query.isNotEmpty && result == null && widget.enabled)
+        ? t.catalogueSearching
+        : result == null
+        ? t.catalogueStart
+        : result.needsRefinement
+        ? t.catalogueRefine
+        : result.products.isEmpty
+        ? t.catalogueNoMatch(result.query)
+        : '';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -154,28 +338,21 @@ class _CataloguePickerState extends ConsumerState<CataloguePicker> {
         LabelledInput(
           label: t.catalogueSearch,
           controller: widget.query,
+          focusNode: focus,
           enabled: widget.enabled,
+          textInputAction: TextInputAction.search,
+          onSubmitted: (_) => submit(),
         ),
-        Semantics(
-          liveRegion: true,
-          child: Text(
-            loading
-                ? t.catalogueSearching
-                : unavailable
-                ? t.catalogueUnavailable
-                : invalid
-                ? t.catalogueQueryLimit
-                : failed
-                ? t.catalogueSearchFailure
-                : result == null
-                ? t.catalogueStart
-                : result.needsRefinement
-                ? t.catalogueRefine
-                : result.products.isEmpty
-                ? t.catalogueNoMatch(result.query)
-                : '',
+        if (widget.enabled && hasQuery)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: VitalButton.secondary(
+              key: const ValueKey('catalogue-query-clear'),
+              onPressed: clear,
+              child: Text(t.catalogueClear),
+            ),
           ),
-        ),
+        Semantics(liveRegion: true, child: Text(status)),
         if (failed)
           Align(
             alignment: AlignmentDirectional.centerStart,
@@ -221,12 +398,22 @@ class _CataloguePickerState extends ConsumerState<CataloguePicker> {
                       constraints: const BoxConstraints(minHeight: 48),
                       child: VitalButton.secondary(
                         onPressed: widget.enabled
-                            ? () => widget.onSelect(
-                                CatalogueSnapshot(
-                                  product: p,
-                                  manifest: result.manifest,
-                                ),
-                              )
+                            ? () {
+                                if (!mounted ||
+                                    !widget.enabled ||
+                                    generation != renderedGeneration ||
+                                    !identical(page, result) ||
+                                    widget.query.text.trim() !=
+                                        result.query.trim()) {
+                                  return;
+                                }
+                                widget.onSelect(
+                                  CatalogueSnapshot(
+                                    product: p,
+                                    manifest: result.manifest,
+                                  ),
+                                );
+                              }
                             : null,
                         child: Text(t.catalogueSelect),
                       ),

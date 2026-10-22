@@ -920,6 +920,9 @@ class LabelledInput extends StatelessWidget {
     this.error,
     this.semanticLabel,
     this.maxLines = 1,
+    this.focusNode,
+    this.textInputAction,
+    this.onSubmitted,
   });
   final String label;
   final TextEditingController controller;
@@ -928,6 +931,9 @@ class LabelledInput extends StatelessWidget {
   final bool enabled;
   final String? error, semanticLabel;
   final int maxLines;
+  final FocusNode? focusNode;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onSubmitted;
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 20),
@@ -940,13 +946,15 @@ class LabelledInput extends StatelessWidget {
           label: semanticLabel ?? label,
           child: TextField(
             controller: controller,
+            focusNode: focusNode,
             enabled: enabled,
             keyboardType: keyboardType,
             maxLines: maxLines,
             minLines: maxLines > 1 ? 1 : null,
-            textInputAction: maxLines > 1
-                ? TextInputAction.newline
-                : TextInputAction.next,
+            onSubmitted: onSubmitted,
+            textInputAction:
+                textInputAction ??
+                (maxLines > 1 ? TextInputAction.newline : TextInputAction.next),
           ),
         ),
         if (helper != null)

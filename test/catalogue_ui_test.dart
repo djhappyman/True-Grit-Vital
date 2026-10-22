@@ -3,13 +3,22 @@ import 'fixtures/single_user.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/app/app_lock.dart';
+import 'package:true_grit_vital/app/vital_theme.dart';
 import 'package:true_grit_vital/data/catalogue/catalogue_manager.dart';
+import 'package:true_grit_vital/features/catalogue/catalogue_picker.dart';
 import 'package:true_grit_vital/features/recording/record_pages.dart';
+import 'package:true_grit_vital/l10n/app_localizations.dart';
+import 'package:true_grit_vital/ui/vital_ui.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 
 import 'private_drafts_ui_test.dart' show FakeAuth;
@@ -21,9 +30,17 @@ Finder input(String label) => find.descendant(
   of: find.widgetWithText(LabelledInput, label),
   matching: find.byType(TextField),
 );
+Finder catalogueInput() => input('Search medicines');
+Finder catalogueClear() => find.byKey(const ValueKey('catalogue-query-clear'));
 Future<void> enter(WidgetTester tester, String label, String value) async {
   await tester.ensureVisible(input(label));
   await tester.enterText(input(label), value);
+  await settle(tester);
+}
+
+Future<void> enterSearch(WidgetTester tester, String value) async {
+  await tester.ensureVisible(catalogueInput());
+  await tester.enterText(catalogueInput(), value);
   await settle(tester);
 }
 
@@ -42,15 +59,17 @@ Future<CatalogueReader> install(
   CatalogueManager manager,
   Directory root,
   String version,
-  String strength,
-) async {
+  String strength, {
+  String name = 'Invented amber',
+  String form = 'tablet',
+}) async {
   final notice = File('${root.path}/$version.notice');
   await notice.writeAsString(
     'Synthetic invented test source. Not real medicines.',
   );
   final projection = File('${root.path}/$version.jsonl');
   await projection.writeAsString(
-    '${jsonEncode(CatalogueProduct(code: 'fiction-1', conceptClass: 'SYNTHETIC', name: 'Invented amber', form: 'tablet', strength: strength).toJson())}\n',
+    '${jsonEncode(CatalogueProduct(code: 'fiction-1', conceptClass: 'SYNTHETIC', name: name, form: form, strength: strength).toJson())}\n',
   );
   final m = CatalogueManifest(
     version: version,
@@ -75,7 +94,122 @@ Future<CatalogueReader> install(
   return (await manager.openActive())!;
 }
 
+final class FakeCatalogueSearch implements CatalogueSearchHandle {
+  final calls = <String>[];
+  final pending = <String, Completer<CatalogueSearchPage?>>{};
+  bool closed = false;
+
+  @override
+  Future<CatalogueSearchPage?> search(String query) {
+    calls.add(query);
+    final reply = Completer<CatalogueSearchPage?>();
+    pending[query] = reply;
+    return reply.future;
+  }
+
+  void reply(String query, CatalogueSearchPage page) =>
+      pending.remove(query)!.complete(page);
+
+  void fail(String query, Object error) =>
+      pending.remove(query)!.completeError(error);
+
+  @override
+  void close() {
+    closed = true;
+    for (final reply in pending.values) {
+      if (!reply.isCompleted) reply.complete(null);
+    }
+    pending.clear();
+  }
+}
+
+CatalogueSearchPage cataloguePage(
+  CatalogueReader reader,
+  String query, {
+  String name = 'Invented amber',
+  String form = 'tablet',
+  String strength = '7 mg',
+}) => CatalogueSearchPage(
+  query: query,
+  products: [
+    CatalogueProduct(
+      code: 'fiction-1',
+      conceptClass: 'SYNTHETIC',
+      name: name,
+      form: form,
+      strength: strength,
+    ),
+  ],
+  manifest: reader.manifest,
+  needsRefinement: false,
+);
+
+Future<void> pumpCataloguePicker(
+  WidgetTester tester, {
+  required CatalogueReader reader,
+  required TextEditingController query,
+  required CatalogueSearchHandle handle,
+  required ValueNotifier<bool> enabled,
+  required ValueChanged<CatalogueSnapshot> onSelect,
+  Brightness brightness = Brightness.light,
+  GlobalKey? captureKey,
+}) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        catalogueLoaderProvider.overrideWithValue(() async => reader),
+      ],
+      child: RepaintBoundary(
+        key: captureKey,
+        child: ShadcnApp(
+          debugShowCheckedModeBanner: false,
+          theme: vitalTheme(brightness),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('en', 'GB')],
+          home: Scaffold(
+            child: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: enabled,
+                  builder: (context, value, _) => CataloguePicker(
+                    query: query,
+                    enabled: value,
+                    createSearch: (_) => handle,
+                    onSelect: onSelect,
+                    onCustom: (_) {},
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
 void main() {
+  const captures = String.fromEnvironment('VITAL_T04_CAPTURES');
+  setUpAll(() async {
+    if (captures.isEmpty) return;
+    await (FontLoader('StitchSans')
+          ..addFont(rootBundle.load('assets/fonts/StitchNotoSans-Regular.ttf'))
+          ..addFont(rootBundle.load('assets/fonts/StitchNotoSans-Medium.ttf'))
+          ..addFont(rootBundle.load('assets/fonts/StitchNotoSans-SemiBold.ttf'))
+          ..addFont(rootBundle.load('assets/fonts/StitchNotoSans-Bold.ttf')))
+        .load();
+    await (FontLoader('NotoSans')
+          ..addFont(rootBundle.load('assets/fonts/NotoSans-Regular.ttf'))
+          ..addFont(rootBundle.load('assets/fonts/NotoSans-Bold.ttf')))
+        .load();
+  });
   appTest(
     'unavailable catalogue retains query in custom entry and encrypted draft',
     (tester) async {
@@ -89,7 +223,7 @@ void main() {
         ),
         findsOneWidget,
       );
-      await enter(tester, 'Search medicines', 'Unmatched original name');
+      await enterSearch(tester, 'Unmatched original name');
       await tap(tester, 'Enter');
       expect(
         tester.widget<TextField>(input('Full name')).controller!.text,
@@ -110,7 +244,7 @@ void main() {
       );
       await tap(tester, 'Search');
       expect(
-        tester.widget<TextField>(input('Search medicines')).controller!.text,
+        tester.widget<TextField>(catalogueInput()).controller!.text,
         'Unmatched original name',
       );
     },
@@ -128,7 +262,7 @@ void main() {
       f.container.read(routerProvider).go('/create?person=$meId');
       await settle(tester);
       await tap(tester, 'Search');
-      await enter(tester, 'Search medicines', 'Absent fictional product');
+      await enterSearch(tester, 'Absent fictional product');
       await waitForText(
         tester,
         'No catalogue match for “Absent fictional product”. You can enter it as a custom substance.',
@@ -177,7 +311,7 @@ void main() {
       f.container.read(routerProvider).go('/create?person=$meId');
       await settle(tester);
       await tap(tester, 'Search');
-      await enter(tester, 'Search medicines', 'Invented amber');
+      await enterSearch(tester, 'Invented amber');
       await waitForText(tester, 'Invented amber');
       expect(
         find.text('Invented amber. Form: tablet. Strength: 7 mg.'),
@@ -246,8 +380,8 @@ void main() {
     f.container.read(routerProvider).go('/create?person=$meId');
     await settle(tester);
     await tap(tester, 'Search');
-    await tester.enterText(input('Search medicines'), 'Invented amber');
-    await tester.enterText(input('Search medicines'), 'Newest absent');
+    await tester.enterText(catalogueInput(), 'Invented amber');
+    await tester.enterText(catalogueInput(), 'Newest absent');
     pending.complete(source.reader);
     await settle(tester);
     await waitForText(
@@ -255,8 +389,8 @@ void main() {
       'No catalogue match for “Newest absent”. You can enter it as a custom substance.',
     );
     expect(find.text('Invented amber'), findsNothing);
-    await tester.enterText(input('Search medicines'), 'Invented amber');
-    await tester.enterText(input('Search medicines'), 'Still absent');
+    await tester.enterText(catalogueInput(), 'Invented amber');
+    await tester.enterText(catalogueInput(), 'Still absent');
     await settle(tester);
     await waitForText(
       tester,
@@ -286,7 +420,7 @@ void main() {
       f.container.read(routerProvider).go('/create?person=${other.id}');
       await settle(tester);
       await tap(tester, 'Search');
-      await enter(tester, 'Search medicines', 'Invented amber');
+      await enterSearch(tester, 'Invented amber');
       await waitForText(tester, 'Invented amber');
       await tap(tester, 'Select');
       await runIo(
@@ -389,7 +523,7 @@ void main() {
     f.container.read(routerProvider).go('/create?person=$meId');
     await settle(tester);
     await tap(tester, 'Search');
-    await enter(tester, 'Search medicines', 'Invented amber');
+    await enterSearch(tester, 'Invented amber');
     expect(
       find.text('Unable to search. Try again or enter a custom substance.'),
       findsOneWidget,
@@ -398,7 +532,7 @@ void main() {
     await waitForText(tester, 'Invented amber');
     expect(attempts, 2);
     expect(
-      tester.widget<TextField>(input('Search medicines')).controller!.text,
+      tester.widget<TextField>(catalogueInput()).controller!.text,
       'Invented amber',
     );
     await tap(tester, 'Select');
@@ -415,7 +549,7 @@ void main() {
       f.container.read(routerProvider).go('/create?person=$meId');
       await settle(tester);
       await tap(tester, 'Search');
-      await enter(tester, 'Search medicines', 'My custom product');
+      await enterSearch(tester, 'My custom product');
       await tap(tester, 'Enter');
       pending.complete(source.reader);
       await settle(tester);
@@ -428,4 +562,357 @@ void main() {
       expect(find.text('Select'), findsNothing);
     },
   );
+
+  testWidgets('typing waits for the bounded debounce and Enter flushes once', (
+    tester,
+  ) async {
+    final source = (await runIo(tester, corpus))!;
+    addTearDown(() => source.root.delete(recursive: true));
+    final query = TextEditingController();
+    final enabled = ValueNotifier(true);
+    final handle = FakeCatalogueSearch();
+    addTearDown(query.dispose);
+    addTearDown(enabled.dispose);
+    await pumpCataloguePicker(
+      tester,
+      reader: source.reader,
+      query: query,
+      handle: handle,
+      enabled: enabled,
+      onSelect: (_) {},
+    );
+    await tester.enterText(catalogueInput(), 'Inv');
+    await tester.pump(const Duration(milliseconds: 299));
+    expect(handle.calls, isEmpty);
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(handle.calls, ['Inv']);
+    await tester.enterText(catalogueInput(), 'Invented');
+    await tester.pump(const Duration(milliseconds: 299));
+    expect(handle.calls, ['Inv']);
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pump();
+    expect(handle.calls, ['Inv', 'Invented']);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(handle.calls, ['Inv', 'Invented']);
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pump();
+    expect(handle.calls, ['Inv', 'Invented']);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('late and out-of-order replies cannot replace the newest query', (
+    tester,
+  ) async {
+    final source = (await runIo(tester, corpus))!;
+    addTearDown(() => source.root.delete(recursive: true));
+    final query = TextEditingController();
+    final enabled = ValueNotifier(true);
+    final handle = FakeCatalogueSearch();
+    CatalogueSnapshot? selected;
+    addTearDown(query.dispose);
+    addTearDown(enabled.dispose);
+    await pumpCataloguePicker(
+      tester,
+      reader: source.reader,
+      query: query,
+      handle: handle,
+      enabled: enabled,
+      onSelect: (value) => selected = value,
+    );
+    await tester.enterText(catalogueInput(), 'First');
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.enterText(catalogueInput(), 'Second');
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(handle.calls, ['First', 'Second']);
+    handle.reply(
+      'Second',
+      cataloguePage(source.reader, 'Second', name: 'Second product'),
+    );
+    await tester.pump();
+    expect(find.text('Second product'), findsOneWidget);
+    handle.fail('First', StateError('stale read'));
+    await tester.pump();
+    expect(find.text('Second product'), findsOneWidget);
+    expect(
+      find.text('Unable to search. Try again or enter a custom substance.'),
+      findsNothing,
+    );
+    expect(find.text('Searching the offline catalogue…'), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.text('Select'));
+    await tester.pump();
+    expect(selected!.product.name, 'Second product');
+    expect(query.text, 'Second');
+    await tester.enterText(catalogueInput(), 'Third');
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(handle.calls, ['First', 'Second', 'Third']);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    expect(handle.closed, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('clear resets query and results immediately without a read', (
+    tester,
+  ) async {
+    final source = (await runIo(tester, corpus))!;
+    addTearDown(() => source.root.delete(recursive: true));
+    final query = TextEditingController();
+    final enabled = ValueNotifier(true);
+    final handle = FakeCatalogueSearch();
+    addTearDown(query.dispose);
+    addTearDown(enabled.dispose);
+    await pumpCataloguePicker(
+      tester,
+      reader: source.reader,
+      query: query,
+      handle: handle,
+      enabled: enabled,
+      onSelect: (_) {},
+    );
+    await tester.enterText(catalogueInput(), 'Invented amber');
+    await tester.pump(const Duration(milliseconds: 300));
+    handle.reply(
+      'Invented amber',
+      cataloguePage(source.reader, 'Invented amber'),
+    );
+    await tester.pump();
+    expect(find.text('Invented amber'), findsWidgets);
+    expect(catalogueClear(), findsOneWidget);
+    await tester.tap(catalogueClear());
+    await tester.pump();
+    expect(query.text, isEmpty);
+    expect(find.text('Invented amber'), findsNothing);
+    expect(
+      find.text('Enter a name, form or strength to search offline.'),
+      findsOneWidget,
+    );
+    expect(catalogueClear(), findsNothing);
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(handle.calls, ['Invented amber']);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('disabling cancels a pending debounce and re-enabling searches', (
+    tester,
+  ) async {
+    final source = (await runIo(tester, corpus))!;
+    addTearDown(() => source.root.delete(recursive: true));
+    final query = TextEditingController();
+    final enabled = ValueNotifier(true);
+    final handle = FakeCatalogueSearch();
+    addTearDown(query.dispose);
+    addTearDown(enabled.dispose);
+    await pumpCataloguePicker(
+      tester,
+      reader: source.reader,
+      query: query,
+      handle: handle,
+      enabled: enabled,
+      onSelect: (_) {},
+    );
+    await tester.enterText(catalogueInput(), 'Inv');
+    await tester.pump(const Duration(milliseconds: 100));
+    enabled.value = false;
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(handle.calls, isEmpty);
+    enabled.value = true;
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 299));
+    expect(handle.calls, isEmpty);
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(handle.calls, ['Inv']);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets(
+    're-enable retires an in-flight reply and permits a fresh search',
+    (tester) async {
+      final source = (await runIo(tester, corpus))!;
+      addTearDown(() => source.root.delete(recursive: true));
+      final query = TextEditingController();
+      final enabled = ValueNotifier(true);
+      final handle = FakeCatalogueSearch();
+      addTearDown(query.dispose);
+      addTearDown(enabled.dispose);
+      await pumpCataloguePicker(
+        tester,
+        reader: source.reader,
+        query: query,
+        handle: handle,
+        enabled: enabled,
+        onSelect: (_) {},
+      );
+      await tester.enterText(catalogueInput(), 'Inv');
+      await tester.pump(catalogueSearchDebounce);
+      final oldReply = handle.pending['Inv']!;
+      enabled.value = false;
+      await tester.pump();
+      enabled.value = true;
+      await tester.pump();
+      await tester.pump(catalogueSearchDebounce);
+      expect(handle.calls, ['Inv', 'Inv']);
+      oldReply.complete(
+        cataloguePage(source.reader, 'Inv', name: 'Retired result'),
+      );
+      await tester.pump();
+      expect(find.text('Retired result'), findsNothing);
+      handle.reply(
+        'Inv',
+        cataloguePage(source.reader, 'Inv', name: 'Current result'),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Current result'), findsOneWidget);
+      expect(find.text('Searching the offline catalogue…'), findsNothing);
+      query.selection = const TextSelection.collapsed(offset: 1);
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(handle.calls, [
+        'Inv',
+        'Inv',
+      ], reason: 'Caret movement is not typing.');
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets(
+    'a retained result action cannot select after the query changes',
+    (tester) async {
+      final source = (await runIo(tester, corpus))!;
+      addTearDown(() => source.root.delete(recursive: true));
+      final query = TextEditingController();
+      final enabled = ValueNotifier(true);
+      final handle = FakeCatalogueSearch();
+      CatalogueSnapshot? selected;
+      addTearDown(query.dispose);
+      addTearDown(enabled.dispose);
+      await pumpCataloguePicker(
+        tester,
+        reader: source.reader,
+        query: query,
+        handle: handle,
+        enabled: enabled,
+        onSelect: (value) => selected = value,
+      );
+      await tester.enterText(catalogueInput(), 'Inv');
+      await tester.pump(catalogueSearchDebounce);
+      handle.reply('Inv', cataloguePage(source.reader, 'Inv'));
+      await tester.pump();
+      final choose = tester
+          .widget<VitalButton>(find.widgetWithText(VitalButton, 'Select'))
+          .onPressed!;
+      query.text = 'Different';
+      choose();
+      expect(selected, isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
+
+  testWidgets('320 wide at 2x shows complete product and source copy', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 900);
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    final source = (await runIo(tester, corpus))!;
+    addTearDown(() => source.root.delete(recursive: true));
+    final query = TextEditingController();
+    final enabled = ValueNotifier(true);
+    final handle = FakeCatalogueSearch();
+    addTearDown(query.dispose);
+    addTearDown(enabled.dispose);
+    await pumpCataloguePicker(
+      tester,
+      reader: source.reader,
+      query: query,
+      handle: handle,
+      enabled: enabled,
+      onSelect: (_) {},
+    );
+    const name = 'Invented amber extract with a complete descriptive name';
+    const form = 'prolonged-release film-coated tablet';
+    const strength = '7.5 mg per 5 ml';
+    await tester.enterText(catalogueInput(), 'Invented');
+    await tester.pump(const Duration(milliseconds: 300));
+    handle.reply(
+      'Invented',
+      cataloguePage(
+        source.reader,
+        'Invented',
+        name: name,
+        form: form,
+        strength: strength,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text('$name. Form: $form. Strength: $strength.'),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        'Source: synthetic-fixture. Version: first. Released: 2026-10-19.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Attribution: Invented UI test data'), findsOneWidget);
+    expect(find.text('Licence: Synthetic test fixture'), findsOneWidget);
+    expect(find.text('Clear'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    if (captures.isNotEmpty) {
+      final boundary = GlobalKey();
+      for (final brightness in Brightness.values) {
+        // Remount a real picker for each theme with a fresh synthetic reply.
+        final themedHandle = FakeCatalogueSearch();
+        final themedQuery = TextEditingController(text: 'Invented');
+        await tester.pumpWidget(const SizedBox.shrink());
+        await pumpCataloguePicker(
+          tester,
+          reader: source.reader,
+          query: themedQuery,
+          handle: themedHandle,
+          enabled: enabled,
+          onSelect: (_) {},
+          brightness: brightness,
+          captureKey: boundary,
+        );
+        themedHandle.reply(
+          'Invented',
+          cataloguePage(
+            source.reader,
+            'Invented',
+            name: name,
+            form: form,
+            strength: strength,
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.runAsync(() async {
+          final image =
+              await (boundary.currentContext!.findRenderObject()!
+                      as RenderRepaintBoundary)
+                  .toImage();
+          try {
+            final bytes = await image.toByteData(
+              format: ui.ImageByteFormat.png,
+            );
+            final file = File(
+              '$captures/${brightness.name}-catalogue-320x2.png',
+            );
+            await file.parent.create(recursive: true);
+            await file.writeAsBytes(bytes!.buffer.asUint8List());
+          } finally {
+            image.dispose();
+          }
+        });
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+        themedQuery.dispose();
+      }
+    }
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 }
