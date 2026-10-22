@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,14 +7,12 @@ import '../data/record_store.dart';
 import '../platform/reminders.dart';
 import 'app_lock.dart';
 import 'device_zone.dart';
+import 'reminder_alerts.dart';
+import 'reminder_gateway.dart';
 import 'reminder_reconciler.dart';
 import 'storage.dart';
 
-final reminderGatewayProvider = Provider<ReminderGateway>(
-  (ref) => Platform.isAndroid
-      ? const AndroidReminders()
-      : const UnsupportedReminders(),
-);
+export 'reminder_gateway.dart' show reminderGatewayProvider;
 
 final class _StoreRepair
     implements ReminderRepairRepository, EventEndReminderRepairRepository {
@@ -109,6 +106,16 @@ class ReminderRuntime extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(remindersProvider);
+    // Keeps the alert choice alive for the whole unlocked/restore lifecycle,
+    // even before the Reminders page is opened. An accepted adapter change may
+    // switch the active channel, so capability observation must follow it.
+    ref.watch(reminderAlertsProvider.select((value) => value.revision));
+    ref.listen(reminderAlertsProvider.select((value) => value.revision), (
+      previous,
+      next,
+    ) {
+      if (previous != next) ref.read(remindersProvider.notifier).refresh();
+    });
     return child;
   }
 }
@@ -283,6 +290,7 @@ class ReminderController extends Notifier<ReminderState>
       a.exactAlarm == b.exactAlarm &&
       a.protectedStorageAvailable == b.protectedStorageAvailable &&
       a.bootIdentityAvailable == b.bootIdentityAvailable &&
+      a.alertChoicesAvailable == b.alertChoicesAvailable &&
       a.fingerprint == b.fingerprint &&
       a.repairReason == b.repairReason &&
       a.installedEpoch == b.installedEpoch;

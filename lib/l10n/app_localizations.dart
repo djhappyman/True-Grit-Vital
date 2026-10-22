@@ -12122,6 +12122,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SHA-256: {hash}'**
   String featureBackupHistoryHash(String hash);
+
+  /// Section heading for reminder sound and vibration choices.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert options'**
+  String get featureReminderAlertsHeading;
+
+  /// Explains that notification channels and system settings remain authoritative.
+  ///
+  /// In en, this message translates to:
+  /// **'Android can override these choices. Delivery is not guaranteed.'**
+  String get featureReminderAlertsHelp;
+
+  /// Switch label describing what happens when it is on.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound'**
+  String get featureReminderAlertsSound;
+
+  /// Helper text for the reminder sound switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Play a sound with alerts.'**
+  String get featureReminderAlertsSoundHelp;
+
+  /// Switch label describing what happens when it is on.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibration'**
+  String get featureReminderAlertsVibration;
+
+  /// Helper text for the reminder vibration switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Use vibration when Android allows it.'**
+  String get featureReminderAlertsVibrationHelp;
+
+  /// The stored alert preference is damaged or unreadable; Retry re-reads it.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to read alert options.'**
+  String get featureReminderAlertsReadFailed;
+
+  /// The encrypted settings write failed and the previous choice was restored.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save alert options.'**
+  String get featureReminderAlertsSaveFailed;
+
+  /// The preference is durable but the native channel adapter rejected or missed the update.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert options are saved. Android has not applied them yet.'**
+  String get featureReminderAlertsApplyFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -21,7 +21,7 @@ import 'package:true_grit_vital/platform/reminders.dart';
 import '../private_drafts_ui_test.dart' show FakeAuth;
 import '../vital_app_test.dart' show appTest, runIo, settle, tap, waitForText;
 
-class UiGateway implements ReminderGateway {
+class UiGateway implements ReminderGateway, ReminderAlertGateway {
   ReminderClockSample clock = ReminderClockSample(
     utcMilliseconds: DateTime.now().toUtc().millisecondsSinceEpoch,
     elapsedMilliseconds: 3600000,
@@ -29,17 +29,28 @@ class UiGateway implements ReminderGateway {
   );
   int permissions = 0;
   bool allowed = true;
+  bool appEnabled = true, channelEnabled = true, acceptAlerts = true;
+  final appliedAlerts = <ReminderAlertPreferences>[];
   @override
   Future<ReminderCapabilities> capabilities() async => ReminderCapabilities(
     supported: true,
     notificationPermission: allowed,
-    appEnabled: true,
-    channelEnabled: true,
+    appEnabled: appEnabled,
+    channelEnabled: channelEnabled,
     exactAlarm: true,
     protectedStorageAvailable: true,
     bootIdentityAvailable: true,
+    alertChoicesAvailable: true,
     fingerprint: 'test-adapter',
   );
+  @override
+  Future<bool> applyAlertPreferences(
+    ReminderAlertPreferences preferences,
+  ) async {
+    appliedAlerts.add(preferences);
+    return acceptAlerts;
+  }
+
   @override
   Future<ReminderClockSample> sampleClock() async => clock;
   @override

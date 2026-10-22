@@ -11,6 +11,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../../app/app_lock.dart';
 import '../../app/device_zone.dart';
 import '../../app/reminders.dart';
+import 'reminder_alert_settings.dart';
 import 'reminder_health_panel.dart';
 import '../../app/settings_toggle_row.dart';
 import '../../app/storage.dart';
@@ -284,6 +285,10 @@ class RemindersPage extends ConsumerWidget {
             ),
           ],
           if (!c.bootIdentityAvailable) Text(t.reminderClock),
+          if (c.alertChoicesAvailable) ...[
+            const SizedBox(height: 20),
+            const ReminderAlertSettings(),
+          ],
           const SizedBox(height: 16),
           if (report.failed || state.actionFailed)
             Semantics(liveRegion: true, child: Text(t.reminderAttention)),

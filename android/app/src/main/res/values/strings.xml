@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="reminder_channel">Reminders</string>
+    <string name="reminder_channel_sound">Reminders, sound only</string>
+    <string name="reminder_channel_vibration">Reminders, vibration only</string>
+    <string name="reminder_channel_silent">Reminders, silent</string>
     <string name="reminder_title">Vital</string>
     <string name="reminder_body">Open Vital to review a reminder.</string>
     <string name="reminder_taken">Taken</string>

@@ -9238,5 +9238,41 @@
         "type": "String"
       }
     }
+  },
+  "featureReminderAlertsHeading": "Alert options",
+  "@featureReminderAlertsHeading": {
+    "description": "Section heading for reminder sound and vibration choices."
+  },
+  "featureReminderAlertsHelp": "Android can override these choices. Delivery is not guaranteed.",
+  "@featureReminderAlertsHelp": {
+    "description": "Explains that notification channels and system settings remain authoritative."
+  },
+  "featureReminderAlertsSound": "Sound",
+  "@featureReminderAlertsSound": {
+    "description": "Switch label describing what happens when it is on."
+  },
+  "featureReminderAlertsSoundHelp": "Play a sound with alerts.",
+  "@featureReminderAlertsSoundHelp": {
+    "description": "Helper text for the reminder sound switch."
+  },
+  "featureReminderAlertsVibration": "Vibration",
+  "@featureReminderAlertsVibration": {
+    "description": "Switch label describing what happens when it is on."
+  },
+  "featureReminderAlertsVibrationHelp": "Use vibration when Android allows it.",
+  "@featureReminderAlertsVibrationHelp": {
+    "description": "Helper text for the reminder vibration switch."
+  },
+  "featureReminderAlertsReadFailed": "Unable to read alert options.",
+  "@featureReminderAlertsReadFailed": {
+    "description": "The stored alert preference is damaged or unreadable; Retry re-reads it."
+  },
+  "featureReminderAlertsSaveFailed": "Unable to save alert options.",
+  "@featureReminderAlertsSaveFailed": {
+    "description": "The encrypted settings write failed and the previous choice was restored."
+  },
+  "featureReminderAlertsApplyFailed": "Alert options are saved. Android has not applied them yet.",
+  "@featureReminderAlertsApplyFailed": {
+    "description": "The preference is durable but the native channel adapter rejected or missed the update."
   }
 }

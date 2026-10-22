@@ -109,6 +109,7 @@ internal class EncryptedReminderJournal(private val context: Context) : Reminder
     private fun encode(s: ReminderLedger): JSONObject = JSONObject().put("version", 1)
         .put("installation", s.installation).put("epoch", s.epoch ?: JSONObject.NULL)
         .put("sequence", s.sequence).put("snapshot", s.snapshot).put("boot", s.boot ?: JSONObject.NULL)
+        .put("alert", JSONObject(ReminderAlertCodec.encode(s.alert)))
         .put("repairReason", s.repairReason ?: JSONObject.NULL).put("retired", JSONArray(s.retired.toList()))
         .put("acknowledged", JSONArray(s.acknowledged.toList()))
         .put("eligible", JSONArray(s.eligible.toList()))
@@ -125,6 +126,11 @@ internal class EncryptedReminderJournal(private val context: Context) : Reminder
         val entries = j.getJSONArray("entries")
         val actions = j.getJSONArray("actions")
         if (entries.length() > 8192 || actions.length() > 32) throw ReminderFailure("journal_recovery_required")
+        val alertObject = j.optJSONObject("alert")
+        val alert = ReminderAlertCodec.decode(
+            sound = if (alertObject?.has("sound") == true) alertObject.getBoolean("sound") else null,
+            vibration = if (alertObject?.has("vibration") == true) alertObject.getBoolean("vibration") else null,
+        )
         val ledger = ReminderLedger(installation = j.getString("installation"), epoch = nullable(j, "epoch"),
             sequence = j.getLong("sequence"), snapshot = j.getString("snapshot"), boot = nullable(j, "boot"),
             repairReason = nullable(j, "repairReason"), retired = strings(j.getJSONArray("retired"), 1024),
@@ -136,7 +142,8 @@ internal class EncryptedReminderJournal(private val context: Context) : Reminder
                     e.getString("snoozeToken"), e.getString("skipToken"), e.getString("clock"), e.getLong("deadline"), nullable(e, "boot"), e.optString("purpose", "ordinary"))
                 r.requestToken to ReminderEntry(r, e.getString("state"), nullable(e, "reason"))
             }.also { pairs -> if (pairs.map { it.first }.distinct().size != pairs.size) throw ReminderFailure("journal_recovery_required") }.toMap(), actions = (0 until actions.length()).map { i -> val a = actions.getJSONObject(i)
-                ReminderAction(a.getString("id"), a.getString("epoch"), a.getString("request"), a.getString("token"), a.getString("action")) })
+                ReminderAction(a.getString("id"), a.getString("epoch"), a.getString("request"), a.getString("token"), a.getString("action")) },
+            alert = alert)
         ReminderEngine.token(ledger.installation)
         ledger.epoch?.let { ReminderEngine.token(it) }
         if (ledger.sequence < -1 || ledger.snapshot.length > 1024 * 1024 || (ledger.boot?.length ?: 0) > 256 ||

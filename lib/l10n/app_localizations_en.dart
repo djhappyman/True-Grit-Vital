@@ -7819,4 +7819,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String featureBackupHistoryHash(String hash) {
     return 'SHA-256: $hash';
   }
+
+  @override
+  String get featureReminderAlertsHeading => 'Alert options';
+
+  @override
+  String get featureReminderAlertsHelp =>
+      'Android can override these choices. Delivery is not guaranteed.';
+
+  @override
+  String get featureReminderAlertsSound => 'Sound';
+
+  @override
+  String get featureReminderAlertsSoundHelp => 'Play a sound with alerts.';
+
+  @override
+  String get featureReminderAlertsVibration => 'Vibration';
+
+  @override
+  String get featureReminderAlertsVibrationHelp =>
+      'Use vibration when Android allows it.';
+
+  @override
+  String get featureReminderAlertsReadFailed => 'Unable to read alert options.';
+
+  @override
+  String get featureReminderAlertsSaveFailed => 'Unable to save alert options.';
+
+  @override
+  String get featureReminderAlertsApplyFailed =>
+      'Alert options are saved. Android has not applied them yet.';
 }

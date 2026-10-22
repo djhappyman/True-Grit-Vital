@@ -15,6 +15,7 @@ internal data class ReminderLedger(
     val retired: Set<String> = emptySet(), val entries: Map<String, ReminderEntry> = emptyMap(),
     val eligible: Set<String> = emptySet(),
     val actions: List<ReminderAction> = emptyList(), val acknowledged: Set<String> = emptySet(),
+    val alert: ReminderAlert = ReminderAlert.LEGACY,
 )
 internal interface ReminderJournal {
     fun read(): ReminderLedger
@@ -24,10 +25,10 @@ internal interface ReminderEffects {
     fun nowWall(): Long
     fun nowElapsed(): Long
     fun bootId(installation: String): String?
-    fun unavailableReason(): String?
+    fun unavailableReason(alert: ReminderAlert): String?
     fun schedule(request: ReminderRequest)
     fun cancel(request: ReminderRequest)
-    fun post(request: ReminderRequest)
+    fun post(request: ReminderRequest, alert: ReminderAlert)
     fun pending(request: ReminderRequest): Boolean
     fun visible(request: ReminderRequest): Boolean
 }
@@ -62,6 +63,13 @@ internal class ReminderEngine(private val journal: ReminderJournal, private val 
     }
     fun repairReason(): String? = state().repairReason
     fun bootAvailable(): Boolean { val s = state(); return effects.bootId(s.installation) != null }
+    /** The alert choice used when a prepared reminder is posted. */
+    fun alert(): ReminderAlert = state().alert
+    /** Persists the choice before the adapter creates or selects a channel. */
+    fun applyAlert(alert: ReminderAlert): Boolean {
+        journal.save(state().copy(alert = alert))
+        return true
+    }
     /** The epoch currently installed, so a restored dataset can hand it over. */
     fun installedEpoch(): String? = state().epoch
     fun apply(epoch: String, sequence: Long, desired: List<ReminderRequest>, obsolete: List<String>): Map<String, Any?> {
@@ -100,7 +108,7 @@ internal class ReminderEngine(private val journal: ReminderJournal, private val 
             val invalid = when {
                 request.clock == "elapsed" && (request.bootId == null || request.bootId != effects.bootId(s.installation)) -> "snooze_interrupted"
                 request.deadlineMilliseconds <= (if (request.clock == "elapsed") effects.nowElapsed() else effects.nowWall()) -> "deadline_expired"
-                else -> effects.unavailableReason()
+                else -> effects.unavailableReason(s.alert)
             }
             if (invalid != null) {
                 s = put(s, ReminderEntry(request, "failed", invalid))
@@ -176,8 +184,8 @@ internal class ReminderEngine(private val journal: ReminderJournal, private val 
         if (r.deadlineMilliseconds > if (r.clock == "elapsed") effects.nowElapsed() else effects.nowWall()) return
         // postUncertain is the durable consumed fence, even if notify or the final save crashes.
         s = put(s, entry.copy(state = "postUncertain", reason = "presentation_uncertain"))
-        if (effects.unavailableReason() != null) return
-        try { effects.post(r) } catch (_: Exception) { return }
+        if (effects.unavailableReason(s.alert) != null) return
+        try { effects.post(r, s.alert) } catch (_: Exception) { return }
         put(s, entry.copy(state = "consumed"))
     }
     fun inspect(tokens: List<String>): List<Map<String, Any?>> {

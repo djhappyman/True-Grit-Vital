@@ -91,7 +91,55 @@ void main() {
     expect(result.notificationPermission, false);
     expect(result.exactAlarm, false);
     expect(result.installedEpoch, isNull);
+    expect(result.alertChoicesAvailable, false);
     expect(calls, ['capabilities']);
+  });
+  test('alert choice capability is read without inferring it', () async {
+    messenger.setMockMethodCallHandler(AndroidReminders.channel, (_) async {
+      return {
+        'supported': true,
+        'notificationPermission': true,
+        'appEnabled': true,
+        'channelEnabled': true,
+        'alertChoicesAvailable': true,
+        'exactAlarm': true,
+        'protectedStorageAvailable': true,
+        'bootIdentityAvailable': true,
+        'fingerprint': 'v1',
+      };
+    });
+    final result = await const AndroidReminders().capabilities();
+    expect(result.alertChoicesAvailable, true);
+  });
+  test(
+    'alert choice wire sends both booleans and keeps the adapter answer',
+    () async {
+      final calls = <Map<Object?, Object?>>[];
+      messenger.setMockMethodCallHandler(AndroidReminders.channel, (
+        call,
+      ) async {
+        expect(call.method, 'applyAlertPreferences');
+        calls.add(call.arguments as Map<Object?, Object?>);
+        return false;
+      });
+      final applied = await const AndroidReminders().applyAlertPreferences(
+        const ReminderAlertPreferences(sound: false, vibration: true),
+      );
+      expect(applied, false);
+      expect(calls.single, {'sound': false, 'vibration': true});
+    },
+  );
+  test('alert choice adapter failure is not reported as applied', () async {
+    messenger.setMockMethodCallHandler(
+      AndroidReminders.channel,
+      (_) async => throw PlatformException(code: 'journal_recovery_required'),
+    );
+    expect(
+      const AndroidReminders().applyAlertPreferences(
+        const ReminderAlertPreferences(sound: false, vibration: false),
+      ),
+      throwsA(isA<PlatformException>()),
+    );
   });
   test(
     'capabilities carry the installed epoch for a restore handshake',
@@ -154,6 +202,12 @@ void main() {
     expect((await gateway.capabilities()).supported, false);
     expect(await gateway.getInitialAction(), null);
     expect(await gateway.cancel(['r']), isEmpty);
+    expect(
+      await gateway.applyAlertPreferences(
+        const ReminderAlertPreferences(sound: false, vibration: false),
+      ),
+      false,
+    );
     expect(await gateway.changes.toList(), isEmpty);
     expect(gateway.sampleClock(), throwsUnsupportedError);
   });

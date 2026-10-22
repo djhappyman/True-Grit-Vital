@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
+import '../domain/reminders/alert_preferences.dart';
 import '../domain/reminders/reminders.dart';
+export '../domain/reminders/alert_preferences.dart'
+    show ReminderAlertPreferences;
 export '../domain/reminders/reminders.dart' show ReminderClockSample;
 
 enum ReminderNativeClock { wall, elapsed }
@@ -30,6 +33,7 @@ final class ReminderCapabilities {
     required this.protectedStorageAvailable,
     required this.bootIdentityAvailable,
     required this.fingerprint,
+    this.alertChoicesAvailable = false,
     this.repairReason,
     this.installedEpoch,
   });
@@ -39,6 +43,10 @@ final class ReminderCapabilities {
       channelEnabled,
       exactAlarm;
   final bool protectedStorageAvailable, bootIdentityAvailable;
+
+  /// Whether this host can apply a sound/vibration choice to a real
+  /// notification channel. False on hosts without that contract.
+  final bool alertChoicesAvailable;
   final String fingerprint;
   final String? repairReason;
 
@@ -55,6 +63,7 @@ final class ReminderCapabilities {
         exactAlarm: map['exactAlarm'] == true,
         protectedStorageAvailable: map['protectedStorageAvailable'] == true,
         bootIdentityAvailable: map['bootIdentityAvailable'] == true,
+        alertChoicesAvailable: map['alertChoicesAvailable'] == true,
         fingerprint: map['fingerprint'] as String? ?? 'unsupported',
         repairReason: map['repairReason'] as String?,
         installedEpoch: map['installedEpoch'] as String?,
@@ -174,7 +183,14 @@ abstract interface class ReminderGateway {
   Stream<void> get changes;
 }
 
-final class AndroidReminders implements ReminderGateway {
+/// Applies a persisted sound/vibration choice to the platform's real
+/// notification channel contract. A false result is an unapplied choice, not a
+/// claim that the system will deliver or honour an effect.
+abstract interface class ReminderAlertGateway {
+  Future<bool> applyAlertPreferences(ReminderAlertPreferences preferences);
+}
+
+final class AndroidReminders implements ReminderGateway, ReminderAlertGateway {
   const AndroidReminders();
   static const channel = MethodChannel('true_grit_vital/reminders');
   static const events = EventChannel('true_grit_vital/reminder_changes');
@@ -260,11 +276,21 @@ final class AndroidReminders implements ReminderGateway {
   Future<bool> openNotificationSettings() async =>
       await _call<bool>('openNotificationSettings') ?? false;
   @override
+  Future<bool> applyAlertPreferences(
+    ReminderAlertPreferences preferences,
+  ) async =>
+      await _call<bool>('applyAlertPreferences', {
+        'sound': preferences.sound,
+        'vibration': preferences.vibration,
+      }) ??
+      false;
+  @override
   Stream<void> get changes => events.receiveBroadcastStream().map((_) {});
 }
 
 /// Desktop reminder delivery has no admitted adapter. Basic recording stays usable.
-final class UnsupportedReminders implements ReminderGateway {
+final class UnsupportedReminders
+    implements ReminderGateway, ReminderAlertGateway {
   const UnsupportedReminders();
   @override
   Future<ReminderCapabilities> capabilities() async =>
@@ -322,6 +348,10 @@ final class UnsupportedReminders implements ReminderGateway {
   Future<bool> openExactAlarmSettings() async => false;
   @override
   Future<bool> openNotificationSettings() async => false;
+  @override
+  Future<bool> applyAlertPreferences(
+    ReminderAlertPreferences preferences,
+  ) async => false;
   @override
   Stream<void> get changes => const Stream.empty();
 }

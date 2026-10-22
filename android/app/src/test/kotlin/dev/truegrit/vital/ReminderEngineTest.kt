@@ -15,19 +15,20 @@ private class MemoryJournal : ReminderJournal {
 private class Effects : ReminderEffects {
     var wall = 1000L; var elapsed = 100L; var boot: String? = "boot1"; var unavailable: String? = null
     var scheduled = mutableMapOf<String, ReminderRequest>(); var posts = 0; var cancels = 0
+    var lastAlert: ReminderAlert? = null
     var scheduleFailure = false; var postFailure = false; var cancelFailure = false
     var beforeSchedule: (() -> Unit)? = null
     override fun nowWall() = wall
     override fun nowElapsed() = elapsed
     override fun bootId(installation: String) = boot
-    override fun unavailableReason() = unavailable
+    override fun unavailableReason(alert: ReminderAlert) = unavailable
     override fun schedule(request: ReminderRequest) {
         beforeSchedule?.invoke()
         if (scheduleFailure) throw IllegalStateException()
         scheduled[request.requestToken] = request
     }
     override fun cancel(request: ReminderRequest) { cancels++; if (cancelFailure) throw IllegalStateException(); scheduled.remove(request.requestToken) }
-    override fun post(request: ReminderRequest) { posts++; if (postFailure) throw IllegalStateException() }
+    override fun post(request: ReminderRequest, alert: ReminderAlert) { posts++; lastAlert = alert; if (postFailure) throw IllegalStateException() }
     override fun pending(request: ReminderRequest) = scheduled.containsKey(request.requestToken)
     override fun visible(request: ReminderRequest) = posts > 0
 }
@@ -253,6 +254,58 @@ fun main() {
         val second = e.apply("epoch1", 2, emptyList(), listOf("r1"))
         check((second["receipts"] as List<*>).map { it as Map<*, *> }.first()["reason"] == null)
         check(f.scheduled.isEmpty())
+    }
+    test("alert choices default to the legacy channel and survive reopening") {
+        val j = MemoryJournal(); val f = Effects(); var e = ReminderEngine(j, f)
+        check(e.alert() == ReminderAlert.LEGACY)
+        e.apply("epoch1", 1, listOf(request()), emptyList())
+        check(e.applyAlert(ReminderAlert(sound = false, vibration = false)))
+        e = ReminderEngine(j, f)
+        check(e.alert() == ReminderAlert(sound = false, vibration = false))
+        f.wall = 2000; e.fire("epoch1", "r1")
+        check(f.posts == 1 && f.lastAlert == ReminderAlert(sound = false, vibration = false))
+    }
+    test("alert choice changes never cancel or reschedule prepared reminders") {
+        val j = MemoryJournal(); val f = Effects(); val e = ReminderEngine(j, f)
+        e.apply("epoch1", 1, listOf(request()), emptyList())
+        e.applyAlert(ReminderAlert(sound = false, vibration = true))
+        check(j.value.sequence == 1L && j.value.epoch == "epoch1")
+        check(f.scheduled.keys == setOf("r1") && f.cancels == 0)
+    }
+    test("failed alert preference write is not reported as applied") {
+        val j = MemoryJournal(); val f = Effects(); val e = ReminderEngine(j, f)
+        j.reject = { it.alert != ReminderAlert.LEGACY }
+        check(runCatching { e.applyAlert(ReminderAlert(sound = false, vibration = false)) }.isFailure)
+        check(e.alert() == ReminderAlert.LEGACY)
+    }
+    test("legacy channel identity and variant configuration stay explicit") {
+        check(ReminderChannels.id(ReminderAlert.LEGACY) == "vital_reminders_v1")
+        check(ReminderChannels.configuration(ReminderAlert.LEGACY) ==
+            ReminderChannelConfiguration(sound = true, vibration = true, legacy = true))
+        val soundOnly = ReminderAlert(sound = true, vibration = false)
+        val vibrationOnly = ReminderAlert(sound = false, vibration = true)
+        val silent = ReminderAlert(sound = false, vibration = false)
+        check(listOf(soundOnly, vibrationOnly, silent).map { ReminderChannels.id(it) } ==
+            listOf("vital_reminders_v1_s1v0", "vital_reminders_v1_s0v1", "vital_reminders_v1_s0v0"))
+        check(ReminderChannels.configuration(soundOnly) ==
+            ReminderChannelConfiguration(sound = true, vibration = false, legacy = false))
+        check(ReminderChannels.configuration(vibrationOnly).sound == false)
+        check(ReminderChannels.configuration(vibrationOnly).vibration == true)
+        check(ReminderChannels.configuration(silent).let { !it.sound && !it.vibration && !it.legacy })
+    }
+    test("missing or muted channel is never treated as known enabled") {
+        check(!ReminderChannels.enabled(null))
+        check(!ReminderChannels.enabled(0))
+        check(ReminderChannels.enabled(2))
+        check(ReminderChannels.enabled(4))
+    }
+    test("alert storage keeps legacy for absent fields and explicit false otherwise") {
+        check(ReminderAlertCodec.decode(null, null) == ReminderAlert.LEGACY)
+        check(ReminderAlertCodec.decode(false, null) == ReminderAlert(sound = false, vibration = true))
+        check(ReminderAlertCodec.decode(null, false) == ReminderAlert(sound = true, vibration = false))
+        check(ReminderAlertCodec.decode(true, false) == ReminderAlert(sound = true, vibration = false))
+        check(ReminderAlertCodec.encode(ReminderAlert(sound = false, vibration = true)) ==
+            mapOf("sound" to false, "vibration" to true))
     }
     println("$passed reminder engine tests passed")
 }

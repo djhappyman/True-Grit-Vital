@@ -35,6 +35,7 @@ def main():
                         "-no-stdlib", "-no-reflect", "-jvm-target", "17", "-classpath", stdlib,
                         "-d", classes,
                         str(ROOT / "android/app/src/main/kotlin/dev/truegrit/vital/ReminderEngine.kt"),
+                        str(ROOT / "android/app/src/main/kotlin/dev/truegrit/vital/ReminderAlerts.kt"),
                         str(ROOT / "android/app/src/test/kotlin/dev/truegrit/vital/ReminderEngineTest.kt")], check=True)
         subprocess.run(["java", "-cp", os.pathsep.join([classes, stdlib]),
                         "dev.truegrit.vital.ReminderEngineTestKt"], check=True)

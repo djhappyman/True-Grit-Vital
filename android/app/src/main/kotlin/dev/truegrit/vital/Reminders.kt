@@ -30,7 +30,7 @@ internal object ReminderRuntime {
 }
 
 internal class AndroidReminderEffects(private val context: Context) : ReminderEffects {
-    companion object { const val CHANNEL = "vital_reminders_v1"; const val ACTION = "dev.truegrit.vital.REMINDER" }
+    companion object { const val CHANNEL = ReminderChannels.LEGACY_ID; const val ACTION = "dev.truegrit.vital.REMINDER" }
     private val alarms get() = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private val notifications get() = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     override fun nowWall() = System.currentTimeMillis()
@@ -39,20 +39,40 @@ internal class AndroidReminderEffects(private val context: Context) : ReminderEf
         val count = Settings.Global.getInt(context.contentResolver, Settings.Global.BOOT_COUNT)
         if (count < 0) null else "$installation-$count"
     } catch (_: Exception) { null }
-    fun channel() {
-        if (Build.VERSION.SDK_INT >= 26) notifications.createNotificationChannel(NotificationChannel(
-            CHANNEL, context.getString(R.string.reminder_channel), NotificationManager.IMPORTANCE_DEFAULT))
+    fun channel() = ensureChannel(ReminderAlert.LEGACY)
+    private fun channelName(alert: ReminderAlert): Int = when {
+        alert.legacy -> R.string.reminder_channel
+        alert.sound -> R.string.reminder_channel_sound
+        alert.vibration -> R.string.reminder_channel_vibration
+        else -> R.string.reminder_channel_silent
+    }
+    /** Only creates the variant needed by this choice. Existing channels are
+     * never edited or deleted, so OS-owned channel settings stay authoritative. */
+    fun ensureChannel(alert: ReminderAlert) {
+        if (Build.VERSION.SDK_INT >= 26) {
+            val configuration = ReminderChannels.configuration(alert)
+            val channel = NotificationChannel(ReminderChannels.id(alert), context.getString(channelName(alert)),
+                NotificationManager.IMPORTANCE_DEFAULT)
+            if (!configuration.legacy) {
+                if (!configuration.sound) channel.setSound(null, null)
+                channel.enableVibration(configuration.vibration)
+            }
+            notifications.createNotificationChannel(channel)
+        }
     }
     fun permission(): Boolean = Build.VERSION.SDK_INT < 33 || context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
     fun exact(): Boolean = Build.VERSION.SDK_INT < 31 || alarms.canScheduleExactAlarms()
     fun appEnabled(): Boolean = notifications.areNotificationsEnabled()
-    fun channelEnabled(): Boolean = Build.VERSION.SDK_INT < 26 || notifications.getNotificationChannel(CHANNEL)?.importance != NotificationManager.IMPORTANCE_NONE
+    fun channelEnabled(alert: ReminderAlert): Boolean = Build.VERSION.SDK_INT < 26 ||
+        ReminderChannels.enabled(notifications.getNotificationChannel(ReminderChannels.id(alert))?.importance)
+    fun channelExists(alert: ReminderAlert): Boolean = Build.VERSION.SDK_INT < 26 ||
+        notifications.getNotificationChannel(ReminderChannels.id(alert)) != null
     fun protected(): Boolean = !context.isDeviceProtectedStorage && (context.getSystemService(Context.USER_SERVICE) as UserManager).isUserUnlocked
-    override fun unavailableReason(): String? = when {
+    override fun unavailableReason(alert: ReminderAlert): String? = when {
         !protected() -> "protected_storage_unavailable"
         !permission() -> "notification_permission"
         !appEnabled() -> "notifications_blocked"
-        !channelEnabled() -> "channel_blocked"
+        !channelEnabled(alert) -> "channel_blocked"
         !exact() -> "exact_alarm_denied"
         else -> null
     }
@@ -82,9 +102,10 @@ internal class AndroidReminderEffects(private val context: Context) : ReminderEf
                 .appendPath(r.requestToken).appendPath(action).appendPath(token).build()
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
-    override fun post(request: ReminderRequest) {
-        channel()
-        val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, CHANNEL) else {
+    override fun post(request: ReminderRequest, alert: ReminderAlert) {
+        ensureChannel(alert)
+        val channelId = ReminderChannels.id(alert)
+        val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, channelId) else {
             @Suppress("DEPRECATION") Notification.Builder(context)
         }
         builder.setSmallIcon(R.drawable.ic_reminder).setContentTitle(context.getString(R.string.reminder_title))
@@ -174,6 +195,25 @@ internal class Reminders(private val activity: MainActivity, messenger: BinaryMe
                         val answer: Any? = when (call.method) {
                             "capabilities" -> capabilities(engine)
                             "sampleClock" -> engine.clock()
+                            "applyAlertPreferences" -> {
+                                if (Build.VERSION.SDK_INT < 26) false
+                                else {
+                                    val alert = ReminderAlert(
+                                        sound = call.argument<Boolean>("sound") ?: throw ReminderFailure("invalid_arguments"),
+                                        vibration = call.argument<Boolean>("vibration") ?: throw ReminderFailure("invalid_arguments"),
+                                    )
+                                    val applied = engine.applyAlert(alert)
+                                    // The choice is durable in the journal first.
+                                    // A channel that could not be created is not an
+                                    // accepted native effect: fail so the app can
+                                    // show pending and offer Retry.
+                                    val effects = AndroidReminderEffects(context)
+                                    try { effects.ensureChannel(alert) }
+                                    catch (_: Exception) { throw ReminderFailure("alert_channel_unavailable") }
+                                    if (!effects.channelExists(alert)) throw ReminderFailure("alert_channel_unavailable")
+                                    applied
+                                }
+                            }
                             "applySnapshot" -> {
                                 val epoch = string(call.argument<Any?>("epoch"))
                                 val sequence = number(call.argument<Any?>("sequence"))
@@ -216,11 +256,13 @@ internal class Reminders(private val activity: MainActivity, messenger: BinaryMe
     private fun capabilities(engine: ReminderEngine): Map<String, Any?> {
         val effects = AndroidReminderEffects(context)
         var storage = false; var boot = false; var reason: String? = null; var installed: String? = null
-        try { reason = engine.repairReason(); boot = engine.bootAvailable(); installed = engine.installedEpoch(); storage = true }
+        var alert = ReminderAlert.LEGACY
+        try { reason = engine.repairReason(); alert = engine.alert(); boot = engine.bootAvailable(); installed = engine.installedEpoch(); storage = true }
         catch (e: ReminderFailure) { reason = e.code }
         catch (_: Exception) { reason = "protected_storage_unavailable" }
         return mapOf("supported" to true, "notificationPermission" to effects.permission(), "appEnabled" to effects.appEnabled(),
-            "channelEnabled" to effects.channelEnabled(), "exactAlarm" to effects.exact(), "protectedStorageAvailable" to storage,
+            "channelEnabled" to effects.channelEnabled(alert), "alertChoicesAvailable" to (Build.VERSION.SDK_INT >= 26),
+            "exactAlarm" to effects.exact(), "protectedStorageAvailable" to storage,
             "bootIdentityAvailable" to boot, "fingerprint" to ReminderEngine.FINGERPRINT, "repairReason" to reason,
             "installedEpoch" to installed)
     }
