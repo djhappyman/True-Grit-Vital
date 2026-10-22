@@ -101,6 +101,28 @@ built successfully. See the [batch evidence](reviews/2026-10-22-next-five/README
 Device/release gates remain open. Plan-instruction output mapping remains separate
 from this private in-app slice.
 
+## Next four-task batch
+
+Owner authorised four concurrent tasks on 22 October 2026, after the previous
+five-task batch was pushed as `37a46f1`:
+
+- D16b: whole-collection event status filters and counts, assigned to free
+  DeepSeek V4.1 Flash through OpenCode.
+- D17b: latest lab values beyond the 75-record/60-marker projection, assigned
+  to paid `deepseek/deepseek-flash` through the direct DeepSeek API.
+- D18b: prior panel comparisons beyond the 50-record window, assigned to a
+  second paid direct-API DeepSeek worker.
+- D11b: privacy-selected report/export instructions from the immutable plan
+  version explicitly linked to a saved action, implemented by the lead.
+
+All three workers started concurrently alongside the lead, in isolated
+worktrees based on the pushed checkpoint. Acceptance criteria, ownership,
+required skills and delegation identities are retained locally under
+`.scratch/vital-implementation/next-four-2026-10-22/`. Each slice remains in
+progress until its implementation, integration and relevant verification pass.
+Timing tolerance, reminder follow-ups, automatic backup lifecycle and physical
+device gates retain their existing open status.
+
 ## Claims requiring decisions
 
 - Clinical optimal/risk/target classifications and causal response claims are generated examples, not agreed clinical functionality. Show original lab source ranges/flags and factual comparisons; any additional interpretation needs an explicit product decision and evidence.

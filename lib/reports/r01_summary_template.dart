@@ -534,7 +534,11 @@ final class R01SummaryRenderer implements ReportTemplateRenderer {
         ..add(pw.SizedBox(height: 4));
       for (final line in details.skip(1)) {
         content.add(
-          pw.Text(line, style: pw.TextStyle(fontSize: 8.5, color: _graphite)),
+          pw.Text(
+            line,
+            overflow: pw.TextOverflow.span,
+            style: pw.TextStyle(fontSize: 8.5, color: _graphite),
+          ),
         );
       }
     }

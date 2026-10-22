@@ -192,7 +192,7 @@ void main() {
     await waitForText(tester, 'Export');
     expect(
       find.text(
-        'Include substance instructions, notes and skip reasons. Files stay excluded.',
+        'Include substance and saved plan instructions, notes and skip reasons. Files stay excluded.',
       ),
       findsOneWidget,
     );

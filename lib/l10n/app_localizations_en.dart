@@ -4299,7 +4299,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportNotesHelp =>
-      'Include substance instructions, notes and skip reasons. Files stay excluded.';
+      'Include substance and saved plan instructions, notes and skip reasons. Files stay excluded.';
 
   @override
   String exportSinglePerson(String name) {
@@ -5050,7 +5050,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportNotesHelp =>
-      'Include substance instructions and notes. Detailed history also includes skip reasons.';
+      'Include notes, skip reasons and substance or original plan instructions.';
 
   @override
   String get reportSources => 'Source files';

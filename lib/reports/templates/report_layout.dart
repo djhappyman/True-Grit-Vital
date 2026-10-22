@@ -350,112 +350,112 @@ CivilDate ledgerCivil(DateTime instant, String zone) {
 }
 
 /// Selected supporting records and source files, shared by R01-style context.
-pw.Widget reportContextBlock(ReportSnapshot snapshot) {
+List<pw.Widget> reportContextBlock(ReportSnapshot snapshot) {
   final selection = snapshot.selection;
   final details = ReportText.itemDetailLines(snapshot);
   if (!selection.includeSupporting &&
       !selection.includeAttachments &&
       details.isEmpty) {
-    return reportNote(
-      'Supporting records and source files were not included in this report.',
-    );
+    return [
+      reportNote(
+        'Supporting records and source files were not included in this report.',
+      ),
+    ];
   }
-  return pw.Column(
-    crossAxisAlignment: pw.CrossAxisAlignment.start,
-    children: [
-      reportSectionHeading('Selected context'),
-      pw.SizedBox(height: 6),
-      if (selection.includeSupporting) ...[
-        if (snapshot.supporting.isEmpty)
-          reportNote('No supporting records fall inside this period.')
-        else
-          pw.Table(
-            border: pw.TableBorder(
-              horizontalInside: pw.BorderSide(
-                color: ReportPalette.rule,
-                width: 0.4,
-              ),
+  return [
+    reportSectionHeading('Selected context'),
+    pw.SizedBox(height: 6),
+    if (selection.includeSupporting) ...[
+      if (snapshot.supporting.isEmpty)
+        reportNote('No supporting records fall inside this period.')
+      else
+        pw.Table(
+          border: pw.TableBorder(
+            horizontalInside: pw.BorderSide(
+              color: ReportPalette.rule,
+              width: 0.4,
             ),
-            columnWidths: const {
-              0: pw.FlexColumnWidth(2.4),
-              1: pw.FlexColumnWidth(1.6),
-              2: pw.FlexColumnWidth(2.2),
-              3: pw.FlexColumnWidth(1.5),
-            },
-            children: [
-              pw.TableRow(
-                repeat: true,
-                children: [
-                  reportCell('Record', header: true),
-                  reportCell('Measured', header: true),
-                  reportCell('Result', header: true),
-                  reportCell('Range', header: true),
-                ],
-              ),
-              for (final entry in snapshot.supporting)
-                for (final value in entry.values)
-                  pw.TableRow(
-                    children: [
-                      reportCell(entry.title),
-                      reportCell(formatSupportingDate(entry.collectionDate)),
-                      reportCell(
-                        '${value.name}: ${value.value}'
-                        '${value.unit == null ? '' : ' ${value.unit}'}',
-                      ),
-                      reportCell(value.referenceRange ?? ''),
-                    ],
-                  ),
-            ],
           ),
-        if (snapshot.supportingTruncated)
-          reportNote(
-            'Supporting context is limited to the first 50 records.',
-            size: 8,
-          ),
-        if (ReportText.supportingOmissionNotice(snapshot) case final notice?)
-          reportNote(notice, size: 8),
-        for (final entry in snapshot.supporting)
-          for (final line in ReportText.supportingMetadataLines(entry))
-            pw.Text(
-              '${entry.title}: $line',
-              overflow: pw.TextOverflow.span,
-              style: pw.TextStyle(fontSize: 8.5, color: ReportPalette.graphite),
+          columnWidths: const {
+            0: pw.FlexColumnWidth(2.4),
+            1: pw.FlexColumnWidth(1.6),
+            2: pw.FlexColumnWidth(2.2),
+            3: pw.FlexColumnWidth(1.5),
+          },
+          children: [
+            pw.TableRow(
+              repeat: true,
+              children: [
+                reportCell('Record', header: true),
+                reportCell('Measured', header: true),
+                reportCell('Result', header: true),
+                reportCell('Range', header: true),
+              ],
             ),
-        for (final entry in snapshot.supporting)
-          if (entry.notes != null) ...[
-            pw.SizedBox(height: 6),
-            pw.Text(
-              '${entry.title} note: ${entry.notes}',
-              style: pw.TextStyle(fontSize: 8.5, color: ReportPalette.graphite),
-            ),
+            for (final entry in snapshot.supporting)
+              for (final value in entry.values)
+                pw.TableRow(
+                  children: [
+                    reportCell(entry.title),
+                    reportCell(formatSupportingDate(entry.collectionDate)),
+                    reportCell(
+                      '${value.name}: ${value.value}'
+                      '${value.unit == null ? '' : ' ${value.unit}'}',
+                    ),
+                    reportCell(value.referenceRange ?? ''),
+                  ],
+                ),
           ],
-      ],
-      if (details.isNotEmpty) ...[
-        pw.SizedBox(height: 10),
-        reportSectionHeading(details.first),
-        pw.SizedBox(height: 4),
-        for (final line in details.skip(1))
+        ),
+      if (snapshot.supportingTruncated)
+        reportNote(
+          'Supporting context is limited to the first 50 records.',
+          size: 8,
+        ),
+      if (ReportText.supportingOmissionNotice(snapshot) case final notice?)
+        reportNote(notice, size: 8),
+      for (final entry in snapshot.supporting)
+        for (final line in ReportText.supportingMetadataLines(entry))
           pw.Text(
-            line,
+            '${entry.title}: $line',
+            overflow: pw.TextOverflow.span,
             style: pw.TextStyle(fontSize: 8.5, color: ReportPalette.graphite),
           ),
-      ],
-      if (selection.includeAttachments) ...[
-        pw.SizedBox(height: 10),
-        pw.Text(
-          'Source files',
-          style: pw.TextStyle(fontSize: 10, color: ReportPalette.graphite),
-        ),
-        pw.SizedBox(height: 4),
-        if (snapshot.attachments.isEmpty)
-          reportNote('No source files were selected.')
-        else
-          for (final attachment in snapshot.attachments)
-            pw.Text(
-              '${attachment.name} · ${attachment.byteCount} bytes · ${attachment.sha256}',
-              style: pw.TextStyle(fontSize: 8, color: ReportPalette.muted),
-            ),
-      ],
+      for (final entry in snapshot.supporting)
+        if (entry.notes != null) ...[
+          pw.SizedBox(height: 6),
+          pw.Text(
+            '${entry.title} note: ${entry.notes}',
+            style: pw.TextStyle(fontSize: 8.5, color: ReportPalette.graphite),
+          ),
+        ],
     ],
-  );
+    if (details.isNotEmpty) ...[
+      pw.SizedBox(height: 10),
+      reportSectionHeading(details.first),
+      pw.SizedBox(height: 4),
+      for (final line in details.skip(1))
+        pw.Text(
+          line,
+          overflow: pw.TextOverflow.span,
+          style: pw.TextStyle(fontSize: 8.5, color: ReportPalette.graphite),
+        ),
+    ],
+    if (selection.includeAttachments) ...[
+      pw.SizedBox(height: 10),
+      pw.Text(
+        'Source files',
+        style: pw.TextStyle(fontSize: 10, color: ReportPalette.graphite),
+      ),
+      pw.SizedBox(height: 4),
+      if (snapshot.attachments.isEmpty)
+        reportNote('No source files were selected.')
+      else
+        for (final attachment in snapshot.attachments)
+          pw.Text(
+            '${attachment.name} · ${attachment.byteCount} bytes · ${attachment.sha256}',
+            style: pw.TextStyle(fontSize: 8, color: ReportPalette.muted),
+          ),
+    ],
+  ];
 }

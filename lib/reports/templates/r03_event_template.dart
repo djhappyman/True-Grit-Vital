@@ -109,7 +109,7 @@ final class R03EventRenderer implements ReportTemplateRenderer {
           cancellation: cancellation,
         ),
       pw.SizedBox(height: 14),
-      reportContextBlock(snapshot),
+      ...reportContextBlock(snapshot),
       pw.SizedBox(height: 12),
       reportNote(
         'An event is a grouping. The event end does not mean every included item '

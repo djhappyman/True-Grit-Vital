@@ -175,7 +175,8 @@ void main() {
     expect(bytes, contains('Alex'));
     expect(bytes, isNot(contains('Other adult')));
     expect(bytes, isNot(contains('999999')));
-    expect(bytes, isNot(contains('Private note')));
+    expect(document.supporting.single.snapshot.notes, isNull);
+    expect(bytes, isNot(contains(jsonEncode('Private note'))));
     expect(bytes, isNot(contains('report-source-1')));
   });
 

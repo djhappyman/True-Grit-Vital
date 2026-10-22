@@ -26,9 +26,29 @@ Uint8List encodeExport(ExportDocument document) {
 String encodeExportCsv(ExportDocument document) {
   final rows = <List<Object?>>[
     exportCsvHeader,
-    for (final row in document.doses) [..._doseCsvRow(row), null, null, null],
-    for (final row in document.skipped) [..._skipCsvRow(row), null, null, null],
-    for (final row in document.supporting) ..._supportingCsvRows(row),
+    for (final row in document.doses)
+      [
+        ..._doseCsvRow(row),
+        null,
+        null,
+        null,
+        row.planInstruction?.planId,
+        row.planInstruction?.versionId,
+        row.planInstruction?.text,
+      ],
+    for (final row in document.skipped)
+      [
+        ..._skipCsvRow(row),
+        null,
+        null,
+        null,
+        row.planInstruction?.planId,
+        row.planInstruction?.versionId,
+        row.planInstruction?.text,
+      ],
+    for (final row in document.supporting)
+      for (final values in _supportingCsvRows(row))
+        [...values, null, null, null],
   ];
   for (var i = 0; i < rows.length; i++) {
     final row = rows[i];
@@ -114,6 +134,9 @@ const exportCsvHeader = <String>[
   'supporting_category',
   'supporting_accession',
   'supporting_report_identifier',
+  'plan_id',
+  'plan_version_id',
+  'plan_instructions',
 ];
 
 List<Object?> _doseCsvRow(ExportDoseRevision row) {

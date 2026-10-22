@@ -1,13 +1,14 @@
 import '../history/timeline_entry.dart';
 import '../products/products.dart';
 import '../records.dart';
+import '../scheduling/saved_plan_instruction.dart';
 import '../stock/stored_stock.dart';
 import '../supporting/supporting.dart';
 import 'export_selection.dart';
 
 /// Current portable export schema. Change only with a documented semantics
 /// change; readers treat an unknown version as unsupported.
-const exportSchemaVersion = 2;
+const exportSchemaVersion = 3;
 
 /// The exact container that supplied a recorded dose, when one was chosen.
 /// Lot, expiry and capacity are the container's saved facts at capture time.
@@ -99,6 +100,7 @@ final class ExportDoseRevision {
     this.notes,
     this.contextTags = const [],
     this.stockSource,
+    this.planInstruction,
   });
 
   factory ExportDoseRevision.fromRecord(
@@ -108,6 +110,7 @@ final class ExportDoseRevision {
     String? itemNotes,
     required bool includeNotes,
     ExportStockSource? stockSource,
+    SavedPlanInstruction? planInstruction,
   }) => ExportDoseRevision(
     recordId: record.id,
     itemId: record.itemId,
@@ -136,6 +139,7 @@ final class ExportDoseRevision {
     notes: includeNotes ? record.notes : null,
     contextTags: record.contextTags,
     stockSource: stockSource,
+    planInstruction: includeNotes ? planInstruction : null,
   );
 
   final String recordId, itemId, itemName, itemForm, itemType, primaryUnit;
@@ -151,6 +155,7 @@ final class ExportDoseRevision {
   final LabelledStrength? labelledStrength;
   final StockReplacement? replacement;
   final ExportStockSource? stockSource;
+  final SavedPlanInstruction? planInstruction;
   final String? notes;
   final List<String> contextTags;
 
@@ -218,6 +223,7 @@ final class ExportDoseRevision {
           : 'ml',
       'replacementResolved': !replacementUnresolved,
       'stockSource': stockSource?.toJson(),
+      'planInstruction': planInstruction?.toJson(),
     },
     'context': {'tags': contextTags, 'note': notes},
   };
@@ -319,6 +325,7 @@ final class ExportSkippedAction {
     required this.planZone,
     this.planName,
     this.reason,
+    this.planInstruction,
   });
 
   factory ExportSkippedAction.fromEntry(
@@ -327,6 +334,7 @@ final class ExportSkippedAction {
     required String? itemForm,
     required String? itemType,
     required bool includeNotes,
+    SavedPlanInstruction? planInstruction,
   }) => ExportSkippedAction(
     actionId: entry.action.id,
     itemId: entry.itemId,
@@ -341,6 +349,7 @@ final class ExportSkippedAction {
     planZone: entry.planZone,
     planName: entry.context.planName,
     reason: includeNotes ? entry.action.reason : null,
+    planInstruction: includeNotes ? planInstruction : null,
   );
 
   /// Saved daily action identity. Never a fabricated dose record id.
@@ -355,6 +364,7 @@ final class ExportSkippedAction {
   final CivilDate savedDate;
   final String planZone;
   final String? planName, reason;
+  final SavedPlanInstruction? planInstruction;
 
   Map<String, Object?> toJson() => {
     'actionId': actionId,
@@ -372,6 +382,7 @@ final class ExportSkippedAction {
     'planZone': planZone,
     'planName': planName,
     'reason': reason,
+    'planInstruction': planInstruction?.toJson(),
   };
 }
 
@@ -412,6 +423,11 @@ final class ExportDocument {
        supporting = List.unmodifiable(supporting),
        skipped = List.unmodifiable(skipped) {
     if (!generatedAt.isUtc) throw ArgumentError('generated_at_utc');
+    if (!selection.includeNotes &&
+        (this.doses.any((row) => row.planInstruction != null) ||
+            this.skipped.any((row) => row.planInstruction != null))) {
+      throw ArgumentError('export_plan_instructions');
+    }
     if (!selection.includes(ExportContent.supporting) &&
         undatedCollection != null) {
       throw ArgumentError('export_omissions');
@@ -488,6 +504,7 @@ const _semantics = <String, String>{
   'skipped': 'skipped lists explicit skip actions saved inside the selected range when doses content is selected. actionId is the saved daily action identity. occurredAt is the planned instant, or the plan-zone day start for a date-only skip; recordedAt is when the skip itself was saved. reason is null unless notesIncluded is true. A skip has no amount, quantity or revision, and its item values are current item metadata, never inferred content.',
   'stockSource': 'provenance.stockSource names the exact container saved with a dose when one was chosen. label, lot, expiryDate, capacityExact and unit are the container pack facts at capture time. capacityDecimal is exact only when it terminates within 12 places. These facts are descriptive and do not verify the physical product or its contents.',
   'supportingMetadata': 'Selected supporting records retain authored or source-printed result categories and manually transcribed accessionNumber/reportIdentifier. They are source metadata, not inferred clinical classifications. Private notes remain excluded unless notesIncluded is true. Internal file references remain excluded.',
-  'privacy': 'Only the selected adult is exported. Supporting notes, authored substance instructions and notes, dose notes and skip reasons appear only when notesIncluded is true. Dose context tags are structured metadata chosen by the person and are always included. Skip facts and their action identity are always included. File attachments and their internal references are never included.',
+  'planInstruction': 'When notesIncluded is true, a dose or skip may carry planInstruction from the immutable plan version linked to its saved action. planId and versionId identify that source. Standalone doses and plans without authored text have null. Correcting a dose time does not select a different plan. This context does not establish that the instruction was followed.',
+  'privacy': 'Only the selected adult is exported. Supporting notes, authored substance and plan instructions, substance notes, dose notes and skip reasons appear only when notesIncluded is true. Dose context tags are structured metadata chosen by the person and are always included. Skip facts and their action identity are always included. File attachments and their internal references are never included.',
   'omissions': 'Supporting records whose collection date is unknown or partial have no positionable date inside the selected range and are excluded. omissions.collectionDateUnknownOrPartial discloses how many were omitted, never their content. counted false means they exceeded the bounded counting window and records is null.',
 };

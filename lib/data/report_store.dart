@@ -101,6 +101,13 @@ extension ReportStore on RecordStore {
             rows.map((row) => row['id'] as String),
           )
         : const <String, ReportStockSource>{};
+    final planInstructions = selection.includeNotes
+        ? await _savedPlanInstructions(
+            selection.personId,
+            rows.map((row) => row['id'] as String),
+            records: true,
+          )
+        : const <String, SavedPlanInstruction>{};
     for (final row in rows) {
       final record = _record(row);
       if (record.personId != selection.personId) {
@@ -111,6 +118,7 @@ extension ReportStore on RecordStore {
           record,
           includeNotes: selection.includeNotes,
           stockSource: stockSources[record.id],
+          planInstruction: planInstructions[record.id],
         ),
       );
       if (cancellation.isCancelled) throw const ReportCancelled();

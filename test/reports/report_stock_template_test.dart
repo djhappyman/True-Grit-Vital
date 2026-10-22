@@ -8,6 +8,7 @@ import 'package:true_grit_vital/domain/events/events.dart';
 import 'package:true_grit_vital/domain/records.dart';
 import 'package:true_grit_vital/domain/reports/reports.dart';
 import 'package:true_grit_vital/domain/scheduling/daily_plan.dart';
+import 'package:true_grit_vital/domain/scheduling/saved_plan_instruction.dart';
 import 'package:true_grit_vital/domain/stock/exact_amount.dart';
 import 'package:true_grit_vital/reports/r01_summary_template.dart';
 import 'package:true_grit_vital/reports/report_fonts.dart';
@@ -81,6 +82,8 @@ ReportSnapshot _snapshot(
   ReportTemplateId template, {
   bool includeStock = true,
   ReportStockSource? stockSource,
+  SavedPlanInstruction? planInstruction,
+  bool includeNotes = false,
 }) => ReportSnapshot.build(
   selection: ReportSelection(
     template: template,
@@ -89,11 +92,19 @@ ReportSnapshot _snapshot(
     beforeDate: CivilDate(2026, 11, 1),
     displayZone: 'UTC',
     includeStock: includeStock,
+    includeNotes: includeNotes,
     eventId: template == ReportTemplateId.r03EventReview ? event.id : null,
   ),
   cutoff: _cutoff(),
   person: const ReportPerson(id: 'me', name: 'Synthetic Person'),
-  records: [ReportRecord.fromUseRecord(_use(), stockSource: stockSource)],
+  records: [
+    ReportRecord.fromUseRecord(
+      _use(),
+      stockSource: stockSource,
+      includeNotes: includeNotes,
+      planInstruction: planInstruction,
+    ),
+  ],
 );
 
 ReportSnapshot _withData(ReportSnapshot snapshot) =>
@@ -192,6 +203,66 @@ void main() {
   );
 
   for (final template in ReportTemplateId.values) {
+    test(
+      '${template.id} historical plan text agrees in PDF and text',
+      () async {
+        const instruction = SavedPlanInstruction(
+          planId: 'saved-plan',
+          versionId: 'original-v1',
+          text: 'Original breakfast words.\nKeep the original wording.',
+        );
+        final snapshot = _withData(
+          _snapshot(template, includeNotes: true, planInstruction: instruction),
+        );
+        expect(_text(snapshot), contains(instruction.text));
+        expect(_text(snapshot), contains('original-v1'));
+        final rendered = await _renderer(template)
+            .render(snapshot, use24Hour: true);
+        final pdf = _normalise((await _pageTexts(rendered.bytes)).join(' '));
+        expect(pdf, contains(_normalise(instruction.text)));
+        expect(pdf, contains('original-v1'));
+        const captureDir = String.fromEnvironment('VITAL_PLAN_OUTPUT_PDFS');
+        if (captureDir.isNotEmpty) {
+          final dir = Directory(captureDir)..createSync(recursive: true);
+          await File('${dir.path}/${template.id}.pdf')
+              .writeAsBytes(rendered.bytes);
+        }
+        final hidden = _withData(
+          _snapshot(template, planInstruction: instruction),
+        );
+        expect(_text(hidden), isNot(contains('Original breakfast words')));
+        final privatePdf = await _renderer(template)
+            .render(hidden, use24Hour: true);
+        expect(
+          (await _pageTexts(privatePdf.bytes)).join(' '),
+          isNot(contains('Original breakfast words')),
+        );
+      },
+    );
+
+    test('${template.id} retains long multiline plan instructions', () async {
+      final text =
+          '${List.filled(160, 'Original words.').join('\n')}\nEND OF ORIGINAL';
+      final snapshot = _withData(
+        _snapshot(
+          template,
+          includeNotes: true,
+          planInstruction: SavedPlanInstruction(
+            planId: 'saved-plan',
+            versionId: 'original-v1',
+            text: text,
+          ),
+        ),
+      );
+      final rendered = await _renderer(template)
+          .render(snapshot, use24Hour: true);
+      expect(
+        (await _pageTexts(rendered.bytes)).join(' '),
+        contains('END OF ORIGINAL'),
+      );
+      expect(_text(snapshot), contains('END OF ORIGINAL'));
+    });
+
     test(
       '${template.id} text and PDF carry the same chosen stock facts',
       () async {

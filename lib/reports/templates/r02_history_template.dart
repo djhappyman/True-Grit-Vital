@@ -105,7 +105,7 @@ final class R02HistoryRenderer implements ReportTemplateRenderer {
     }
     content
       ..add(pw.SizedBox(height: 14))
-      ..add(reportContextBlock(snapshot))
+      ..addAll(reportContextBlock(snapshot))
       ..add(pw.SizedBox(height: 12))
       ..add(
         reportNote(

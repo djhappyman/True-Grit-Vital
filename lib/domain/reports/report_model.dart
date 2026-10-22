@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 
 import '../history/display_time.dart';
 import '../records.dart';
+import '../scheduling/saved_plan_instruction.dart';
 import '../products/products.dart';
 import '../supporting/supporting.dart';
 import 'report_selection.dart';
@@ -46,6 +47,7 @@ final class ReportRecord {
     this.notes,
     this.contextTags = const [],
     this.stockSource,
+    this.planInstruction,
   }) {
     if (amount <= ExactAmount.zero ||
         !actualAt.isUtc ||
@@ -58,6 +60,7 @@ final class ReportRecord {
     UseRecord record, {
     bool includeNotes = false,
     ReportStockSource? stockSource,
+    SavedPlanInstruction? planInstruction,
   }) => ReportRecord(
     id: record.id,
     itemId: record.itemId,
@@ -77,6 +80,7 @@ final class ReportRecord {
         ? null
         : ReportProduct.fromSnapshot(record.product!, record.actualUnit),
     stockSource: stockSource,
+    planInstruction: includeNotes ? planInstruction : null,
   );
   final String id, itemId, name, form, type, unit;
   final String? site;
@@ -88,6 +92,7 @@ final class ReportRecord {
   final RecordSource source;
   final ReportProduct? product;
   final ReportStockSource? stockSource;
+  final SavedPlanInstruction? planInstruction;
 
   String get itemIdentity => jsonEncode([type, itemId, name, form, unit]);
 }
@@ -287,6 +292,10 @@ final class ReportSnapshot {
     }
     if (supportingOmission != null && !selection.includeSupporting) {
       throw const ReportSelectionFailure('report_supporting_omission');
+    }
+    if (!selection.includeNotes &&
+        records.any((record) => record.planInstruction != null)) {
+      throw const ReportSelectionFailure('report_plan_instructions');
     }
     if (itemDetails.isNotEmpty && !selection.includeNotes) {
       throw const ReportSelectionFailure('report_item_details');
@@ -831,7 +840,8 @@ final class ReportText {
     final selection = snapshot.selection;
     if (!selection.includeSupporting &&
         !selection.includeAttachments &&
-        snapshot.itemDetails.isEmpty) {
+        snapshot.itemDetails.isEmpty &&
+        !selection.includeNotes) {
       return const [
         'Supporting records and source files: not included.',
         'Private notes: not included.',
@@ -911,7 +921,7 @@ final class ReportText {
   /// Shared authored-detail lines for accessible text and rendered reports.
   /// Empty unless notes were selected at capture.
   static List<String> itemDetailLines(ReportSnapshot snapshot) {
-    if (!snapshot.selection.includeNotes || snapshot.itemDetails.isEmpty) {
+    if (!snapshot.selection.includeNotes) {
       return const [];
     }
     final lines = <String>['Substance details'];
@@ -928,7 +938,37 @@ final class ReportText {
         lines.add('Private note: ${entry.value.notes}');
       }
     }
-    return lines.length == 1 ? const [] : lines;
+    final planLines = planInstructionLines(snapshot);
+    if (lines.length == 1) return planLines;
+    return [...lines, ...planLines];
+  }
+
+  static const planInstructionDisclosure =
+      'Authored instructions from the saved plan version linked to each dose. '
+      'These do not show whether an instruction was followed.';
+
+  static String planInstructionText(SavedPlanInstruction instruction) =>
+      'Plan ${instruction.planId} · version ${instruction.versionId}: '
+      '${instruction.text}';
+
+  static List<String> planInstructionLines(ReportSnapshot snapshot) {
+    if (!snapshot.selection.includeNotes) return const [];
+    final records = snapshot.records.where((r) => r.planInstruction != null);
+    if (records.isEmpty) return const [];
+    final groups = <String, List<ReportRecord>>{};
+    for (final record in records) {
+      final key = jsonEncode([record.itemIdentity, record.planInstruction!.toJson()]);
+      (groups[key] ??= []).add(record);
+    }
+    return [
+      'Plan instructions',
+      planInstructionDisclosure,
+      for (final group in groups.values) ...[
+        group.first.name,
+        planInstructionText(group.first.planInstruction!),
+        'Dose IDs: ${group.map((record) => record.id).join(', ')}',
+      ],
+    ];
   }
 
   static void _addItemDetails(
@@ -1076,6 +1116,12 @@ final class ReportText {
         lines.add('Source: ${attachment.name} · ${attachment.sha256}');
       }
       if (snapshot.attachments.isEmpty) lines.add('No source files selected.');
+    }
+    final instructionLines = planInstructionLines(snapshot);
+    if (instructionLines.isNotEmpty) {
+      lines
+        ..add('')
+        ..addAll(instructionLines);
     }
     final recent = snapshot.recentRecords();
     lines

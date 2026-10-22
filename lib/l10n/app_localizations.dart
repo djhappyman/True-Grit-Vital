@@ -6966,7 +6966,7 @@ abstract class AppLocalizations {
   /// Explains the notes toggle and that attachments are excluded.
   ///
   /// In en, this message translates to:
-  /// **'Include substance instructions, notes and skip reasons. Files stay excluded.'**
+  /// **'Include substance and saved plan instructions, notes and skip reasons. Files stay excluded.'**
   String get exportNotesHelp;
 
   /// Confirms the one adult included in the export.
@@ -8091,7 +8091,7 @@ abstract class AppLocalizations {
   /// Explains private note inclusion.
   ///
   /// In en, this message translates to:
-  /// **'Include substance instructions and notes. Detailed history also includes skip reasons.'**
+  /// **'Include notes, skip reasons and substance or original plan instructions.'**
   String get reportNotesHelp;
 
   /// Toggle label for source files.

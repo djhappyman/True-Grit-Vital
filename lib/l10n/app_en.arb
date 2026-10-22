@@ -4721,7 +4721,7 @@
   "@exportNotes": {
     "description": "Toggle label for optional private text in the selected content."
   },
-  "exportNotesHelp": "Include substance instructions, notes and skip reasons. Files stay excluded.",
+  "exportNotesHelp": "Include substance and saved plan instructions, notes and skip reasons. Files stay excluded.",
   "@exportNotesHelp": {
     "description": "Explains the notes toggle and that attachments are excluded."
   },
@@ -5656,7 +5656,7 @@
   "@reportNotes": {
     "description": "Toggle label for private notes."
   },
-  "reportNotesHelp": "Include substance instructions and notes. Detailed history also includes skip reasons.",
+  "reportNotesHelp": "Include notes, skip reasons and substance or original plan instructions.",
   "@reportNotesHelp": {
     "description": "Explains private note inclusion."
   },

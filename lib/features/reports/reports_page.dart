@@ -327,18 +327,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                   ref
                       .read(reportControllerProvider.notifier)
                       .setIncludeSupporting(value);
-                  if (!value) {
-                    ref
-                        .read(reportControllerProvider.notifier)
-                        .setIncludeNotes(false);
-                  }
                 },
               ),
               SettingsToggleRow(
                 label: t.reportNotes,
                 description: t.reportNotesHelp,
                 value: effective.includeNotes,
-                enabled: !state.busy && effective.includeSupporting,
+                enabled: !state.busy,
                 reduceMotion: MediaQuery.disableAnimationsOf(context),
                 onChanged: (value) => ref
                     .read(reportControllerProvider.notifier)

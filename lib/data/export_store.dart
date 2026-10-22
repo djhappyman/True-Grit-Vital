@@ -139,6 +139,9 @@ extension ExportRecordStore on RecordStore {
             selection.personId,
           )
         : const <String, SubstanceDetail>{};
+    final planInstructions = selection.includeNotes
+        ? await _savedPlanInstructions(selection.personId, ids, records: true)
+        : const <String, SavedPlanInstruction>{};
     var estimated = 4096;
     for (final row in result) {
       cancellation?.throwIfCancelled();
@@ -170,6 +173,7 @@ extension ExportRecordStore on RecordStore {
         itemNotes: detail?.notes,
         includeNotes: selection.includeNotes,
         stockSource: stockSource,
+        planInstruction: planInstructions[row['id'] as String],
       );
       estimated += utf8.encode(jsonEncode(revision.toJson())).length + 2;
       if (estimated > limits.maxBytes) {
@@ -224,6 +228,13 @@ extension ExportRecordStore on RecordStore {
       selection.personId,
       entries.map((entry) => entry.itemId),
     );
+    final planInstructions = selection.includeNotes
+        ? await _savedPlanInstructions(
+            selection.personId,
+            entries.map((entry) => entry.action.id),
+            records: false,
+          )
+        : const <String, SavedPlanInstruction>{};
     final actions = <ExportSkippedAction>[];
     var estimated = 4096;
     for (final entry in entries) {
@@ -235,6 +246,7 @@ extension ExportRecordStore on RecordStore {
         itemForm: item?['form'] as String?,
         itemType: item?['type'] as String?,
         includeNotes: selection.includeNotes,
+        planInstruction: planInstructions[entry.action.id],
       );
       estimated += utf8.encode(jsonEncode(action.toJson())).length + 2;
       if (estimated > limits.maxBytes) {
