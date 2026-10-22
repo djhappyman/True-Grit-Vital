@@ -2,12 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:true_grit_vital/app/appearance.dart';
+import 'package:true_grit_vital/app/app_lock.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/recording/record_pages.dart';
 import 'package:true_grit_vital/ui/vital_ui.dart';
 
 import 'event_ui_test.dart' show enter;
+import 'app_lock_controller_test.dart' show ControlledAuth;
 import 'screen_events_support.dart';
 import 'screen_settings_hub_test.dart' show loadFonts;
 import 'settings_vault_ui_test.dart' show capture;
@@ -44,7 +46,11 @@ void main() {
   appTest('event notes save in the canonical editor and recover as a draft', (
     tester,
   ) async {
-    final f = await launch(tester, todayClock: screenEventsNow);
+    final f = await launch(
+      tester,
+      todayClock: screenEventsNow,
+      auth: ControlledAuth(),
+    );
     final event = await seed(tester, f.store);
     final router = f.container.read(routerProvider);
     router.go('/event/${event.id}/edit?notes=true');
@@ -112,6 +118,14 @@ void main() {
           .value,
       '2',
     );
+    await runIo(
+      tester,
+      () => f.container.read(appLockProvider.notifier).setEnabled(true),
+    );
+    f.container.read(appLockProvider.notifier).lock();
+    await settle(tester);
+    expect(find.text(note), findsNothing);
+    expect(find.text('Event totals'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
