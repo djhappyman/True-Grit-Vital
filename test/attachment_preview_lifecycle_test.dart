@@ -31,6 +31,8 @@ class _StoreSlot {
 class _PreviewLock extends AppLockController {
   @override
   AppLockState build() => const AppLockState(ready: true, locked: false);
+  void setLocked(bool locked) =>
+      state = AppLockState(ready: true, locked: locked);
 }
 
 /// Returns one distinct bounded image per synthetic source. A render can be
@@ -41,6 +43,7 @@ class _FakePdfDecoder implements AttachmentPdfDecoder {
   Completer<void>? gate;
   final renderStarted = Completer<void>();
   final rendered = <int>[];
+  final images = <ui.Image>[];
 
   @override
   Future<int> pageCount(Uint8List bytes) async => 1;
@@ -58,7 +61,9 @@ class _FakePdfDecoder implements AttachmentPdfDecoder {
     }
     final side = _sourceSide(bytes);
     rendered.add(page);
-    return _solidImage(side);
+    final image = await _solidImage(side);
+    images.add(image);
+    return image;
   }
 
   int _sourceSide(Uint8List bytes) =>
@@ -250,6 +255,77 @@ Finder get _previewFailure =>
     find.textContaining('Unable to show this preview');
 
 void main() {
+  testWidgets('a locked then unlocked pending decode disposes its old image', (
+    tester,
+  ) async {
+    final f = await _openFixture(tester);
+    final file = await _seedPdf(
+      tester,
+      f.store,
+      f.item,
+      id: 'locked-source',
+      version: 'locked-version',
+      bytes: _pdf('source-a'),
+      pages: 1,
+    );
+    final source = ValueNotifier(file);
+    addTearDown(source.dispose);
+    final pdf = _FakePdfDecoder()..gate = Completer<void>();
+    final container = await _pumpSurface(
+      tester,
+      store: f.store,
+      source: source,
+      pdf: pdf,
+    );
+    await _waitFor(tester, () => pdf.renderStarted.isCompleted);
+    final lock = container.read(appLockProvider.notifier) as _PreviewLock;
+    lock.setLocked(true);
+    await tester.pump();
+    lock.setLocked(false);
+    await tester.pump();
+    pdf.gate!.complete();
+    await settle(tester);
+    expect(pdf.images, hasLength(2));
+    expect(pdf.images.first.debugDisposed, true);
+    expect(
+      tester.widget<RawImage>(find.byType(RawImage)).image,
+      same(pdf.images.last),
+    );
+  });
+
+  testWidgets('route departure disposes a pending decode without mounting it', (
+    tester,
+  ) async {
+    final f = await _openFixture(tester);
+    final file = await _seedPdf(
+      tester,
+      f.store,
+      f.item,
+      id: 'departed-source',
+      version: 'departed-version',
+      bytes: _pdf('source-a'),
+      pages: 1,
+    );
+    final source = ValueNotifier(file);
+    addTearDown(source.dispose);
+    final pdf = _FakePdfDecoder()..gate = Completer<void>();
+    await _pumpSurface(tester, store: f.store, source: source, pdf: pdf);
+    await _waitFor(tester, () => pdf.renderStarted.isCompleted);
+    final context = tester.element(find.byType(AttachmentPreviewSurface));
+    unawaited(
+      Navigator.of(context).push(
+        PageRouteBuilder<void>(
+          pageBuilder: (_, _, _) => const Text('Another route'),
+        ),
+      ),
+    );
+    await settle(tester);
+    pdf.gate!.complete();
+    await settle(tester);
+    expect(pdf.images.single.debugDisposed, true);
+    expect(find.byType(RawImage, skipOffstage: false), findsNothing);
+  });
+
   testWidgets('a changed source clears an old failure, page and zoom', (
     tester,
   ) async {

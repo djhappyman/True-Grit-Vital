@@ -1,0 +1,35 @@
+Waiting for another flutter command to release the startup lock...
+00:00 +0: loading /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_action_ui_test.dart
+00:00 +0: an uncertain delete cannot move to another viewer identity
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: not null
+  Actual: <null>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_action_ui_test.dart:275:7)
+<asynchronous suspension>
+#5      attachmentAppTest.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_ui_test.dart:299:7)
+<asynchronous suspension>
+#6      appTest.<anonymous closure> (file:///home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/vital_app_test.dart:241:7)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_action_ui_test.dart line 275
+The test description was:
+  an uncertain delete cannot move to another viewer identity
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:10 +0 -1: an uncertain delete cannot move to another viewer identity [E]
+  Test failed. See exception logs above.
+  The test description was: an uncertain delete cannot move to another viewer identity
+
+00:10 +0 -1: Some tests failed.
+
+Failing tests:
+  /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_action_ui_test.dart: an uncertain delete cannot move to another viewer identity

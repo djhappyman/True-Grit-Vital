@@ -1,0 +1,15 @@
+00:00 +0: loading /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_action_ui_test.dart
+00:00 +0: /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_action_ui_test.dart: Delete confirmation expires across a lock/unlock cycle
+00:07 +1: /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_ui_test.dart: rename retains invalid raw input through lock then restores focus to Rename
+00:10 +2: /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_action_ui_test.dart: Save confirmation expires across a lock/unlock cycle
+00:14 +3: /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_ui_test.dart: uncertain delete failure retries the reviewed command and its exact file
+00:19 +4: /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_action_ui_test.dart: Share confirmation expires across a lock/unlock cycle
+00:21 +5: /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_ui_test.dart: share retains a named original handoff after lock and never changes its bytes
+00:25 +6: /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_ui_test.dart: share retains a named original handoff after lock and never changes its bytes
+00:26 +7: /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_action_ui_test.dart: a delayed delete completion cannot redirect a departed route
+00:31 +8: /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_action_ui_test.dart: double Open returns to its original list with one Back
+00:34 +9: /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_action_ui_test.dart: a retained rename draft cannot save through another file route
+00:37 +10: /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_action_ui_test.dart: an uncertain delete cannot move to another viewer identity
+00:47 +11: /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_action_ui_test.dart: delete rolls back after lock cycle inside its transaction
+00:52 +12: /home/mike/.t3/worktrees/true_grit_vital/t3-615c36ad/test/attachment_action_ui_test.dart: delete rolls back after route departure and return inside its transaction
+00:58 +13: All tests passed!

@@ -527,8 +527,14 @@ extension AttachmentRecordStore on RecordStore {
     required AttachmentRecord attachment,
     required int expectedPersonRevision,
     required String name,
+    bool Function()? canCommit,
   }) async {
+    void requireAuthority() {
+      if (canCommit?.call() == false) throw const CommandConflict('app_locked');
+    }
+
     _dailyGeneration(attachment.generation);
+    requireAuthority();
     if (name.trim().isEmpty || name.length > 255) {
       throw const AttachmentFailure('attachment_name');
     }
@@ -543,6 +549,7 @@ extension AttachmentRecordStore on RecordStore {
         name,
       ],
       () async {
+        requireAuthority();
         final current = await _attachmentContext(
           attachment,
           expectedPersonRevision,
@@ -562,6 +569,9 @@ extension AttachmentRecordStore on RecordStore {
           'attachment': next.toJson(),
         };
       },
+      // This runs after the queued transaction, metadata reads and writes.
+      // Expired UI authority rolls back both the revision and operation audit.
+      beforeCommit: () async => requireAuthority(),
     );
     return AttachmentRecord.fromJson(
       Map<String, Object?>.from(result['attachment'] as Map),

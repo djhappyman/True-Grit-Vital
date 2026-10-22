@@ -36,6 +36,96 @@ final attachmentCleanupIntervalProvider = Provider<Duration>(
   (_) => const Duration(minutes: 1),
 );
 
+/// The live owner and target reviewed for one explicitly initiated file action.
+/// The attachment keeps its historical target revision; this captures the live
+/// target separately so later edits cannot authorise an already pending action.
+class AttachmentActionContext {
+  AttachmentActionContext._(
+    this.store,
+    this.attachment,
+    this.personRevision,
+    this.targetRevision,
+  );
+  final RecordStore store;
+  final AttachmentRecord attachment;
+  final int personRevision, targetRevision;
+
+  static Future<AttachmentActionContext> capture(
+    RecordStore store,
+    AttachmentRecord attachment, {
+    int? expectedPersonRevision,
+  }) async {
+    final owner = await store.profileById(attachment.personId);
+    if (owner == null ||
+        owner.isArchived ||
+        expectedPersonRevision != null &&
+            owner.revision != expectedPersonRevision) {
+      throw const CommandConflict('person_context');
+    }
+    final action = AttachmentActionContext._(
+      store,
+      attachment,
+      owner.revision,
+      await _liveAttachmentTargetRevision(store, attachment),
+    );
+    await action.validate();
+    return action;
+  }
+
+  Future<void> validate() async {
+    if (store.generation != attachment.generation) {
+      throw const CommandConflict('generation');
+    }
+    final current = await store.attachmentById(attachment.id);
+    if (current == null ||
+        current.generation != attachment.generation ||
+        current.personId != attachment.personId ||
+        current.revision != attachment.revision ||
+        current.versionId != attachment.versionId ||
+        current.state != AttachmentState.ready) {
+      throw const CommandConflict('attachment_revision');
+    }
+    final owner = await store.profileById(attachment.personId);
+    if (owner == null || owner.isArchived || owner.revision != personRevision) {
+      throw const CommandConflict('person_context');
+    }
+    if (await _liveAttachmentTargetRevision(store, attachment) !=
+        targetRevision) {
+      throw const CommandConflict('attachment_target_revision');
+    }
+  }
+}
+
+Future<int> _liveAttachmentTargetRevision(
+  RecordStore store,
+  AttachmentRecord attachment,
+) async {
+  int? revision;
+  switch (attachment.targetKind) {
+    case AttachmentTargetKind.item:
+      revision = (await store.itemById(
+        attachment.targetId,
+        personId: attachment.personId,
+      ))?.revision;
+    case AttachmentTargetKind.record:
+      final target = await store.recordById(
+        attachment.targetId,
+        personId: attachment.personId,
+      );
+      revision = target?.revision;
+    case AttachmentTargetKind.supporting:
+      final target = await store.supportingRecord(
+        attachment.personId,
+        attachment.targetId,
+      );
+      revision = target?.revision;
+  }
+  if (revision == null) {
+    throw const CommandConflict('attachment_target_revision');
+  }
+  return revision;
+}
+
 class AttachmentRuntimeState {
   const AttachmentRuntimeState({
     this.busy = false,
@@ -55,7 +145,10 @@ final attachmentsControllerProvider =
 /// Picker work keeps its durable captured job even when the visible feed changes.
 class AttachmentsController extends Notifier<AttachmentRuntimeState> {
   RecordStore? _store;
-  int _epoch = 0;
+  int _epoch = 0, _actionEpoch = 0;
+
+  int get actionEpoch => _actionEpoch;
+  bool actionCurrent(int epoch) => epoch == _actionEpoch && _unlocked;
   bool _recovered = false;
   ({AttachmentJob job, AttachmentSelection selection})? _pending;
   AttachmentJob? _cancelPending;
@@ -75,6 +168,7 @@ class AttachmentsController extends Notifier<AttachmentRuntimeState> {
     ref.watch(attachmentMediaProvider);
     ref.watch(attachmentSessionProvider);
     final epoch = ++_epoch;
+    _actionEpoch++;
     _recovered = false;
     _pending = null;
     _cancelPending = null;
@@ -96,6 +190,7 @@ class AttachmentsController extends Notifier<AttachmentRuntimeState> {
       unawaited(subscription?.cancel());
     });
     ref.listen(appLockProvider, (_, next) {
+      if (next.locked) _actionEpoch++;
       if (next.ready && !next.locked) unawaited(maintenance());
     });
     scheduleMicrotask(() {
@@ -530,12 +625,36 @@ class AttachmentsController extends Notifier<AttachmentRuntimeState> {
   Future<void> handoff(
     AttachmentRecord attachment, {
     required bool save,
+    AttachmentActionContext? reviewed,
+    bool Function()? isCurrent,
+    bool Function()? isResultCurrent,
   }) async {
-    if (state.busy || !_unlocked || _store == null) return;
+    if (isCurrent?.call() == false ||
+        state.busy ||
+        !_unlocked ||
+        _store == null) {
+      return;
+    }
     final store = _store!,
         epoch = _epoch,
+        access = _actionEpoch,
         gateway = ref.read(attachmentGatewayProvider),
         platform = ref.read(attachmentHandoffProvider);
+    bool current() =>
+        _current(epoch) &&
+        actionCurrent(access) &&
+        identical(_store, store) &&
+        isCurrent?.call() != false;
+    bool resultCurrent() =>
+        _current(epoch) &&
+        identical(_store, store) &&
+        (isResultCurrent?.call() ?? isCurrent?.call() ?? true);
+    void requireCurrent() {
+      if (!current()) {
+        throw const AttachmentFailure('attachment_action_expired');
+      }
+    }
+
     state = const AttachmentRuntimeState(busy: true);
     AttachmentPin? pin;
     var retained = false;
@@ -545,6 +664,14 @@ class AttachmentsController extends Notifier<AttachmentRuntimeState> {
       if (attachment.generation != store.generation) {
         throw const CommandConflict('generation');
       }
+      final action =
+          reviewed ?? await AttachmentActionContext.capture(store, attachment);
+      if (!identical(action.store, store) || action.attachment != attachment) {
+        throw const CommandConflict('generation');
+      }
+      requireCurrent();
+      if (reviewed != null) await action.validate();
+      requireCurrent();
       final expiresAt = ref
           .read(attachmentClockProvider)()
           .toUtc()
@@ -557,6 +684,7 @@ class AttachmentsController extends Notifier<AttachmentRuntimeState> {
         sessionId: ref.read(attachmentSessionProvider),
         expiresAt: save ? null : expiresAt,
       );
+      requireCurrent();
       final source = pin.attachment, inspection = source.inspection!;
       final name = inspection.mediaKind == AttachmentMediaKind.pdf
           ? 'attachment.pdf'
@@ -567,15 +695,14 @@ class AttachmentsController extends Notifier<AttachmentRuntimeState> {
           : 'attachment.bin';
       if (save) {
         bytes = await readAttachmentBytes(store.readAttachmentPin(pin));
-        if (!_current(epoch) || !_unlocked) {
-          throw const CommandConflict('app_locked');
-        }
+        await action.validate();
+        requireCurrent();
         final saved = await gateway.save(
           name: name,
           mime: inspection.mimeType,
           bytes: bytes,
         );
-        if (_current(epoch)) {
+        if (resultCurrent()) {
           state = AttachmentRuntimeState(
             notice: saved ? 'copySaved' : 'cancelled',
           );
@@ -588,26 +715,27 @@ class AttachmentsController extends Notifier<AttachmentRuntimeState> {
           expiresAt: expiresAt,
         );
         begun = true;
+        requireCurrent();
         var offset = 0;
         await for (final chunk in store.readAttachmentPin(pin)) {
-          if (!_current(epoch) || !_unlocked) {
-            throw const CommandConflict('app_locked');
-          }
+          requireCurrent();
           offset = await platform.append(
             id: pin.id,
             offset: offset,
             bytes: chunk,
           );
         }
+        requireCurrent();
         await platform.publish(
           id: pin.id,
           byteCount: inspection.byteCount,
           sha256: inspection.sha256,
         );
-        if (!_unlocked) throw const CommandConflict('app_locked');
+        await action.validate();
+        requireCurrent();
         final offered = await platform.share(pin.id);
         retained = offered || !await platform.cancel(pin.id);
-        if (_current(epoch)) {
+        if (resultCurrent()) {
           state = AttachmentRuntimeState(
             notice: offered ? 'shared' : 'cancelled',
           );
@@ -627,7 +755,17 @@ class AttachmentsController extends Notifier<AttachmentRuntimeState> {
       if (_current(epoch)) _failure(error);
     } finally {
       bytes?.fillRange(0, bytes.length, 0);
-      if (pin != null && !retained) await store.releaseAttachmentPin(pin);
+      if (pin != null && !retained) {
+        try {
+          await store.releaseAttachmentPin(pin);
+        } catch (_) {
+          // A replaced provider may already have closed its old store. Its
+          // existing session recovery or handoff expiry releases the pin.
+        }
+      }
+      if (_current(epoch) && state.busy) {
+        state = const AttachmentRuntimeState(notice: 'interrupted');
+      }
     }
   }
 }

@@ -76,7 +76,7 @@ final attachmentListProvider = StreamProvider.autoDispose
       );
     });
 String attachmentRoute(AttachmentRecord record) =>
-    '/files/${record.personId}/${record.targetKind.name}/${record.targetId}';
+    '/files/${Uri.encodeComponent(record.personId)}/${record.targetKind.name}/${Uri.encodeComponent(record.targetId)}';
 
 String attachmentFailureText(AppLocalizations t, String? code) =>
     switch (code) {
@@ -540,6 +540,41 @@ class _AttachmentListPageState extends ConsumerState<AttachmentListPage> {
   }
 }
 
+/// A route can leave and return before delayed work completes. The current
+/// route flag alone cannot distinguish that from an uninterrupted initiation.
+/// Dialogs do not change the router location and keep their confirmation valid.
+mixin _AttachmentRouteEpoch<T extends ConsumerStatefulWidget>
+    on ConsumerState<T> {
+  GoRouter? _routeRouter;
+  int navigationEpoch = 0;
+  Uri? _routeLocation;
+  void _navigationChanged() {
+    final location = _routeRouter?.routeInformationProvider.value.uri;
+    if (location != _routeLocation) {
+      _routeLocation = location;
+      navigationEpoch++;
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final router = GoRouter.of(context);
+    if (identical(router, _routeRouter)) return;
+    _routeRouter?.routeInformationProvider.removeListener(_navigationChanged);
+    _routeRouter = router;
+    _routeLocation = router.routeInformationProvider.value.uri;
+    router.routeInformationProvider.addListener(_navigationChanged);
+    navigationEpoch++;
+  }
+
+  @override
+  void dispose() {
+    _routeRouter?.routeInformationProvider.removeListener(_navigationChanged);
+    super.dispose();
+  }
+}
+
 class AttachmentTile extends ConsumerStatefulWidget {
   const AttachmentTile({
     super.key,
@@ -552,8 +587,11 @@ class AttachmentTile extends ConsumerStatefulWidget {
   ConsumerState<AttachmentTile> createState() => _AttachmentTileState();
 }
 
-class _AttachmentTileState extends ConsumerState<AttachmentTile> {
+class _AttachmentTileState extends ConsumerState<AttachmentTile>
+    with _AttachmentRouteEpoch<AttachmentTile> {
   final focus = FocusNode();
+  bool opening = false;
+  String? error;
   @override
   void dispose() {
     focus.dispose();
@@ -574,6 +612,7 @@ class _AttachmentTileState extends ConsumerState<AttachmentTile> {
           ),
           Text(t.attachmentBytes(record.inspection!.byteCount)),
           Text(t.attachmentRecordRevision(record.targetRevision)),
+          if (error != null) Semantics(liveRegion: true, child: Text(error!)),
           Semantics(
             label: t.attachmentViewFor(
               record.name,
@@ -581,10 +620,73 @@ class _AttachmentTileState extends ConsumerState<AttachmentTile> {
             ),
             child: VitalButton.secondary(
               focusNode: focus,
-              onPressed: () async {
-                await context.push('/attachment/${record.id}');
-                if (mounted) focus.requestFocus();
-              },
+              onPressed: opening
+                  ? null
+                  : () async {
+                      if (opening ||
+                          ModalRoute.of(context)?.isCurrent == false) {
+                        return;
+                      }
+                      final controller = ref.read(
+                            attachmentsControllerProvider.notifier,
+                          ),
+                          access = ref
+                              .read(attachmentsControllerProvider.notifier)
+                              .actionEpoch,
+                          navigation = navigationEpoch,
+                          store = ref.read(recordStoreProvider).value,
+                          route = ModalRoute.of(context);
+                      if (store == null || !controller.actionCurrent(access)) {
+                        return;
+                      }
+                      bool current() =>
+                          mounted &&
+                          navigation == navigationEpoch &&
+                          controller.actionCurrent(access) &&
+                          identical(
+                            ref.read(recordStoreProvider).value,
+                            store,
+                          ) &&
+                          route?.isCurrent != false;
+                      setState(() {
+                        opening = true;
+                        error = null;
+                      });
+                      try {
+                        await AttachmentActionContext.capture(store, record);
+                        if (!context.mounted || !current()) return;
+                        await context.push(
+                          '/attachment/${Uri.encodeComponent(record.id)}',
+                        );
+                        if (mounted &&
+                            controller.actionCurrent(access) &&
+                            identical(
+                              ref.read(recordStoreProvider).value,
+                              store,
+                            ) &&
+                            route?.isCurrent != false) {
+                          focus.requestFocus();
+                        }
+                      } on CommandConflict catch (failure) {
+                        if (mounted) {
+                          setState(
+                            () => error =
+                                failure.code == 'app_locked' &&
+                                    !ref.read(appLockProvider).locked
+                                ? t.attachmentFailed
+                                : attachmentFailureText(t, failure.code),
+                          );
+                        }
+                      } catch (_) {
+                        if (mounted) {
+                          setState(
+                            () => error = attachmentFailureText(t, null),
+                          );
+                        }
+                      } finally {
+                        if (mounted) setState(() => opening = false);
+                      }
+                    },
               child: Text(t.attachmentReopen),
             ),
           ),
@@ -600,16 +702,22 @@ typedef AttachmentDeleteRequest = ({
   String commandId,
   AttachmentRecord attachment,
   int expectedPersonRevision,
+  RecordStore store,
+  bool Function() canCommit,
 });
 final attachmentDeleteProvider =
     Provider<Future<void> Function(AttachmentDeleteRequest)>(
       (ref) =>
-          (request) async =>
-              (await ref.read(recordStoreProvider.future)).deleteAttachment(
-                commandId: request.commandId,
-                attachment: request.attachment,
-                expectedPersonRevision: request.expectedPersonRevision,
-              ),
+          (request) async => request.store.deleteAttachment(
+            commandId: request.commandId,
+            attachment: request.attachment,
+            expectedPersonRevision: request.expectedPersonRevision,
+            beforeCommit: () async {
+              if (!request.canCommit()) {
+                throw const CommandConflict('app_locked');
+              }
+            },
+          ),
     );
 
 /// Resolves a possibly committed removal before resubmitting its command, so an
@@ -635,20 +743,32 @@ class AttachmentViewerPage extends ConsumerStatefulWidget {
       _AttachmentViewerPageState();
 }
 
-class _AttachmentViewerPageState extends ConsumerState<AttachmentViewerPage> {
+class _AttachmentViewerPageState extends ConsumerState<AttachmentViewerPage>
+    with _AttachmentRouteEpoch<AttachmentViewerPage> {
   final renameFocus = FocusNode(),
       deleteFocus = FocusNode(),
       shareFocus = FocusNode(),
       saveFocus = FocusNode();
   FocusNode? pendingFocus;
-  bool deleting = false, focusRestored = false;
-  String? completedDeletionRoute;
+  bool deleting = false, deciding = false, focusRestored = false;
+  AttachmentActionContext? deleteAction;
   // The file and owner revision reviewed for the first confirmation attempt.
   // They are released only once the store has definitively rejected that
   // attempt; see remove.
   String? error, deleteCommand;
   AttachmentRecord? deleteTarget;
   int? deleteOwnerRevision;
+  @override
+  void didUpdateWidget(AttachmentViewerPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.attachmentId != widget.attachmentId) {
+      clearDeleteAttempt();
+      pendingFocus = null;
+      focusRestored = false;
+      error = null;
+    }
+  }
+
   @override
   void dispose() {
     renameFocus.dispose();
@@ -662,138 +782,255 @@ class _AttachmentViewerPageState extends ConsumerState<AttachmentViewerPage> {
     deleteCommand = null;
     deleteTarget = null;
     deleteOwnerRevision = null;
+    deleteAction = null;
   }
 
   void restoreFocus(FocusNode node) {
     pendingFocus = node;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || ref.read(appLockProvider).locked) return;
+      if (!mounted ||
+          ref.read(appLockProvider).locked ||
+          ModalRoute.of(context)?.isCurrent == false) {
+        return;
+      }
       pendingFocus?.requestFocus();
       pendingFocus = null;
     });
   }
 
   Future<void> remove(AttachmentRecord record, int ownerRevision) async {
-    final t = AppLocalizations.of(context);
-    final confirmed = await showVitalDialog<bool>(
-      context: context,
-      builder: (dialog) => VitalDialog(
-        title: Text(t.attachmentDelete),
-        content: Text(
-          t.attachmentDeleteHelp(
-            record.name,
-            ownerLabel(ref, t, record.personId),
-          ),
-        ),
-        actions: [
-          VitalButton.secondary(
-            onPressed: () => Navigator.of(dialog).pop(false),
-            child: Text(t.cancel),
-          ),
-          VitalButton(
-            onPressed: () => Navigator.of(dialog).pop(true),
-            child: Text(t.delete),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) {
-      restoreFocus(deleteFocus);
+    if (deciding || deleting || ModalRoute.of(context)?.isCurrent == false) {
       return;
     }
-    setState(() {
-      deleting = true;
-      error = null;
-    });
-    // The first confirmation freezes the file and owner revision the person
-    // actually reviewed. A possibly uncertain outcome (a lost acknowledgement
-    // or an interrupted write) keeps that identity so the retry can first
-    // resolve whether the store already committed instead of removing under a
-    // new identity. Only a conflict the store rejected inside its transaction
-    // proves nothing was applied; the next confirmation then captures the
-    // revisions currently shown, never the stale ones that failed.
-    deleteTarget ??= record;
-    deleteOwnerRevision ??= ownerRevision;
-    final command = deleteCommand ??= newCommandId(),
-        target = deleteTarget!,
-        expectedPersonRevision = deleteOwnerRevision!;
+    final controller = ref.read(attachmentsControllerProvider.notifier),
+        access = ref.read(attachmentsControllerProvider.notifier).actionEpoch,
+        navigation = navigationEpoch,
+        store = ref.read(recordStoreProvider).value,
+        route = ModalRoute.of(context),
+        id = widget.attachmentId;
+    if (store == null || !controller.actionCurrent(access)) return;
+    bool current() =>
+        mounted &&
+        navigation == navigationEpoch &&
+        widget.attachmentId == id &&
+        route?.isCurrent != false &&
+        controller.actionCurrent(access) &&
+        identical(ref.read(recordStoreProvider).value, store);
+    final t = AppLocalizations.of(context);
+    setState(() => deciding = true);
     try {
-      final store = await ref.read(recordStoreProvider.future);
-      await replayAttachmentDelete(
-        store: store,
-        commandId: command,
-        delete: () => ref.read(attachmentDeleteProvider)((
-          commandId: command,
-          attachment: target,
-          expectedPersonRevision: expectedPersonRevision,
-        )),
+      final action =
+          deleteAction ??
+          await AttachmentActionContext.capture(
+            store,
+            record,
+            expectedPersonRevision: ownerRevision,
+          );
+      if (!identical(action.store, store) ||
+          action.attachment.generation != store.generation ||
+          action.attachment.id != record.id) {
+        throw const CommandConflict('generation');
+      }
+      if (!mounted || !current()) return;
+      final confirmed = await showVitalDialog<bool>(
+        context: context,
+        builder: (dialog) => VitalDialog(
+          title: Text(t.attachmentDelete),
+          content: Text(
+            t.attachmentDeleteHelp(
+              record.name,
+              ownerLabel(ref, t, record.personId),
+            ),
+          ),
+          actions: [
+            VitalButton.secondary(
+              onPressed: () => Navigator.of(dialog).pop(false),
+              child: Text(t.cancel),
+            ),
+            VitalButton(
+              onPressed: () => Navigator.of(dialog).pop(true),
+              child: Text(t.delete),
+            ),
+          ],
+        ),
       );
-      clearDeleteAttempt();
-      completedDeletionRoute = '${attachmentRoute(target)}?focus=choose';
-      if (mounted && !ref.read(appLockProvider).locked) {
-        context.go(completedDeletionRoute!);
+      if (confirmed != true || !current()) {
+        restoreFocus(deleteFocus);
+        return;
+      }
+      setState(() {
+        deleting = true;
+        error = null;
+      });
+      // The first confirmation freezes the file and owner revision the person
+      // actually reviewed. A possibly uncertain outcome (a lost acknowledgement
+      // or an interrupted write) keeps that identity so the retry can first
+      // resolve whether the store already committed instead of removing under a
+      // new identity. Only a conflict the store rejected inside its transaction
+      // proves nothing was applied; the next confirmation then captures the
+      // revisions currently shown, never the stale ones that failed.
+      deleteAction ??= action;
+      deleteTarget ??= record;
+      deleteOwnerRevision ??= ownerRevision;
+      final command = deleteCommand ??= newCommandId(),
+          target = deleteTarget!,
+          expectedPersonRevision = deleteOwnerRevision!;
+      try {
+        await replayAttachmentDelete(
+          store: store,
+          commandId: command,
+          delete: () async {
+            await action.validate();
+            if (!current()) throw const CommandConflict('app_locked');
+            await ref.read(attachmentDeleteProvider)((
+              commandId: command,
+              attachment: target,
+              expectedPersonRevision: expectedPersonRevision,
+              store: store,
+              canCommit: current,
+            ));
+          },
+        );
+        clearDeleteAttempt();
+        // An acknowledged command may finish after lock or departure. Resolve
+        // it, but never navigate from that expired initiation on a later unlock.
+        if (mounted && current()) {
+          context.go('${attachmentRoute(target)}?focus=choose');
+        }
+      } on CommandConflict catch (failure) {
+        // _command refuses inside its transaction, so a conflict means this
+        // attempt applied nothing. An app lock only blocked the resolution read,
+        // so keep the identity and let the next confirmation resolve it.
+        if (failure.code != 'app_locked') clearDeleteAttempt();
+        if (mounted) {
+          setState(
+            () => error =
+                failure.code == 'app_locked' &&
+                    !ref.read(appLockProvider).locked
+                ? t.attachmentFailed
+                : attachmentFailureText(t, failure.code),
+          );
+        }
+      } catch (_) {
+        // The outcome may be committed but unacknowledged. Keep the identity so
+        // the next explicit confirmation resolves it before resubmitting.
+        if (mounted) {
+          setState(() => error = attachmentFailureText(t, null));
+        }
+      } finally {
+        if (mounted) setState(() => deleting = false);
       }
     } on CommandConflict catch (failure) {
-      // _command refuses inside its transaction, so a conflict means this
-      // attempt applied nothing. An app lock only blocked the resolution read,
-      // so keep the identity and let the next confirmation resolve it.
       if (failure.code != 'app_locked') clearDeleteAttempt();
       if (mounted) {
-        setState(() => error = attachmentFailureText(t, failure.code));
+        setState(
+          () => error =
+              failure.code == 'app_locked' && !ref.read(appLockProvider).locked
+              ? t.attachmentFailed
+              : attachmentFailureText(t, failure.code),
+        );
       }
     } catch (_) {
-      // The outcome may be committed but unacknowledged. Keep the identity so
-      // the next explicit confirmation resolves it before resubmitting.
-      if (mounted) {
-        setState(() => error = attachmentFailureText(t, null));
-      }
+      if (mounted) setState(() => error = attachmentFailureText(t, null));
     } finally {
-      if (mounted) setState(() => deleting = false);
+      if (mounted) setState(() => deciding = false);
     }
   }
 
   Future<void> handoff(AttachmentRecord record, {required bool save}) async {
+    if (deciding || deleting || ModalRoute.of(context)?.isCurrent == false) {
+      return;
+    }
+    final controller = ref.read(attachmentsControllerProvider.notifier),
+        access = ref.read(attachmentsControllerProvider.notifier).actionEpoch,
+        navigation = navigationEpoch,
+        store = ref.read(recordStoreProvider).value,
+        route = ModalRoute.of(context),
+        id = widget.attachmentId;
+    if (store == null || !controller.actionCurrent(access)) return;
+    bool current() =>
+        mounted &&
+        navigation == navigationEpoch &&
+        widget.attachmentId == id &&
+        route?.isCurrent != false &&
+        controller.actionCurrent(access) &&
+        identical(ref.read(recordStoreProvider).value, store);
     final t = AppLocalizations.of(context);
-    final confirmed = await showVitalDialog<bool>(
-      context: context,
-      builder: (dialog) => VitalDialog(
-        title: Text(save ? t.attachmentSaveHeading : t.attachmentShareHeading),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              save
-                  ? t.attachmentSaveFor(
-                      record.name,
-                      ownerLabel(ref, t, record.personId),
-                    )
-                  : t.attachmentShareHelp(
-                      record.name,
-                      ownerLabel(ref, t, record.personId),
-                    ),
+    setState(() => deciding = true);
+    try {
+      final action = await AttachmentActionContext.capture(store, record);
+      if (!mounted || !current()) return;
+      final confirmed = await showVitalDialog<bool>(
+        context: context,
+        builder: (dialog) => VitalDialog(
+          title: Text(
+            save ? t.attachmentSaveHeading : t.attachmentShareHeading,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                save
+                    ? t.attachmentSaveFor(
+                        record.name,
+                        ownerLabel(ref, t, record.personId),
+                      )
+                    : t.attachmentShareHelp(
+                        record.name,
+                        ownerLabel(ref, t, record.personId),
+                      ),
+              ),
+              if (!save) Text(t.attachmentShareLifetime),
+            ],
+          ),
+          actions: [
+            VitalButton.secondary(
+              onPressed: () => Navigator.of(dialog).pop(false),
+              child: Text(t.cancel),
             ),
-            if (!save) Text(t.attachmentShareLifetime),
+            VitalButton(
+              onPressed: () => Navigator.of(dialog).pop(true),
+              child: Text(save ? t.save : t.attachmentShare),
+            ),
           ],
         ),
-        actions: [
-          VitalButton.secondary(
-            onPressed: () => Navigator.of(dialog).pop(false),
-            child: Text(t.cancel),
-          ),
-          VitalButton(
-            onPressed: () => Navigator.of(dialog).pop(true),
-            child: Text(save ? t.save : t.attachmentShare),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true && mounted) {
-      await ref
-          .read(attachmentsControllerProvider.notifier)
-          .handoff(record, save: save);
+      );
+      if (confirmed == true && current()) {
+        await ref
+            .read(attachmentsControllerProvider.notifier)
+            .handoff(
+              record,
+              save: save,
+              reviewed: action,
+              isCurrent: current,
+              // The platform handoff has already been explicitly initiated.
+              // Keep its factual outcome through lock without starting it again.
+              isResultCurrent: () =>
+                  mounted &&
+                  navigation == navigationEpoch &&
+                  widget.attachmentId == id &&
+                  route?.isCurrent != false &&
+                  identical(ref.read(recordStoreProvider).value, store),
+            );
+      }
+    } on CommandConflict catch (failure) {
+      if (mounted) {
+        setState(
+          () => error =
+              failure.code == 'app_locked' && !ref.read(appLockProvider).locked
+              ? t.attachmentFailed
+              : attachmentFailureText(t, failure.code),
+        );
+      }
+    } catch (_) {
+      if (mounted) setState(() => error = attachmentFailureText(t, null));
+    } finally {
+      if (mounted) {
+        setState(() => deciding = false);
+        restoreFocus(save ? saveFocus : shareFocus);
+      }
     }
-    if (mounted) restoreFocus(save ? saveFocus : shareFocus);
   }
 
   @override
@@ -804,9 +1041,7 @@ class _AttachmentViewerPageState extends ConsumerState<AttachmentViewerPage> {
         capabilities = ref.watch(attachmentGatewayProvider).capabilities,
         people = ref.watch(profilesProvider);
     ref.listen(appLockProvider, (_, next) {
-      if (!next.locked && completedDeletionRoute != null) {
-        context.go(completedDeletionRoute!);
-      } else if (!next.locked && pendingFocus != null) {
+      if (!next.locked && pendingFocus != null) {
         restoreFocus(pendingFocus!);
       }
     });
@@ -827,7 +1062,11 @@ class _AttachmentViewerPageState extends ConsumerState<AttachmentViewerPage> {
             ?.where((p) => p.id == record.personId)
             .firstOrNull;
         final enabled =
-            owner != null && !owner.isArchived && !runtime.busy && !deleting;
+            owner != null &&
+            !owner.isArchived &&
+            !runtime.busy &&
+            !deleting &&
+            !deciding;
         final notice = attachmentNoticeText(t, runtime.notice);
         return EntryPage(
           onBack: () {
@@ -870,7 +1109,9 @@ class _AttachmentViewerPageState extends ConsumerState<AttachmentViewerPage> {
                   focusNode: renameFocus,
                   onPressed: !enabled
                       ? null
-                      : () => context.push('/attachment/${record.id}/rename'),
+                      : () => context.push(
+                          '/attachment/${Uri.encodeComponent(record.id)}/rename',
+                        ),
                   child: Text(t.attachmentRename),
                 ),
                 VitalButton.secondary(
@@ -1320,8 +1561,8 @@ class AttachmentRenameForm extends ConsumerStatefulWidget {
       _AttachmentRenameFormState();
 }
 
-class _AttachmentRenameFormState
-    extends DurableFormState<AttachmentRenameForm> {
+class _AttachmentRenameFormState extends DurableFormState<AttachmentRenameForm>
+    with _AttachmentRouteEpoch<AttachmentRenameForm> {
   final name = TextEditingController();
   AttachmentRecord? original, frozen;
   AdultProfile? owner;
@@ -1364,20 +1605,61 @@ class _AttachmentRenameFormState
   }
 
   Future<void> save() async {
+    final controller = ref.read(attachmentsControllerProvider.notifier),
+        access = ref.read(attachmentsControllerProvider.notifier).actionEpoch,
+        navigation = navigationEpoch,
+        route = ModalRoute.of(context),
+        id = widget.attachmentId,
+        bound = ref.read(recordStoreProvider).value;
+    if (busy ||
+        original?.id != widget.attachmentId ||
+        bound == null ||
+        !controller.actionCurrent(access) ||
+        route?.isCurrent == false) {
+      return;
+    }
     final t = AppLocalizations.of(context);
     if (name.text.trim().isEmpty || name.text.length > 255) {
       setState(() => error = t.attachmentNameError);
       return;
     }
     frozen ??= original;
-    await commit((command) async {
-      await (await ref.read(recordStoreProvider.future)).renameAttachment(
-        commandId: command,
-        attachment: frozen!,
-        expectedPersonRevision: capturedPersonRevision!,
-        name: name.text.trim(),
-      );
-    }, successPath: '/attachment/${widget.attachmentId}?focus=rename');
+    final submittedName = name.text.trim();
+    bool current() =>
+        mounted &&
+        navigation == navigationEpoch &&
+        widget.attachmentId == id &&
+        route?.isCurrent != false &&
+        controller.actionCurrent(access) &&
+        identical(ref.read(recordStoreProvider).value, bound) &&
+        bound.generation == capturedGeneration;
+    await commit(
+      (command) async {
+        final store = await ref.read(recordStoreProvider.future);
+        if (store.generation != capturedGeneration) {
+          throw const CommandConflict('generation');
+        }
+        if (!current()) throw const CommandConflict('app_locked');
+        await AttachmentActionContext.capture(
+          store,
+          frozen!,
+          expectedPersonRevision: capturedPersonRevision!,
+        );
+        if (!current()) throw const CommandConflict('app_locked');
+        await store.renameAttachment(
+          commandId: command,
+          attachment: frozen!,
+          expectedPersonRevision: capturedPersonRevision!,
+          name: submittedName,
+          canCommit: current,
+        );
+      },
+      successPath:
+          '/attachment/${Uri.encodeComponent(widget.attachmentId)}?focus=rename',
+      successPathAfterSave: () async => current()
+          ? '/attachment/${Uri.encodeComponent(id)}?focus=rename'
+          : GoRouter.of(context).routeInformationProvider.value.uri.toString(),
+    );
   }
 
   @override
@@ -1396,7 +1678,9 @@ class _AttachmentRenameFormState
       name.text = current.name;
       owner = people.value!.where((p) => p.id == current.personId).firstOrNull;
     }
-    if (owner == null) return EntryPage(children: [Text(t.attachmentStale)]);
+    if (owner == null || original?.id != widget.attachmentId) {
+      return EntryPage(children: [Text(t.attachmentStale)]);
+    }
     if (!prepareDraft()) return EntryPage(children: [Text(t.loadingRecords)]);
     final valid =
         current.revision == capturedTargetRevision &&
