@@ -185,3 +185,10 @@ its context notice follows the actual selected items. Invalid item/date links
 retain recovery instead of broadening the report, and another active selection
 needs explicit Replace. Keyboard entry and return to the mounted overview are
 covered in the [item-report evidence](reviews/2026-10-22-third-five/reports-item/README.md).
+
+D13h adds read-only Open commands to recorded-use stock movements. Single and
+combined saved-dose identities resolve through the canonical source sheet;
+movement reversals never become record IDs. Pending lookup has lock/departure
+and duplicate-navigation guards, with the spinner limited to resolution. Back
+retains the stock history page and underlying inventory context.
+[Host evidence](reviews/2026-10-22-third-five/stock-source/README.md).

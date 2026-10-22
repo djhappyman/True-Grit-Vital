@@ -1097,7 +1097,7 @@ class _StockMovementHistoryState extends ConsumerState<StockMovementHistory> {
 /// The movement keeps its own immutable identity. Inspection always reads the
 /// dose's current version, so a corrected or voided record is shown as it is
 /// now rather than as the movement once was.
-class _StockMovementSourceOpen extends ConsumerWidget {
+class _StockMovementSourceOpen extends ConsumerStatefulWidget {
   const _StockMovementSourceOpen({
     super.key,
     required this.personId,
@@ -1105,29 +1105,63 @@ class _StockMovementSourceOpen extends ConsumerWidget {
   });
   final String personId, recordId;
 
-  Future<void> _open(BuildContext context, WidgetRef ref) async {
-    final key = (personId: personId, recordId: recordId);
-    var target = singleStockSourceTarget(recordId);
-    try {
-      target = await ref.read(stockSourceTargetProvider(key).future);
-    } on Object {
-      // The canonical source page owns the missing or unavailable state.
+  @override
+  ConsumerState<_StockMovementSourceOpen> createState() =>
+      _StockMovementSourceOpenState();
+}
+
+class _StockMovementSourceOpenState
+    extends ConsumerState<_StockMovementSourceOpen> {
+  bool _opening = false, _resolving = false;
+
+  Future<void> _open() async {
+    final lock = ref.read(appLockProvider);
+    if (_opening || lock.locked || ModalRoute.of(context)?.isCurrent == false) {
+      return;
     }
-    if (!context.mounted) return;
-    context.push(
-      stockSourceLocation(
-        target,
-        personId: personId,
-        returnLocation: GoRouterState.of(context).uri.toString(),
-      ),
-    );
+    setState(() {
+      _opening = true;
+      _resolving = true;
+    });
+    final returnLocation = GoRouterState.of(context).uri.toString();
+    try {
+      final key = (personId: widget.personId, recordId: widget.recordId);
+      var target = singleStockSourceTarget(widget.recordId);
+      try {
+        target = await ref.read(stockSourceTargetProvider(key).future);
+      } on Object {
+        // The canonical source page owns the missing or unavailable state.
+      }
+      if (!mounted ||
+          ref.read(appLockProvider).locked ||
+          !identical(ref.read(appLockProvider), lock) ||
+          ModalRoute.of(context)?.isCurrent == false) {
+        return;
+      }
+      setState(() => _resolving = false);
+      await context.push<void>(
+        stockSourceLocation(
+          target,
+          personId: widget.personId,
+          returnLocation: returnLocation,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _opening = false;
+          _resolving = false;
+        });
+      }
+    }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     return VitalButton.secondary(
-      onPressed: () => _open(context, ref),
+      onPressed: _opening ? null : _open,
+      isLoading: _resolving,
       child: Semantics(
         label: t.stockMovementOpenSource,
         excludeSemantics: true,

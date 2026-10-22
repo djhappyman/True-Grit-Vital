@@ -84,9 +84,9 @@ All images show synthetic records only.
 
 - The missing-record case uses the canonical route directly because the current
   app has no record-deletion command that can leave a real orphan movement.
-- The source-target lookup has a record-identity fallback if its read fails.
-  That fallback was not separately fault-injected; the destination's own
-  missing and error states remain authoritative.
+- Lead integration fault-injected a delayed source lookup failure and verified
+  the saved-record fallback. The destination's own missing/error states remain
+  authoritative.
 - Captures are Flutter widget surfaces. No physical-device screen reader,
   switch access or native paging check was run in this slice.
 - The 430 px state is covered by the widget test but is not separately captured.
@@ -130,3 +130,25 @@ history, router, store, recording and localisation command paths reported
 `no_recorded_issue` with metadata match. `lib/l10n/app_en.arb` is not tracked by
 the code graph, so it was read directly. A clean signal is not proof of
 completeness; the touched files and uncovered ARB were read as source.
+
+## Lead integration
+
+The lead inspected light/dark and narrow captures and added explicit guards for
+an outstanding source lookup. Open is disabled during that task; navigation is
+cancelled after a lock-state change or when the originating route is no longer
+current. Repeated activation cannot stack duplicate source pages. The captured
+return location is kept stable throughout the lookup.
+
+Five deferred-provider checks cover lock, lock then unlock, duplicate activation,
+leaving the page and lookup failure with the saved-record fallback. They use the
+real stock-history widget and router with synthetic delayed reads. The existing
+canonical missing/error/locked-source tests remain separate evidence.
+
+An integration run caught continuous loading animation underneath the source
+sheet; the spinner now stops when lookup finishes while the duplicate-navigation
+guard remains until Back. Final successful commands are recorded below.
+
+Final lead verification: 16 source/deferred-provider checks passed after the
+spinner correction; 23 unchanged stock/history regression cases passed in the
+earlier mixed run that exposed the spinner failure. Final whole-project analysis
+was clean. The earlier mixed run itself failed and is retained as diagnostics.

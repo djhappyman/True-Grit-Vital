@@ -14,7 +14,11 @@ Flutter/copy skills and interaction blueprint. No new dependencies or schema.
   links stay in recovery, active drafts need Replace, and the scope notice follows
   the reviewed selection.
 
-The stock-source and event-History packages remain assigned;
+- [Stock source inspection](stock-source/README.md), DeepSeek and lead integration:
+  Open resolves single/combined saved-dose identity and preserves nested stock
+  context. Delayed lookup, lock, departure and duplicate-navigation guards apply.
+
+The event-History package remains assigned;
 this checkpoint is not a completion or release claim. Task briefs, identities
 and original results are retained locally under
 `.scratch/vital-implementation/third-five-2026-10-22/`.
@@ -40,3 +44,8 @@ remain open. Focused results do not establish a whole-suite or device pass.
 Substance report integration: 69 focused item/event/report/overview checks passed
 after the lead fixes, with clean project analysis. Additional isolated keyboard
 and malformed-date checks passed. Both reported bugs failed before their fixes.
+
+Stock source integration: after correcting the spinner caught during review, all
+16 affected source/deferred-lookup checks passed. The 23 unchanged stock/history
+regression cases passed in the earlier run that exposed that spinner failure.
+Final project analysis was clean. No failed mixed run is counted as a suite pass.
