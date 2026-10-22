@@ -8139,7 +8139,7 @@ abstract class AppLocalizations {
   /// Explains that the dose links the chosen container, whose displayed values are captured when the report is prepared.
   ///
   /// In en, this message translates to:
-  /// **'Include the chosen container’s label, lot, expiry and exact capacity as saved when this report is captured.'**
+  /// **'Include the chosen container’s label, lot, expiry and capacity at report capture, plus any vial mixing details saved with each dose.'**
   String get featureReportStockHelp;
 
   /// Review summary when stock details are selected.

@@ -218,3 +218,28 @@ editors or clinical predictions. See [behaviour](substance-properties.md).
 | D27 | Optional half-life | User-entered hours/days, formulation/route context and source. Blends keep separate ingredient values. Editable reference information without inferred defaults or estimated level charts. | Implemented; host verified |
 
 D25–D27 host evidence: [substance property review](reviews/2026-10-22-substance-properties/README.md). Physical-device gates remain open.
+
+
+## Functionality batch, 22 October
+
+The owner requested another functional batch, deferring the broader UI redesign,
+and a friendly README explaining the project's safety-minded purpose.
+
+- D15a: opt-in native Android low-stock notices for configured containers, one
+  durable alert episode, existing reminder reconciliation and private Open-only
+  actions. Paid direct-API DeepSeek owns implementation; device delivery stays a
+  separate evidence gate. Scanning remains outside this slice.
+- D19b: factual monthly routine activity using full calendar aggregates and the
+  active History filters. Free DeepSeek owns implementation. Counts describe
+  recorded entries, days with records and explicit skips/voids; no adherence,
+  streak, lateness or missed-dose inference is introduced.
+- D26b: captured actual-dose strengths and exact equivalents now appear in all
+  three PDF/text report templates. Mixing details follow the stock-details
+  choice; current defaults never rewrite historical use. Unknown strengths and
+  unresolved replacements produce no equivalent. Host verified with 38 focused
+  checks and all rendered pages reviewed; see [report evidence](reviews/2026-10-22-function-batch/report-strengths/README.md).
+- README: GLM5.3Flash Free produced the reader-focused draft. Lead review
+  corrected current/planned claims and retained contributor instructions.
+
+The stock and History assignments remain in progress. Briefs and identities are retained
+under `.scratch/vital-implementation/function-batch-2026-10-22/`.

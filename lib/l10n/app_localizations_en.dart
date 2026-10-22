@@ -5081,7 +5081,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featureReportStockHelp =>
-      'Include the chosen container’s label, lot, expiry and exact capacity as saved when this report is captured.';
+      'Include the chosen container’s label, lot, expiry and capacity at report capture, plus any vial mixing details saved with each dose.';
 
   @override
   String get featureReportStockIncluded => 'Stock details: included';

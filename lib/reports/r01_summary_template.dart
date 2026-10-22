@@ -434,7 +434,7 @@ final class R01SummaryRenderer implements ReportTemplateRenderer {
 
   List<pw.Widget> _contextBlock(ReportSnapshot snapshot, bool use24Hour) {
     final selection = snapshot.selection;
-    final details = ReportText.itemDetailLines(snapshot);
+    final details = ReportText.reportDetailLines(snapshot);
     if (!selection.includeSupporting &&
         !selection.includeAttachments &&
         details.isEmpty) {

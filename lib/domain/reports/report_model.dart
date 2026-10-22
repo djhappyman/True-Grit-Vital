@@ -8,7 +8,10 @@ import '../scheduling/saved_plan_instruction.dart';
 import '../products/products.dart';
 import '../supporting/supporting.dart';
 import 'report_selection.dart';
+import 'report_strength.dart';
 import 'report_template_data.dart';
+
+export 'report_strength.dart';
 
 /// The exact saved container linked to a recorded dose when stock details are
 /// selected. These are capture-time container facts, not the balance at dose
@@ -48,6 +51,7 @@ final class ReportRecord {
     this.contextTags = const [],
     this.stockSource,
     this.planInstruction,
+    this.strength,
   }) {
     if (amount <= ExactAmount.zero ||
         !actualAt.isUtc ||
@@ -59,6 +63,7 @@ final class ReportRecord {
   factory ReportRecord.fromUseRecord(
     UseRecord record, {
     bool includeNotes = false,
+    bool includeStock = false,
     ReportStockSource? stockSource,
     SavedPlanInstruction? planInstruction,
   }) => ReportRecord(
@@ -81,6 +86,11 @@ final class ReportRecord {
         : ReportProduct.fromSnapshot(record.product!, record.actualUnit),
     stockSource: stockSource,
     planInstruction: includeNotes ? planInstruction : null,
+    strength: ReportDoseStrength.capture(
+      record.labelledStrength,
+      includePreparation: includeStock,
+      equivalentAvailable: record.replacementResolved,
+    ),
   );
   final String id, itemId, name, form, type, unit;
   final String? site;
@@ -93,6 +103,7 @@ final class ReportRecord {
   final ReportProduct? product;
   final ReportStockSource? stockSource;
   final SavedPlanInstruction? planInstruction;
+  final ReportDoseStrength? strength;
 
   String get itemIdentity => jsonEncode([type, itemId, name, form, unit]);
 }
@@ -301,6 +312,10 @@ final class ReportSnapshot {
       throw const ReportSelectionFailure('report_item_details');
     }
     final all = records.toList();
+    if (!selection.includeStock &&
+        all.any((record) => record.strength?.preparation != null)) {
+      throw const ReportSelectionFailure('report_preparation_selection');
+    }
     final recordItems = all.map((record) => record.itemId).toSet();
     if (itemDetails.keys.any((itemId) => !recordItems.contains(itemId))) {
       throw const ReportSelectionFailure('report_item_details');
@@ -841,7 +856,8 @@ final class ReportText {
     if (!selection.includeSupporting &&
         !selection.includeAttachments &&
         snapshot.itemDetails.isEmpty &&
-        !selection.includeNotes) {
+        !selection.includeNotes &&
+        doseStrengthLines(snapshot).isEmpty) {
       return const [
         'Supporting records and source files: not included.',
         'Private notes: not included.',
@@ -898,7 +914,7 @@ final class ReportText {
       final omission = supportingOmissionNotice(snapshot);
       if (omission != null) lines.add(omission);
     }
-    final details = itemDetailLines(snapshot);
+    final details = reportDetailLines(snapshot);
     if (details.isNotEmpty) {
       lines.add('');
       lines.addAll(details);
@@ -917,6 +933,57 @@ final class ReportText {
     }
     return lines;
   }
+
+  static const strengthDisclosure =
+      'Entered label strengths and calculated equivalents. They do not verify '
+      'product contents or confirm that a dose was taken.';
+
+  /// Shared exact strength context for all three PDF and text templates.
+  static List<String> doseStrengthLines(ReportSnapshot snapshot) {
+    final groups = <String, List<ReportRecord>>{};
+    for (final record in snapshot.records) {
+      if (record.strength == null || record.product != null) continue;
+      final key = jsonEncode([record.itemIdentity, record.strength!.toJson()]);
+      (groups[key] ??= []).add(record);
+    }
+    if (groups.isEmpty) return const [];
+    return [
+      'Dose strengths',
+      strengthDisclosure,
+      for (final group in groups.values) ...[
+        group.first.name,
+        if (group.first.strength!.mgPerMl case final value?)
+          'Strength: ${formatExactQuantity(value)} mg per ml.'
+        else if (group.first.strength!.mgPerCount case final value?)
+          'Strength: ${formatExactQuantity(value)} mg per item.'
+        else
+          'Strength: unknown. No equivalent is calculated.',
+        if (!group.first.strength!.equivalentAvailable)
+          'Strength change unresolved. No equivalent is calculated.',
+        if (group.first.strength!.preparation case final preparation?) ...[
+          'Mixed vial: ${preparation.powderAmount} ${preparation.massUnit == 'mcg' ? 'micrograms' : 'mg'} in ${preparation.finalVolumeMl} ml final volume.',
+          if (preparation.liquid.isNotEmpty)
+            'Mixing liquid: ${preparation.liquid}',
+          if (preparation.addedVolumeMl != null)
+            'Liquid added: ${preparation.addedVolumeMl} ml',
+          if (preparation.preparedOn != null)
+            'Prepared on: ${preparation.preparedOn}',
+        ],
+        for (final record in group) ...[
+          'Dose ${record.id}: ${formatExactQuantity(record.amount)} ${record.unit}.',
+          for (final target in ['mg', 'ml', 'count'])
+            if (record.strength!.equivalent(record.amount, record.unit, target)
+                case final equivalent?)
+              'Equivalent: ${formatExactQuantity(equivalent)} ${target == 'count' ? 'items' : target}.',
+        ],
+      ],
+    ];
+  }
+
+  static List<String> reportDetailLines(ReportSnapshot snapshot) => [
+    ...doseStrengthLines(snapshot),
+    ...itemDetailLines(snapshot),
+  ];
 
   /// Shared authored-detail lines for accessible text and rendered reports.
   /// Empty unless notes were selected at capture.
@@ -957,7 +1024,10 @@ final class ReportText {
     if (records.isEmpty) return const [];
     final groups = <String, List<ReportRecord>>{};
     for (final record in records) {
-      final key = jsonEncode([record.itemIdentity, record.planInstruction!.toJson()]);
+      final key = jsonEncode([
+        record.itemIdentity,
+        record.planInstruction!.toJson(),
+      ]);
       (groups[key] ??= []).add(record);
     }
     return [
@@ -1123,6 +1193,8 @@ final class ReportText {
         ..add('')
         ..addAll(instructionLines);
     }
+    final strengths = doseStrengthLines(snapshot);
+    if (strengths.isNotEmpty) lines.addAll(['', ...strengths]);
     final recent = snapshot.recentRecords();
     lines
       ..add('')

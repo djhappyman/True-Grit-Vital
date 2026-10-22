@@ -352,7 +352,7 @@ CivilDate ledgerCivil(DateTime instant, String zone) {
 /// Selected supporting records and source files, shared by R01-style context.
 List<pw.Widget> reportContextBlock(ReportSnapshot snapshot) {
   final selection = snapshot.selection;
-  final details = ReportText.itemDetailLines(snapshot);
+  final details = ReportText.reportDetailLines(snapshot);
   if (!selection.includeSupporting &&
       !selection.includeAttachments &&
       details.isEmpty) {

@@ -2,13 +2,13 @@
 
 **A clear, private record of the medicines, supplements and other substances you use, kept on your own device.**
 
-Vital helps you answer simple questions that are easy to forget: what did I take, how much and when? You note your doses and keep an eye on what you have left, and when you want to talk to a doctor or pharmacist, you choose a timeframe and share an exact, readable record. Knowledge is power, and an accurate record turns "I think I was taking it then" into something you can both look at together.
+Vital exists to make substance tracking clearer, with safety in mind. It helps you answer simple questions that are easy to forget: what did I take, how much and when? You note your doses and keep an eye on what you have left, and when you want to talk to a doctor or pharmacist, you choose a timeframe and share an exact, readable record. Knowledge is power, and an accurate record turns "I think I was taking it then" into something you can both look at together.
 
-Vital records information. It does not diagnose, recommend treatment or judge your choices, and tracking never makes any substance safe or unsafe. It simply keeps the facts straight so you can understand what you took and share it with a healthcare professional.
+The aim is to support informed conversations with a doctor or pharmacist through accurate, useful records. Vital does not judge your choices or recommend what to take. It cannot verify that a substance, dose or combination is safe.
 
 ## What Vital can do
 
-- Build your own substance list with custom names and exact custom amounts and units, including brand and product names and ready-mixed products recorded in one combined entry.
+- Build your own substance list with custom names, exact amounts and clear units, including brand and product names and ready-mixed products recorded in one combined entry.
 - Record injectable or oral forms, with a labelled strength per tablet, capsule or millilitre where you know it.
 - Keep each mixed vial separate: its original powder amount, confirmed final volume and exact concentration, because different vials can differ.
 - Store optional half-life details you enter yourself, with form, route and source, as reference information. Vital does not estimate blood levels.
@@ -16,7 +16,7 @@ Vital records information. It does not diagnose, recommend treatment or judge yo
 - Track cycles and courses as events, so a course can run its own dates while individual plans pause or resume.
 - Review your full history with corrections and Undo, so changes stay visible rather than erased.
 - Choose a timeframe and export it as a PDF report or a CSV or JSON file. You review, save and share it yourself. Nothing is sent automatically to anyone.
-- Set dose reminders on Android, and opt in to gentle follow-up nudges when a planned dose has not been recorded. An unrecorded dose stays "not recorded" and is never marked as missed.
+- Set dose reminders on Android. An unrecorded dose stays "not recorded" rather than being assumed missed. Gentle opt-in follow-up nudges are planned.
 - Track routines around your doses with notes, food and context tags and skip reasons tied to each substance record.
 - Manage your stock: current balances, in-app low-stock notices and simple adjust, restock and waste actions.
 - Keep everything private: encrypted local storage, an optional app lock, private drafts and password-protected backups. There are no accounts and no cloud sync.

@@ -117,6 +117,7 @@ extension ReportStore on RecordStore {
         ReportRecord.fromUseRecord(
           record,
           includeNotes: selection.includeNotes,
+          includeStock: selection.includeStock,
           stockSource: stockSources[record.id],
           planInstruction: planInstructions[record.id],
         ),
