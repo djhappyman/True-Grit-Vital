@@ -126,7 +126,7 @@ class VitalColors {
 }
 
 /// Shared card renderer. Feature widgets compose it rather than copy its skin.
-class VitalSurfaceFrame extends StatelessWidget {
+class VitalSurfaceFrame extends StatefulWidget {
   const VitalSurfaceFrame({
     super.key,
     required this.child,
@@ -140,41 +140,49 @@ class VitalSurfaceFrame extends StatelessWidget {
   final double radius;
   final bool inset, sheet;
   @override
+  State<VitalSurfaceFrame> createState() => _VitalSurfaceFrameState();
+}
+
+class _VitalSurfaceFrameState extends State<VitalSurfaceFrame> {
+  // Reparent the same content when bypassing AnimatedSize for reduced motion.
+  // The pinned Flutter renderer cannot lay out a zero-duration AnimatedSize
+  // whose child changes size without mutating itself during layout.
+  final _contentKey = GlobalKey();
+
+  @override
   Widget build(BuildContext context) {
     final c = VitalColors(context);
+    final content = KeyedSubtree(key: _contentKey, child: widget.child);
     return AnimatedContainer(
       duration: VitalMotion.duration(context, VitalMotion.theme),
       curve: VitalMotion.geometry,
       decoration: BoxDecoration(
-        color: inset ? c.inset : c.surface,
-        borderRadius: BorderRadius.circular(radius),
+        color: widget.inset ? c.inset : c.surface,
+        borderRadius: BorderRadius.circular(widget.radius),
         border: c.dark ? null : Border.all(color: c.line.withValues(alpha: .7)),
-        boxShadow: inset
+        boxShadow: widget.inset
             ? null
             : [
                 BoxShadow(
                   color: Colors.black.withValues(
-                    alpha: c.dark ? (sheet ? .2 : .12) : .025,
+                    alpha: c.dark ? (widget.sheet ? .2 : .12) : .025,
                   ),
-                  blurRadius: sheet ? 24 : 8,
-                  offset: Offset(0, sheet ? 8 : 3),
+                  blurRadius: widget.sheet ? 24 : 8,
+                  offset: Offset(0, widget.sheet ? 8 : 3),
                 ),
               ],
       ),
-      padding: padding,
+      padding: widget.padding,
       child: DefaultTextStyle.merge(
         style: VitalType.body.copyWith(color: c.ink),
         child: VitalMotion.reduced(context)
-            ? child
+            ? content
             : AnimatedSize(
-                duration: VitalMotion.duration(context, VitalMotion.expand),
-                reverseDuration: VitalMotion.duration(
-                  context,
-                  VitalMotion.collapse,
-                ),
+                duration: VitalMotion.expand,
+                reverseDuration: VitalMotion.collapse,
                 curve: VitalMotion.geometry,
                 alignment: Alignment.topCenter,
-                child: child,
+                child: content,
               ),
       ),
     );

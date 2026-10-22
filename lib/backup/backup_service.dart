@@ -31,6 +31,11 @@ abstract interface class BackupOperations {
   Future<void> cleanupAbandoned();
 }
 
+/// Optional bookkeeping status; failure never changes an acknowledged save.
+abstract interface class BackupHistoryStatus {
+  bool get historyWriteFailed;
+}
+
 final class BackupCreation {
   const BackupCreation({
     required this.archive,
@@ -40,6 +45,7 @@ final class BackupCreation {
     required this.createdAt,
     required this.inventory,
     required this.summary,
+    this.verifiedAt,
   });
 
   final File archive;
@@ -47,6 +53,7 @@ final class BackupCreation {
   final int byteCount;
   final String sha256;
   final DateTime createdAt;
+  final DateTime? verifiedAt;
   final BackupInventory inventory;
   final BackupSnapshotSummary summary;
 }
@@ -89,7 +96,7 @@ final class StagedBackup {
   }
 }
 
-final class BackupService implements BackupOperations {
+final class BackupService implements BackupOperations, BackupHistoryStatus {
   BackupService({
     required this.recordStore,
     required this.stagingDirectory,
@@ -99,6 +106,37 @@ final class BackupService implements BackupOperations {
        clock = clock ?? (() => DateTime.now().toUtc());
 
   final RecordStore recordStore;
+  @override
+  bool historyWriteFailed = false;
+
+  Future<void> _recordReceipt(
+    BackupCreation creation, {
+    bool saved = false,
+  }) async {
+    try {
+      final verifiedAt = creation.verifiedAt;
+      if (verifiedAt == null) throw StateError('backup_not_verified');
+      await recordStore.recordBackupReceipt(
+        BackupReceipt(
+          generation: creation.inventory.generation,
+          sha256: creation.sha256,
+          byteCount: creation.byteCount,
+          schemaVersion: creation.inventory.schemaVersion,
+          recordCount: creation.inventory.recordCount,
+          itemCount: creation.inventory.itemCount,
+          attachmentCount: creation.inventory.attachmentCount,
+          createdAt: creation.createdAt,
+          verifiedAt: verifiedAt,
+          savedAt: saved ? clock().toUtc() : null,
+        ),
+      );
+    } catch (_) {
+      // The archive's validation/OS handoff already succeeded. Do not offer
+      // another save of a deleted staged file because bookkeeping failed.
+      historyWriteFailed = true;
+    }
+  }
+
   final Directory stagingDirectory;
   final BackupDestinationGateway destination;
   final DateTime Function() clock;
@@ -121,6 +159,7 @@ final class BackupService implements BackupOperations {
     required BackupCancellationToken token,
     void Function(BackupProgress)? onProgress,
   }) async {
+    historyWriteFailed = false;
     if (_captureActive) throw const BackupFailure('backup_busy');
     BackupLimits.checkPassword(password);
     token.throwIfCancelled();
@@ -211,15 +250,19 @@ final class BackupService implements BackupOperations {
           totalBytes: header.snapshot.bytes,
         ),
       );
-      return BackupCreation(
+      final creation = BackupCreation(
         archive: archive,
         fileName: archive.uri.pathSegments.last,
         byteCount: bytes,
         sha256: digest.toString(),
         createdAt: createdAt,
+        verifiedAt: clock().toUtc(),
         inventory: inventory,
         summary: header.snapshot,
       );
+      await _recordReceipt(creation);
+      token.throwIfCancelled();
+      return creation;
     } catch (error) {
       if (archivePath != null) {
         await _deleteQuietly(File(archivePath));
@@ -248,6 +291,7 @@ final class BackupService implements BackupOperations {
 
   @override
   Future<BackupSaveStatus> save(BackupCreation creation) async {
+    historyWriteFailed = false;
     final result = await destination.save(
       BackupArtifact(
         file: creation.archive,
@@ -258,6 +302,7 @@ final class BackupService implements BackupOperations {
       ),
     );
     if (result == BackupSaveStatus.saved) {
+      await _recordReceipt(creation, saved: true);
       await _deleteQuietly(creation.archive);
       _activePaths.remove(creation.archive.path);
     }

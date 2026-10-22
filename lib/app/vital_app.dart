@@ -1247,14 +1247,19 @@ GoRoute vitalRoute({
                     ),
                   );
                   if (!task) {
-                    if (reduced) return child;
+                    // Keep the route subtree mounted when reduced motion
+                    // changes while a workflow/disclosure is open.
                     return FadeTransition(
-                      opacity: curve,
+                      opacity: reduced
+                          ? const AlwaysStoppedAnimation(1)
+                          : curve,
                       child: AnimatedBuilder(
                         animation: curve,
                         child: child,
                         builder: (_, child) => Transform.translate(
-                          offset: Offset(18 * (1 - curve.value), 0),
+                          offset: reduced
+                              ? Offset.zero
+                              : Offset(18 * (1 - curve.value), 0),
                           child: child,
                         ),
                       ),

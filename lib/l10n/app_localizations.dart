@@ -12038,6 +12038,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No saved details versions.'**
   String get featureStockMetadataEmpty;
+
+  /// Protected backup receipt history. Local metadata only; no destination, password or private record content.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get featureBackupHistory;
+
+  /// Protected backup receipt history. Local metadata only; no destination, password or private record content.
+  ///
+  /// In en, this message translates to:
+  /// **'The latest 20 local receipts for this dataset. Dates use this device’s time zone. Receipts do not confirm that an external file still exists or can be restored now.'**
+  String get featureBackupHistoryHelp;
+
+  /// Protected backup receipt history. Local metadata only; no destination, password or private record content.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup receipts yet. Create and save a protected backup to record a confirmed save here.'**
+  String get featureBackupHistoryEmpty;
+
+  /// Protected backup receipt history. Local metadata only; no destination, password or private record content.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading backup history.'**
+  String get featureBackupHistoryLoading;
+
+  /// Protected backup receipt history. Local metadata only; no destination, password or private record content.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup history could not be loaded. Retry to check it.'**
+  String get featureBackupHistoryFailed;
+
+  /// Protected backup receipt history. Local metadata only; no destination, password or private record content.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup step succeeded, but its history could not be saved. A receipt may be missing.'**
+  String get featureBackupHistoryWriteFailed;
+
+  /// Protected backup receipt history. Local metadata only; no destination, password or private record content.
+  ///
+  /// In en, this message translates to:
+  /// **'Last save'**
+  String get featureBackupHistoryLastSave;
+
+  /// Protected backup receipt history. Local metadata only; no destination, password or private record content.
+  ///
+  /// In en, this message translates to:
+  /// **'No confirmed save in the retained history.'**
+  String get featureBackupHistoryNoSave;
+
+  /// Protected backup receipt history. Local metadata only; no destination, password or private record content.
+  ///
+  /// In en, this message translates to:
+  /// **'Save confirmed: {date}'**
+  String featureBackupHistorySaved(String date);
+
+  /// Protected backup receipt history. Local metadata only; no destination, password or private record content.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive checked: {date}'**
+  String featureBackupHistoryChecked(String date);
+
+  /// Protected backup receipt history. Local metadata only; no destination, password or private record content.
+  ///
+  /// In en, this message translates to:
+  /// **'No save confirmation. The staged file may have been discarded.'**
+  String get featureBackupHistoryUnsaved;
+
+  /// Protected backup receipt history. Local metadata only; no destination, password or private record content.
+  ///
+  /// In en, this message translates to:
+  /// **'{bytes} bytes · schema {schema}. Recorded doses: {records}. Substances: {items}. Files: {attachments}.'**
+  String featureBackupHistoryFacts(
+    int bytes,
+    int schema,
+    int records,
+    int items,
+    int attachments,
+  );
+
+  /// Protected backup receipt history. Local metadata only; no destination, password or private record content.
+  ///
+  /// In en, this message translates to:
+  /// **'SHA-256: {hash}'**
+  String featureBackupHistoryHash(String hash);
 }
 
 class _AppLocalizationsDelegate

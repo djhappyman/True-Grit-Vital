@@ -8,6 +8,8 @@ import 'package:crypto/crypto.dart';
 import '../backup/backup_worker.dart';
 import '../domain/attachments.dart';
 import '../domain/backup/backup.dart';
+import '../domain/backup/backup_history.dart';
+export '../domain/backup/backup_history.dart';
 import '../domain/restore/restore.dart';
 export '../domain/attachments.dart';
 
@@ -84,6 +86,7 @@ part 'item_detail_store.dart';
 part 'report_store.dart';
 part 'report_template_store.dart';
 part 'backup_store.dart';
+part 'backup_history_store.dart';
 part 'restore_store.dart';
 
 /// Current durable record schema, also used by backup and restore validation.

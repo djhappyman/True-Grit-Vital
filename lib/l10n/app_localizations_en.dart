@@ -7760,4 +7760,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featureStockMetadataEmpty => 'No saved details versions.';
+
+  @override
+  String get featureBackupHistory => 'History';
+
+  @override
+  String get featureBackupHistoryHelp =>
+      'The latest 20 local receipts for this dataset. Dates use this device’s time zone. Receipts do not confirm that an external file still exists or can be restored now.';
+
+  @override
+  String get featureBackupHistoryEmpty =>
+      'No backup receipts yet. Create and save a protected backup to record a confirmed save here.';
+
+  @override
+  String get featureBackupHistoryLoading => 'Loading backup history.';
+
+  @override
+  String get featureBackupHistoryFailed =>
+      'Backup history could not be loaded. Retry to check it.';
+
+  @override
+  String get featureBackupHistoryWriteFailed =>
+      'The backup step succeeded, but its history could not be saved. A receipt may be missing.';
+
+  @override
+  String get featureBackupHistoryLastSave => 'Last save';
+
+  @override
+  String get featureBackupHistoryNoSave =>
+      'No confirmed save in the retained history.';
+
+  @override
+  String featureBackupHistorySaved(String date) {
+    return 'Save confirmed: $date';
+  }
+
+  @override
+  String featureBackupHistoryChecked(String date) {
+    return 'Archive checked: $date';
+  }
+
+  @override
+  String get featureBackupHistoryUnsaved =>
+      'No save confirmation. The staged file may have been discarded.';
+
+  @override
+  String featureBackupHistoryFacts(
+    int bytes,
+    int schema,
+    int records,
+    int items,
+    int attachments,
+  ) {
+    return '$bytes bytes · schema $schema. Recorded doses: $records. Substances: $items. Files: $attachments.';
+  }
+
+  @override
+  String featureBackupHistoryHash(String hash) {
+    return 'SHA-256: $hash';
+  }
 }

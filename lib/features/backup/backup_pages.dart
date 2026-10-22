@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/backup.dart';
+import '../../app/app_lock.dart';
+import '../../domain/backup/backup_history.dart';
 import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
 
@@ -144,6 +146,8 @@ class _BackupPageState extends ConsumerState<BackupPage> {
                   BackupPhase.ready => _ready(context, text, state, controller),
                   BackupPhase.saved => _saved(text, state, controller),
                 },
+              const SizedBox(height: 24),
+              const BackupHistoryPanel(),
             ],
           ),
         ),
@@ -270,12 +274,17 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     BackupController controller,
   ) {
     final creation = state.creation!;
-    final saveFailure = state.errorCode == null
+    final saveFailure =
+        state.errorCode == null || state.errorCode == 'backup_history_failed'
         ? null
         : _failureCopy(text, state.errorCode!);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (state.errorCode == 'backup_history_failed') ...[
+          Text(text.featureBackupHistoryWriteFailed),
+          const SizedBox(height: 12),
+        ],
         if (saveFailure != null) ...[
           _FailurePanel(heading: saveFailure.$1, body: saveFailure.$2),
           const SizedBox(height: 12),
@@ -319,6 +328,10 @@ class _BackupPageState extends ConsumerState<BackupPage> {
         heading: text.backupSavedHeading,
         body: text.backupSavedBody(state.savedName ?? ''),
       ),
+      if (state.errorCode == 'backup_history_failed') ...[
+        const SizedBox(height: 12),
+        Text(text.featureBackupHistoryWriteFailed),
+      ],
       const SizedBox(height: 20),
       VitalButton(
         key: const ValueKey('backup-done'),
@@ -331,7 +344,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
   static String _created(BuildContext context, DateTime value) {
     final localizations = material.MaterialLocalizations.of(context);
     final local = value.toLocal();
-    final date = localizations.formatMediumDate(local);
+    final date = localizations.formatFullDate(local);
     final time = localizations.formatTimeOfDay(
       material.TimeOfDay.fromDateTime(local),
       alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context),
@@ -346,6 +359,117 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     final mib = kib / 1024;
     if (mib < 1024) return '${mib.toStringAsFixed(1)} MiB';
     return '${(mib / 1024).toStringAsFixed(1)} GiB';
+  }
+}
+
+/// Read-only receipts inside the existing guarded backup workflow.
+class BackupHistoryPanel extends ConsumerWidget {
+  const BackupHistoryPanel({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(appLockProvider).locked) return const SizedBox.shrink();
+    final text = AppLocalizations.of(context);
+    final history = ref.watch(backupHistoryProvider);
+    return VitalSurface(
+      child: history.when(
+        skipError: false,
+        skipLoadingOnReload: false,
+        data: (receipts) {
+          final saved = receipts
+              .where((receipt) => receipt.savedAt != null)
+              .firstOrNull;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                text.featureBackupHistoryLastSave,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                saved == null
+                    ? text.featureBackupHistoryNoSave
+                    : text.featureBackupHistorySaved(
+                        _BackupPageState._created(context, saved.savedAt!),
+                      ),
+              ),
+              const SizedBox(height: 12),
+              VitalDisclosure(
+                key: const ValueKey('backup-history-disclosure'),
+                title: text.featureBackupHistory,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(text.featureBackupHistoryHelp),
+                    if (receipts.isEmpty) ...[
+                      const SizedBox(height: 12),
+                      Text(text.featureBackupHistoryEmpty),
+                    ],
+                    for (final receipt in receipts) ...[
+                      const SizedBox(height: 16),
+                      _BackupReceiptDetails(receipt: receipt),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+        loading: () => Text(text.featureBackupHistoryLoading),
+        error: (_, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(text.featureBackupHistoryFailed),
+            const SizedBox(height: 8),
+            VitalButton.secondary(
+              onPressed: () => ref.invalidate(backupHistoryProvider),
+              child: Text(text.retry),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BackupReceiptDetails extends StatelessWidget {
+  const _BackupReceiptDetails({required this.receipt});
+  final BackupReceipt receipt;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = AppLocalizations.of(context);
+    return Column(
+      key: ValueKey('backup-receipt-${receipt.sha256}'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          text.featureBackupHistoryChecked(
+            _BackupPageState._created(context, receipt.verifiedAt),
+          ),
+        ),
+        Text(
+          receipt.savedAt == null
+              ? text.featureBackupHistoryUnsaved
+              : text.featureBackupHistorySaved(
+                  _BackupPageState._created(context, receipt.savedAt!),
+                ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          text.featureBackupHistoryFacts(
+            receipt.byteCount,
+            receipt.schemaVersion,
+            receipt.recordCount,
+            receipt.itemCount,
+            receipt.attachmentCount,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SelectableText(text.featureBackupHistoryHash(receipt.sha256)),
+      ],
+    );
   }
 }
 

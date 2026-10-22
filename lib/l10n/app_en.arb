@@ -9154,5 +9154,89 @@
   "featureStockMetadataEmpty": "No saved details versions.",
   "@featureStockMetadataEmpty": {
     "description": "Empty container details history. Does not claim a migration or invented timestamp."
+  },
+  "featureBackupHistory": "History",
+  "@featureBackupHistory": {
+    "description": "Protected backup receipt history. Local metadata only; no destination, password or private record content."
+  },
+  "featureBackupHistoryHelp": "The latest 20 local receipts for this dataset. Dates use this device’s time zone. Receipts do not confirm that an external file still exists or can be restored now.",
+  "@featureBackupHistoryHelp": {
+    "description": "Protected backup receipt history. Local metadata only; no destination, password or private record content."
+  },
+  "featureBackupHistoryEmpty": "No backup receipts yet. Create and save a protected backup to record a confirmed save here.",
+  "@featureBackupHistoryEmpty": {
+    "description": "Protected backup receipt history. Local metadata only; no destination, password or private record content."
+  },
+  "featureBackupHistoryLoading": "Loading backup history.",
+  "@featureBackupHistoryLoading": {
+    "description": "Protected backup receipt history. Local metadata only; no destination, password or private record content."
+  },
+  "featureBackupHistoryFailed": "Backup history could not be loaded. Retry to check it.",
+  "@featureBackupHistoryFailed": {
+    "description": "Protected backup receipt history. Local metadata only; no destination, password or private record content."
+  },
+  "featureBackupHistoryWriteFailed": "The backup step succeeded, but its history could not be saved. A receipt may be missing.",
+  "@featureBackupHistoryWriteFailed": {
+    "description": "Protected backup receipt history. Local metadata only; no destination, password or private record content."
+  },
+  "featureBackupHistoryLastSave": "Last save",
+  "@featureBackupHistoryLastSave": {
+    "description": "Protected backup receipt history. Local metadata only; no destination, password or private record content."
+  },
+  "featureBackupHistoryNoSave": "No confirmed save in the retained history.",
+  "@featureBackupHistoryNoSave": {
+    "description": "Protected backup receipt history. Local metadata only; no destination, password or private record content."
+  },
+  "featureBackupHistorySaved": "Save confirmed: {date}",
+  "@featureBackupHistorySaved": {
+    "description": "Protected backup receipt history. Local metadata only; no destination, password or private record content.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "featureBackupHistoryChecked": "Archive checked: {date}",
+  "@featureBackupHistoryChecked": {
+    "description": "Protected backup receipt history. Local metadata only; no destination, password or private record content.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "featureBackupHistoryUnsaved": "No save confirmation. The staged file may have been discarded.",
+  "@featureBackupHistoryUnsaved": {
+    "description": "Protected backup receipt history. Local metadata only; no destination, password or private record content."
+  },
+  "featureBackupHistoryFacts": "{bytes} bytes · schema {schema}. Recorded doses: {records}. Substances: {items}. Files: {attachments}.",
+  "@featureBackupHistoryFacts": {
+    "description": "Protected backup receipt history. Local metadata only; no destination, password or private record content.",
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      },
+      "schema": {
+        "type": "int"
+      },
+      "records": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      },
+      "attachments": {
+        "type": "int"
+      }
+    }
+  },
+  "featureBackupHistoryHash": "SHA-256: {hash}",
+  "@featureBackupHistoryHash": {
+    "description": "Protected backup receipt history. Local metadata only; no destination, password or private record content.",
+    "placeholders": {
+      "hash": {
+        "type": "String"
+      }
+    }
   }
 }

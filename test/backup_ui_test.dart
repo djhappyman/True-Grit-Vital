@@ -18,7 +18,7 @@ class _Unlocked extends AppLockController {
   AppLockState build() => const AppLockState(ready: true, locked: false);
 }
 
-final class _FakeOperations implements BackupOperations {
+final class _FakeOperations implements BackupOperations, BackupHistoryStatus {
   _FakeOperations({
     required this.creation,
     this.supported = true,
@@ -32,6 +32,8 @@ final class _FakeOperations implements BackupOperations {
   BackupFailure? saveFailure;
   Completer<BackupCreation>? gate;
   int creates = 0, saves = 0, discards = 0;
+  @override
+  bool historyWriteFailed = false;
 
   @override
   bool get destinationSupported => supported;
@@ -121,6 +123,7 @@ void main() {
   Widget app(BackupOperations operations) => ProviderScope(
     overrides: [
       backupOperationsProvider.overrideWithValue(operations),
+      backupHistoryProvider.overrideWith((ref) => Stream.value(const [])),
       appLockProvider.overrideWith(_Unlocked.new),
     ],
     child: ShadcnApp(
@@ -151,6 +154,34 @@ void main() {
     );
     expect(find.byKey(const ValueKey('backup-create')), findsNothing);
   });
+
+  testWidgets(
+    'receipt failure does not hide a ready archive or saved outcome',
+    (tester) async {
+      final operations = _FakeOperations(creation: creation)
+        ..historyWriteFailed = true;
+      await tester.pumpWidget(app(operations));
+      await tester.pumpAndSettle();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(BackupPage)),
+      );
+      await container
+          .read(backupProvider.notifier)
+          .create(
+            password: 'a long enough password',
+            confirmation: 'a long enough password',
+          );
+      await tester.pumpAndSettle();
+      expect(find.text('Backup ready'), findsOneWidget);
+      expect(find.textContaining('A receipt may be missing.'), findsOneWidget);
+      await container.read(backupProvider.notifier).save();
+      await tester.pumpAndSettle();
+      expect(find.text('Backup saved'), findsOneWidget);
+      expect(find.textContaining('A receipt may be missing.'), findsOneWidget);
+      expect(find.byKey(const ValueKey('backup-save')), findsNothing);
+      expect(container.read(backupProvider).creation, isNull);
+    },
+  );
 
   testWidgets('password requirements are checked before any work', (
     tester,
@@ -236,6 +267,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         backupOperationsProvider.overrideWithValue(operations),
+        backupHistoryProvider.overrideWith((ref) => Stream.value(const [])),
         appLockProvider.overrideWith(_Unlocked.new),
       ],
     );

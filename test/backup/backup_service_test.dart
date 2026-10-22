@@ -9,15 +9,21 @@ import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/domain/backup/backup.dart';
 
 final class _CopyDestination implements BackupDestinationGateway {
-  _CopyDestination(this.target, {this.status = BackupSaveStatus.saved});
+  _CopyDestination(
+    this.target, {
+    this.status = BackupSaveStatus.saved,
+    this.failure,
+  });
   final File target;
   final BackupSaveStatus status;
+  final BackupFailure? failure;
   int calls = 0;
   @override
   bool get supported => true;
   @override
   Future<BackupSaveStatus> save(BackupArtifact artifact) async {
     calls++;
+    if (failure != null) throw failure!;
     if (status == BackupSaveStatus.saved) {
       await artifact.file.copy(target.path);
     }
@@ -119,6 +125,13 @@ void main() {
     expect(creation.fileName, endsWith('.vitalbackup'));
     expect(creation.inventory.recordCount, 1);
     expect(creation.byteCount, greaterThan(512));
+    final checked = (await store.backupHistory()).single;
+    expect(checked.sha256, creation.sha256);
+    expect(checked.byteCount, creation.byteCount);
+    expect(checked.schemaVersion, currentRecordSchemaVersion);
+    expect(checked.recordCount, 1);
+    expect(checked.savedAt, isNull);
+    expect(service.historyWriteFailed, isFalse);
     expect(
       '${directory.path}/staging/snapshot-${creation.fileName}',
       isNot(equals(creation.archive.path)),
@@ -142,6 +155,9 @@ void main() {
 
     final status = await service.save(creation);
     expect(status, BackupSaveStatus.saved);
+    final saved = (await store.backupHistory()).single;
+    expect(saved.savedAt, DateTime.utc(2026, 10, 20, 12));
+    expect(saved.verifiedAt, creation.verifiedAt);
     expect(await File('${directory.path}/saved.vitalbackup').exists(), isTrue);
     expect(await creation.archive.exists(), isFalse);
   });
@@ -308,9 +324,52 @@ void main() {
       token: BackupCancellationToken(),
     );
     expect(await cancelled.save(creation), BackupSaveStatus.cancelled);
+    expect((await store.backupHistory()).single.savedAt, isNull);
     expect(await creation.archive.exists(), isTrue);
     await cancelled.discard(creation);
     expect(await creation.archive.exists(), isFalse);
+  });
+
+  test(
+    'successful save stays successful when receipt persistence is locked',
+    () async {
+      final creation = await service.createBackup(
+        password: password,
+        token: BackupCancellationToken(),
+      );
+      store.suspendWrites(true);
+      try {
+        expect(await service.save(creation), BackupSaveStatus.saved);
+        expect(service.historyWriteFailed, isTrue);
+        expect(
+          await File('${directory.path}/saved.vitalbackup').exists(),
+          isTrue,
+        );
+        expect(await creation.archive.exists(), isFalse);
+      } finally {
+        store.suspendWrites(false);
+      }
+      expect((await store.backupHistory()).single.savedAt, isNull);
+    },
+  );
+
+  test('failed save never records an external save acknowledgement', () async {
+    final creation = await service.createBackup(
+      password: password,
+      token: BackupCancellationToken(),
+    );
+    final failed = BackupService(
+      recordStore: store,
+      stagingDirectory: Directory('${directory.path}/staging'),
+      destination: _CopyDestination(
+        File('${directory.path}/not-saved'),
+        failure: const BackupFailure('backup_save_failed'),
+      ),
+    );
+    await expectLater(failed.save(creation), throwsA(isA<BackupFailure>()));
+    expect((await store.backupHistory()).single.savedAt, isNull);
+    expect(await creation.archive.exists(), isTrue);
+    await service.discard(creation);
   });
 
   test('a failed capture keeps live records usable', () async {

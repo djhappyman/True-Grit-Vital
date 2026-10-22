@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../backup/backup_service.dart';
+import '../data/record_store.dart';
 import '../domain/backup/backup.dart';
 import '../domain/artifact_transfer.dart';
 import 'artifact_transfer.dart';
@@ -67,6 +68,22 @@ final backupOperationsProvider = Provider<BackupOperations?>((ref) {
     destination: ref.watch(backupDestinationProvider),
   );
 });
+
+final backupHistoryProvider = StreamProvider<List<BackupReceipt>>(
+  retry: (_, _) => null,
+  (ref) async* {
+    if (ref.watch(appLockProvider).locked) {
+      yield const [];
+      return;
+    }
+    final store = await ref.watch(recordStoreProvider.future);
+    try {
+      yield* store.watchBackupHistory();
+    } on CommandConflict catch (failure) {
+      if (failure.code != 'app_locked') rethrow;
+    }
+  },
+);
 
 enum BackupPhase {
   idle,
@@ -435,7 +452,14 @@ class BackupController extends Notifier<BackupState> {
         completedBytes: creation.byteCount,
         totalBytes: creation.byteCount,
         creation: creation,
-        clearError: true,
+        clearError:
+            !(operations is BackupHistoryStatus &&
+                (operations as BackupHistoryStatus).historyWriteFailed),
+        errorCode:
+            operations is BackupHistoryStatus &&
+                (operations as BackupHistoryStatus).historyWriteFailed
+            ? 'backup_history_failed'
+            : null,
       );
       _heldCreation = creation;
       _creationOperations = operations;
@@ -498,7 +522,14 @@ class BackupController extends Notifier<BackupState> {
               phase: BackupPhase.saved,
               savedName: creation.fileName,
               clearCreation: true,
-              clearError: true,
+              clearError:
+                  !(operations is BackupHistoryStatus &&
+                      (operations as BackupHistoryStatus).historyWriteFailed),
+              errorCode:
+                  operations is BackupHistoryStatus &&
+                      (operations as BackupHistoryStatus).historyWriteFailed
+                  ? 'backup_history_failed'
+                  : null,
             )
           : state.copyWith(phase: BackupPhase.ready);
       if (result == BackupSaveStatus.saved) _clearCreation();

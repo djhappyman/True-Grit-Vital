@@ -58,6 +58,28 @@ These are recorded follow-up work, not completed features. Dependencies refer to
 | D23 | Remaining screen and light-theme parity | Review forms, labs, events, history and settings against references; establish white-canvas light layouts where no current light PNG exists. Keep full names, amounts and safe areas. | Integrated on host: all ten canonical screens, white light theme and shared framework; physical-device gates remain open |
 | D24 | Selected glass surfaces | Validate targeted chrome on representative hardware, preserve opaque/reduced-effects fallback. Current glass validation gate remains off until measured evidence permits it. | Device gate open |
 
+## Current five-task batch
+
+Owner authorised another five tasks on 22 October 2026. The free DeepSeek worker
+owns selected-week history summaries (D19a); three paid workers use OpenCode's
+direct DeepSeek API model, `deepseek/deepseek-flash` (DeepSeek V4.1 Flash 1017),
+for saved schedule instructions (D11a), reminder sound/vibration controls (D12a)
+and optional stock-source facts in reports (D13b). The lead owns protected-backup
+verification history (D21a) and takes over any rate-limited work. Three workers
+run alongside the lead; the fourth starts when a slot opens.
+
+These are implementation assignments, not acceptance. Timing-tolerance rules,
+automatic backups and physical-device delivery checks remain open. Each package
+requires focused functional checks, shared-component UI review and lead
+integration before its status changes. Task briefs and delegation identities
+are retained locally under `.scratch/vital-implementation/next-five-2026-10-22/`.
+
+D21a is implemented and host verified by the lead: bounded encrypted receipts,
+separate checked/saved facts, restored-generation fencing and failure-aware
+bookkeeping in the canonical Backup page. The [review](reviews/2026-10-22-next-five/backup-history/README.md)
+records focused checks and light/dark captures. Automatic backup lifecycle work
+remains open; the other four packages await lead review and integration.
+
 ## Claims requiring decisions
 
 - Clinical optimal/risk/target classifications and causal response claims are generated examples, not agreed clinical functionality. Show original lab source ranges/flags and factual comparisons; any additional interpretation needs an explicit product decision and evidence.
