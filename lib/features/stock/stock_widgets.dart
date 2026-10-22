@@ -264,8 +264,16 @@ class _StockForecastLineState extends ConsumerState<StockForecastLine> {
         .watch(stockForecastProvider(query))
         .when(
           loading: () => const SizedBox.shrink(),
-          error: (_, _) =>
+          error: (_, _) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(t.featureStockRunOutUnavailable, style: StitchType.caption),
+              VitalButton.secondary(
+                onPressed: () => ref.invalidate(stockForecastProvider(query)),
+                child: Text(t.retry),
+              ),
+            ],
+          ),
           data: (forecast) {
             if (forecast == null) return const SizedBox.shrink();
             final colors = StitchColors(context);

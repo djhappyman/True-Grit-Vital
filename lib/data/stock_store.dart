@@ -481,11 +481,13 @@ extension StockRecordStore on RecordStore {
     int limit = 20,
     int offset = 0,
   }) async {
+    _requireWritable();
     _pageBounds(limit, offset);
     final rows = await _rows(
       'SELECT m.* FROM stock_container_metadata m JOIN stock_container c ON c.id=m.container AND c.person=? WHERE m.container=? ORDER BY m.revision DESC LIMIT ? OFFSET ?',
       [personId, containerId, limit, offset],
     );
+    _requireWritable();
     return [
       for (final row in rows)
         StoredStockMetadataRevision(
@@ -510,11 +512,13 @@ extension StockRecordStore on RecordStore {
     required String personId,
     required String containerId,
     int limit = 20,
+    int offset = 0,
   }) => _watch(
     () => stockMetadataHistory(
       personId: personId,
       containerId: containerId,
       limit: limit,
+      offset: offset,
     ),
   );
 

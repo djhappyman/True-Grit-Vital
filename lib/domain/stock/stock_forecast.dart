@@ -124,6 +124,10 @@ StockRunOutForecast forecastStockRunOut({
     );
   }
 
+  if (anyAsNeeded) {
+    return const StockRunOutForecast.unavailable(StockForecastReason.asNeeded);
+  }
+
   final clock = IanaClock();
   String? zoneId;
   for (final plan in scheduled) {
@@ -163,9 +167,11 @@ StockRunOutForecast forecastStockRunOut({
 
   for (final plan in scheduled) {
     for (final phase in plan.phases) {
-      if (phase.pauses.any(
-        (pause) => pause.contains(now) && pause.resume == null,
-      )) {
+      if (phase.includes(today) &&
+          phase.includesInstant(now) &&
+          phase.pauses.any(
+            (pause) => pause.contains(now) && pause.resume == null,
+          )) {
         return const StockRunOutForecast.unavailable(
           StockForecastReason.paused,
         );

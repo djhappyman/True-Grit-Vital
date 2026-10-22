@@ -1600,7 +1600,12 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
       }
       try {
         if (capacity.text.trim().isNotEmpty) {
-          packCapacity = stockCapacityEntry(capacity.text);
+          final originalCapacity = container!.capacity;
+          packCapacity =
+              originalCapacity != null &&
+                  capacity.text == stockExactAmountEntry(originalCapacity)
+              ? originalCapacity
+              : stockCapacityEntry(capacity.text);
         }
       } catch (_) {
         setState(() => error = t.featureStockCapacityInvalid);
@@ -1796,6 +1801,7 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
           child: StockMetadataHistory(
             personId: widget.personId,
             containerId: widget.containerId,
+            unit: container!.unit,
           ),
         ),
       ],
@@ -1916,17 +1922,29 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
 
 /// Saved pack-detail revisions. Movement revisions do not create metadata
 /// rows, so the version numbers honestly identify metadata edits only.
-class StockMetadataHistory extends ConsumerWidget {
+class StockMetadataHistory extends ConsumerStatefulWidget {
   const StockMetadataHistory({
     super.key,
     required this.personId,
     required this.containerId,
+    required this.unit,
   });
-  final String personId, containerId;
+  final String personId, containerId, unit;
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StockMetadataHistory> createState() =>
+      _StockMetadataHistoryState();
+}
+
+class _StockMetadataHistoryState extends ConsumerState<StockMetadataHistory> {
+  int offset = 0;
+  @override
+  Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final query = (personId: personId, containerId: containerId);
+    final query = (
+      personId: widget.personId,
+      containerId: widget.containerId,
+      offset: offset,
+    );
     return ref
         .watch(stockMetadataHistoryProvider(query))
         .when(
@@ -1937,22 +1955,56 @@ class StockMetadataHistory extends ConsumerWidget {
           data: (rows) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (rows.isEmpty) Text(t.featureStockMetadataMigrated),
-              for (final row in rows)
+              if (rows.isEmpty) Text(t.featureStockMetadataEmpty),
+              for (final row in rows.take(20))
                 Padding(
                   padding: const EdgeInsets.only(bottom: 6),
-                  child: Text(
-                    t.featureStockMetadataEntry(
-                      switch (row.source) {
-                        'created' => t.featureStockMetadataCreated,
-                        'edited' => t.featureStockMetadataEdited,
-                        _ => t.featureStockMetadataMigrated,
-                      },
-                      row.revision,
-                      displayStamp(context, ref, row.recordedAt),
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        row.source == 'migrated'
+                            ? t.featureStockMetadataUndated(row.revision)
+                            : t.featureStockMetadataEntry(
+                                row.source == 'created'
+                                    ? t.featureStockMetadataCreated
+                                    : t.featureStockMetadataEdited,
+                                row.revision,
+                                displayStamp(context, ref, row.recordedAt),
+                              ),
+                      ),
+                      if (row.lot case final lot?)
+                        Text(t.featureStockLotValue(lot)),
+                      if (row.expiryDate case final expiry?)
+                        Text(t.featureStockExpiryValue(expiry.toString())),
+                      if (row.capacity case final capacity?)
+                        Text(
+                          t.featureStockCapacityValue(
+                            t.stockQuantity(
+                              stockExactAmountEntry(capacity),
+                              widget.unit,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (offset > 0)
+                    VitalButton.secondary(
+                      onPressed: () => setState(() => offset -= 20),
+                      child: Text(t.previous),
+                    ),
+                  if (rows.length > 20)
+                    VitalButton.secondary(
+                      onPressed: () => setState(() => offset += 20),
+                      child: Text(t.more),
+                    ),
+                ],
+              ),
             ],
           ),
         );

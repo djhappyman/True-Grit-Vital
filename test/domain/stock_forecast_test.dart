@@ -62,6 +62,44 @@ void main() {
     observedZone: zone,
   );
 
+  test('a separate as-needed plan cannot be ignored beside scheduled use', () {
+    expect(
+      forecast('10', [
+        plan(const AsNeeded()),
+        plan(DailyCount(1, planned('1', 'ml'))),
+      ]).reason,
+      StockForecastReason.asNeeded,
+    );
+  });
+
+  test('a superseded phase pause does not label the current phase paused', () {
+    final phased = PhasePlan(
+      phases: [
+        DailyPlanVersion(
+          personId: meId,
+          planId: 'plan',
+          itemId: 'item',
+          versionId: 'old',
+          start: CivilDate(2020, 1, 1),
+          endExclusive: CivilDate(2026, 10, 22),
+          timing: DailyCount(1, planned('1', 'ml')),
+          zoneBasis: FixedHome('UTC'),
+          pauses: [PlanPause(start: DateTime.utc(2026, 10, 1))],
+        ),
+        DailyPlanVersion(
+          personId: meId,
+          planId: 'plan',
+          itemId: 'item',
+          versionId: 'current',
+          start: CivilDate(2026, 10, 22),
+          timing: DailyCount(1, planned('1', 'ml')),
+          zoneBasis: FixedHome('UTC'),
+        ),
+      ],
+    );
+    expect(forecast('2', [phased]).date, CivilDate(2026, 10, 24));
+  });
+
   test('daily planned use exhausts the exact balance on a civil date', () {
     final result = forecast('10', [plan(DailyCount(1, planned('2', 'ml')))]);
     expect(result.isAvailable, true);

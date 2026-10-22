@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/storage.dart';
+import '../../app/app_lock.dart';
 import '../../data/record_store.dart';
 
 export '../../domain/stock/exact_amount.dart';
@@ -155,15 +156,23 @@ final stockInventoryProvider = StreamProvider.autoDispose
     .family<StockInventorySnapshot, StockInventoryQuery>(
       retry: (_, _) => null,
       (ref, q) async* {
-        yield* (await ref.watch(recordStoreProvider.future))
-            .watchStockInventory(
-              personId: q.personId,
-              itemId: q.itemId,
-              search: q.search,
-              filter: q.filter,
-              now: q.asOf,
-              observedZone: q.zone,
-            );
+        if (ref.watch(appLockProvider.select((state) => state.locked))) {
+          yield StockInventorySnapshot.empty();
+          return;
+        }
+        try {
+          yield* (await ref.watch(recordStoreProvider.future))
+              .watchStockInventory(
+                personId: q.personId,
+                itemId: q.itemId,
+                search: q.search,
+                filter: q.filter,
+                now: q.asOf,
+                observedZone: q.zone,
+              );
+        } on CommandConflict catch (error) {
+          if (error.code != 'app_locked') rethrow;
+        }
       },
     );
 
@@ -179,22 +188,40 @@ final stockForecastProvider = StreamProvider.autoDispose
       ref,
       q,
     ) async* {
-      yield* (await ref.watch(recordStoreProvider.future)).watchStockForecast(
-        personId: q.personId,
-        containerId: q.containerId,
-        now: q.asOf,
-        observedZone: q.zone,
-      );
+      if (ref.watch(appLockProvider.select((state) => state.locked))) {
+        yield null;
+        return;
+      }
+      try {
+        yield* (await ref.watch(recordStoreProvider.future)).watchStockForecast(
+          personId: q.personId,
+          containerId: q.containerId,
+          now: q.asOf,
+          observedZone: q.zone,
+        );
+      } on CommandConflict catch (error) {
+        if (error.code != 'app_locked') rethrow;
+      }
     });
 
 final stockMetadataHistoryProvider = StreamProvider.autoDispose
     .family<
       List<StoredStockMetadataRevision>,
-      ({String personId, String containerId})
+      ({String personId, String containerId, int offset})
     >(retry: (_, _) => null, (ref, q) async* {
-      yield* (await ref.watch(recordStoreProvider.future))
-          .watchStockMetadataHistory(
-            personId: q.personId,
-            containerId: q.containerId,
-          );
+      if (ref.watch(appLockProvider.select((state) => state.locked))) {
+        yield const <StoredStockMetadataRevision>[];
+        return;
+      }
+      try {
+        yield* (await ref.watch(recordStoreProvider.future))
+            .watchStockMetadataHistory(
+              personId: q.personId,
+              containerId: q.containerId,
+              offset: q.offset,
+              limit: 21,
+            );
+      } on CommandConflict catch (error) {
+        if (error.code != 'app_locked') rethrow;
+      }
     });

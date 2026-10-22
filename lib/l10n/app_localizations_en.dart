@@ -7742,9 +7742,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featureStockRunOutHorizon =>
-      'The balance covers more than a year of planned doses.';
+      'No run-out within the one-year calculation.';
 
   @override
   String get featureStockRunOutNoPlanned =>
       'No planned doses in the next year.';
+
+  @override
+  String featureStockExpiryValue(String date) {
+    return 'Expiry date: $date';
+  }
+
+  @override
+  String featureStockMetadataUndated(int revision) {
+    return 'Carried forward, version $revision. Time not recorded.';
+  }
+
+  @override
+  String get featureStockMetadataEmpty => 'No saved details versions.';
 }

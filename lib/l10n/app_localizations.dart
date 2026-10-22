@@ -12012,7 +12012,7 @@ abstract class AppLocalizations {
   /// Unavailable reason when the bounded forecast window is exceeded.
   ///
   /// In en, this message translates to:
-  /// **'The balance covers more than a year of planned doses.'**
+  /// **'No run-out within the one-year calculation.'**
   String get featureStockRunOutHorizon;
 
   /// Unavailable reason when the saved schedule has no planned doses in the bounded window.
@@ -12020,6 +12020,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No planned doses in the next year.'**
   String get featureStockRunOutNoPlanned;
+
+  /// Saved expiry date in a historical container details revision. No current expiry status is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry date: {date}'**
+  String featureStockExpiryValue(String date);
+
+  /// A metadata history row created from an older database, without a known original timestamp.
+  ///
+  /// In en, this message translates to:
+  /// **'Carried forward, version {revision}. Time not recorded.'**
+  String featureStockMetadataUndated(int revision);
+
+  /// Empty container details history. Does not claim a migration or invented timestamp.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved details versions.'**
+  String get featureStockMetadataEmpty;
 }
 
 class _AppLocalizationsDelegate

@@ -9125,12 +9125,34 @@
       }
     }
   },
-  "featureStockRunOutHorizon": "The balance covers more than a year of planned doses.",
+  "featureStockRunOutHorizon": "No run-out within the one-year calculation.",
   "@featureStockRunOutHorizon": {
     "description": "Unavailable reason when the bounded forecast window is exceeded."
   },
   "featureStockRunOutNoPlanned": "No planned doses in the next year.",
   "@featureStockRunOutNoPlanned": {
     "description": "Unavailable reason when the saved schedule has no planned doses in the bounded window."
+  },
+  "featureStockExpiryValue": "Expiry date: {date}",
+  "@featureStockExpiryValue": {
+    "description": "Saved expiry date in a historical container details revision. No current expiry status is inferred.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "featureStockMetadataUndated": "Carried forward, version {revision}. Time not recorded.",
+  "@featureStockMetadataUndated": {
+    "description": "A metadata history row created from an older database, without a known original timestamp.",
+    "placeholders": {
+      "revision": {
+        "type": "int"
+      }
+    }
+  },
+  "featureStockMetadataEmpty": "No saved details versions.",
+  "@featureStockMetadataEmpty": {
+    "description": "Empty container details history. Does not claim a migration or invented timestamp."
   }
 }

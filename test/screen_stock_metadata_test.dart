@@ -1,4 +1,16 @@
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:true_grit_vital/app/app_lock.dart';
+import 'package:true_grit_vital/features/stock/stock_pages.dart';
+import 'package:true_grit_vital/features/stock/stock_providers.dart';
+import 'package:true_grit_vital/app/display_preferences.dart';
+import 'package:true_grit_vital/app/device_zone.dart';
+import 'package:true_grit_vital/platform/device_zone.dart';
+import 'package:true_grit_vital/features/stock/stock_widgets.dart';
+
+import 'app_lock_controller_test.dart' show ControlledAuth;
+import 'design_system_test.dart' show host;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
@@ -105,10 +117,124 @@ void main() {
         .load();
   });
 
+  testWidgets(
+    'a failed forecast offers Retry and replaces its error after a successful read',
+    (tester) async {
+      var reads = 0;
+      final container = StoredStockContainer(
+        id: 'container',
+        personId: meId,
+        itemId: 'item',
+        label: 'Bottle',
+        unit: 'ml',
+        strength: LabelledStrength(ingredientId: 'item', label: '10 mg/ml'),
+        revision: 1,
+        sequence: 1,
+        balance: StockBalance(ExactAmount(BigInt.from(10))),
+        refillEnabled: false,
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            observedDeviceZoneProvider.overrideWith(
+              (ref) => const Stream<DeviceZoneObservation>.empty(),
+            ),
+            stockForecastProvider.overrideWith((ref, query) async* {
+              if (reads++ == 0) throw StateError('synthetic read failure');
+              yield StockRunOutForecast.available(
+                date: CivilDate(2026, 10, 25),
+                days: 3,
+                plannedThrough: CivilDate(2026, 10, 25),
+              );
+            }),
+          ],
+          child: host(
+            SizedBox(
+              width: 320,
+              child: StockForecastLine(container: container),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Run-out unavailable'), findsOneWidget);
+      await tester.tap(find.text('Retry'));
+      await tester.pumpAndSettle();
+      expect(find.text('Around 2026-10-25'), findsOneWidget);
+      expect(find.text('Run-out unavailable'), findsNothing);
+      expect(reads, 2);
+      await tester.pumpWidget(const SizedBox.shrink());
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'details history keeps exact facts, pages older versions and avoids invented migration time',
+    (tester) async {
+      final rows = [
+        for (var i = 22; i > 0; i--)
+          StoredStockMetadataRevision(
+            containerId: 'container',
+            revision: i,
+            recordedAt: i == 1
+                ? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)
+                : DateTime.utc(2026, 10, 22),
+            source: i == 1 ? 'migrated' : 'edited',
+            lot: 'LOT-$i',
+            expiryDate: CivilDate(2027, 1, 31),
+            capacity: ExactAmount(BigInt.one, BigInt.from(3)),
+          ),
+      ];
+      final offsets = <int>[];
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            displayZoneProvider.overrideWithValue('UTC'),
+            stockMetadataHistoryProvider.overrideWith((ref, q) async* {
+              offsets.add(q.offset);
+              yield rows.skip(q.offset).take(21).toList();
+            }),
+          ],
+          child: host(
+            const SizedBox(
+              width: 320,
+              child: SingleChildScrollView(
+                child: StockMetadataHistory(
+                  personId: meId,
+                  containerId: 'container',
+                  unit: 'ml',
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Capacity: 1/3 ml'), findsNWidgets(20));
+      expect(find.text('Expiry date: 2027-01-31'), findsNWidgets(20));
+      expect(find.text('Lot: LOT-1'), findsNothing);
+      await tester.ensureVisible(find.text('More'));
+      await tester.tap(find.text('More'));
+      await tester.pumpAndSettle();
+      expect(find.text('Lot: LOT-1'), findsOneWidget);
+      expect(
+        find.text('Carried forward, version 1. Time not recorded.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('1970'), findsNothing);
+      await tester.ensureVisible(find.text('Previous'));
+      await tester.tap(find.text('Previous'));
+      await tester.pumpAndSettle();
+      expect(find.text('Lot: LOT-22'), findsOneWidget);
+      expect(offsets, containsAllInOrder([0, 20]));
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   appTest('metadata details save through the guarded stock editor', (
     tester,
   ) async {
-    final f = await launch(tester);
+    final f = await launch(tester, auth: ControlledAuth());
     final item = (await runIo(tester, () => makeItem(f.store, 'Telmisartan')))!;
     final container = (await runIo(
       tester,
@@ -153,6 +279,14 @@ void main() {
       );
       expect(history.map((row) => row.lot), ['NEW-LOT', 'OLD-LOT']);
     });
+    await runIo(
+      tester,
+      () => f.container.read(appLockProvider.notifier).setEnabled(true),
+    );
+    f.container.read(appLockProvider.notifier).lock();
+    await settle(tester);
+    expect(find.text('Lot: NEW-LOT'), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   appTest('details editor guards unfinished changes and restores focus', (

@@ -103,6 +103,18 @@ void main() {
     expect(replay.alreadyCommitted, true);
   });
 
+  test('locked metadata history rejects a direct read', () async {
+    final container = await create(lot: 'LOCKED-LOT');
+    store.suspendWrites(true);
+    await expectLater(
+      store.stockMetadataHistory(personId: meId, containerId: container.id),
+      throwsA(
+        isA<CommandConflict>().having((e) => e.code, 'code', 'app_locked'),
+      ),
+    );
+    store.suspendWrites(false);
+  });
+
   test('older containers read empty pack facts and no capacity', () async {
     final container = await create();
     expect(container.lot, isNull);

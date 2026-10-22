@@ -43,7 +43,7 @@ those required documents were read there. No missing-file failure was hidden.
 ## Commits
 
 - `fcec27b` D13: stock lot, expiry, capacity and metadata history.
-- `5450338` D14: whole-collection filters, capacity display and bounded run-out.
+- `af48327` D14: whole-collection filters, capacity display and bounded run-out.
 
 ## Final verification
 
@@ -198,3 +198,5 @@ read directly. Best-effort coverage is not proof of completeness.
 - Physical-device and native gates remain root responsibilities.
 
 
+
+Lead integration added explicit stock stream lock cancellation and forecast Retry, corrected mixed separate PRN plans and superseded pause handling, and made details history factual and paged. Historical metadata displays exact saved facts and does not invent a timestamp for migrated rows. Final integrated evidence is in the parent review.
