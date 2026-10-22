@@ -1,5 +1,23 @@
 # Design implementation roadmap
 
+## Third five-task continuation, 22 October
+
+Owner authorised another five tasks under the same concurrent direct-DeepSeek
+conditions, based on `55f84cf`. These extend existing capabilities; unresolved
+timing, scanning, automatic-backup and release decisions remain open.
+
+| Slice | Outcome | Owner | State |
+| --- | --- | --- | --- |
+| D13g | Explicit Name/Expiry inventory sorting before paging | DeepSeek | Assigned |
+| D13h | Inspect the saved dose behind a stock movement | DeepSeek | Assigned |
+| D20b | Review a report scoped to one substance from its overview | DeepSeek | Assigned |
+| D16d | Open complete explicitly linked event History | DeepSeek | Assigned |
+| D21c | Inspect saved/check-only backup receipts with consistent latest-save facts | Lead | Assigned |
+
+Acceptance briefs and task identities are retained under
+`.scratch/vital-implementation/third-five-2026-10-22/`. Each slice needs lead
+review, focused verification and theme/layout evidence before integration.
+
 Owner direction, 21 October 2026: implement the audited design and feature gaps with GLM Flash agents, five at a time, beginning with Today, Substances and a unified substance overview. This roadmap supplements the original 28-ticket implementation plan; it does not declare its device/release gates complete.
 
 Baseline: `90581ec`. The audit examined all 13 current PNG/HTML pairs in [the saved reference archive](stitch/2026-10-20/README.md), the earlier substance-detail variant, current source and 66 synthetic light/dark captures. The 43 framework/design checks passed. Colours, white light canvas, fixed dock and safe-area framework exist; screen composition and capability parity remain incomplete.
