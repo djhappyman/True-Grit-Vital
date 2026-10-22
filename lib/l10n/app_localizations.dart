@@ -4362,6 +4362,18 @@ abstract class AppLocalizations {
   /// **'Event dates need review before preparing a report for this event.'**
   String get eventReportDatesReview;
 
+  /// Accessible name for the History command on an event. Preserve the full event name; the visible command stays one word.
+  ///
+  /// In en, this message translates to:
+  /// **'Open History for {name}'**
+  String eventHistoryFor(String name);
+
+  /// One-word visible command beside the History heading on an event. The heading and accessible name identify the destination.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get eventHistoryOpen;
+
   /// No description provided for @eventNotRecorded.
   ///
   /// In en, this message translates to:
@@ -10778,6 +10790,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Filtered'**
   String get calendarFiltered;
+
+  /// Accessible name for the compact History event chip. The visible chip shows the full event name without truncation.
+  ///
+  /// In en, this message translates to:
+  /// **'Filtered to {name}'**
+  String historyEventScope(String name);
+
+  /// Compact History filter chip when a selected event no longer resolves. It must not invent a name or widen the filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Event unavailable'**
+  String get historyEventUnavailable;
 
   /// Explains that Export opens the existing report-selection workflow for the displayed calendar month.
   ///

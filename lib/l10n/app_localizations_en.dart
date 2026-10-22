@@ -2650,6 +2650,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Event dates need review before preparing a report for this event.';
 
   @override
+  String eventHistoryFor(String name) {
+    return 'Open History for $name';
+  }
+
+  @override
+  String get eventHistoryOpen => 'Open';
+
+  @override
   String get eventNotRecorded => 'Not recorded';
 
   @override
@@ -6918,6 +6926,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calendarFiltered => 'Filtered';
+
+  @override
+  String historyEventScope(String name) {
+    return 'Filtered to $name';
+  }
+
+  @override
+  String get historyEventUnavailable => 'Event unavailable';
 
   @override
   String get calendarMonthlySummary => 'Monthly summary (PDF)';

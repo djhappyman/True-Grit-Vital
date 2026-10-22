@@ -20,6 +20,7 @@ import '../../app/vital_app.dart';
 import '../../l10n/app_localizations.dart';
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
+import '../events/event_pages.dart' show eventLookupProvider;
 import '../stock/stock_widgets.dart';
 import 'history_calendar.dart';
 import 'history_date_jump.dart';
@@ -30,6 +31,24 @@ final historyNowProvider = Provider<DateTime Function()>(
   (ref) =>
       () => DateTime.now().toUtc(),
 );
+
+/// An optional in-app return location from a History seed.
+///
+/// Direct URLs are user-editable, so only a local path is accepted. Network
+/// locations, schemes, authorities and History itself are rejected rather than
+/// becoming an open redirect or a loop.
+String? _historyReturnLocation(String? value) {
+  if (value == null) return null;
+  final uri = Uri.tryParse(value);
+  if (uri == null ||
+      uri.hasScheme ||
+      uri.hasAuthority ||
+      !uri.path.startsWith('/') ||
+      uri.path == '/history') {
+    return null;
+  }
+  return value;
+}
 
 class HistoryPage extends ConsumerStatefulWidget {
   const HistoryPage({super.key, this.location = '/history'});
@@ -65,12 +84,28 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     if (oldWidget.location == widget.location) return;
     types = {...?seed['type']?.split(',')};
     events = {...?seed['event']?.split(',')};
+    from.clear();
+    through.clear();
+    labels.clear();
+    filtersOpen = false;
     initialised = false;
     configuredIdentity = null;
     dateError = null;
     movedAt = null;
     movedTarget = null;
     _anchorPositioned = false;
+    final previous = Uri.parse(oldWidget.location).queryParameters;
+    if (seed['event'] != null &&
+        seed['return'] != null &&
+        seed['anchor'] == null &&
+        (previous['event'] != seed['event'] || previous['anchor'] != null)) {
+      // A retained root History page can accept a new event seed in place.
+      // Start that destination at its scope and first entries instead of
+      // leaving the reader at the previous browsing position.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && scroll.hasClients) scroll.jumpTo(0);
+      });
+    }
   }
 
   HistoryController get controller =>
@@ -138,6 +173,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         'anchorAt': entry.occurredAt.toIso8601String()
       else if (seed['anchorAt'] != null)
         'anchorAt': seed['anchorAt']!,
+      'return': ?seed['return'],
     },
   ).toString();
 
@@ -228,6 +264,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         preferences = ref.watch(displayPreferencesProvider),
         people = ref.watch(profilesProvider),
         state = ref.watch(historyControllerProvider(widget.location));
+    final returnLocation = _historyReturnLocation(seed['return']);
     if (!people.hasValue) {
       return PageContent(children: [Text(t.loadingRecords)]);
     }
@@ -353,6 +390,45 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         events.isNotEmpty ||
         appliedFrom != null ||
         appliedBefore != null;
+    final seededEventIds = (seed['event'] ?? '')
+        .split(',')
+        .where((id) => id.isNotEmpty)
+        .toList();
+    final seededEventId = seededEventIds.length == 1
+        ? seededEventIds.single
+        : null;
+    final eventScopeId =
+        seededEventId != null &&
+            events.length == 1 &&
+            events.first == seededEventId
+        ? seededEventId
+        : null;
+    final eventScope = eventScopeId == null
+        ? null
+        : ref.watch(eventLookupProvider(eventScopeId));
+    final eventName = eventScope?.value?.name;
+    final eventUnavailable =
+        eventScope != null && eventScope.hasValue && eventScope.value == null;
+    final extraFilters =
+        status != TimelineStatus.all ||
+        types.isNotEmpty ||
+        events.length != 1 ||
+        (selected == null && (appliedFrom != null || appliedBefore != null));
+    final showGenericFilter = eventScopeId != null
+        ? extraFilters
+        : activeFilters;
+    final eventScopeChip = eventName != null
+        ? Semantics(
+            label: t.historyEventScope(eventName),
+            child: VitalBadge(eventName, compact: true),
+          )
+        : eventUnavailable
+        ? VitalBadge(
+            t.historyEventUnavailable,
+            compact: true,
+            tone: VitalTone.warning,
+          )
+        : null;
     final calendarQuery = selected == null
         ? query
         : query.restart(
@@ -480,6 +556,28 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       ],
     );
     final page = <Widget>[
+      // A History seed can replace another canonical screen. Keep an explicit,
+      // keyboard-reachable return path; the retained root History destination
+      // without a seeded return has no Back command.
+      if (returnLocation != null || GoRouter.of(context).canPop()) ...[
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: StitchButton(
+            key: const ValueKey('history-back'),
+            outlined: true,
+            icon: LucideIcons.arrowLeft,
+            onPressed: () => returnLocation != null
+                ? context.go(returnLocation)
+                : context.pop(),
+            child: Text(t.back),
+          ),
+        ),
+        const SizedBox(height: 8),
+      ],
+      if (eventScopeChip != null) ...[
+        Align(alignment: AlignmentDirectional.centerEnd, child: eventScopeChip),
+        const SizedBox(height: 8),
+      ],
       if (calendar)
         HistoryCalendarSection(
           query: calendarQuery,
@@ -513,11 +611,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       if (calendar) const SizedBox(height: 16),
       if (!calendar)
         Align(alignment: AlignmentDirectional.centerEnd, child: filtersToggle),
-      if (!filtersOpen &&
-          (status != TimelineStatus.all ||
-              types.isNotEmpty ||
-              events.isNotEmpty ||
-              (selected == null && activeFilters))) ...[
+      if (!filtersOpen && showGenericFilter) ...[
         const SizedBox(height: 8),
         Align(
           alignment: AlignmentDirectional.centerEnd,
@@ -790,22 +884,30 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         ),
       ),
     ];
-    return ListView(
-      controller: scroll,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-      children: [
-        Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: VitalLayout.contentWidth,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: page,
+    return PopScope(
+      canPop: returnLocation == null,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        final target = returnLocation;
+        if (target != null) context.go(target);
+      },
+      child: ListView(
+        controller: scroll,
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        children: [
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: VitalLayout.contentWidth,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: page,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

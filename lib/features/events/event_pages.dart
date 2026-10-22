@@ -21,6 +21,7 @@ import '../../ui/stitch_ui.dart';
 import '../plans/today_hero.dart' show todayNowProvider;
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
+import 'event_history_location.dart';
 import 'event_report_location.dart';
 import 'event_summary_widgets.dart';
 
@@ -1035,6 +1036,64 @@ class _EventContextNotice extends StatelessWidget {
   }
 }
 
+/// Opens the canonical History destination with this event's exact filter.
+///
+/// The preview below stays the factual, limited event summary. This command
+/// only changes destination and never writes a record or derives a date range.
+class _EventHistoryEntry extends ConsumerWidget {
+  const _EventHistoryEntry({required this.event});
+  final EventRecord event;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
+    final heading = Semantics(
+      header: true,
+      child: Text(t.history, style: StitchType.heading),
+    );
+    final action = Semantics(
+      label: t.eventHistoryFor(event.name),
+      button: true,
+      child: StitchButton(
+        key: const ValueKey('event-history-open'),
+        icon: LucideIcons.history,
+        onPressed: () {
+          if (ref.read(appLockProvider).locked) return;
+          final returnLocation = '/event/${Uri.encodeComponent(event.id)}';
+          context.go(
+            eventHistoryLocation(
+              eventId: event.id,
+              returnLocation: returnLocation,
+            ),
+          );
+        },
+        child: Text(t.eventHistoryOpen),
+      ),
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 340 ||
+            MediaQuery.textScalerOf(context).scale(16) > 21) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              heading,
+              const SizedBox(height: 8),
+              Align(alignment: AlignmentDirectional.centerEnd, child: action),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: heading),
+            const SizedBox(width: 8),
+            action,
+          ],
+        );
+      },
+    );
+  }
+}
+
 class EventActualList extends ConsumerStatefulWidget {
   const EventActualList({super.key, required this.ids});
   final String ids;
@@ -1350,10 +1409,7 @@ class EventDetailPage extends ConsumerWidget {
             ),
           ),
         const SizedBox(height: 12),
-        Semantics(
-          header: true,
-          child: Text(t.history, style: StitchType.heading),
-        ),
+        _EventHistoryEntry(event: event),
         const SizedBox(height: 12),
         EventActualList(ids: event.id),
       ],
