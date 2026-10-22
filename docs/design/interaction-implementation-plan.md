@@ -147,3 +147,9 @@ D18b adds a contextual Open action to the earlier lab comparison, using the
 existing saved-panel detail and nested return context. The source is available
 only for a uniquely found earlier result. Current panel filters stay mounted
 through inspection. [Host evidence](reviews/2026-10-22-more-five/prior-source/README.md).
+
+D19c adds a compact Date command to the existing History calendar tools. Its
+shared dialog changes only the browsed day on explicit confirmation, preserves
+filters and shows the effective day-bound zone. Cancel/Escape/Back restore
+focus; lock or a changed zone prevents a pending date from applying.
+[Host evidence](reviews/2026-10-22-more-five/d19c/README.md).

@@ -3481,6 +3481,35 @@
   "historyTimeline": "Timeline",
   "historyCalendar": "Calendar",
   "historyFilters": "Filters",
+  "historyDateJump": "Go to date",
+  "@historyDateJump": {
+    "description": "Heading and accessible name for the compact History command that opens an exact date entry. It only changes the browsed calendar day."
+  },
+  "historyDateJumpCommand": "Date",
+  "@historyDateJumpCommand": {
+    "description": "Visible one-word calendar command beside Filters. It opens the Go to date dialog."
+  },
+  "historyDateJumpLabel": "Date",
+  "@historyDateJumpLabel": {
+    "description": "Persistent visible label for the exact date field in the History date jump dialog."
+  },
+  "historyDateJumpHelp": "Use YYYY-MM-DD. The day uses {zone}.",
+  "@historyDateJumpHelp": {
+    "description": "Helper for exact date entry. The entered civil day is interpreted with the shown time zone.",
+    "placeholders": {
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "historyDateJumpError": "Use YYYY-MM-DD, from 0001-01-01 to 9999-12-30.",
+  "@historyDateJumpError": {
+    "description": "Strict validation message for an empty, malformed, impossible or out-of-range History date."
+  },
+  "historyDateJumpAction": "Go",
+  "@historyDateJumpAction": {
+    "description": "One-word confirmation that shows the entered date in History."
+  },
   "filterType": "Type",
   "filterEvent": "Event",
   "filterStatus": "Status",

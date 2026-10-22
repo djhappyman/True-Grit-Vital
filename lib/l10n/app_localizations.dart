@@ -5111,6 +5111,42 @@ abstract class AppLocalizations {
   /// **'Filters'**
   String get historyFilters;
 
+  /// Heading and accessible name for the compact History command that opens an exact date entry. It only changes the browsed calendar day.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to date'**
+  String get historyDateJump;
+
+  /// Visible one-word calendar command beside Filters. It opens the Go to date dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get historyDateJumpCommand;
+
+  /// Persistent visible label for the exact date field in the History date jump dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get historyDateJumpLabel;
+
+  /// Helper for exact date entry. The entered civil day is interpreted with the shown time zone.
+  ///
+  /// In en, this message translates to:
+  /// **'Use YYYY-MM-DD. The day uses {zone}.'**
+  String historyDateJumpHelp(String zone);
+
+  /// Strict validation message for an empty, malformed, impossible or out-of-range History date.
+  ///
+  /// In en, this message translates to:
+  /// **'Use YYYY-MM-DD, from 0001-01-01 to 9999-12-30.'**
+  String get historyDateJumpError;
+
+  /// One-word confirmation that shows the entered date in History.
+  ///
+  /// In en, this message translates to:
+  /// **'Go'**
+  String get historyDateJumpAction;
+
   /// No description provided for @filterType.
   ///
   /// In en, this message translates to:

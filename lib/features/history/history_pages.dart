@@ -22,6 +22,7 @@ import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
 import '../stock/stock_widgets.dart';
 import 'history_calendar.dart';
+import 'history_date_jump.dart';
 import 'history_source.dart' show historySourceProvider;
 import 'routine_activity_summary.dart';
 
@@ -466,11 +467,23 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         ),
       ),
     );
+    final calendarTools = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HistoryDateJumpButton(
+          zone: zone,
+          selected: selected,
+          onSelected: selectCalendarDay,
+        ),
+        const SizedBox(width: 4),
+        filtersToggle,
+      ],
+    );
     final page = <Widget>[
       if (calendar)
         HistoryCalendarSection(
           query: calendarQuery,
-          tools: filtersToggle,
+          tools: calendarTools,
           month: month!,
           selected: selected,
           onMonth: (date) {

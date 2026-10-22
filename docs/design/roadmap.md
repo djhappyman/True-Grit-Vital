@@ -317,7 +317,7 @@ scanning, FHIR and physical-device gates remain open.
 | D13f | Filter stock by an explicit inclusive expiry cutoff | DeepSeek | In progress |
 | D18b | Open the original earlier lab record from a panel comparison | DeepSeek | Host verified |
 | D16c | Prepare an event-specific report in the existing report editor | DeepSeek | In progress |
-| D19c | Jump directly to an exact date in History | DeepSeek | In progress |
+| D19c | Jump directly to an exact date in History | DeepSeek | Host verified |
 | D14d | Inspect exact projected quantities and forecast assumptions | Lead | Host verified |
 
 Every slice retains the canonical screens, shared controls, copy and motion

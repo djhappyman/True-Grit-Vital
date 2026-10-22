@@ -3120,6 +3120,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyFilters => 'Filters';
 
   @override
+  String get historyDateJump => 'Go to date';
+
+  @override
+  String get historyDateJumpCommand => 'Date';
+
+  @override
+  String get historyDateJumpLabel => 'Date';
+
+  @override
+  String historyDateJumpHelp(String zone) {
+    return 'Use YYYY-MM-DD. The day uses $zone.';
+  }
+
+  @override
+  String get historyDateJumpError =>
+      'Use YYYY-MM-DD, from 0001-01-01 to 9999-12-30.';
+
+  @override
+  String get historyDateJumpAction => 'Go';
+
+  @override
   String get filterType => 'Type';
 
   @override
