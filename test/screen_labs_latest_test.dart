@@ -102,7 +102,8 @@ void main() {
 
     expect(latest.recordCount, 2);
     expect(latest.truncated, isFalse);
-    expect(latest.markersTruncated, isFalse);
+    expect(latest.markerCount, 2);
+    expect(latest.hasMoreMarkers, isFalse);
     expect(latest.values.map((value) => value.metricId), ['vitamin', 'crp']);
     expect(latest.values.first.result.value.originalText, '58.4');
     expect(latest.values.first.previousResult?.value.originalText, '32.0');
@@ -246,8 +247,31 @@ void main() {
     );
 
     expect(latest.values.map((value) => value.metricId), ['a', 'b']);
-    expect(latest.markersTruncated, isTrue);
+    expect(latest.markerCount, 3);
+    expect(latest.hasMoreMarkers, isTrue);
     expect(latest.truncated, isTrue);
+  });
+
+  test('markers are not capped when no display page is requested', () {
+    final latest = screenLabsProject([
+      revision(
+        'many',
+        19,
+        results: [
+          for (var index = 0; index < 65; index++)
+            result(
+              'marker-$index',
+              metric: 'metric-$index',
+              name: 'Marker $index',
+              value: '$index',
+            ),
+        ],
+      ),
+    ], truncated: false);
+
+    expect(latest.values, hasLength(65));
+    expect(latest.markerCount, 65);
+    expect(latest.hasMoreMarkers, isFalse);
   });
 
   test('change keeps exact short decimals and refuses repeating fractions', () {

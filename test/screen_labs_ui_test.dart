@@ -1,3 +1,8 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
+import 'package:true_grit_vital/app/appearance.dart';
 import 'package:true_grit_vital/ui/vital_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +15,8 @@ import 'package:true_grit_vital/features/supporting/screen_labs_collection.dart'
 import 'package:true_grit_vital/features/supporting/screen_labs_latest.dart';
 
 import 'design_system_test.dart' show host;
+
+import 'screen_settings_hub_test.dart' show loadFonts;
 
 import 'package:true_grit_vital/features/supporting/supporting_form.dart';
 import 'package:true_grit_vital/features/supporting/supporting_pages.dart';
@@ -203,6 +210,8 @@ _seed(WidgetTester tester) async {
 }
 
 void main() {
+  setUpAll(loadFonts);
+
   appTest('an empty list does not hide a failed latest-value read', (
     tester,
   ) async {
@@ -246,7 +255,13 @@ void main() {
     expect(find.text('Person: Me'), findsNothing);
     expect(find.text('2 markers'), findsOneWidget);
     expect(
-      find.text('From the 2 most recent dated records, newest first.'),
+      find.text('Latest values from 2 dated records in these filters.'),
+      findsOneWidget,
+    );
+    expect(
+      find.text(
+        'Trend lines use up to 24 recent dated results for each marker. Older results are not plotted.',
+      ),
       findsOneWidget,
     );
     expect(
@@ -437,6 +452,41 @@ void main() {
     expect(find.text('0.45'), findsNothing);
   });
 
+  appTest('labs collection loads every marker page without a marker cap', (
+    tester,
+  ) async {
+    final fixture = await launch(tester);
+    await _savePanel(
+      tester,
+      fixture.store,
+      id: 'many-markers',
+      title: 'Many marker panel',
+      collection: SupportingDate.day(CivilDate(2026, 10, 19)),
+      results: [
+        for (var index = 0; index < 30; index++)
+          _value(
+            'many-$index',
+            'many-$index',
+            'Marker ${index.toString().padLeft(2, '0')}',
+            '$index',
+            'mg/L',
+          ),
+      ],
+    );
+    fixture.container.read(routerProvider).go('/supporting');
+    await settle(tester);
+    await waitForText(tester, '24 of 30 markers');
+    expect(find.text('24 of 30 markers'), findsOneWidget);
+
+    final load = find.widgetWithText(StitchButton, 'Load');
+    await tester.ensureVisible(load);
+    await settle(tester);
+    await tap(tester, 'Load');
+    await waitForText(tester, '30 markers');
+    expect(find.text('30 markers'), findsOneWidget);
+    expect(find.text('24 of 30 markers'), findsNothing);
+  });
+
   appTest('labs collection preserves paging cursors', (tester) async {
     final fixture = await launch(tester);
     for (var index = 1; index <= 26; index++) {
@@ -550,5 +600,129 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(ScreenLabsLatestCard), findsOneWidget);
     expect(find.byType(ScreenLabsRecordCard), findsOneWidget);
+  });
+
+  const captures = String.fromEnvironment('VITAL_LABS_CAPTURES');
+  Future<void> capture(WidgetTester tester, GlobalKey key, String name) async {
+    if (captures.isEmpty) return;
+    await tester.runAsync(() async {
+      final boundary =
+          key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+      final image = await boundary.toImage();
+      try {
+        final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+        final file = File('$captures/$name.png');
+        await file.parent.create(recursive: true);
+        await file.writeAsBytes(bytes!.buffer.asUint8List());
+      } finally {
+        image.dispose();
+      }
+    });
+  }
+
+  Future<void> seedLatestPages(
+    WidgetTester tester,
+    ({
+      RecordStore store,
+      ProviderContainer container,
+      String path,
+      List<int> key,
+    })
+    fixture,
+  ) async {
+    final names = [
+      for (var index = 1; index <= 30; index++)
+        'Marker ${index.toString().padLeft(2, '0')}',
+    ];
+    await _savePanel(
+      tester,
+      fixture.store,
+      id: 'latest-prior',
+      title: 'Earlier panel',
+      collection: SupportingDate.day(CivilDate(2026, 10, 1)),
+      results: [
+        for (var index = 0; index < 4; index++)
+          _value(
+            'latest-prior-$index',
+            'latest-$index',
+            names[index],
+            '${10 + index}.0',
+            'mg/L',
+          ),
+      ],
+    );
+    await _savePanel(
+      tester,
+      fixture.store,
+      id: 'latest-current',
+      title: 'Current panel',
+      collection: SupportingDate.day(CivilDate(2026, 10, 19)),
+      results: [
+        for (var index = 0; index < 30; index++)
+          _value(
+            'latest-current-$index',
+            'latest-$index',
+            names[index],
+            '${20 + index}.0',
+            'mg/L',
+          ),
+      ],
+    );
+  }
+
+  for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+    appTest('labs latest cards render in ${mode.name}', (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.padding = const FakeViewPadding(top: 28, bottom: 24);
+      tester.view.viewPadding = const FakeViewPadding(top: 28, bottom: 24);
+      addTearDown(tester.view.reset);
+      final fixture = await launch(tester);
+      await seedLatestPages(tester, fixture);
+      final key = GlobalKey();
+      fixture.container.read(appearanceProvider.notifier).setMode(mode);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: fixture.container,
+          child: RepaintBoundary(key: key, child: const VitalApp()),
+        ),
+      );
+      fixture.container.read(routerProvider).go('/supporting');
+      await settle(tester);
+      await waitForText(tester, '24 of 30 markers');
+      await tester.ensureVisible(find.text('LATEST RESULTS'));
+      await settle(tester);
+      await capture(tester, key, '${mode.name}-labs-latest');
+    });
+  }
+
+  appTest('labs latest cards render at 320px and double text', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(320, 740);
+    tester.view.padding = const FakeViewPadding(top: 28, bottom: 24);
+    tester.view.viewPadding = const FakeViewPadding(top: 28, bottom: 24);
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    final fixture = await launch(tester);
+    await seedLatestPages(tester, fixture);
+    final key = GlobalKey();
+    fixture.container.read(appearanceProvider.notifier).setMode(ThemeMode.dark);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: fixture.container,
+        child: RepaintBoundary(key: key, child: const VitalApp()),
+      ),
+    );
+    fixture.container.read(routerProvider).go('/supporting');
+    await settle(tester);
+    await waitForText(tester, '24 of 30 markers');
+    await tester.ensureVisible(find.text('Marker 01').first);
+    await settle(tester);
+    expect(tester.takeException(), isNull);
+    await capture(tester, key, 'dark-labs-latest-narrow-double-text');
   });
 }

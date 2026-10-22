@@ -4,14 +4,16 @@ import '../../app/app_lock.dart';
 import '../../app/storage.dart';
 import '../../data/record_store.dart';
 
-/// The latest-value panel is a deliberately bounded projection. Three pages of
-/// 25 are enough to cover a normal lab history without reading the whole store;
-/// the section states exactly which window it used.
-const screenLabsProjectionPageSize = 25;
-const screenLabsProjectionPages = 3;
-const screenLabsProjectionRecordLimit =
-    screenLabsProjectionPageSize * screenLabsProjectionPages;
-const screenLabsProjectionMarkerLimit = 60;
+/// A marker page is a bounded read, but it is not a whole-collection cap. The
+/// collection exposes more markers on request while each request stays bounded.
+const screenLabsMarkerPageSize = 24;
+
+/// Sparklines keep a recent sample per marker. The section states this exact
+/// coverage so a short line is never presented as the full saved history.
+const screenLabsSparkSampleLimit = 24;
+
+/// Bounded saved-context name reads. A page with more distinct links keeps the
+/// resolved ones and discloses that some names are not shown.
 const screenLabsProjectionLinkLimit = 24;
 
 /// One resolved saved context link, opened by the existing item/event route.
@@ -80,7 +82,8 @@ final class ScreenLabsLatestValue {
   final SupportingRevision? previousRecord;
   final LabResultSnapshot? previousResult;
 
-  /// Exact numeric points from the same bounded window and comparison identity.
+  /// A bounded recent sample from the same filtered collection and comparison
+  /// identity. Its exact coverage is disclosed by the section.
   final ScreenLabsSparkSeries? sparkline;
 
   /// Saved links before names are resolved; the projection never invents one.
@@ -103,32 +106,50 @@ final class ScreenLabsLatest {
   const ScreenLabsLatest({
     required this.values,
     required this.recordCount,
-    required this.truncated,
-    required this.markersTruncated,
+    required this.markerCount,
+    required this.hasMoreMarkers,
+    this.truncated = false,
+    this.linksTruncated = false,
   });
   static const empty = ScreenLabsLatest(
     values: [],
     recordCount: 0,
-    truncated: false,
-    markersTruncated: false,
+    markerCount: 0,
+    hasMoreMarkers: false,
   );
   final List<ScreenLabsLatestValue> values;
 
-  /// How many dated records the projection actually examined.
+  /// All dated current records in the current filters, not only the marker page.
   final int recordCount;
 
-  /// Whether older dated records exist outside the bounded window.
+  /// All markers with a dated current result in the current filters.
+  final int markerCount;
+
+  /// Whether another marker page is available.
+  final bool hasMoreMarkers;
+
+  /// Only a direct projection of an explicitly bounded list uses this flag.
   final bool truncated;
 
-  /// Whether more measurable markers exist than the display window keeps.
-  final bool markersTruncated;
+  /// Whether the bounded saved-context read omitted names.
+  final bool linksTruncated;
   ScreenLabsLatest withValues(List<ScreenLabsLatestValue> values) =>
       ScreenLabsLatest(
         values: values,
         recordCount: recordCount,
+        markerCount: markerCount,
+        hasMoreMarkers: hasMoreMarkers,
         truncated: truncated,
-        markersTruncated: markersTruncated,
+        linksTruncated: linksTruncated,
       );
+  ScreenLabsLatest withLinksTruncated(bool value) => ScreenLabsLatest(
+    values: values,
+    recordCount: recordCount,
+    markerCount: markerCount,
+    hasMoreMarkers: hasMoreMarkers,
+    truncated: truncated,
+    linksTruncated: value,
+  );
 }
 
 typedef ScreenLabsLatestRequest = ({
@@ -137,15 +158,21 @@ typedef ScreenLabsLatestRequest = ({
   SupportingRecordKind? kind,
   String? itemId,
   String? eventId,
+  CivilDate? fromDate,
+  CivilDate? beforeDate,
+  int markerLimit,
 });
 
 /// Projects the latest value for each marker from records that are already in
 /// newest-first order. The first occurrence wins, so a marker with a newer
 /// missing result reports that missing state instead of an older value.
+///
+/// This pure projection is used by focused tests. The live section reads the
+/// complete filtered collection through [screenLabsProjectLatest].
 ScreenLabsLatest screenLabsProject(
   List<SupportingRevision> records, {
   required bool truncated,
-  int markerLimit = screenLabsProjectionMarkerLimit,
+  int? markerLimit,
   String displayZone = 'UTC',
 }) {
   final occurrences = <String, List<(SupportingRevision, LabResultSnapshot)>>{};
@@ -180,18 +207,69 @@ ScreenLabsLatest screenLabsProject(
       ),
     );
   }
-  final kept = values.take(markerLimit).toList(growable: false);
+  final kept = markerLimit == null
+      ? values
+      : values.take(markerLimit).toList(growable: false);
   return ScreenLabsLatest(
     values: kept,
     recordCount: records.length,
+    markerCount: values.length,
+    hasMoreMarkers: kept.length < values.length,
     truncated: truncated,
-    markersTruncated: values.length > kept.length,
   );
 }
 
-/// Exact numeric points from the same bounded window, oldest first. A value for
-/// the same identity that is censored, qualitative or missing breaks the line
-/// instead of becoming a zero or a joined point.
+/// Projects one bounded store page. Every marker's latest result comes from the
+/// complete filtered collection; only its comparison and sparkline sample are
+/// bounded and disclosed.
+ScreenLabsLatest screenLabsProjectLatest(
+  SupportingLatestPage page, {
+  required String displayZone,
+  int sampleLimit = screenLabsSparkSampleLimit,
+}) {
+  final values = <ScreenLabsLatestValue>[];
+  for (final marker in page.markers) {
+    final latest = marker.latest;
+    final latestKey = SupportingComparisonKey.forResult(
+      latest.record,
+      latest.result,
+    );
+    final earlier = supportingEarlierComparison(
+      viewed: latest.record,
+      result: latest.result,
+      candidates: [for (final candidate in marker.candidates) candidate.record],
+      displayZone: displayZone,
+      windowLimited: marker.candidatesLimited,
+    ).earlier;
+    values.add(
+      ScreenLabsLatestValue(
+        record: latest.record,
+        result: latest.result,
+        previousRecord: earlier?.record,
+        previousResult: earlier?.result,
+        sparkline: _sparkline(
+          [
+            for (final candidate in marker.candidates.take(sampleLimit))
+              (candidate.record, candidate.result),
+          ],
+          latestKey: latestKey,
+          displayZone: displayZone,
+        ),
+        rawLinks: latest.record.snapshot.contextLinks,
+      ),
+    );
+  }
+  return ScreenLabsLatest(
+    values: values,
+    recordCount: page.recordCount,
+    markerCount: page.markerCount,
+    hasMoreMarkers: values.length < page.markerCount,
+  );
+}
+
+/// Exact numeric points from the sample, oldest first. A value for the same
+/// identity that is censored, qualitative or missing breaks the line instead of
+/// becoming a zero or a joined point.
 ScreenLabsSparkSeries? _sparkline(
   List<(SupportingRevision, LabResultSnapshot)> occurrences, {
   required SupportingComparisonKey latestKey,
@@ -243,9 +321,10 @@ ScreenLabsSparkSeries? _sparkline(
 String? screenLabsChange(ExactAmount latest, ExactAmount previous) =>
     supportingExactChange(latest, previous);
 
-/// Reads the bounded latest window live. Unknown and voided records stay out of
-/// the projection: an undated record cannot be positioned as newest, and a
-/// voided record is not a current value. The list below still exposes both.
+/// Reads the complete filtered collection for latest values. Unknown and
+/// voided records stay out of the projection: an undated record cannot be
+/// positioned as newest, and a voided record is not a current value. The list
+/// below still exposes both.
 final screenLabsLatestProvider = StreamProvider.autoDispose
     .family<ScreenLabsLatest, ScreenLabsLatestRequest>((ref, request) async* {
       if (ref.watch(appLockProvider.select((s) => s.locked))) {
@@ -253,37 +332,23 @@ final screenLabsLatestProvider = StreamProvider.autoDispose
         return;
       }
       final store = await ref.watch(recordStoreProvider.future);
-      final query = SupportingQuery(
+      final query = SupportingLatestQuery(
         personId: request.personId,
         kind: request.kind,
-        dateBasis: SupportingDateBasis.collection,
-        includeUnknownDates: false,
-        includeVoided: false,
+        fromDate: request.fromDate,
+        beforeDate: request.beforeDate,
         itemId: request.itemId,
         eventId: request.eventId,
-        limit: screenLabsProjectionPageSize,
         displayZone: request.displayZone,
+        markerLimit: request.markerLimit,
       );
       // The watch keeps the summary current after a save, correction or void.
-      // Each emission re-reads the same bounded window from the first page.
+      // Each emission re-reads the same filtered collection from the store.
       try {
-        await for (final first in store.watchSupportingRecords(query)) {
-          final records = [...first.entries];
-          var next = first.next;
-          while (next != null &&
-              records.length < screenLabsProjectionRecordLimit) {
-            final more = await store.supportingRecords(query, cursor: next);
-            records.addAll(more.entries);
-            next = more.next;
-          }
-          final projected = screenLabsProject(
-            records,
-            truncated: next != null,
-            displayZone: request.displayZone,
-          );
+        await for (final page in store.watchSupportingLatest(query)) {
           yield await _withLinkNames(
             store,
-            projected,
+            screenLabsProjectLatest(page, displayZone: request.displayZone),
             personId: request.personId,
           );
         }
@@ -299,7 +364,7 @@ Future<ScreenLabsLatest> _withLinkNames(
 }) async {
   final cache = <String, ScreenLabsLink?>{};
   final shown = <String>{};
-  var reads = 0;
+  var reads = 0, linksTruncated = false;
   final values = <ScreenLabsLatestValue>[];
   for (final value in latest.values) {
     final links = <ScreenLabsLink>[];
@@ -311,6 +376,7 @@ Future<ScreenLabsLatest> _withLinkNames(
       if (!cache.containsKey(key)) {
         if (reads >= screenLabsProjectionLinkLimit) {
           cache[key] = null;
+          linksTruncated = true;
         } else {
           reads++;
           final name = link.kind == SupportingContextKind.item
@@ -326,5 +392,5 @@ Future<ScreenLabsLatest> _withLinkNames(
     }
     values.add(value.withLinks(links));
   }
-  return latest.withValues(values);
+  return latest.withValues(values).withLinksTruncated(linksTruncated);
 }

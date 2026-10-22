@@ -4589,15 +4589,32 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count most recent dated records',
-      one: 'most recent dated record',
+      other: '$count dated records',
+      one: '1 dated record',
     );
-    return 'From the $_temp0, newest first.';
+    return 'Latest values from $_temp0 in these filters.';
   }
 
   @override
   String get screenLabsLatestExcluded =>
       'Records without a complete date, and voided records, are not included.';
+
+  @override
+  String featureLabsCoverage(int count) {
+    return 'Trend lines use up to $count recent dated results for each marker. Older results are not plotted.';
+  }
+
+  @override
+  String featureLabsLoaded(int shown, int total) {
+    return '$shown of $total markers';
+  }
+
+  @override
+  String get featureLabsLoad => 'Load';
+
+  @override
+  String get featureLabsLinksPartial =>
+      'Some linked records are not named here.';
 
   @override
   String get screenLabsLatestOlder => 'Older dated records are not included.';
@@ -6732,7 +6749,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get screenLabsLatestDateScope =>
-      'Latest results use collection or measured dates across all dates. Date filters apply to the records below.';
+      'Latest values use collection or measured dates.';
 
   @override
   String get calendarFiltered => 'Filtered';

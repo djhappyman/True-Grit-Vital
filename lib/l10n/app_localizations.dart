@@ -7341,10 +7341,10 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 marker} other{{count} markers}}'**
   String screenLabsLatestCount(int count);
 
-  /// States the bounded window used for latest values.
+  /// States the complete dated record coverage used for latest values.
   ///
   /// In en, this message translates to:
-  /// **'From the {count, plural, =1{most recent dated record} other{{count} most recent dated records}}, newest first.'**
+  /// **'Latest values from {count, plural, =1{1 dated record} other{{count} dated records}} in these filters.'**
   String screenLabsLatestWindow(int count);
 
   /// Limits of the latest-value projection.
@@ -7352,6 +7352,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Records without a complete date, and voided records, are not included.'**
   String get screenLabsLatestExcluded;
+
+  /// Exact bounded coverage of the per-marker trend sample. It never claims full history.
+  ///
+  /// In en, this message translates to:
+  /// **'Trend lines use up to {count} recent dated results for each marker. Older results are not plotted.'**
+  String featureLabsCoverage(int count);
+
+  /// Shows how many of the matching markers are loaded in the latest-value page.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total} markers'**
+  String featureLabsLoaded(int shown, int total);
+
+  /// Loads the next bounded page of latest-value markers.
+  ///
+  /// In en, this message translates to:
+  /// **'Load'**
+  String get featureLabsLoad;
+
+  /// Discloses that the bounded saved-context name read omitted some links.
+  ///
+  /// In en, this message translates to:
+  /// **'Some linked records are not named here.'**
+  String get featureLabsLinksPartial;
 
   /// Shown when the bounded latest window does not reach the oldest record.
   ///
@@ -10455,10 +10479,10 @@ abstract class AppLocalizations {
   /// **'Open linked record {name}'**
   String screenLabsOpenLinked(String name);
 
-  /// Clarifies that date filters affect the paged records, while the bounded latest-value summary always uses collection or measured dates.
+  /// Clarifies that latest values are positioned by collection or measured dates even when another date basis filters the records below.
   ///
   /// In en, this message translates to:
-  /// **'Latest results use collection or measured dates across all dates. Date filters apply to the records below.'**
+  /// **'Latest values use collection or measured dates.'**
   String get screenLabsLatestDateScope;
 
   /// Compact indication that advanced History filters are active.

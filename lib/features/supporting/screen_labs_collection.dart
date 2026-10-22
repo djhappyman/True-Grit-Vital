@@ -33,6 +33,10 @@ class _ScreenLabsCollectionPageState
   late final seed = Uri.parse(widget.location).queryParameters;
   String get person => meId;
 
+  /// The latest section reads a bounded marker page. Loading another page
+  /// grows the requested page rather than hiding older markers behind a cap.
+  int latestMarkerLimit = screenLabsMarkerPageSize;
+
   /// Null means all saved records. The form route below follows the choice.
   late SupportingRecordKind? kind = switch (seed['kind']) {
     'observation' => SupportingRecordKind.observation,
@@ -84,9 +88,13 @@ class _ScreenLabsCollectionPageState
     super.dispose();
   }
 
-  void reset() => cursors
-    ..clear()
-    ..add(null);
+  void reset() {
+    cursors
+      ..clear()
+      ..add(null);
+    latestMarkerLimit = screenLabsMarkerPageSize;
+    latestExpanded = false;
+  }
 
   bool get _filtered =>
       kind != null ||
@@ -196,6 +204,9 @@ class _ScreenLabsCollectionPageState
       kind: kind,
       itemId: seed['item'],
       eventId: seed['event'],
+      fromDate: appliedFrom,
+      beforeDate: appliedBefore,
+      markerLimit: latestMarkerLimit,
     );
     final latest = ref.watch(screenLabsLatestProvider(latestRequest));
     final latestValue = latest.value;
@@ -529,7 +540,14 @@ class _ScreenLabsCollectionPageState
       title: t.screenLabsLatestEyebrow,
       trailing: latestValue == null
           ? null
-          : Text(t.screenLabsLatestCount(latestValue.values.length)),
+          : Text(
+              latestValue.hasMoreMarkers
+                  ? t.featureLabsLoaded(
+                      latestValue.values.length,
+                      latestValue.markerCount,
+                    )
+                  : t.screenLabsLatestCount(latestValue.values.length),
+            ),
     );
     if (latest.hasError) {
       return Column(
@@ -610,11 +628,18 @@ class _ScreenLabsCollectionPageState
             color: StitchColors(context).muted,
           ),
         ),
-        if (appliedFrom != null ||
-            appliedBefore != null ||
-            basis != SupportingDateBasis.collection)
+        if (basis != SupportingDateBasis.collection)
           Text(
             t.screenLabsLatestDateScope,
+            style: StitchType.caption.copyWith(
+              color: StitchColors(context).muted,
+            ),
+          ),
+        if (latestValue.values.any(
+          (value) => value.sparkline?.hasPoints ?? false,
+        ))
+          Text(
+            t.featureLabsCoverage(screenLabsSparkSampleLimit),
             style: StitchType.caption.copyWith(
               color: StitchColors(context).muted,
             ),
@@ -625,16 +650,9 @@ class _ScreenLabsCollectionPageState
             color: StitchColors(context).muted,
           ),
         ),
-        if (latestValue.truncated)
+        if (latestValue.linksTruncated)
           Text(
-            t.screenLabsLatestOlder,
-            style: StitchType.caption.copyWith(
-              color: StitchColors(context).muted,
-            ),
-          ),
-        if (latestValue.markersTruncated)
-          Text(
-            t.screenLabsLatestMarkerLimit(screenLabsProjectionMarkerLimit),
+            t.featureLabsLinksPartial,
             style: StitchType.caption.copyWith(
               color: StitchColors(context).muted,
             ),
@@ -654,15 +672,31 @@ class _ScreenLabsCollectionPageState
             const SizedBox(height: 12),
           ],
         ],
-        if (latestValue.values.length > _initialLatestCards)
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: StitchButton(
-              quiet: true,
-              compact: true,
-              onPressed: () => setState(() => latestExpanded = !latestExpanded),
-              child: Text(latestExpanded ? t.screenLabsLess : t.more),
-            ),
+        if (latestValue.values.length > _initialLatestCards ||
+            latestValue.hasMoreMarkers)
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (latestValue.values.length > _initialLatestCards)
+                StitchButton(
+                  quiet: true,
+                  compact: true,
+                  onPressed: () =>
+                      setState(() => latestExpanded = !latestExpanded),
+                  child: Text(latestExpanded ? t.screenLabsLess : t.more),
+                ),
+              if (latestValue.hasMoreMarkers)
+                StitchButton(
+                  quiet: true,
+                  compact: true,
+                  onPressed: () => setState(() {
+                    latestMarkerLimit += screenLabsMarkerPageSize;
+                    latestExpanded = true;
+                  }),
+                  child: Text(t.featureLabsLoad),
+                ),
+            ],
           ),
       ],
     );

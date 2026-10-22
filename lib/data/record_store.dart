@@ -84,6 +84,7 @@ part 'chart_store.dart';
 part 'export_store.dart';
 part 'supporting_store.dart';
 part 'supporting_comparison_store.dart';
+part 'supporting_latest_store.dart';
 part 'supporting_void_store.dart';
 part 'item_detail_store.dart';
 part 'report_store.dart';

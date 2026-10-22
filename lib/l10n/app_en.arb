@@ -5052,9 +5052,9 @@
       }
     }
   },
-  "screenLabsLatestWindow": "From the {count, plural, =1{most recent dated record} other{{count} most recent dated records}}, newest first.",
+  "screenLabsLatestWindow": "Latest values from {count, plural, =1{1 dated record} other{{count} dated records}} in these filters.",
   "@screenLabsLatestWindow": {
-    "description": "States the bounded window used for latest values.",
+    "description": "States the complete dated record coverage used for latest values.",
     "placeholders": {
       "count": {
         "type": "int"
@@ -5064,6 +5064,35 @@
   "screenLabsLatestExcluded": "Records without a complete date, and voided records, are not included.",
   "@screenLabsLatestExcluded": {
     "description": "Limits of the latest-value projection."
+  },
+  "featureLabsCoverage": "Trend lines use up to {count} recent dated results for each marker. Older results are not plotted.",
+  "@featureLabsCoverage": {
+    "description": "Exact bounded coverage of the per-marker trend sample. It never claims full history.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "featureLabsLoaded": "{shown} of {total} markers",
+  "@featureLabsLoaded": {
+    "description": "Shows how many of the matching markers are loaded in the latest-value page.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "featureLabsLoad": "Load",
+  "@featureLabsLoad": {
+    "description": "Loads the next bounded page of latest-value markers."
+  },
+  "featureLabsLinksPartial": "Some linked records are not named here.",
+  "@featureLabsLinksPartial": {
+    "description": "Discloses that the bounded saved-context name read omitted some links."
   },
   "screenLabsLatestOlder": "Older dated records are not included.",
   "@screenLabsLatestOlder": {
@@ -7820,9 +7849,9 @@
       }
     }
   },
-  "screenLabsLatestDateScope": "Latest results use collection or measured dates across all dates. Date filters apply to the records below.",
+  "screenLabsLatestDateScope": "Latest values use collection or measured dates.",
   "@screenLabsLatestDateScope": {
-    "description": "Clarifies that date filters affect the paged records, while the bounded latest-value summary always uses collection or measured dates."
+    "description": "Clarifies that latest values are positioned by collection or measured dates even when another date basis filters the records below."
   },
   "calendarFiltered": "Filtered",
   "@calendarFiltered": {
