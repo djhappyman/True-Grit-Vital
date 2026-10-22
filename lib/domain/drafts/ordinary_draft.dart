@@ -200,6 +200,7 @@ final class OrdinaryDraft {
         'count',
         'amount',
         'home',
+        'instructions',
         'slots',
         'calendarPattern',
         'calendarSelector',
@@ -254,6 +255,8 @@ final class OrdinaryDraft {
                   ? 2000000
                   : entry.key == 'productUse'
                   ? 70000
+                  : kind == DraftKind.dailyPlan && entry.key == 'instructions'
+                  ? 8000
                   : ((kind == DraftKind.dailyPlan && entry.key == 'slots' ||
                             kind == DraftKind.item &&
                                 entry.key == 'catalogue' ||

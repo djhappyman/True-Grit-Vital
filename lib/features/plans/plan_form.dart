@@ -72,7 +72,8 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       end = TextEditingController(),
       count = TextEditingController(),
       amount = TextEditingController(),
-      home = TextEditingController();
+      home = TextEditingController(),
+      instructions = TextEditingController();
   final slots = <PlanSlotEntry>[];
   late final CalendarFormFields calendar;
   late final IntervalFormFields interval;
@@ -102,6 +103,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     'count': count.text,
     'amount': amount.text,
     'home': home.text,
+    'instructions': instructions.text,
     'intervalClockSample': encodeIntervalClock(intervalClockSample),
     ...calendar.capture(),
     ...blocks.capture(),
@@ -129,6 +131,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     count.text = fields['count'] ?? '';
     amount.text = fields['amount'] ?? '';
     home.text = fields['home'] ?? '';
+    instructions.text = fields['instructions'] ?? '';
     calendar.restore(fields);
     blocks.restore(fields);
     interval.restore(fields);
@@ -166,7 +169,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       c.addListener(changed);
     }
     start.text = today.toString();
-    for (final c in [start, end, count, amount, home]) {
+    for (final c in [start, end, count, amount, home, instructions]) {
       c.addListener(changed);
     }
     addSlot();
@@ -207,7 +210,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     calendar.dispose();
     blocks.dispose();
     interval.dispose();
-    for (final c in [start, end, count, amount, home]) {
+    for (final c in [start, end, count, amount, home, instructions]) {
       c.dispose();
     }
     for (final s in slots) {
@@ -227,12 +230,15 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     unit: item!.unit,
     enteredText: value.trim(),
   );
+  bool get instructionsTooLong =>
+      instructions.text.length > DailyPlanVersion.maxInstructionsLength;
   DailyPlanVersion candidate() => DailyPlanVersion(
     personId: owner!.id,
     itemId: item!.id,
     planId: planId,
     versionId: versionId,
     pauses: original?.plan.pauses ?? const [],
+    instructions: instructions.text,
     effectiveFrom: original?.plan.effectiveFrom,
     effectiveUntil: original?.plan.effectiveUntil,
     onOff: mode == 'prn' ? null : blocks.candidate(),
@@ -291,6 +297,13 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
   );
   void makePreview() {
     final t = AppLocalizations.of(context);
+    if (instructionsTooLong) {
+      setState(() {
+        preview = null;
+        previewZone = null;
+      });
+      return;
+    }
     try {
       final plan = candidate();
       final zone = basis == 'home'
@@ -373,6 +386,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     home.text = p.zoneBasis is FixedHome
         ? (p.zoneBasis as FixedHome).zoneId
         : '';
+    instructions.text = p.instructions;
     switch (p.timing) {
       case ElapsedInterval():
         mode = 'interval';
@@ -848,6 +862,23 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
           ),
         ),
       const SizedBox(height: 20),
+      ScheduleSectionHeader(title: t.featurePlanInstructionsHeading),
+      StitchSurface(
+        radius: VitalLayout.sectionRadius,
+        child: LabelledInput(
+          label: t.featurePlanInstructionsLabel,
+          controller: instructions,
+          enabled: enabled,
+          maxLines: 5,
+          helper: t.featurePlanInstructionsHelp,
+          error: instructionsTooLong
+              ? t.featurePlanInstructionsTooLong(
+                  DailyPlanVersion.maxInstructionsLength,
+                )
+              : null,
+        ),
+      ),
+      const SizedBox(height: 20),
       ScheduleSectionHeader(
         title: t.screenScheduleRequirements,
         meta: t.preview,
@@ -1170,6 +1201,10 @@ class _PlanPreviewState extends ConsumerState<PlanPreview> {
         ],
         if (plan.endExclusive != null)
           Text(t.planEnds(plan.endExclusive!.addDays(-1).toString())),
+        if (plan.instructions.isNotEmpty) ...[
+          Heading(t.featurePlanInstructionsHeading),
+          Text(plan.instructions),
+        ],
       ],
     );
   }

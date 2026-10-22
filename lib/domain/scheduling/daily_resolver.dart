@@ -204,6 +204,7 @@ final class DailyResolver {
         calendar: plan.calendar,
         pauses: plan.pauses,
         onOff: plan.onOff,
+        instructions: plan.instructions,
         effectiveFrom: plan.effectiveFrom,
         effectiveUntil: plan.effectiveUntil,
       );

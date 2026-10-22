@@ -110,6 +110,7 @@ void main() {
             timing: _slots(),
             zoneBasis: const FollowingLocal(),
             calendar: const EveryDay(),
+            instructions: 'Take with food.\nAt bedtime.',
           ),
         ),
       ))!;

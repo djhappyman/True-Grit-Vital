@@ -505,6 +505,11 @@ class _PlanRows extends ConsumerWidget {
             children: facts,
           ),
         ),
+        if (plan.instructions.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(t.featurePlanInstructionsHeading, style: VitalType.label),
+          Text(plan.instructions, style: VitalType.body),
+        ],
         const SizedBox(height: 12),
         Align(
           alignment: AlignmentDirectional.centerStart,

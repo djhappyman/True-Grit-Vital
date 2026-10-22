@@ -9341,5 +9341,26 @@
   "featureReminderAlertsApplyFailed": "Alert options are saved. Android has not applied them yet.",
   "@featureReminderAlertsApplyFailed": {
     "description": "The preference is durable but the native channel adapter rejected or missed the update."
+  },
+  "featurePlanInstructionsHeading": "Plan instructions",
+  "@featurePlanInstructionsHeading": {
+    "description": "Heading for user-authored wording saved with one schedule version."
+  },
+  "featurePlanInstructionsLabel": "Instructions",
+  "@featurePlanInstructionsLabel": {
+    "description": "Field label for user-authored schedule instructions. Not generated advice."
+  },
+  "featurePlanInstructionsHelp": "Your own wording for this plan. It stays private.",
+  "@featurePlanInstructionsHelp": {
+    "description": "Explains that schedule instructions are authored text and remain private."
+  },
+  "featurePlanInstructionsTooLong": "Keep plan instructions within {max} characters.",
+  "@featurePlanInstructionsTooLong": {
+    "description": "Validation when authored schedule instructions exceed the stored bound.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
   }
 }

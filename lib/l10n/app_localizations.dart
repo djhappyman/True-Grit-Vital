@@ -12236,6 +12236,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Alert options are saved. Android has not applied them yet.'**
   String get featureReminderAlertsApplyFailed;
+
+  /// Heading for user-authored wording saved with one schedule version.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan instructions'**
+  String get featurePlanInstructionsHeading;
+
+  /// Field label for user-authored schedule instructions. Not generated advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructions'**
+  String get featurePlanInstructionsLabel;
+
+  /// Explains that schedule instructions are authored text and remain private.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own wording for this plan. It stays private.'**
+  String get featurePlanInstructionsHelp;
+
+  /// Validation when authored schedule instructions exceed the stored bound.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep plan instructions within {max} characters.'**
+  String featurePlanInstructionsTooLong(int max);
 }
 
 class _AppLocalizationsDelegate

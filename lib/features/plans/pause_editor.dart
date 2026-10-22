@@ -203,6 +203,7 @@ DailyPlanVersion pauseCandidate(
     zoneBasis: p.zoneBasis,
     calendar: calendar,
     onOff: block,
+    instructions: p.instructions,
     pauses: open == null
         ? [...p.pauses, PlanPause(start: instant)]
         : [

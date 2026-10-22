@@ -85,6 +85,11 @@ class _TodayPlanRow extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           PlanItemContext(plan: plan),
+          if (plan.instructions.isNotEmpty) ...[
+            const SizedBox(height: VitalLayout.gap),
+            Text(t.featurePlanInstructionsHeading, style: VitalType.label),
+            Text(plan.instructions),
+          ],
           if (paused) ...[
             const SizedBox(height: VitalLayout.gap),
             Text(t.pauseState),

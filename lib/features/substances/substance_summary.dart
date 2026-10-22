@@ -192,6 +192,8 @@ class _PlanLine extends ConsumerWidget {
       if (prn) VitalBadge(t.planAsNeeded, tone: VitalTone.warning),
       if (notStarted) VitalBadge(t.designSubstancesNotStarted),
       if (ended) VitalBadge(t.designSubstancesEnded),
+      if (plan.instructions.isNotEmpty && !detailed)
+        VitalBadge(t.featurePlanInstructionsHeading),
     ];
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -212,6 +214,10 @@ class _PlanLine extends ConsumerWidget {
           ),
           // As-needed guidance belongs to the plan; no invented run-out date.
           if (prn) Text(t.planPrnHelp, style: VitalType.metadata),
+          if (detailed && plan.instructions.isNotEmpty) ...[
+            Text(t.featurePlanInstructionsHeading, style: VitalType.label),
+            Text(plan.instructions, style: VitalType.body),
+          ],
           if (detailed) _detailLines(context, ref, t),
         ],
       ),

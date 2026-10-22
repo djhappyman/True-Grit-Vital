@@ -7900,4 +7900,19 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get featureReminderAlertsApplyFailed =>
       'Alert options are saved. Android has not applied them yet.';
+
+  @override
+  String get featurePlanInstructionsHeading => 'Plan instructions';
+
+  @override
+  String get featurePlanInstructionsLabel => 'Instructions';
+
+  @override
+  String get featurePlanInstructionsHelp =>
+      'Your own wording for this plan. It stays private.';
+
+  @override
+  String featurePlanInstructionsTooLong(int max) {
+    return 'Keep plan instructions within $max characters.';
+  }
 }

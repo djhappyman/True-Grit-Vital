@@ -19,6 +19,7 @@ openSchedule(
   DailyTiming timing = const AsNeeded(),
   bool saved = false,
   List<PlanPause> pauses = const [],
+  String instructions = '',
 }) async {
   final f = await launch(tester);
   final item = (await runIo(
@@ -50,6 +51,7 @@ openSchedule(
           zoneBasis: const FollowingLocal(),
           calendar: const EveryDay(),
           pauses: pauses,
+          instructions: instructions,
         ),
       ),
     ))!;

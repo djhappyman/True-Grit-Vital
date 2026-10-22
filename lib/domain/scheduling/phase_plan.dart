@@ -422,6 +422,7 @@ final class PhaseResolver {
     zoneBasis: phase.zoneBasis,
     calendar: phase.calendar,
     onOff: phase.onOff,
+    instructions: phase.instructions,
     effectiveFrom: phase.effectiveFrom,
     effectiveUntil: phase.effectiveUntil,
   );

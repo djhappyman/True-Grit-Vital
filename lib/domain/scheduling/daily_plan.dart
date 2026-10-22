@@ -308,6 +308,9 @@ final class FixedHome extends DailyZoneBasis {
 
 /// Effective dates are inclusive at start and exclusive at end, in plan days.
 final class DailyPlanVersion {
+  /// Authored per-schedule wording. It is never interpreted as advice.
+  static const maxInstructionsLength = 4000;
+
   DailyPlanVersion({
     required this.personId,
     required this.planId,
@@ -320,6 +323,7 @@ final class DailyPlanVersion {
     this.calendar = const EveryDay(),
     Iterable<PlanPause> pauses = const [],
     this.onOff,
+    this.instructions = '',
     this.effectiveFrom,
     this.effectiveUntil,
   }) : pauses = List.unmodifiable(pauses) {
@@ -342,6 +346,9 @@ final class DailyPlanVersion {
             !effectiveUntil!.isAfter(effectiveFrom!)) {
       throw ArgumentError('invalid_plan_instant_bounds');
     }
+    if (instructions.length > maxInstructionsLength) {
+      throw ArgumentError('plan_instructions_bound');
+    }
   }
   final String personId, planId, itemId, versionId;
   final CivilDate start;
@@ -351,6 +358,9 @@ final class DailyPlanVersion {
   final CalendarPattern calendar;
   final List<PlanPause> pauses;
   final OnOffPattern? onOff;
+
+  /// Exact authored text, including line breaks. Empty means no instructions.
+  final String instructions;
 
   /// Independent half-open UTC bounds for an immutable intraday version.
   final DateTime? effectiveFrom, effectiveUntil;

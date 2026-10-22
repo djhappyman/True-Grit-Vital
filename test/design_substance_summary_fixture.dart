@@ -170,6 +170,7 @@ class SummaryFixture {
     Iterable<PlanPause> pauses = const [],
     CalendarPattern calendar = const EveryDay(),
     int? expectedPlanRevision,
+    String instructions = '',
   }) async {
     final born = CivilDate.fromDateTime(
       DateTime.now().toUtc().subtract(const Duration(days: 7)),
@@ -189,6 +190,7 @@ class SummaryFixture {
           zoneBasis: const FollowingLocal(),
           calendar: calendar,
           pauses: pauses,
+          instructions: instructions,
         ),
         expectedPersonRevision: (await store.profileById(meId))!.revision,
         expectedPlanRevision: expectedPlanRevision,

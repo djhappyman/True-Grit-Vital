@@ -205,6 +205,7 @@ class PhaseEntry {
       zoneBasis: p.zoneBasis,
       pauses: p.pauses,
       onOff: mode == 'prn' ? null : blocks.candidate(),
+      instructions: p.instructions,
       calendar: mode == 'interval' || mode == 'prn'
           ? const EveryDay()
           : calendar.candidate(),

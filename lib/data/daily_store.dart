@@ -172,6 +172,7 @@ extension DailyRecordStore on RecordStore {
               calendar: v.calendar,
               pauses: v.pauses,
               onOff: v.onOff,
+              instructions: v.instructions,
               effectiveFrom: v.effectiveFrom,
               effectiveUntil: v.effectiveUntil,
               zoneBasis: v.zoneBasis,

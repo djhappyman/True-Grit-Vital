@@ -60,6 +60,9 @@ Map<String, Object?> encodeDailyPlan(DailyPlanVersion v) => {
   'version': v.versionId,
   'start': v.start.toString(),
   'end': v.endExclusive?.toString(),
+  // Additive and omitted for blank text so frozen legacy command shapes stay
+  // byte-compatible after an update.
+  if (v.instructions.isNotEmpty) 'instructions': v.instructions,
   if (v.effectiveFrom != null)
     'effectiveFrom': v.effectiveFrom!.microsecondsSinceEpoch,
   if (v.effectiveUntil != null)
@@ -156,6 +159,7 @@ DailyPlanVersion decodeDailyPlan(Map<String, dynamic> v) {
     versionId: v['version'] as String,
     start: CivilDate.parse(v['start'] as String),
     endExclusive: v['end'] == null ? null : CivilDate.parse(v['end'] as String),
+    instructions: v['instructions'] as String? ?? '',
     effectiveFrom: v['effectiveFrom'] == null
         ? null
         : DateTime.fromMicrosecondsSinceEpoch(
