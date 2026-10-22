@@ -1,3 +1,6 @@
+import '../products/product_widgets.dart' show productLabelProvider;
+import 'substance_profile_editor.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -29,6 +32,7 @@ class ItemDetailsForm extends ConsumerStatefulWidget {
 class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
   final instructions = TextEditingController();
   final notes = TextEditingController();
+  late final profileEditor = SubstanceProfileEditorData(entryChanged);
   AdultProfile? owner;
   int? detailRevision;
   bool initialised = false;
@@ -50,16 +54,19 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
   Map<String, String> captureEntry() => {
     'instructions': instructions.text,
     'notes': notes.text,
+    'profile': profileEditor.encode(),
   };
 
   @override
   void restoreEntry(Map<String, String> fields) {
     instructions.text = fields['instructions'] ?? '';
     notes.text = fields['notes'] ?? '';
+    if (fields['profile'] case final encoded?) profileEditor.restore(encoded);
   }
 
   @override
   void dispose() {
+    profileEditor.dispose();
     instructions.dispose();
     notes.dispose();
     super.dispose();
@@ -69,6 +76,21 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
     final t = AppLocalizations.of(context);
     if (instructions.text.length > 8000 || notes.text.length > 8000) {
       setState(() => error = t.featureSetupDetailsTooLong);
+      return;
+    }
+    SubstanceProfile? profile;
+    try {
+      profile = profileEditor.read(
+        blend:
+            ref
+                .read(
+                  productLabelProvider((personId: meId, itemId: widget.itemId)),
+                )
+                .value !=
+            null,
+      );
+    } catch (_) {
+      setState(() => error = t.substanceProfileInvalid);
       return;
     }
     await commit(
@@ -81,6 +103,7 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
           expectedPersonRevision: capturedPersonRevision,
           instructions: instructions.text,
           notes: notes.text,
+          profile: profile,
         );
       },
       successPath:
@@ -94,7 +117,13 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
     final people = ref.watch(profilesProvider);
     final current = ref.watch(itemLookupProvider(widget.itemId));
     final detail = ref.watch(itemDetailProvider(widget.itemId));
-    if (people.hasError || current.hasError || detail.hasError) {
+    final product = ref.watch(
+      productLabelProvider((personId: meId, itemId: widget.itemId)),
+    );
+    if (people.hasError ||
+        current.hasError ||
+        detail.hasError ||
+        product.hasError) {
       return EntryPage(
         children: [
           LoadFailure(
@@ -102,12 +131,18 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
               ref.invalidate(profilesProvider);
               ref.invalidate(itemLookupProvider(widget.itemId));
               ref.invalidate(itemDetailProvider(widget.itemId));
+              ref.invalidate(
+                productLabelProvider((personId: meId, itemId: widget.itemId)),
+              );
             },
           ),
         ],
       );
     }
-    if (!people.hasValue || !current.hasValue || !detail.hasValue) {
+    if (!people.hasValue ||
+        !current.hasValue ||
+        !detail.hasValue ||
+        !product.hasValue) {
       return EntryPage(children: [Text(t.loadingRecords)]);
     }
     final liveOwner = people.value!
@@ -123,6 +158,7 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
       detailRevision = detail.value?.revision;
       instructions.text = detail.value?.instructions ?? '';
       notes.text = detail.value?.notes ?? '';
+      profileEditor.initialise(detail.value?.profile);
       instructions.addListener(entryChanged);
       notes.addListener(entryChanged);
       initialised = true;
@@ -141,6 +177,13 @@ class _ItemDetailsFormState extends DurableFormState<ItemDetailsForm> {
         style: VitalType.metadata.copyWith(
           color: Theme.of(context).colorScheme.mutedForeground,
         ),
+      ),
+      const SizedBox(height: 16),
+      SubstanceProfileEditor(
+        data: profileEditor,
+        blend: product.value != null,
+        enabled: enabled,
+        onChanged: () => setState(() {}),
       ),
       const SizedBox(height: 16),
       LabelledInput(

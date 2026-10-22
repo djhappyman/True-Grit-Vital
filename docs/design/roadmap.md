@@ -204,3 +204,17 @@ Owner authorised five tasks using free DeepSeek, paid DeepSeek and the lead, wit
 D16, D17 and D18 are host verified in this batch. The free lab lane hit its rate limit; the lead recovered its unfinished source changes and completed both lab packages. Comparisons exclude future, same-day ambiguous, voided and incompatible results; graph lines break at unavailable or incompatible points. See the [five-feature review](reviews/2026-10-22-five-features/README.md). D13/D14 are also integrated and host verified after paid DeepSeek implementation and lead review.
 
 All five packages in the 22 October batch are integrated. Lead integration passed 119 focused checks, followed by 65 regression checks for final stock/data/export/draft changes and two explicit history/retry checks. Static analysis and a real Secret Service native Linux boot passed. The forecast starts tomorrow and excludes today’s remaining planned use; inventory counts disclose their 2,000-container bound. PDF stock provenance, native refill delivery/scanning, physical-device accessibility and measured performance remain outside this batch. The [review](reviews/2026-10-22-five-features/README.md) records these limits and the existing lab projection bounds.
+
+## Substance properties, 22 October
+
+The owner approved these capabilities before further feature expansion. They
+extend the existing Create, Details, Stock and Record screens, with no duplicate
+editors or clinical predictions. See [behaviour](substance-properties.md).
+
+| ID | Capability | Acceptance | State |
+| --- | --- | --- | --- |
+| D25 | Guided substance forms | Taken as separates Injectable, Oral and Other from category. Secondary choices include oil/water/powder to mix and tablet/capsule/liquid/powder. Optional labelled strength per ml or tablet/capsule uses explicit mg or micrograms. Original catalogue wording remains intact. | Implemented; host verified |
+| D26 | Individual mixed vials | Save original powder amount/unit and confirmed final volume, optional liquid/amount added/date, exact concentration, live dose equivalents and immutable per-dose/per-movement snapshots. Different vials may have different strengths. Preserve unknowns, legacy records, drafts and backup restoration. | Implemented; host verified |
+| D27 | Optional half-life | User-entered hours/days, formulation/route context and source. Blends keep separate ingredient values. Editable reference information without inferred defaults or estimated level charts. | Implemented; host verified |
+
+D25–D27 host evidence: [substance property review](reviews/2026-10-22-substance-properties/README.md). Physical-device gates remain open.

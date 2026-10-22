@@ -42,7 +42,7 @@ final class OrdinaryDraft {
   }) : fields = Map.unmodifiable(fields) {
     final allowed = switch (kind) {
       DraftKind.supportingVoid => {'isVoided'},
-      DraftKind.itemDetails => {'instructions', 'notes'},
+      DraftKind.itemDetails => {'instructions', 'notes', 'profile'},
       DraftKind.attachmentRename => {'name', 'frozen'},
       DraftKind.labPanel ||
       DraftKind.supportingObservation => {'payload', 'frozen'},
@@ -90,6 +90,7 @@ final class OrdinaryDraft {
       },
       DraftKind.siteEdit => {'site'},
       DraftKind.item => {
+        'profile',
         'name',
         'form',
         'unit',
@@ -104,6 +105,10 @@ final class OrdinaryDraft {
       DraftKind.itemType => {'name'},
       DraftKind.productLabel => {'productComponents', 'productRevision'},
       DraftKind.stockContainer => {
+        'mixed',
+        'preparation',
+        'strengthPerCount',
+        'strengthMassUnit',
         'label',
         'unit',
         'strength',
@@ -130,6 +135,7 @@ final class OrdinaryDraft {
         'capacity',
       },
       DraftKind.dose || DraftKind.correction => {
+        'profileStrength',
         'amount',
         'site',
         'siteOpen',
@@ -255,6 +261,8 @@ final class OrdinaryDraft {
                   ? 2000000
                   : entry.key == 'productUse'
                   ? 70000
+                  : entry.key == 'profile' || entry.key == 'profileStrength'
+                  ? 12000
                   : kind == DraftKind.dailyPlan && entry.key == 'instructions'
                   ? 8000
                   : ((kind == DraftKind.dailyPlan && entry.key == 'slots' ||

@@ -73,3 +73,12 @@ Use explicit evidence and commits for each completed step. Screens remain canoni
 ## Release evidence
 
 Final notes use a plain-English changelog and identify the exact commit, APK file, application/version metadata and SHA-256. Check for existing tags/releases before choosing the first tag. Publish the APK as an explicitly labelled development prerelease; production release signing remains separate. Verify the uploaded release assets after publication. Preserve the canonical blueprint and final captures in the repository; remove only known task-owned duplicate/intermediate renders after verification.
+
+## Substance property extension
+
+D25–D27 (22 October) extend the existing Create/Details/Container full editors
+and Record task sheet. Conditional route/form choices and optional half-life or
+mixing details reuse shared controls/disclosures. The live dose equivalent sits
+beside the amount; source selection and saved snapshot identity remain explicit.
+No new route or alternative mock editor is introduced. See
+[substance properties](substance-properties.md) for the field and history rules.

@@ -1,3 +1,5 @@
+import 'vial_preparation_editor.dart';
+import '../substances/substance_detail_providers.dart';
 import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 
@@ -997,6 +999,10 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
       capacity = TextEditingController();
   ProductLabelSnapshot? productLabel;
   late final productEditor = ProductEditorData(entryChanged);
+  late final preparationEditor = VialPreparationEditorData(entryChanged);
+  bool mixed = false;
+  bool strengthPerCount = false;
+  String strengthMassUnit = 'mg';
   String unit = 'ml';
   bool knownStrength = false,
       knownOpening = false,
@@ -1017,6 +1023,10 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
   int? get entryTargetRevision => item?.revision;
   @override
   Map<String, String> captureEntry() => {
+    'mixed': '$mixed',
+    'preparation': preparationEditor.encode(),
+    'strengthPerCount': '$strengthPerCount',
+    'strengthMassUnit': strengthMassUnit,
     'label': label.text,
     'unit': unit,
     'strength': strength.text,
@@ -1044,6 +1054,10 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
     if (f['productComponents'] case final encoded?) {
       productEditor.restore(encoded);
     }
+    mixed = f['mixed'] == 'true';
+    if (f['preparation'] case final v?) preparationEditor.restore(v);
+    strengthPerCount = f['strengthPerCount'] == 'true';
+    strengthMassUnit = f['strengthMassUnit'] ?? 'mg';
     label.text = f['label'] ?? '';
     strength.text = f['strength'] ?? '';
     concentration.text = f['concentration'] ?? '';
@@ -1077,6 +1091,7 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
 
   @override
   void dispose() {
+    preparationEditor.dispose();
     productEditor.dispose();
     for (final c in [
       label,
@@ -1096,19 +1111,30 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
   Future<void> save() async {
     final t = AppLocalizations.of(context);
     if (label.text.trim().isEmpty ||
-        (productLabel == null && strength.text.trim().isEmpty)) {
+        (productLabel == null && !mixed && strength.text.trim().isEmpty)) {
       setState(() {
         invalid = 'label';
         error = t.stockLabelRequired;
       });
       return;
     }
+    VialPreparation? preparation;
+    if (mixed && productLabel == null) {
+      try {
+        preparation = preparationEditor.read();
+      } catch (_) {
+        setState(() => error = t.vialInvalid);
+        return;
+      }
+    }
     ExactAmount? c, o, low, packCapacity;
     CivilDate? packExpiry;
     String? packLot;
     try {
-      if (productLabel == null && knownStrength) {
-        c = ExactAmount.parseEntry(stockDecimal(concentration.text));
+      if (productLabel == null && knownStrength && !mixed) {
+        c =
+            ExactAmount.parseEntry(stockDecimal(concentration.text)) /
+            ExactAmount(BigInt.from(strengthMassUnit == 'mcg' ? 1000 : 1));
       }
     } catch (_) {
       setState(() {
@@ -1195,8 +1221,14 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
           unit: unit,
           strength: LabelledStrength(
             ingredientId: widget.itemId,
-            label: productLabel == null ? strength.text.trim() : item!.name,
-            mgPerMl: c,
+            label: mixed
+                ? item!.name
+                : productLabel == null
+                ? strength.text.trim()
+                : item!.name,
+            mgPerMl: preparation?.mgPerMl ?? (strengthPerCount ? null : c),
+            mgPerCount: !mixed && strengthPerCount ? c : null,
+            preparation: preparation,
           ),
           opening: o,
           lowThreshold: low,
@@ -1262,10 +1294,30 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
       dirty = false;
       return EntryPage(children: [Text(t.draftUnavailable)]);
     }
+    final detail = ref.watch(itemDetailProvider(widget.itemId));
+    if (detail.hasError) {
+      return EntryPage(
+        children: [
+          LoadFailure(
+            onRetry: () => ref.invalidate(itemDetailProvider(widget.itemId)),
+          ),
+        ],
+      );
+    }
+    if (!detail.hasValue) return EntryPage(children: [Text(t.loadingRecords)]);
     if (!initialised) {
       owner = liveOwner;
       item = current.value;
       unit = item!.unit;
+      final profile = detail.value?.profile;
+      mixed = profile?.form == SubstanceForm.powderToMix;
+      strengthPerCount = profile?.isCount ?? item!.unit == 'count';
+      if (profile?.strengthText != null) {
+        strength.text = item!.name;
+        knownStrength = true;
+        concentration.text = profile!.strengthText!;
+        strengthMassUnit = profile.massUnit;
+      }
       productLabel = currentProduct.value;
       if (productLabel != null) {
         productEditor.initialise(productLabel!.components);
@@ -1299,12 +1351,31 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
         ),
       ],
       if (productLabel == null)
+        SettingsToggleRow(
+          label: t.vialMixed,
+          description: t.vialMixedHelp,
+          value: mixed,
+          enabled: enabled,
+          reduceMotion: MediaQuery.disableAnimationsOf(context),
+          onChanged: (v) => setState(() {
+            mixed = v;
+            if (v) unit = 'ml';
+            entryChanged();
+          }),
+        ),
+      if (productLabel == null && mixed)
+        VialPreparationEditor(
+          data: preparationEditor,
+          enabled: enabled,
+          onChanged: () => setState(() {}),
+        ),
+      if (productLabel == null && !mixed)
         LabelledInput(
           label: t.stockStrength,
           controller: strength,
           enabled: enabled,
         ),
-      if (productLabel == null)
+      if (productLabel == null && !mixed)
         SettingsToggleRow(
           label: t.stockKnownStrength,
           description: t.stockKnownStrengthHelp,
@@ -1316,15 +1387,60 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
             entryChanged();
           }),
         ),
-      if (productLabel == null && knownStrength)
+      if (productLabel == null && knownStrength && !mixed) ...[
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final each in [false, true])
+              Semantics(
+                selected: strengthPerCount == each,
+                inMutuallyExclusiveGroup: true,
+                child: VitalButton.secondary(
+                  onPressed: enabled
+                      ? () => setState(() {
+                          strengthPerCount = each;
+                          entryChanged();
+                        })
+                      : null,
+                  child: Text(
+                    each ? t.substanceStrengthEach : t.substanceStrengthMl,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final mass in ['mg', 'mcg'])
+              Semantics(
+                selected: strengthMassUnit == mass,
+                inMutuallyExclusiveGroup: true,
+                child: VitalButton.secondary(
+                  onPressed: enabled
+                      ? () => setState(() {
+                          strengthMassUnit = mass;
+                          entryChanged();
+                        })
+                      : null,
+                  child: Text(mass == 'mcg' ? t.substanceMicrograms : mass),
+                ),
+              ),
+          ],
+        ),
         LabelledInput(
-          label: t.stockConcentration,
+          label: strengthPerCount
+              ? t.substanceStrengthEach
+              : t.substanceStrengthMl,
           controller: concentration,
           helper: t.stockDecimalHelp,
           enabled: enabled,
           error: invalid == 'concentration' ? error : null,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
+      ],
       Text(t.unitLabel),
       Wrap(
         spacing: 12,
@@ -1335,7 +1451,7 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
               selected: unit == u,
               child: VitalButton.secondary(
                 multiline: true,
-                onPressed: enabled && productLabel == null
+                onPressed: enabled && productLabel == null && !mixed
                     ? () => setState(() {
                         unit = u;
                         entryChanged();

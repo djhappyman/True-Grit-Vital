@@ -211,6 +211,10 @@ final class ExportDoseRevision {
           : {
               'ingredientId': labelledStrength!.ingredientId,
               'label': labelledStrength!.label,
+              if (labelledStrength!.preparation != null)
+                'preparation': labelledStrength!.preparation!.toJson(),
+              if (labelledStrength!.mgPerCount != null)
+                'mgPerCountExact': labelledStrength!.mgPerCount!.toString(),
               'mgPerMlExact': labelledStrength!.mgPerMl?.toString(),
               'mgPerMlDecimal': labelledStrength!.mgPerMl == null
                   ? null

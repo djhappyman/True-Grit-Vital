@@ -1,3 +1,5 @@
+import 'vial_preparation_editor.dart';
+
 import 'dart:async';
 
 import '../../app/device_zone.dart';
@@ -94,6 +96,12 @@ class StockPackFacts extends StatelessWidget {
     final expiry = container.expiryDate;
     final expiryState = container.expiryState(today);
     final rows = <Widget>[
+      if (container.strength.preparation case final p?)
+        VialPreparationSummary(preparation: p),
+      if (container.strength.mgPerCount case final s?)
+        Text(
+          t.substanceStrengthSummary(s.compactDecimal(), 'mg', t.substanceEach),
+        ),
       if (container.lot case final lot?)
         Text(t.featureStockLotValue(lot), style: StitchType.caption),
       if (expiry != null)
@@ -671,6 +679,8 @@ class StockRecordEffect extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(t.stockStrengthValue(movement.strength.label)),
+                if (movement.strength.preparation case final p?)
+                  VialPreparationSummary(preparation: p),
                 if (movement.enteredText != null)
                   Text(
                     t.stockEntered(
@@ -721,6 +731,7 @@ class StockDosePreview extends StatelessWidget {
     required this.onKeep,
     required this.onActual,
     this.enabled = true,
+    this.showEquivalent = true,
   });
   final String enteredText, enteredUnit;
   final StoredStockContainer selected;
@@ -728,7 +739,7 @@ class StockDosePreview extends StatelessWidget {
   final FixedReplacementAmount? keep;
   final ValueChanged<FixedReplacementAmount> onKeep;
   final VoidCallback onActual;
-  final bool enabled;
+  final bool enabled, showEquivalent;
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
@@ -785,6 +796,8 @@ class StockDosePreview extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(t.stockStrengthValue(selected.strength.label)),
+        if (selected.strength.preparation case final p?)
+          VialPreparationSummary(preparation: p),
         if (changed) ...[
           Heading(t.stockReplacement),
           Text(t.stockReplacementFrom(base!.strength.label)),
@@ -836,12 +849,25 @@ class StockDosePreview extends StatelessWidget {
             ),
           ],
         ] else ...[
-          if (mg != null && enteredUnit != 'mg')
+          if (showEquivalent && mg != null && enteredUnit != 'mg')
             Text(t.stockNewEquivalent(stockAmountText(t, mg, 'mg'))),
-          if (ml != null && enteredUnit != 'ml')
+          if (showEquivalent && entered != null && enteredUnit != 'count')
+            if (selected.strength.equivalent(
+                  entered.value,
+                  from: enteredUnit,
+                  to: 'count',
+                )
+                case final count?)
+              Text(t.substanceCountEquivalent(count.compactDecimal())),
+          if (showEquivalent && ml != null && enteredUnit != 'ml')
             Text(t.stockNewEquivalent(stockAmountText(t, ml, 'ml'))),
-          if ((enteredUnit == 'mg' && ml == null) ||
-              (enteredUnit == 'ml' && mg == null))
+          if (entered != null &&
+              selected.strength.equivalent(
+                    entered.value,
+                    from: enteredUnit,
+                    to: selected.unit,
+                  ) ==
+                  null)
             Text(t.stockNoEquivalent),
         ],
         const SizedBox(height: 20),

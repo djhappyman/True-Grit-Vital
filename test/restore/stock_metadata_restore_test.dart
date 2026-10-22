@@ -49,6 +49,16 @@ void main() {
         commandId: 'item',
         expectedPersonRevision: 2,
         name: 'Synthetic protected vial',
+        profile: SubstanceProfile(
+          route: SubstanceRoute.injectable,
+          form: SubstanceForm.powderToMix,
+          halfLife: HalfLife(
+            value: '12',
+            unit: 'hours',
+            context: 'Specific ingredient and formulation',
+            source: 'Entered label',
+          ),
+        ),
         form: 'liquid',
         unit: 'ml',
         type: 'medicine',
@@ -65,6 +75,14 @@ void main() {
           ingredientId: item.id,
           label: '10 mg/ml',
           mgPerMl: ExactAmount(BigInt.from(10)),
+          preparation: VialPreparation(
+            powderAmount: '120',
+            massUnit: 'mg',
+            finalVolumeMl: '12',
+            liquid: 'Entered mixing liquid',
+            addedVolumeMl: '11.8',
+            preparedOn: '2026-10-22',
+          ),
         ),
         opening: ExactAmount(BigInt.from(6)),
         lot: 'LOT-RESTORE',
@@ -140,6 +158,11 @@ void main() {
         personId: meId,
         containerId: container.id,
       ))!;
+      expect(restored.strength.preparation!.addedVolumeMl, '11.8');
+      expect(
+        (await live.itemDetail(item.id))!.profile!.halfLife!.source,
+        'Entered label',
+      );
       expect(restored.lot, 'LOT-RESTORE-2');
       expect(restored.expiryDate, CivilDate(2027, 5, 7));
       expect(restored.capacity, ExactAmount(BigInt.from(12)));
@@ -154,6 +177,7 @@ void main() {
         recordId: recorded.id,
       );
       expect(movement!.strength.label, '10 mg/ml');
+      expect(movement.strength.preparation!.finalVolumeMl, '12');
 
       final selection = ExportSelection(
         personId: meId,
@@ -171,6 +195,8 @@ void main() {
       );
       final text = utf8.decode(ExportArtifact.build(document).bytes);
       expect(text, contains('LOT-RESTORE-2'));
+      expect(text, contains('finalVolumeMl'));
+      expect(text, contains('11.8'));
     },
   );
 }

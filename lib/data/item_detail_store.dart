@@ -1,5 +1,9 @@
 part of 'record_store.dart';
 
+const substanceProfileSchemaV25 = [
+  'ALTER TABLE item_detail ADD COLUMN profile TEXT CHECK(profile IS NULL OR length(profile)<=8000)',
+];
+
 /// Schema 22 adds user-authored substance details and the durable progress
 /// marker for the optional steps after identity creation. The draft table is
 /// rebuilt only to widen its closed kind CHECK for the details form.
@@ -61,6 +65,11 @@ SubstanceDetail _itemDetail(Map<String, Object?> row) => SubstanceDetail(
   personId: row['person'] as String,
   instructions: row['instructions'] as String,
   notes: row['notes'] as String,
+  profile: row['profile'] == null
+      ? null
+      : SubstanceProfile.fromJson(
+          jsonDecode(row['profile'] as String) as Map<String, dynamic>,
+        ),
   revision: row['revision'] as int,
   updatedAt: DateTime.fromMicrosecondsSinceEpoch(
     row['updated_at'] as int,
@@ -116,6 +125,7 @@ extension ItemDetailRecords on RecordStore {
     required String instructions,
     required String notes,
     required int? expectedRevision,
+    SubstanceProfile? profile,
     String personId = meId,
     int? expectedPersonRevision,
   }) async {
@@ -135,6 +145,7 @@ extension ItemDetailRecords on RecordStore {
         notes,
         ?expectedRevision,
         ?expectedPersonRevision,
+        if (profile != null) profile.toJson(),
       ],
       () async {
         await _activeOwner(personId, expectedPersonRevision ?? 1);
@@ -144,7 +155,7 @@ extension ItemDetailRecords on RecordStore {
         );
         if (item.isEmpty) throw const CommandConflict('item');
         final current = await _rows(
-          'SELECT revision FROM item_detail WHERE item=? AND person=?',
+          'SELECT revision,profile FROM item_detail WHERE item=? AND person=?',
           [itemId, personId],
         );
         final currentRevision = current.isEmpty
@@ -157,17 +168,36 @@ extension ItemDetailRecords on RecordStore {
         } else if (currentRevision != expectedRevision) {
           throw const CommandConflict('revision');
         }
+        final profileJson = profile == null
+            ? (current.isEmpty ? null : current.single['profile'] as String?)
+            : jsonEncode(profile.toJson());
         final revision = (currentRevision ?? 0) + 1;
         final updatedAt = DateTime.now().toUtc().microsecondsSinceEpoch;
         if (currentRevision == null) {
           await _db.customStatement(
-            'INSERT INTO item_detail(item,person,instructions,notes,revision,updated_at) VALUES (?,?,?,?,?,?)',
-            [itemId, personId, instructions, notes, revision, updatedAt],
+            'INSERT INTO item_detail(item,person,instructions,notes,revision,updated_at,profile) VALUES (?,?,?,?,?,?,?)',
+            [
+              itemId,
+              personId,
+              instructions,
+              notes,
+              revision,
+              updatedAt,
+              profileJson,
+            ],
           );
         } else {
           await _db.customStatement(
-            'UPDATE item_detail SET instructions=?,notes=?,revision=?,updated_at=? WHERE item=? AND person=?',
-            [instructions, notes, revision, updatedAt, itemId, personId],
+            'UPDATE item_detail SET instructions=?,notes=?,revision=?,updated_at=?,profile=? WHERE item=? AND person=?',
+            [
+              instructions,
+              notes,
+              revision,
+              updatedAt,
+              profileJson,
+              itemId,
+              personId,
+            ],
           );
         }
         return {
@@ -177,6 +207,7 @@ extension ItemDetailRecords on RecordStore {
           'notes': notes,
           'revision': revision,
           'updated_at': updatedAt,
+          'profile': profileJson,
         };
       },
     );

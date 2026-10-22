@@ -12314,6 +12314,276 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No markers on this page. Use Previous to browse earlier pages.'**
   String get featureLabsEmptyPage;
+
+  /// No description provided for @substanceTakenAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Taken as'**
+  String get substanceTakenAs;
+
+  /// No description provided for @substanceInjectable.
+  ///
+  /// In en, this message translates to:
+  /// **'Injectable'**
+  String get substanceInjectable;
+
+  /// No description provided for @substanceOral.
+  ///
+  /// In en, this message translates to:
+  /// **'Oral'**
+  String get substanceOral;
+
+  /// No description provided for @substanceOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get substanceOther;
+
+  /// No description provided for @substanceOil.
+  ///
+  /// In en, this message translates to:
+  /// **'Oil-based'**
+  String get substanceOil;
+
+  /// No description provided for @substanceWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Water-based'**
+  String get substanceWater;
+
+  /// No description provided for @substanceMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Powder to mix'**
+  String get substanceMix;
+
+  /// No description provided for @substanceOtherForm.
+  ///
+  /// In en, this message translates to:
+  /// **'Labelled form'**
+  String get substanceOtherForm;
+
+  /// No description provided for @substanceStrengthEach.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength per tablet/capsule'**
+  String get substanceStrengthEach;
+
+  /// No description provided for @substanceStrengthMl.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength per ml'**
+  String get substanceStrengthMl;
+
+  /// No description provided for @substanceStrengthHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Copy the amount from the label.'**
+  String get substanceStrengthHelp;
+
+  /// No description provided for @substanceMicrograms.
+  ///
+  /// In en, this message translates to:
+  /// **'micrograms'**
+  String get substanceMicrograms;
+
+  /// No description provided for @substanceEach.
+  ///
+  /// In en, this message translates to:
+  /// **'tablet/capsule'**
+  String get substanceEach;
+
+  /// No description provided for @substanceVialNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the substance, then enter the amount and final volume for each mixed vial in Stock.'**
+  String get substanceVialNext;
+
+  /// No description provided for @substanceHalfLife.
+  ///
+  /// In en, this message translates to:
+  /// **'Half-life'**
+  String get substanceHalfLife;
+
+  /// No description provided for @substanceHalfLifeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Half-life value'**
+  String get substanceHalfLifeValue;
+
+  /// No description provided for @substanceHalfLifeHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional reference only. Use the value for this ingredient, formulation and route.'**
+  String get substanceHalfLifeHelp;
+
+  /// No description provided for @substanceHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get substanceHours;
+
+  /// No description provided for @substanceDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get substanceDays;
+
+  /// No description provided for @substanceFormulation.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredient / formulation'**
+  String get substanceFormulation;
+
+  /// No description provided for @substanceFormulationHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Include the ingredient or ester and route the value applies to.'**
+  String get substanceFormulationHelp;
+
+  /// No description provided for @substanceSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source (optional)'**
+  String get substanceSource;
+
+  /// No description provided for @substanceProfileInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a form and check the strength or half-life. Use positive numbers.'**
+  String get substanceProfileInvalid;
+
+  /// No description provided for @substanceFormSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{route} · {form}'**
+  String substanceFormSummary(String route, String form);
+
+  /// No description provided for @substanceStrengthSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} {unit} per {basis}'**
+  String substanceStrengthSummary(String amount, String unit, String basis);
+
+  /// No description provided for @substanceHalfLifeSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Half-life: {value} {unit}'**
+  String substanceHalfLifeSummary(String value, String unit);
+
+  /// No description provided for @substanceSourceValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Source: {source}'**
+  String substanceSourceValue(String source);
+
+  /// No description provided for @vialMixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed vial'**
+  String get vialMixed;
+
+  /// No description provided for @vialMixedHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the amounts for this vial. A new vial can have a different strength.'**
+  String get vialMixedHelp;
+
+  /// No description provided for @vialAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Powder amount'**
+  String get vialAmount;
+
+  /// No description provided for @vialFinalVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Final volume (ml)'**
+  String get vialFinalVolume;
+
+  /// No description provided for @vialFinalHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the confirmed total volume after mixing. This may differ from the liquid added.'**
+  String get vialFinalHelp;
+
+  /// No description provided for @vialLiquid.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixing liquid (optional)'**
+  String get vialLiquid;
+
+  /// No description provided for @vialAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Liquid added (ml)'**
+  String get vialAdded;
+
+  /// No description provided for @vialDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepared on (optional)'**
+  String get vialDate;
+
+  /// No description provided for @vialDateHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'YYYY-MM-DD'**
+  String get vialDateHelp;
+
+  /// No description provided for @vialDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixing details'**
+  String get vialDetails;
+
+  /// No description provided for @vialInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the powder amount, final volume and any mixing details. Use positive numbers and a valid date.'**
+  String get vialInvalid;
+
+  /// No description provided for @vialEquivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'1 ml contains approximately {amount} mg.'**
+  String vialEquivalent(String amount);
+
+  /// No description provided for @vialFacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed vial: {amount} {unit} in {volume} ml final volume.'**
+  String vialFacts(String amount, String unit, String volume);
+
+  /// No description provided for @vialAddedValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Liquid added: {amount} ml'**
+  String vialAddedValue(String amount);
+
+  /// No description provided for @vialDateValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepared on: {date}'**
+  String vialDateValue(String date);
+
+  /// No description provided for @substanceSavedStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved strength'**
+  String get substanceSavedStrength;
+
+  /// No description provided for @substanceSavedStrengthHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'This dose will keep the strength shown here.'**
+  String get substanceSavedStrengthHelp;
+
+  /// No description provided for @substanceCountEquivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'Equivalent: approximately {amount} tablet/capsule.'**
+  String substanceCountEquivalent(String amount);
 }
 
 class _AppLocalizationsDelegate

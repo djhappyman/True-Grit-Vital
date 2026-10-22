@@ -71,6 +71,16 @@ final class ExactAmount implements Comparable<ExactAmount> {
   @override
   String toString() => '$numerator/$denominator';
 
+  /// Compact output only. Never parse the rounded display back into storage.
+  String compactDecimal({int places = 9}) {
+    final value = roundedDecimal(places: places);
+    return places == 0
+        ? value
+        : value
+              .replaceFirst(RegExp(r'0+$'), '')
+              .replaceFirst(RegExp(r'\.$'), '');
+  }
+
   /// Output only: round half away from zero. Never parse this back for storage.
   String roundedDecimal({int places = 6}) {
     if (places < 0 || places > 12) throw RangeError.range(places, 0, 12);
@@ -101,31 +111,130 @@ final class EnteredStockAmount {
   final ExactAmount value;
 }
 
-/// Known mg per ml for one exact ingredient identity; null means unknown.
+/// One prepared vial. Both original mass and confirmed final volume are kept.
+/// Added liquid is descriptive and never substitutes for final volume.
+final class VialPreparation {
+  VialPreparation({
+    required this.powderAmount,
+    required this.massUnit,
+    required this.finalVolumeMl,
+    this.liquid = '',
+    this.addedVolumeMl,
+    this.preparedOn,
+  }) {
+    ExactAmount.parseEntry(powderAmount);
+    ExactAmount.parseEntry(finalVolumeMl);
+    if (!const {'mg', 'mcg'}.contains(massUnit) || liquid.length > 500) {
+      throw const FormatException('preparation');
+    }
+    if (addedVolumeMl != null) ExactAmount.parseEntry(addedVolumeMl!);
+    if (preparedOn != null) {
+      final date = DateTime.tryParse(preparedOn!);
+      if (date == null ||
+          !RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(preparedOn!) ||
+          date.toIso8601String().substring(0, 10) != preparedOn) {
+        throw const FormatException('preparation_date');
+      }
+    }
+  }
+  final String powderAmount, massUnit, finalVolumeMl, liquid;
+  final String? addedVolumeMl, preparedOn;
+  ExactAmount get mgPerMl =>
+      ExactAmount.parseEntry(powderAmount) /
+      ExactAmount(BigInt.from(massUnit == 'mcg' ? 1000 : 1)) /
+      ExactAmount.parseEntry(finalVolumeMl);
+  Map<String, Object?> toJson() => {
+    'powderAmount': powderAmount,
+    'massUnit': massUnit,
+    'finalVolumeMl': finalVolumeMl,
+    'liquid': liquid,
+    'addedVolumeMl': addedVolumeMl,
+    'preparedOn': preparedOn,
+  };
+  factory VialPreparation.fromJson(Map<String, dynamic> m) => VialPreparation(
+    powderAmount: m['powderAmount'] as String,
+    massUnit: m['massUnit'] as String,
+    finalVolumeMl: m['finalVolumeMl'] as String,
+    liquid: m['liquid'] as String? ?? '',
+    addedVolumeMl: m['addedVolumeMl'] as String?,
+    preparedOn: m['preparedOn'] as String?,
+  );
+}
+
+/// Exact known strength for one ingredient. Null values remain unknown.
 final class LabelledStrength {
   LabelledStrength({
     required this.ingredientId,
     required this.label,
     this.mgPerMl,
+    this.mgPerCount,
+    this.preparation,
   }) {
     if (ingredientId.isEmpty ||
         label.isEmpty ||
-        (mgPerMl != null && mgPerMl! <= ExactAmount.zero)) {
+        (mgPerMl != null && mgPerMl! <= ExactAmount.zero) ||
+        (mgPerCount != null && mgPerCount! <= ExactAmount.zero) ||
+        (mgPerMl != null && mgPerCount != null) ||
+        (preparation != null && mgPerMl != preparation!.mgPerMl)) {
       throw ArgumentError('invalid_strength');
     }
   }
   final String ingredientId, label;
   final ExactAmount? mgPerMl;
+  final ExactAmount? mgPerCount;
+  final VialPreparation? preparation;
+  Map<String, Object?> toJson() => {
+    'ingredient': ingredientId,
+    'label': label,
+    'pair': mgPerMl == null
+        ? null
+        : [mgPerMl!.numerator.toString(), mgPerMl!.denominator.toString()],
+    if (mgPerCount != null)
+      'countPair': [
+        mgPerCount!.numerator.toString(),
+        mgPerCount!.denominator.toString(),
+      ],
+    if (preparation != null) 'preparation': preparation!.toJson(),
+  };
+  factory LabelledStrength.fromJson(Map<String, dynamic> m) {
+    ExactAmount? pair(String key) {
+      final p = m[key] as List?;
+      return p == null
+          ? null
+          : ExactAmount.fromStorage(p[0] as String, p[1] as String);
+    }
+
+    return LabelledStrength(
+      ingredientId: m['ingredient'] as String,
+      label: m['label'] as String,
+      mgPerMl: pair('pair'),
+      mgPerCount: pair('countPair'),
+      preparation: m['preparation'] == null
+          ? null
+          : VialPreparation.fromJson(
+              Map<String, dynamic>.from(m['preparation'] as Map),
+            ),
+    );
+  }
   ExactAmount? equivalent(
     ExactAmount amount, {
     required String from,
     required String to,
   }) {
     if (from == to && const {'mg', 'ml', 'count'}.contains(from)) return amount;
+    if (from == 'mg' && to == 'count' && mgPerCount != null) {
+      return amount / mgPerCount!;
+    }
+    if (from == 'count' && to == 'mg' && mgPerCount != null) {
+      return amount * mgPerCount!;
+    }
     final strength = mgPerMl;
-    if (strength == null) return null;
-    if (from == 'mg' && to == 'ml') return amount / strength;
-    if (from == 'ml' && to == 'mg') return amount * strength;
+    if (strength != null && from == 'mg' && to == 'ml') {
+      return amount / strength;
+    }
+    if (strength != null && from == 'ml' && to == 'mg') {
+      return amount * strength;
+    }
     return null;
   }
 }

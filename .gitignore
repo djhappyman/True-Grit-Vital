@@ -75,6 +75,7 @@ linux/flutter/ephemeral/
 !/docs/design/README.md
 !/docs/design/components.md
 !/docs/design/roadmap.md
+!/docs/design/substance-properties.md
 !/docs/design/implementation-contract.md
 !/docs/design/interaction-blueprint.md
 !/docs/design/interaction-implementation-plan.md

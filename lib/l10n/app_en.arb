@@ -9431,5 +9431,131 @@
   "featureLabsEmptyPage": "No markers on this page. Use Previous to browse earlier pages.",
   "@featureLabsEmptyPage": {
     "description": "Recovery when records change and the current marker page becomes empty."
+  },
+  "substanceTakenAs": "Taken as",
+  "substanceInjectable": "Injectable",
+  "substanceOral": "Oral",
+  "substanceOther": "Other",
+  "substanceOil": "Oil-based",
+  "substanceWater": "Water-based",
+  "substanceMix": "Powder to mix",
+  "substanceOtherForm": "Labelled form",
+  "substanceStrengthEach": "Strength per tablet/capsule",
+  "substanceStrengthMl": "Strength per ml",
+  "substanceStrengthHelp": "Optional. Copy the amount from the label.",
+  "substanceMicrograms": "micrograms",
+  "substanceEach": "tablet/capsule",
+  "substanceVialNext": "Save the substance, then enter the amount and final volume for each mixed vial in Stock.",
+  "substanceHalfLife": "Half-life",
+  "substanceHalfLifeValue": "Half-life value",
+  "substanceHalfLifeHelp": "Optional reference only. Use the value for this ingredient, formulation and route.",
+  "substanceHours": "Hours",
+  "substanceDays": "Days",
+  "substanceFormulation": "Ingredient / formulation",
+  "substanceFormulationHelp": "Include the ingredient or ester and route the value applies to.",
+  "substanceSource": "Source (optional)",
+  "substanceProfileInvalid": "Choose a form and check the strength or half-life. Use positive numbers.",
+  "substanceFormSummary": "{route} · {form}",
+  "substanceStrengthSummary": "{amount} {unit} per {basis}",
+  "substanceHalfLifeSummary": "Half-life: {value} {unit}",
+  "substanceSourceValue": "Source: {source}",
+  "vialMixed": "Mixed vial",
+  "vialMixedHelp": "Save the amounts for this vial. A new vial can have a different strength.",
+  "vialAmount": "Powder amount",
+  "vialFinalVolume": "Final volume (ml)",
+  "vialFinalHelp": "Enter the confirmed total volume after mixing. This may differ from the liquid added.",
+  "vialLiquid": "Mixing liquid (optional)",
+  "vialAdded": "Liquid added (ml)",
+  "vialDate": "Prepared on (optional)",
+  "vialDateHelp": "YYYY-MM-DD",
+  "vialDetails": "Mixing details",
+  "vialInvalid": "Check the powder amount, final volume and any mixing details. Use positive numbers and a valid date.",
+  "vialEquivalent": "1 ml contains approximately {amount} mg.",
+  "vialFacts": "Mixed vial: {amount} {unit} in {volume} ml final volume.",
+  "vialAddedValue": "Liquid added: {amount} ml",
+  "vialDateValue": "Prepared on: {date}",
+  "substanceSavedStrength": "Saved strength",
+  "substanceSavedStrengthHelp": "This dose will keep the strength shown here.",
+  "substanceCountEquivalent": "Equivalent: approximately {amount} tablet/capsule.",
+  "@substanceFormSummary": {
+    "placeholders": {
+      "route": {
+        "type": "String"
+      },
+      "form": {
+        "type": "String"
+      }
+    }
+  },
+  "@substanceStrengthSummary": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "basis": {
+        "type": "String"
+      }
+    }
+  },
+  "@substanceHalfLifeSummary": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "@substanceSourceValue": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "@vialEquivalent": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "@vialFacts": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "volume": {
+        "type": "String"
+      }
+    }
+  },
+  "@vialAddedValue": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "@vialDateValue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@substanceCountEquivalent": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   }
 }

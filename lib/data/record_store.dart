@@ -98,7 +98,7 @@ part 'backup_history_store.dart';
 part 'restore_store.dart';
 
 /// Current durable record schema, also used by backup and restore validation.
-const currentRecordSchemaVersion = 24;
+const currentRecordSchemaVersion = 25;
 
 // No generated table layer is needed for this bounded, explicitly versioned SQL schema.
 final class _Database extends drift.GeneratedDatabase {
@@ -167,9 +167,12 @@ final class _Database extends drift.GeneratedDatabase {
       for (final sql in stockMetadataSchemaV24) {
         await customStatement(sql);
       }
+      for (final sql in substanceProfileSchemaV25) {
+        await customStatement(sql);
+      }
     }),
     onUpgrade: (_, from, to) => transaction(() async {
-      if (from < 1 || from > 23 || to != 24) {
+      if (from < 1 || from > 24 || to != 25) {
         throw StateError('unsupported_schema');
       }
       if (from == 1) {
@@ -250,6 +253,11 @@ final class _Database extends drift.GeneratedDatabase {
       if (from < 23) await _migrateDoseContextV23(this);
       if (from < 24) {
         for (final sql in stockMetadataSchemaV24) {
+          await customStatement(sql);
+        }
+      }
+      if (from < 25) {
+        for (final sql in substanceProfileSchemaV25) {
           await customStatement(sql);
         }
       }
@@ -921,6 +929,7 @@ final class RecordStore {
     int? expectedTypeRevision,
     CatalogueSnapshot? catalogueSnapshot,
     List<ProductComponent>? productComponents,
+    SubstanceProfile? profile,
   }) async {
     if (productComponents != null) {
       if (unit != 'ml') throw const FormatException('product_volume_unit');
@@ -958,6 +967,7 @@ final class RecordStore {
           },
         if (productComponents != null)
           productComponents.map((c) => c.toJson()).toList(),
+        if (profile != null) {'profile': profile.toJson()},
       ],
       () async {
         await _activeOwner(personId, expectedPersonRevision ?? 1);
@@ -1003,6 +1013,12 @@ final class RecordStore {
           );
         }
         final now = DateTime.now().toUtc().microsecondsSinceEpoch;
+        if (profile != null) {
+          await _db.customStatement(
+            "INSERT INTO item_detail(item,person,instructions,notes,revision,updated_at,profile) VALUES (?,?,'','',1,?,?)",
+            [id, personId, now, jsonEncode(profile.toJson())],
+          );
+        }
         await _db.customStatement(
           'INSERT INTO item_setup(item,person,generation,created_at,updated_at) VALUES (?,?,?,?,?)',
           [id, personId, generation, now, now],

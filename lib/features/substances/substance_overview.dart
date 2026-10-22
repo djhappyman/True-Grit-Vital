@@ -1,3 +1,5 @@
+import 'substance_profile_editor.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -852,7 +854,11 @@ class _OverviewDetails extends ConsumerWidget {
               child: Text(t.edit),
             ),
       children: [
-        if (!hasInstructions && !hasNotes)
+        if (detail?.profile case final profile?) ...[
+          SubstanceProfileSummary(profile: profile),
+          const SizedBox(height: 12),
+        ],
+        if (!hasInstructions && !hasNotes && detail?.profile == null)
           _OverviewEmpty(
             icon: LucideIcons.notebookPen,
             title: t.featureSetupNoDetails,

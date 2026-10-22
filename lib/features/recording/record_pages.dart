@@ -1,3 +1,7 @@
+import '../stock/strength_equivalent.dart';
+import '../stock/vial_preparation_editor.dart';
+import '../substances/substance_profile_editor.dart';
+import '../substances/substance_detail_providers.dart';
 import '../supporting/supporting_pages.dart';
 import '../../app/display_preferences.dart';
 import '../../ui/vital_ui.dart';
@@ -657,6 +661,27 @@ class _RecordCardState extends ConsumerState<RecordCard> {
             ),
             if (r.labelledStrength != null) ...[
               Text(t.stockStrengthValue(r.labelledStrength!.label)),
+              if (r.labelledStrength!.preparation case final preparation?)
+                VialPreparationSummary(preparation: preparation),
+              if (r.actualUnit == 'count' &&
+                  r.labelledStrength!.mgPerCount != null)
+                Text(
+                  t.stockNewEquivalent(
+                    stockAmountText(
+                      t,
+                      r.actualAmount * r.labelledStrength!.mgPerCount!,
+                      'mg',
+                    ),
+                  ),
+                ),
+              if (r.actualUnit == 'mg' &&
+                  r.labelledStrength!.mgPerCount != null)
+                Text(
+                  t.substanceCountEquivalent(
+                    (r.actualAmount / r.labelledStrength!.mgPerCount!)
+                        .compactDecimal(),
+                  ),
+                ),
               if (r.actualUnit == 'mg' &&
                   r.labelledStrength!.equivalent(
                         r.actualAmount,
@@ -1353,11 +1378,13 @@ class _ItemFormState extends DurableFormState<ItemForm> {
     'typeId': selectedTypeId ?? '',
     'typeRevision': selectedTypeRevision?.toString() ?? '',
     'catalogue': selection == null ? '' : jsonEncode(selection!.toJson()),
+    'profile': profileEditor.encode(),
     'productEnabled': '$productEnabled',
     'productComponents': productEditor.encode(),
   };
   @override
   void restoreEntry(Map<String, String> fields) {
+    if (fields['profile'] case final encoded?) profileEditor.restore(encoded);
     productEnabled = fields['productEnabled'] == 'true';
     if (fields['productComponents'] case final encoded?) {
       productEditor.restore(encoded);
@@ -1378,6 +1405,7 @@ class _ItemFormState extends DurableFormState<ItemForm> {
         : null;
   }
 
+  late final profileEditor = SubstanceProfileEditorData(entryChanged);
   bool productEnabled = false;
   late final productEditor = ProductEditorData(entryChanged);
   AdultProfile? owner;
@@ -1401,6 +1429,7 @@ class _ItemFormState extends DurableFormState<ItemForm> {
 
   @override
   void dispose() {
+    profileEditor.dispose();
     productEditor.dispose();
     for (final c in [name, form, unit, type, query]) {
       c.dispose();
@@ -1410,6 +1439,10 @@ class _ItemFormState extends DurableFormState<ItemForm> {
 
   Future<void> save() async {
     final t = AppLocalizations.of(context);
+    if (profileEditor.form == SubstanceForm.other &&
+        (selection == null || selection!.product.form.isEmpty)) {
+      form.text = profileEditor.other.text;
+    }
     if (name.text.trim().isEmpty) {
       setState(() => error = t.nameRequired);
       return;
@@ -1421,6 +1454,13 @@ class _ItemFormState extends DurableFormState<ItemForm> {
               ((selection != null && (c == name || c == form)) ? 2048 : 500),
     )) {
       setState(() => error = t.detailsRequired);
+      return;
+    }
+    SubstanceProfile? profile;
+    try {
+      profile = profileEditor.read(blend: productEnabled);
+    } catch (_) {
+      setState(() => error = t.substanceProfileInvalid);
       return;
     }
     List<ProductComponent>? components;
@@ -1449,6 +1489,7 @@ class _ItemFormState extends DurableFormState<ItemForm> {
               expectedTypeRevision: selectedTypeRevision,
               catalogueSnapshot: selection,
               productComponents: components,
+              profile: profile,
             );
         setupPath = '/substance/${created.id}/setup';
       },
@@ -1677,26 +1718,6 @@ class _ItemFormState extends DurableFormState<ItemForm> {
     final enabled = _editable(ownerValid);
     final formEditable =
         enabled && (selection == null || selection!.product.form.isEmpty);
-    final formChoices = <({String label, String value, IconData icon})>[
-      (label: t.tablet, value: 'Tablet', icon: LucideIcons.tablets),
-      (
-        label: t.screenCreateFormCapsule,
-        value: 'Capsule',
-        icon: LucideIcons.pill,
-      ),
-      (
-        label: t.screenCreateFormSoftgel,
-        value: 'Softgel',
-        icon: LucideIcons.circleDot,
-      ),
-      (label: t.liquid, value: 'Liquid', icon: LucideIcons.droplets),
-      (
-        label: t.screenCreateFormPowder,
-        value: 'Powder',
-        icon: LucideIcons.sparkles,
-      ),
-      (label: t.injection, value: 'Injection', icon: LucideIcons.syringe),
-    ];
     final caption = StitchType.caption.copyWith(color: c.muted);
     return StitchSurface(
       radius: 16,
@@ -1768,32 +1789,40 @@ class _ItemFormState extends DurableFormState<ItemForm> {
               error: error == t.nameRequired ? error : null,
               enabled: enabled && selection == null,
             ),
-            LabelledInput(
-              label: t.formLabel,
-              controller: form,
-              enabled: formEditable,
-            ),
-            Text(t.screenCreateFormHelp, style: caption),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                for (final choice in formChoices)
-                  _chip(
-                    label: choice.label,
-                    icon: choice.icon,
-                    selected:
-                        form.text.trim().toLowerCase() ==
-                        choice.value.toLowerCase(),
-                    onPressed: formEditable
-                        ? () => setState(() {
-                            form.text = choice.value;
-                            entryChanged();
-                          })
-                        : null,
-                  ),
-              ],
+            if (selection != null || profileEditor.route == null)
+              LabelledInput(
+                label: t.formLabel,
+                controller: form,
+                enabled: formEditable,
+              ),
+            SubstanceProfileEditor(
+              data: profileEditor,
+              enabled: enabled,
+              blend: productEnabled,
+              onChanged: () => setState(() {
+                final f = profileEditor.form;
+                if (f != null) {
+                  if (formEditable) {
+                    form.text = f == SubstanceForm.other
+                        ? profileEditor.other.text
+                        : substanceFormLabel(t, f);
+                  }
+                  unit.text =
+                      const {
+                        SubstanceForm.tablet,
+                        SubstanceForm.capsule,
+                      }.contains(f)
+                      ? 'count'
+                      : const {
+                          SubstanceForm.oil,
+                          SubstanceForm.water,
+                          SubstanceForm.liquid,
+                          SubstanceForm.powderToMix,
+                        }.contains(f)
+                      ? 'ml'
+                      : 'mg';
+                }
+              }),
             ),
             const SizedBox(height: 20),
             Text(
@@ -1835,24 +1864,6 @@ class _ItemFormState extends DurableFormState<ItemForm> {
               ),
               const SizedBox(height: 12),
             ],
-            StitchSurface(
-              inset: true,
-              radius: 12,
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ExcludeSemantics(
-                    child: Icon(LucideIcons.scale, size: 18, color: c.accent),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(t.screenCreateStrengthLater, style: caption),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
             SettingsToggleRow(
               label: t.productToggle,
               description: t.productToggleHelp,
@@ -1997,6 +2008,7 @@ class DoseForm extends ConsumerStatefulWidget {
 }
 
 class _DoseFormState extends DurableFormState<DoseForm> {
+  LabelledStrength? profileStrength;
   @override
   bool get entryPanelled => false;
   @override
@@ -2012,6 +2024,9 @@ class _DoseFormState extends DurableFormState<DoseForm> {
   int? get entryTargetRevision => original?.revision ?? item?.revision;
   @override
   Map<String, String> captureEntry() => {
+    'profileStrength': profileStrength == null
+        ? ''
+        : jsonEncode(profileStrength!.toJson()),
     'site': site.text,
     'siteOpen': '$siteOpen',
     'amount': amount.text,
@@ -2048,6 +2063,11 @@ class _DoseFormState extends DurableFormState<DoseForm> {
   };
   @override
   void restoreEntry(Map<String, String> fields) {
+    profileStrength = fields['profileStrength']?.isNotEmpty == true
+        ? LabelledStrength.fromJson(
+            jsonDecode(fields['profileStrength']!) as Map<String, dynamic>,
+          )
+        : null;
     site.text = fields['site'] ?? '';
     siteOpen = fields['siteOpen'] == 'true';
     frozenProductUse = fields['productUse']?.isNotEmpty == true
@@ -2303,6 +2323,7 @@ class _DoseFormState extends DurableFormState<DoseForm> {
     try {
       final sourceEntry =
           selectedContainer != null ||
+          profileStrength != null ||
           labelOnly ||
           original?.labelledStrength != null ||
           productLabel != null ||
@@ -2350,22 +2371,23 @@ class _DoseFormState extends DurableFormState<DoseForm> {
             keep: keep!,
           );
         }
-        if (source != null || labelOnly) {
+        if (source != null || labelOnly || profileStrength != null) {
           stockUse = StockUseInput(
             expectedGeneration: capturedGeneration!,
             containerId: source?.id,
             expectedContainerRevision: source?.revision,
             entered: EnteredStockAmount(entered, enteredUnit ?? item!.unit),
             strength: source == null
-                ? LabelledStrength(
-                    ingredientId: item!.id,
-                    label: labelStrength.text.trim(),
-                    mgPerMl: labelConcentration.text.trim().isEmpty
-                        ? null
-                        : ExactAmount.parseEntry(
-                            stockDecimal(labelConcentration.text),
-                          ),
-                  )
+                ? profileStrength ??
+                      LabelledStrength(
+                        ingredientId: item!.id,
+                        label: labelStrength.text.trim(),
+                        mgPerMl: labelConcentration.text.trim().isEmpty
+                            ? null
+                            : ExactAmount.parseEntry(
+                                stockDecimal(labelConcentration.text),
+                              ),
+                      )
                 : null,
             replacement: replacement,
           );
@@ -2547,6 +2569,20 @@ class _DoseFormState extends DurableFormState<DoseForm> {
       dirty = false;
       return EntryPage(children: [Text(t.draftUnavailable)]);
     }
+    final profileDetail = lookupId == null
+        ? const AsyncValue<SubstanceDetail?>.data(null)
+        : ref.watch(itemDetailProvider(lookupId));
+    if (!initialised && (profileDetail.isLoading || profileDetail.hasError)) {
+      return EntryPage(
+        children: [
+          profileDetail.hasError
+              ? LoadFailure(
+                  onRetry: () => ref.invalidate(itemDetailProvider(lookupId!)),
+                )
+              : Text(t.loadingRecords),
+        ],
+      );
+    }
     if (!initialised) {
       original = records.value;
       item = lookup.value;
@@ -2563,6 +2599,12 @@ class _DoseFormState extends DurableFormState<DoseForm> {
       }
       owner = people.value?.where((p) => p.id == item?.personId).firstOrNull;
       enteredUnit = original?.actualUnit ?? item?.unit;
+      if (original == null && item != null && currentProduct.value == null) {
+        profileStrength = profileDetail.value?.profile?.labelledStrength(
+          item!.id,
+          item!.name,
+        );
+      }
       if (item == null ||
           owner == null ||
           widget.recordId != null && original == null) {
@@ -2632,6 +2674,14 @@ class _DoseFormState extends DurableFormState<DoseForm> {
     final r = original;
     final name = r?.name ?? item!.name,
         unit = r?.actualUnit ?? enteredUnit ?? item!.unit;
+    final replacementReview =
+        selectedContainer != null &&
+        baseContainer != null &&
+        selectedContainer!.id != baseContainer!.id &&
+        !sameStockStrength(
+          selectedContainer!.strength,
+          baseContainer!.strength,
+        );
     final stockEffect = selectedContainer == null
         ? null
         : doseStockConsequence(
@@ -2728,6 +2778,15 @@ class _DoseFormState extends DurableFormState<DoseForm> {
             enabled: !busy && !uncertain && ownerValid,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
+          if (r == null && productLabel == null && !replacementReview)
+            if ((selectedContainer?.strength ?? profileStrength)
+                case final strength?)
+              StrengthEquivalent(
+                strength: strength,
+                amount: amount.text,
+                unit: unit,
+                showPreparation: false,
+              ),
           if (r?.exactActualAmount != null)
             Text(
               t.stockNewEquivalent(
@@ -2742,10 +2801,16 @@ class _DoseFormState extends DurableFormState<DoseForm> {
               allowedUnits: {
                 item!.unit,
                 if (productLabel == null &&
-                    (selectedContainer != null || labelOnly) &&
-                    const {'mg', 'ml'}.contains(item!.unit)) ...[
+                    (selectedContainer != null ||
+                        labelOnly ||
+                        profileStrength != null)) ...[
                   'mg',
-                  'ml',
+                  if ((selectedContainer?.strength ?? profileStrength)
+                          ?.mgPerCount !=
+                      null)
+                    'count'
+                  else
+                    'ml',
                 ],
               },
               enabled: !busy && !uncertain && ownerValid,
@@ -2804,14 +2869,21 @@ class _DoseFormState extends DurableFormState<DoseForm> {
               }),
             ),
             if (productLabel == null &&
-                const {'mg', 'ml'}.contains(item!.unit) &&
-                (selectedContainer != null || labelOnly)) ...[
+                const {'mg', 'ml', 'count'}.contains(item!.unit) &&
+                (selectedContainer != null ||
+                    labelOnly ||
+                    profileStrength != null)) ...[
               Text(t.unitLabel),
               Wrap(
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  for (final u in ['mg', 'ml'])
+                  for (final u
+                      in ((selectedContainer?.strength ?? profileStrength)
+                                  ?.mgPerCount !=
+                              null
+                          ? ['count', 'mg']
+                          : ['mg', 'ml']))
                     Semantics(
                       selected: unit == u,
                       child: StitchButton(
@@ -2831,6 +2903,23 @@ class _DoseFormState extends DurableFormState<DoseForm> {
               const SizedBox(height: 16),
             ],
             if (productLabel == null &&
+                selectedContainer == null &&
+                profileStrength != null) ...[
+              Heading(t.substanceSavedStrength),
+              Text(t.substanceSavedStrengthHelp),
+              VitalButton.secondary(
+                onPressed: !busy && !uncertain && ownerValid
+                    ? () => setState(() {
+                        profileStrength = null;
+                        enteredUnit = item!.unit;
+                        entryChanged();
+                      })
+                    : null,
+                child: Text(t.clear),
+              ),
+            ],
+            if (productLabel == null &&
+                profileStrength == null &&
                 selectedContainer == null &&
                 (sourceId == null || sourceId!.isEmpty)) ...[
               SettingsToggleRow(
@@ -2871,6 +2960,7 @@ class _DoseFormState extends DurableFormState<DoseForm> {
                 enteredText: amount.text,
                 enteredUnit: unit,
                 selected: selectedContainer!,
+                showEquivalent: false,
                 base: baseContainer,
                 keep: keep,
                 enabled: !busy && !uncertain && ownerValid,

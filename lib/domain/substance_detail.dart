@@ -1,3 +1,6 @@
+import 'substance_profile.dart';
+export 'substance_profile.dart';
+
 /// User-authored substance detail. Instructions and private notes are stored
 /// exactly as entered; nothing here is generated, parsed or treated as advice.
 final class SubstanceDetail {
@@ -8,13 +11,15 @@ final class SubstanceDetail {
     required this.notes,
     required this.revision,
     required this.updatedAt,
+    this.profile,
   });
 
   final String itemId, personId, instructions, notes;
   final int revision;
   final DateTime updatedAt;
+  final SubstanceProfile? profile;
 
-  bool get isEmpty => instructions.isEmpty && notes.isEmpty;
+  bool get isEmpty => instructions.isEmpty && notes.isEmpty && profile == null;
 }
 
 /// Durable progress for the optional steps that follow identity creation.

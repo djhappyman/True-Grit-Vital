@@ -4,6 +4,7 @@ import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/recording/record_pages.dart';
 import 'package:true_grit_vital/ui/stitch_ui.dart';
+import 'package:true_grit_vital/ui/vital_ui.dart';
 
 import 'vital_app_test.dart'
     show appTest, launch, runIo, settle, tap, waitForText;
@@ -43,10 +44,11 @@ void main() {
       find.text(
         'Strength belongs to a stock container. Add it from the substance overview after you save.',
       ),
-      findsOneWidget,
+      findsNothing,
     );
 
     await enter(tester, 'Full name', 'Invented complete substance');
+    await tap(tester, 'Oral');
     await tap(tester, 'Tablet');
     await tap(tester, 'mg');
     await enter(tester, 'Type', 'Invented category');
@@ -67,14 +69,17 @@ void main() {
     );
     expect(await runIo(tester, f.store.dailyPlans), isEmpty);
     expect(
-      await runIo(tester, () => f.store.itemDetail(items.single.id)),
-      isNull,
+      (await runIo(
+        tester,
+        () => f.store.itemDetail(items.single.id),
+      ))!.profile!.form,
+      SubstanceForm.tablet,
     );
     final setup = await runIo(tester, () => f.store.itemSetup(items.single.id));
     expect(setup, isNotNull);
     expect(setup!.isComplete, isFalse);
     expect(await runIo(tester, f.store.drafts), isEmpty);
-    expect(find.text('Skip'), findsNWidgets(3));
+    expect(find.text('Skip'), findsNWidgets(2));
     expect(find.text('Finish'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -115,6 +120,7 @@ void main() {
     await settle(tester);
     await waitForText(tester, 'New substance');
     await enter(tester, 'Full name', 'Invented unfinished substance');
+    await tap(tester, 'Oral');
     await tap(tester, 'Capsule');
     await tap(tester, 'ml');
     await enter(tester, 'Type', 'Invented draft category');
@@ -136,7 +142,7 @@ void main() {
       tester.widget<TextField>(field('Full name')).controller!.text,
       'Invented unfinished substance',
     );
-    expect(tester.widget<TextField>(field('Form')).controller!.text, 'Capsule');
+    expect(find.text('Capsule'), findsOneWidget);
     expect(
       tester.widget<TextField>(field('Type')).controller!.text,
       'Invented draft category',
@@ -197,7 +203,8 @@ void main() {
     await settle(tester);
     await waitForText(tester, 'New substance');
 
-    final tablet = find.widgetWithText(StitchButton, 'Tablet');
+    await tap(tester, 'Oral');
+    final tablet = find.widgetWithText(VitalButton, 'Tablet');
     expect(tester.getSize(tablet).height, greaterThanOrEqualTo(48));
     final milligrams = find.widgetWithText(StitchButton, 'mg');
     expect(tester.getSize(milligrams).height, greaterThanOrEqualTo(48));

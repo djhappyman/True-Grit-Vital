@@ -393,6 +393,41 @@ extension BackupRecordStore on RecordStore {
     BackupCancellationToken? token,
     void Function(int validatedRows)? onValidatedBatch,
   ]) async {
+    // Validate new structured facts as well as exact quantity columns. Pages
+    // bound memory and cancellation remains available between each row.
+    for (final spec in [
+      ('item_detail', 'item', 'profile'),
+      ('stock_container', 'id', 'strength'),
+      ('stock_movement', 'id', 'strength'),
+    ]) {
+      String? after;
+      var count = 0;
+      while (true) {
+        token?.throwIfCancelled();
+        final rows = await _rows(
+          'SELECT ${spec.$2} AS identity,${spec.$3} AS payload FROM ${spec.$1} WHERE ${spec.$3} IS NOT NULL${after == null ? '' : ' AND ${spec.$2}>?'} ORDER BY ${spec.$2} LIMIT 500',
+          [?after],
+        );
+        count += rows.length;
+        if (count > 2000000) throw const BackupFailure('backup_too_large');
+        for (final row in rows) {
+          token?.throwIfCancelled();
+          try {
+            final payload =
+                jsonDecode(row['payload'] as String) as Map<String, dynamic>;
+            if (spec.$3 == 'profile') {
+              SubstanceProfile.fromJson(payload);
+            } else {
+              _stockStrengthBound(_strengthDecode(payload));
+            }
+          } catch (_) {
+            throw const BackupFailure('backup_invalid_dataset');
+          }
+        }
+        if (rows.length < 500) break;
+        after = rows.last['identity'] as String;
+      }
+    }
     var validatedRows = 0;
     for (final table in ['revision', 'revision_quantity']) {
       token?.throwIfCancelled();
@@ -403,7 +438,7 @@ extension BackupRecordStore on RecordStore {
         token?.throwIfCancelled();
         final columns = table == 'revision'
             ? 'record,revision,amount,entered'
-            : 'record,revision,numerator,denominator,entered';
+            : 'record,revision,numerator,denominator,entered,strength';
         final rows = await _rows(
           'SELECT $columns FROM $table ${record == null ? '' : 'WHERE record>? OR (record=? AND revision>?)'} ORDER BY record,revision LIMIT 500',
           [
@@ -425,6 +460,9 @@ extension BackupRecordStore on RecordStore {
                 row['numerator'] as String,
                 row['denominator'] as String,
               );
+              if (row['strength'] != null) {
+                _stockStrengthBound(_strengthDecode(row['strength'] as String));
+              }
               if (actual <= ExactAmount.zero) {
                 throw const FormatException('quantity_positive');
               }

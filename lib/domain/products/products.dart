@@ -1,3 +1,5 @@
+import '../substance_profile.dart';
+
 import 'dart:convert';
 
 import '../stock/exact_amount.dart';
@@ -10,6 +12,7 @@ final class ProductComponent {
     this.concentrationText,
     this.massUnit = 'mg',
     this.volumeUnit = 'ml',
+    this.halfLife,
   }) {
     if (ingredientId.isEmpty ||
         ingredientId.length > 256 ||
@@ -25,6 +28,7 @@ final class ProductComponent {
   }
   final String ingredientId, name, massUnit, volumeUnit;
   final String? concentrationText;
+  final HalfLife? halfLife;
   ExactAmount? get mgPerMl =>
       concentrationText == null || massUnit != 'mg' || volumeUnit != 'ml'
       ? null
@@ -35,6 +39,7 @@ final class ProductComponent {
     'concentrationText': concentrationText,
     'massUnit': massUnit,
     'volumeUnit': volumeUnit,
+    if (halfLife != null) 'halfLife': halfLife!.toJson(),
   };
   factory ProductComponent.fromJson(Map<String, dynamic> m) => ProductComponent(
     ingredientId: m['ingredientId'] as String,
@@ -42,6 +47,9 @@ final class ProductComponent {
     concentrationText: m['concentrationText'] as String?,
     massUnit: m['massUnit'] as String,
     volumeUnit: m['volumeUnit'] as String,
+    halfLife: m['halfLife'] == null
+        ? null
+        : HalfLife.fromJson(Map<String, dynamic>.from(m['halfLife'] as Map)),
   );
 }
 

@@ -1,3 +1,4 @@
+import '../substances/substance_profile_editor.dart';
 import '../../ui/vital_ui.dart';
 
 import 'dart:convert';
@@ -39,12 +40,14 @@ class ProductComponentEntry {
        volumeUnit = TextEditingController(text: volumeUnit);
   final String id;
   final TextEditingController name, concentration, massUnit, volumeUnit;
+  final halfLife = HalfLifeEditorData(() {});
   bool known;
   Iterable<TextEditingController> get controls => [
     name,
     concentration,
     massUnit,
     volumeUnit,
+    ...halfLife.controls,
   ];
   Map<String, Object?> toJson() => {
     'id': id,
@@ -53,6 +56,7 @@ class ProductComponentEntry {
     'massUnit': massUnit.text,
     'volumeUnit': volumeUnit.text,
     'known': known,
+    'halfLife': halfLife.capture(),
   };
   void dispose() {
     for (final c in controls) {
@@ -77,16 +81,16 @@ class ProductEditorData {
     if (entries.isNotEmpty) return;
     if (components != null) {
       for (final c in components) {
-        add(
-          ProductComponentEntry(
-            id: c.ingredientId,
-            name: c.name,
-            concentration: c.concentrationText ?? '',
-            massUnit: c.massUnit,
-            volumeUnit: c.volumeUnit,
-            known: c.concentrationText != null,
-          ),
+        final entry = ProductComponentEntry(
+          id: c.ingredientId,
+          name: c.name,
+          concentration: c.concentrationText ?? '',
+          massUnit: c.massUnit,
+          volumeUnit: c.volumeUnit,
+          known: c.concentrationText != null,
         );
+        if (c.halfLife != null) entry.halfLife.restore(c.halfLife!.toJson());
+        add(entry);
       }
     } else {
       add();
@@ -104,16 +108,20 @@ class ProductEditorData {
     if (rows.length > 32) throw const FormatException('product_components');
     for (final value in rows) {
       final row = value as Map<String, dynamic>;
-      add(
-        ProductComponentEntry(
-          id: row['id'] as String,
-          name: row['name'] as String,
-          concentration: row['concentration'] as String,
-          massUnit: row['massUnit'] as String,
-          volumeUnit: row['volumeUnit'] as String,
-          known: row['known'] == true,
-        ),
+      final entry = ProductComponentEntry(
+        id: row['id'] as String,
+        name: row['name'] as String,
+        concentration: row['concentration'] as String,
+        massUnit: row['massUnit'] as String,
+        volumeUnit: row['volumeUnit'] as String,
+        known: row['known'] == true,
       );
+      if (row['halfLife'] != null) {
+        entry.halfLife.restore(
+          Map<String, dynamic>.from(row['halfLife'] as Map),
+        );
+      }
+      add(entry);
     }
   }
 
@@ -131,6 +139,7 @@ class ProductEditorData {
               : null,
           massUnit: row.massUnit.text.trim(),
           volumeUnit: row.volumeUnit.text.trim(),
+          halfLife: row.halfLife.read(),
         ),
     ];
   }
@@ -263,6 +272,11 @@ class _ProductComponentFields extends StatelessWidget {
           enabled: enabled,
         ),
         Text(t.productUnitsHelp),
+        HalfLifeEditor(
+          data: entry.halfLife,
+          enabled: enabled,
+          onChanged: onChanged,
+        ),
         if (onRemove != null)
           Semantics(
             label: t.productRemoveContext(number),
@@ -309,6 +323,17 @@ class ProductLabelView extends StatelessWidget {
                           label.components[index].volumeUnit,
                         ),
                 ),
+                if (label.components[index].halfLife case final h?) ...[
+                  Text(
+                    t.substanceHalfLifeSummary(
+                      h.value,
+                      h.unit == 'days' ? t.substanceDays : t.substanceHours,
+                    ),
+                  ),
+                  if (h.context.isNotEmpty) Text(h.context),
+                  if (h.source.isNotEmpty)
+                    Text(t.substanceSourceValue(h.source)),
+                ],
                 if (volume != null)
                   Text(
                     label.components[index].mgPerMl == null

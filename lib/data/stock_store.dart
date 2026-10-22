@@ -39,24 +39,12 @@ const stockMetadataSchemaV24 = [
 
 List<String>? _stockPair(ExactAmount? a) =>
     a == null ? null : [a.numerator.toString(), a.denominator.toString()];
-Map<String, Object?> _strengthJson(LabelledStrength s) => {
-  'ingredient': s.ingredientId,
-  'label': s.label,
-  'pair': _stockPair(s.mgPerMl),
-};
-LabelledStrength _strengthDecode(Object encoded) {
-  final m = encoded is String
+Map<String, Object?> _strengthJson(LabelledStrength s) => s.toJson();
+LabelledStrength _strengthDecode(Object encoded) => LabelledStrength.fromJson(
+  encoded is String
       ? jsonDecode(encoded) as Map<String, dynamic>
-      : encoded as Map<String, dynamic>;
-  final p = m['pair'] as List<dynamic>?;
-  return LabelledStrength(
-    ingredientId: m['ingredient'] as String,
-    label: m['label'] as String,
-    mgPerMl: p == null
-        ? null
-        : ExactAmount.fromStorage(p[0] as String, p[1] as String),
-  );
-}
+      : Map<String, dynamic>.from(encoded as Map),
+);
 
 Map<String, Object?>? _replacementJson(StockReplacement? r) => r == null
     ? null
@@ -115,11 +103,12 @@ extension StockRecordStore on RecordStore {
         strength.ingredientId.length > 256) {
       throw const FormatException('strength_fields');
     }
-    final value = strength.mgPerMl;
+    final value = strength.mgPerMl ?? strength.mgPerCount;
     _stockAmountBound(value);
     if (value != null) {
-      final scaled = value * ExactAmount(BigInt.from(1000000));
-      if (value > ExactAmount.maxEntered || scaled.denominator != BigInt.one) {
+      final scaled = value * ExactAmount(BigInt.from(1000000000));
+      if (value > ExactAmount.maxEntered ||
+          (strength.preparation == null && scaled.denominator != BigInt.one)) {
         throw const FormatException('strength_entry_bounds');
       }
     }
@@ -291,6 +280,9 @@ extension StockRecordStore on RecordStore {
         strength.label.length > 4000 ||
         strength.ingredientId.length > 256) {
       throw const FormatException('stock_fields');
+    }
+    if (strength.preparation != null && unit != 'ml') {
+      throw const FormatException('stock_preparation_unit');
     }
     _stockAmountBound(opening, nonnegative: true);
     _stockAmountBound(lowThreshold, nonnegative: true);

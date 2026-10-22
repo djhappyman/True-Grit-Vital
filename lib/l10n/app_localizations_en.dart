@@ -7947,4 +7947,166 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get featureLabsEmptyPage =>
       'No markers on this page. Use Previous to browse earlier pages.';
+
+  @override
+  String get substanceTakenAs => 'Taken as';
+
+  @override
+  String get substanceInjectable => 'Injectable';
+
+  @override
+  String get substanceOral => 'Oral';
+
+  @override
+  String get substanceOther => 'Other';
+
+  @override
+  String get substanceOil => 'Oil-based';
+
+  @override
+  String get substanceWater => 'Water-based';
+
+  @override
+  String get substanceMix => 'Powder to mix';
+
+  @override
+  String get substanceOtherForm => 'Labelled form';
+
+  @override
+  String get substanceStrengthEach => 'Strength per tablet/capsule';
+
+  @override
+  String get substanceStrengthMl => 'Strength per ml';
+
+  @override
+  String get substanceStrengthHelp =>
+      'Optional. Copy the amount from the label.';
+
+  @override
+  String get substanceMicrograms => 'micrograms';
+
+  @override
+  String get substanceEach => 'tablet/capsule';
+
+  @override
+  String get substanceVialNext =>
+      'Save the substance, then enter the amount and final volume for each mixed vial in Stock.';
+
+  @override
+  String get substanceHalfLife => 'Half-life';
+
+  @override
+  String get substanceHalfLifeValue => 'Half-life value';
+
+  @override
+  String get substanceHalfLifeHelp =>
+      'Optional reference only. Use the value for this ingredient, formulation and route.';
+
+  @override
+  String get substanceHours => 'Hours';
+
+  @override
+  String get substanceDays => 'Days';
+
+  @override
+  String get substanceFormulation => 'Ingredient / formulation';
+
+  @override
+  String get substanceFormulationHelp =>
+      'Include the ingredient or ester and route the value applies to.';
+
+  @override
+  String get substanceSource => 'Source (optional)';
+
+  @override
+  String get substanceProfileInvalid =>
+      'Choose a form and check the strength or half-life. Use positive numbers.';
+
+  @override
+  String substanceFormSummary(String route, String form) {
+    return '$route · $form';
+  }
+
+  @override
+  String substanceStrengthSummary(String amount, String unit, String basis) {
+    return '$amount $unit per $basis';
+  }
+
+  @override
+  String substanceHalfLifeSummary(String value, String unit) {
+    return 'Half-life: $value $unit';
+  }
+
+  @override
+  String substanceSourceValue(String source) {
+    return 'Source: $source';
+  }
+
+  @override
+  String get vialMixed => 'Mixed vial';
+
+  @override
+  String get vialMixedHelp =>
+      'Save the amounts for this vial. A new vial can have a different strength.';
+
+  @override
+  String get vialAmount => 'Powder amount';
+
+  @override
+  String get vialFinalVolume => 'Final volume (ml)';
+
+  @override
+  String get vialFinalHelp =>
+      'Enter the confirmed total volume after mixing. This may differ from the liquid added.';
+
+  @override
+  String get vialLiquid => 'Mixing liquid (optional)';
+
+  @override
+  String get vialAdded => 'Liquid added (ml)';
+
+  @override
+  String get vialDate => 'Prepared on (optional)';
+
+  @override
+  String get vialDateHelp => 'YYYY-MM-DD';
+
+  @override
+  String get vialDetails => 'Mixing details';
+
+  @override
+  String get vialInvalid =>
+      'Check the powder amount, final volume and any mixing details. Use positive numbers and a valid date.';
+
+  @override
+  String vialEquivalent(String amount) {
+    return '1 ml contains approximately $amount mg.';
+  }
+
+  @override
+  String vialFacts(String amount, String unit, String volume) {
+    return 'Mixed vial: $amount $unit in $volume ml final volume.';
+  }
+
+  @override
+  String vialAddedValue(String amount) {
+    return 'Liquid added: $amount ml';
+  }
+
+  @override
+  String vialDateValue(String date) {
+    return 'Prepared on: $date';
+  }
+
+  @override
+  String get substanceSavedStrength => 'Saved strength';
+
+  @override
+  String get substanceSavedStrengthHelp =>
+      'This dose will keep the strength shown here.';
+
+  @override
+  String substanceCountEquivalent(String amount) {
+    return 'Equivalent: approximately $amount tablet/capsule.';
+  }
 }

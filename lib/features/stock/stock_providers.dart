@@ -126,6 +126,8 @@ ExactAmount stockCapacityEntry(String input) {
 
 bool sameStockStrength(LabelledStrength first, LabelledStrength second) {
   if (first.ingredientId != second.ingredientId) return false;
+  if (first.mgPerCount != second.mgPerCount) return false;
+  if (first.mgPerCount != null) return true;
   if (first.mgPerMl != null && second.mgPerMl != null) {
     return first.mgPerMl == second.mgPerMl;
   }

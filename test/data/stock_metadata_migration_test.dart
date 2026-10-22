@@ -5,7 +5,7 @@ import 'package:sqlite3/sqlite3.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 
 void main() {
-  test('schema 23 upgrades to 24 with empty pack facts and migrated history', () async {
+  test('schema 23 upgrades with empty pack facts and migrated history', () async {
     final directory = await Directory.systemTemp.createTemp('vital-stock-v23-');
     addTearDown(() => directory.delete(recursive: true));
     final path = '${directory.path}/records.db';
@@ -73,7 +73,10 @@ void main() {
     addTearDown(store.close);
     final check = raw();
     addTearDown(check.close);
-    expect(check.select('PRAGMA user_version').single.values.single, 24);
+    expect(
+      check.select('PRAGMA user_version').single.values.single,
+      currentRecordSchemaVersion,
+    );
     final columns = check
         .select('PRAGMA table_info(stock_container)')
         .map((row) => row['name'])
