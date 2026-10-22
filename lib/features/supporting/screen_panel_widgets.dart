@@ -701,7 +701,7 @@ class ScreenPanelComparison extends ConsumerWidget {
       );
     }
     final comparison = window.value;
-    if (comparison == null) {
+    if (window.isLoading || comparison == null) {
       return Text(t.featureLabsEarlierLoading, style: VitalType.metadata);
     }
     final earlier = comparison.earlier;

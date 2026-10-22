@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -13,6 +15,71 @@ import 'supporting_ui_test.dart' show SupportingOpenLock;
 import 'vital_app_test.dart' show appTest, launch, runIo, waitForText;
 
 void main() {
+  testWidgets('prior values are hidden while a replacement query loads', (
+    tester,
+  ) async {
+    final viewed = point('viewed', 15, value: '2');
+    final prior = point('prior', 1, value: '1');
+    final request = (
+      personId: meId,
+      id: 'viewed',
+      revision: 1,
+      resultId: 'result-viewed',
+      displayZone: 'UTC',
+    );
+    final pending = StreamController<SupportingEarlierComparison>();
+    addTearDown(pending.close);
+    var reads = 0;
+    final container = ProviderContainer(
+      overrides: [
+        appLockProvider.overrideWith(SupportingOpenLock.new),
+        displayZoneProvider.overrideWithValue('UTC'),
+        screenPanelEarlierProvider(request).overrideWith(
+          (ref) => reads++ == 0
+              ? Stream.value(
+                  SupportingEarlierComparison(
+                    status: SupportingEarlierStatus.found,
+                    earlier: SupportingEarlierValue(
+                      record: prior,
+                      result: prior.snapshot.results.single,
+                    ),
+                    change: '+1',
+                  ),
+                )
+              : pending.stream,
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: host(
+          ScreenPanelComparison(
+            viewed: viewed,
+            result: viewed.snapshot.results.single,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Change: +1.'), findsOneWidget);
+    container.invalidate(screenPanelEarlierProvider(request));
+    await tester.pump();
+    await tester.pump();
+    expect(
+      container.read(screenPanelEarlierProvider(request)).isLoading,
+      isTrue,
+    );
+    expect(find.text('Change: +1.'), findsNothing);
+    expect(
+      find.text('Checks every saved result before this panel.'),
+      findsNothing,
+    );
+    expect(find.text('Loading previous results.'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   testWidgets('incompatible and incomplete comparisons state their reason', (
     tester,
   ) async {
