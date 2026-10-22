@@ -8309,4 +8309,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardName => 'Name';
+
+  @override
+  String get directRestockTitle => 'Restock';
+
+  @override
+  String get directRestockNewPack => 'New pack';
+
+  @override
+  String get directRestockNewHelp =>
+      'Keep a new bottle, vial or pack separate. Enter its own amount, strength and batch details.';
+
+  @override
+  String get directRestockSameContainer => 'Same container';
+
+  @override
+  String directRestockSameHelp(String label) {
+    return 'Add supply to $label. Its strength and batch details stay the same. Create a new pack if either has changed.';
+  }
+
+  @override
+  String get directRestockRestored =>
+      'An unfinished stock change has been restored. Review it before saving.';
 }

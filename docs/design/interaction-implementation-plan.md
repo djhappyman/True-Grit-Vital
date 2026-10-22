@@ -114,3 +114,10 @@ The final refinement removes the calendar footer/divider, puts borderless status
 chips on each daypart title, replaces empty text/actions with a quiet centred
 plus, and pairs one outlined Plan button with a matching Add button beneath
 compact unplanned records. See [current evidence](reviews/2026-10-22-dashboard-refined/README.md).
+
+## Guided restock
+
+D13e adds `/stock/:person/restock/:container` as a contextual task sheet. It
+replaces itself with the canonical new-container page or quantity-adjustment
+sheet, preserving the existing draft and save guards. The chooser never writes
+stock and copies no pack facts. [Host evidence](reviews/2026-10-22-next-five-direct/restock/README.md).

@@ -12932,6 +12932,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name'**
   String get dashboardName;
+
+  /// No description provided for @directRestockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restock'**
+  String get directRestockTitle;
+
+  /// No description provided for @directRestockNewPack.
+  ///
+  /// In en, this message translates to:
+  /// **'New pack'**
+  String get directRestockNewPack;
+
+  /// No description provided for @directRestockNewHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep a new bottle, vial or pack separate. Enter its own amount, strength and batch details.'**
+  String get directRestockNewHelp;
+
+  /// No description provided for @directRestockSameContainer.
+  ///
+  /// In en, this message translates to:
+  /// **'Same container'**
+  String get directRestockSameContainer;
+
+  /// No description provided for @directRestockSameHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Add supply to {label}. Its strength and batch details stay the same. Create a new pack if either has changed.'**
+  String directRestockSameHelp(String label);
+
+  /// No description provided for @directRestockRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'An unfinished stock change has been restored. Review it before saving.'**
+  String get directRestockRestored;
 }
 
 class _AppLocalizationsDelegate

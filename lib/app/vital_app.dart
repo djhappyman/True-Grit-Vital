@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import '../features/stock/restock_sheet.dart';
+
 import '../domain/scheduling/daily_plan.dart' show CivilDate;
 import '../features/recording/quick_record_sheet.dart';
 import '../features/plans/today_hero.dart' show todayNowProvider;
@@ -381,6 +383,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       vitalRoute(
+        path: '/stock/:person/restock/:container',
+        builder: (_, state) => StorageGate(
+          child: RestockSheet(containerId: state.pathParameters['container']!),
+        ),
+      ),
+      vitalRoute(
         path: '/stock/:person/adjust/:container',
         builder: (_, state) {
           // The raw container plus the route's surface key the form state: an
@@ -389,6 +397,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           final containerId = state.pathParameters['container']!;
           final notices = state.uri.queryParameters['notices'] == 'true';
           final details = state.uri.queryParameters['details'] == 'true';
+          final restock = state.uri.queryParameters['restock'] == 'true';
           return StorageGate(
             child: StockAdjustmentForm(
               key: ValueKey(
@@ -396,12 +405,15 @@ final routerProvider = Provider<GoRouter>((ref) {
                     ? 'details'
                     : notices
                     ? 'notices'
+                    : restock
+                    ? 'restock'
                     : 'quantity'}',
               ),
               personId: meId,
               containerId: containerId,
               notices: notices,
               details: details,
+              restock: restock,
             ),
           );
         },
@@ -1312,6 +1324,7 @@ GoRoute vitalRoute({
                 '/combined/:person',
                 '/combined/:person/edit/:action',
                 '/stock/:person/adjust/:container',
+                '/stock/:person/restock/:container',
                 '/pause/:id',
                 '/history-source/:kind/:id',
                 '/site/:person/:record',

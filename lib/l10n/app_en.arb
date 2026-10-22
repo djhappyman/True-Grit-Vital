@@ -9697,5 +9697,18 @@
   "dashboardSchedule": "Schedule",
   "dashboardPeriodRange": "{start} to {end}",
   "@dashboardPeriodRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
-  "dashboardName": "Name"
+  "dashboardName": "Name",
+  "directRestockTitle": "Restock",
+  "directRestockNewPack": "New pack",
+  "directRestockNewHelp": "Keep a new bottle, vial or pack separate. Enter its own amount, strength and batch details.",
+  "directRestockSameContainer": "Same container",
+  "directRestockSameHelp": "Add supply to {label}. Its strength and batch details stay the same. Create a new pack if either has changed.",
+  "@directRestockSameHelp": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "directRestockRestored": "An unfinished stock change has been restored. Review it before saving."
 }

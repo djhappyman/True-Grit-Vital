@@ -612,6 +612,14 @@ class _StockContainerCard extends ConsumerWidget {
               alignment: WrapAlignment.end,
               children: [
                 StitchButton(
+                  key: ValueKey('stock-restock-${container.id}'),
+                  icon: LucideIcons.packagePlus,
+                  onPressed: () => context.push(
+                    '/stock/${container.personId}/restock/${container.id}',
+                  ),
+                  child: Text(t.stockRestock),
+                ),
+                StitchButton(
                   key: ValueKey('stock-details-${container.id}'),
                   icon: LucideIcons.packageOpen,
                   onPressed: () => context.push(
@@ -1560,9 +1568,10 @@ class StockAdjustmentForm extends ConsumerStatefulWidget {
     required this.containerId,
     this.notices = false,
     this.details = false,
+    this.restock = false,
   });
   final String personId, containerId;
-  final bool notices, details;
+  final bool notices, details, restock;
   @override
   ConsumerState<StockAdjustmentForm> createState() =>
       _StockAdjustmentFormState();
@@ -1575,6 +1584,7 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
       expiry = TextEditingController(),
       capacity = TextEditingController();
   StockMovementKind? kind;
+  bool restoredMovement = false;
   bool unknown = false,
       noticesMode = false,
       detailsMode = false,
@@ -1675,6 +1685,7 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
     kind = StockMovementKind.values
         .where((v) => v.name == f['kind'])
         .firstOrNull;
+    restoredMovement = kind != null;
     amount.text = f['amount'] ?? '';
     reason.text = f['reason'] ?? '';
     unknown = f['unknown'] == 'true';
@@ -1684,6 +1695,8 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
   @override
   void initState() {
     super.initState();
+    // Existing movement drafts restore their own kind and values afterwards.
+    if (widget.restock) kind = StockMovementKind.restock;
     amount.addListener(entryChanged);
     reason.addListener(entryChanged);
     lot.addListener(entryChanged);
@@ -1879,6 +1892,8 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
             ? t.featureStockDetails
             : t.stockAdjust,
       ),
+      if (widget.restock && restoredMovement)
+        Text(t.directRestockRestored, style: StitchType.caption),
       Text(t.profileOwner(ownerLabel(ref, t, widget.personId))),
       Text(container!.label),
       if (container!.productLabel != null)

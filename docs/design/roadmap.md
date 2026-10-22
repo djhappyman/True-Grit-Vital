@@ -282,3 +282,21 @@ borderless daypart status chips and plus-only empty insets, and uses matching
 Plan/Add commands. Unplanned records show only full name and exact amount;
 all existing correction and guarded entry flows remain connected. See
 [current dashboard evidence](reviews/2026-10-22-dashboard-refined/README.md).
+
+## Five direct-API tasks, 22 October
+
+Owner authorised four direct DeepSeek workers and the lead for five concurrent
+implementation slices, based on `0dab613`. All four workers use OpenCode's
+`deepseek/deepseek-flash` direct API model in isolated worktrees.
+
+| Slice | Outcome | Owner | State |
+| --- | --- | --- | --- |
+| D13d | Whole-inventory Expired/Expires today filters and counts, using real local dates | DeepSeek | In progress |
+| D14c | Conditional stock forecasts for fixed-planned elapsed intervals | DeepSeek | In progress |
+| D17c | Open exact lab trend points in their original saved records | DeepSeek | In progress |
+| D21b | Factual last-confirmed-backup status in Settings Data | DeepSeek | In progress |
+| D13e | Guided choice between a new physical pack and adding to an existing container | Lead | Host verified |
+
+These extend existing features without defining clinical timing tolerance,
+follow-up policies, automatic backup destinations/retention, scanning formats or
+FHIR mappings. Those decisions and physical-device gates remain open.
