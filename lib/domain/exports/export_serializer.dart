@@ -26,8 +26,8 @@ Uint8List encodeExport(ExportDocument document) {
 String encodeExportCsv(ExportDocument document) {
   final rows = <List<Object?>>[
     exportCsvHeader,
-    for (final row in document.doses) _doseCsvRow(row),
-    for (final row in document.skipped) _skipCsvRow(row),
+    for (final row in document.doses) [..._doseCsvRow(row), null, null, null],
+    for (final row in document.skipped) [..._skipCsvRow(row), null, null, null],
     for (final row in document.supporting) ..._supportingCsvRows(row),
   ];
   for (var i = 0; i < rows.length; i++) {
@@ -106,6 +106,9 @@ const exportCsvHeader = <String>[
   'skip_saved_date',
   'skip_plan_zone',
   'skip_plan_name',
+  'supporting_category',
+  'supporting_accession',
+  'supporting_report_identifier',
 ];
 
 List<Object?> _doseCsvRow(ExportDoseRevision row) {
@@ -284,6 +287,9 @@ List<List<Object?>> _supportingCsvRows(ExportSupportingRevision row) {
         null,
         null,
         null,
+        null,
+        snapshot.provenance.accessionNumber,
+        snapshot.provenance.reportIdentifier,
       ],
     ];
   }
@@ -319,6 +325,9 @@ List<List<Object?>> _supportingCsvRows(ExportSupportingRevision row) {
         null,
         null,
         null,
+        result.category,
+        (result.provenance ?? snapshot.provenance).accessionNumber,
+        (result.provenance ?? snapshot.provenance).reportIdentifier,
       ],
   ];
 }

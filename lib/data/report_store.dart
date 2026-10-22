@@ -136,6 +136,8 @@ extension ReportStore on RecordStore {
             collectionDate: snapshot.collectionDate,
             reportDate: snapshot.reportDate,
             notes: selection.includeNotes ? snapshot.notes : null,
+            accessionNumber: snapshot.provenance.accessionNumber,
+            reportIdentifier: snapshot.provenance.reportIdentifier,
             values: [
               for (final result in snapshot.results)
                 ReportSupportingValue(
@@ -143,6 +145,11 @@ extension ReportStore on RecordStore {
                   value: result.value.originalText ?? 'Unknown',
                   unit: result.unit,
                   referenceRange: result.referenceRange?.originalText,
+                  category: result.category,
+                  accessionNumber: (result.provenance ?? snapshot.provenance)
+                      .accessionNumber,
+                  reportIdentifier: (result.provenance ?? snapshot.provenance)
+                      .reportIdentifier,
                 ),
             ],
           ),

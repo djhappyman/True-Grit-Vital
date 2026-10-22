@@ -123,6 +123,49 @@ void main() {
     }
   });
 
+  test('R01 renders selected lab categories and source identifiers', () async {
+    final snapshot = ReportSnapshot.build(
+      selection: ReportSelection(
+        personId: 'me',
+        fromDate: CivilDate(2026, 10, 1),
+        beforeDate: CivilDate(2026, 11, 1),
+        displayZone: 'UTC',
+        includeSupporting: true,
+      ),
+      cutoff: _cutoff(DateTime.utc(2026, 11, 1)),
+      person: const ReportPerson(id: 'me', name: 'Synthetic Person'),
+      records: [],
+      supporting: [
+        ReportSupportingEntry(
+          id: 'panel',
+          title: 'Source panel',
+          kind: SupportingRecordKind.labPanel,
+          collectionDate: SupportingDate.day(CivilDate(2026, 10, 20)),
+          accessionNumber: 'ACC-001',
+          reportIdentifier: 'REPORT/09',
+          values: [
+            const ReportSupportingValue(
+              name: 'Original marker',
+              value: '<0.125',
+              unit: 'mg/L',
+              category: 'Source category',
+              referenceRange: 'Copied range',
+            ),
+          ],
+        ),
+      ],
+    );
+    final rendered = await const R01SummaryRenderer().render(
+      snapshot,
+      use24Hour: true,
+    );
+    final text = (await _pageTexts(rendered.bytes)).join(' ');
+    expect(text, contains('Source category'));
+    expect(text, contains('ACC-001'));
+    expect(text, contains('REPORT/09'));
+    expect(text, contains('<0.125'));
+  });
+
   test('R01 renders authored details only when notes are selected', () async {
     final record = ReportRecord.fromUseRecord(
       _record(

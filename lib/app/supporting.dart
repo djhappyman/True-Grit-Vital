@@ -236,8 +236,12 @@ final supportingPageProvider = StreamProvider.autoDispose
         yield null;
         return;
       }
-      yield* (await ref.watch(recordStoreProvider.future))
-          .watchSupportingRecords(request.query, cursor: request.cursor);
+      try {
+        yield* (await ref.watch(recordStoreProvider.future))
+            .watchSupportingRecords(request.query, cursor: request.cursor);
+      } on CommandConflict catch (error) {
+        if (error.code != 'app_locked') rethrow;
+      }
     });
 
 typedef SupportingSave = ({

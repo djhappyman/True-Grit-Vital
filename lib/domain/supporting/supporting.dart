@@ -6,5 +6,7 @@ export '../scheduling/daily_plan.dart' show CivilDate;
 export 'supporting_date.dart';
 export 'supporting_value.dart';
 export 'supporting_record.dart';
+export 'supporting_category.dart';
+export 'supporting_comparison.dart';
 export 'supporting_source.dart';
 export 'supporting_trend.dart';

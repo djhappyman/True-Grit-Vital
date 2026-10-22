@@ -381,6 +381,13 @@ pw.Widget reportContextBlock(ReportSnapshot snapshot) {
         if (ReportText.supportingOmissionNotice(snapshot) case final notice?)
           reportNote(notice, size: 8),
         for (final entry in snapshot.supporting)
+          for (final line in ReportText.supportingMetadataLines(entry))
+            pw.Text(
+              '${entry.title}: $line',
+              overflow: pw.TextOverflow.span,
+              style: pw.TextStyle(fontSize: 8.5, color: ReportPalette.graphite),
+            ),
+        for (final entry in snapshot.supporting)
           if (entry.notes != null) ...[
             pw.SizedBox(height: 6),
             pw.Text(

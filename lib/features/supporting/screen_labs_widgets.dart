@@ -8,6 +8,7 @@ import '../../l10n/app_localizations.dart';
 import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 import 'screen_labs_latest.dart';
+import 'supporting_sparkline.dart';
 import 'supporting_widgets.dart';
 
 /// Small accent eyebrow with an optional factual right-hand value or action.
@@ -228,6 +229,10 @@ class ScreenLabsLatestCard extends ConsumerWidget {
               ),
             ),
           ),
+          if (value.sparkline case final series? when series.hasPoints) ...[
+            const SizedBox(height: 10),
+            ScreenLabsSparkline(series: series, unit: unit),
+          ],
           if (previous != null) ...[
             const SizedBox(height: 10),
             StitchSurface(

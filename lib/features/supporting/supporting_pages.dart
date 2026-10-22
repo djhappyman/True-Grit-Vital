@@ -499,12 +499,24 @@ class _SupportingDetailPageState extends ConsumerState<SupportingDetailPage> {
                     : t.screenPanelNoFilteredResults,
               )
             else
-              for (final result in visible)
-                ScreenPanelResultCard(
-                  key: ValueKey(result.id),
-                  result: result,
-                  onTrends: () => openTrends(result),
-                ),
+              for (final group in groupSupportingCategories(
+                visible,
+                (r) => r.category,
+              )) ...[
+                if (s.results.any((r) => r.category != null))
+                  SupportingCategoryHeading(
+                    label: group.label ?? t.screenLabsCategoryOther,
+                  ),
+                for (final result in group.values)
+                  ScreenPanelResultCard(
+                    key: ValueKey(result.id),
+                    result: result,
+                    comparison: saved.isVoided
+                        ? null
+                        : ScreenPanelComparison(viewed: saved, result: result),
+                    onTrends: () => openTrends(result),
+                  ),
+              ],
             if (filtered.length > 25)
               Wrap(
                 spacing: 8,

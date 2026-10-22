@@ -499,6 +499,17 @@ final class R01SummaryRenderer implements ReportTemplateRenderer {
         );
       }
       for (final entry in snapshot.supporting) {
+        for (final line in ReportText.supportingMetadataLines(entry)) {
+          content.add(
+            pw.Text(
+              '${entry.title}: $line',
+              overflow: pw.TextOverflow.span,
+              style: pw.TextStyle(fontSize: 8.5, color: _graphite),
+            ),
+          );
+        }
+      }
+      for (final entry in snapshot.supporting) {
         if (entry.notes == null) continue;
         content
           ..add(pw.SizedBox(height: 6))

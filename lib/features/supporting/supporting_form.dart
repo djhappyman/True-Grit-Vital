@@ -674,6 +674,8 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
                 input('methodId', t.supportingMethodIdentity),
                 input('specimen', t.supportingSpecimen),
                 input('specimenId', t.supportingSpecimenIdentity),
+                input('accession', t.supportingAccession),
+                input('reportId', t.supportingReportId),
               ],
               input('source', t.supportingSourceText, maxLines: 3),
               sourceReferences(enabled, t),
@@ -733,6 +735,14 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
                 'originalMarker',
                 t.supportingOriginalMarker,
                 row: row,
+                maxLines: 2,
+              ),
+            if (!observation)
+              input(
+                'category',
+                t.screenLabsCategory,
+                row: row,
+                helper: t.screenLabsCategoryHelp,
                 maxLines: 2,
               ),
             VitalSegments<String>(

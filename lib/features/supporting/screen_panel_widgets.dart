@@ -5,6 +5,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/app_lock.dart';
 import '../../app/storage.dart';
+import '../../app/display_preferences.dart';
 import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
 import '../../ui/stitch_ui.dart';
@@ -12,6 +13,54 @@ import '../../ui/vital_ui.dart';
 import 'supporting_widgets.dart';
 
 typedef ScreenPanelAttachmentRequest = ({String personId, String id});
+
+/// Bounded current records before one viewed collection date. The page keeps
+/// only records that are comparable with each viewed result.
+final class ScreenPanelEarlierWindow {
+  const ScreenPanelEarlierWindow({
+    required this.records,
+    required this.limited,
+  });
+  final List<SupportingRevision> records;
+  final bool limited;
+}
+
+typedef ScreenPanelEarlierRequest = ({
+  String personId,
+  CivilDate beforeDay,
+  String displayZone,
+});
+
+final screenPanelEarlierProvider = StreamProvider.autoDispose
+    .family<ScreenPanelEarlierWindow, ScreenPanelEarlierRequest>(
+      retry: (_, _) => null,
+      (ref, request) async* {
+        if (ref.watch(appLockProvider.select((state) => state.locked))) {
+          yield const ScreenPanelEarlierWindow(records: [], limited: false);
+          return;
+        }
+        final store = await ref.watch(recordStoreProvider.future);
+        final query = SupportingQuery(
+          personId: request.personId,
+          dateBasis: SupportingDateBasis.collection,
+          beforeDate: request.beforeDay.addDays(1),
+          includeUnknownDates: false,
+          includeVoided: false,
+          limit: 50,
+          displayZone: request.displayZone,
+        );
+        try {
+          await for (final page in store.watchSupportingRecords(query)) {
+            yield ScreenPanelEarlierWindow(
+              records: page.entries,
+              limited: page.next != null,
+            );
+          }
+        } on CommandConflict catch (error) {
+          if (error.code != 'app_locked') rethrow;
+        }
+      },
+    );
 
 /// Bounded saved files for one supporting record. The list is used only for
 /// the checksums that were actually recorded when each file was saved.
@@ -266,10 +315,12 @@ class ScreenPanelResultCard extends StatelessWidget {
     super.key,
     required this.result,
     required this.onTrends,
+    this.comparison,
   });
 
   final LabResultSnapshot result;
   final VoidCallback onTrends;
+  final Widget? comparison;
 
   @override
   Widget build(BuildContext context) {
@@ -383,6 +434,7 @@ class ScreenPanelResultCard extends StatelessWidget {
               ),
             ),
           ),
+          ?comparison,
           if (result.provenance case final provenance?) ...[
             const SizedBox(height: 12),
             SupportingProvenanceView(provenance: provenance),
@@ -617,6 +669,100 @@ class _ScreenPanelFilesState extends ConsumerState<ScreenPanelFiles> {
           style: VitalType.metadata.copyWith(color: colors.muted),
         ),
       ],
+    );
+  }
+}
+
+/// Shares one bounded live query between all results in the viewed panel.
+class ScreenPanelComparison extends ConsumerWidget {
+  const ScreenPanelComparison({
+    super.key,
+    required this.viewed,
+    required this.result,
+  });
+  final SupportingRevision viewed;
+  final LabResultSnapshot result;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(appLockProvider.select((state) => state.locked))) {
+      return const SizedBox.shrink();
+    }
+    final t = AppLocalizations.of(context);
+    final zone = ref.watch(displayZoneProvider);
+    final date = viewed.snapshot.collectionDate;
+    final day = switch (date.precision) {
+      SupportingDatePrecision.day => date.civilDate,
+      SupportingDatePrecision.exact =>
+        DisplayTime().instant(date.instant!, zone).civilDate,
+      _ => null,
+    };
+    if (day == null) {
+      return Text(t.featureLabsEarlierIncomplete, style: VitalType.metadata);
+    }
+    final request = (
+      personId: viewed.id.personId,
+      beforeDay: day,
+      displayZone: zone,
+    );
+    final window = ref.watch(screenPanelEarlierProvider(request));
+    if (window.hasError) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(t.featureLabsEarlierFailure, style: VitalType.metadata),
+          VitalButton.secondary(
+            onPressed: () =>
+                ref.invalidate(screenPanelEarlierProvider(request)),
+            child: Text(t.retry),
+          ),
+        ],
+      );
+    }
+    final loaded = window.value;
+    if (loaded == null) {
+      return Text(t.featureLabsEarlierLoading, style: VitalType.metadata);
+    }
+    final comparison = supportingEarlierComparison(
+      viewed: viewed,
+      result: result,
+      candidates: loaded.records,
+      displayZone: zone,
+      windowLimited: loaded.limited,
+    );
+    final earlier = comparison.earlier;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (earlier != null) ...[
+            Text(
+              t.featureLabsEarlierValue(
+                supportingValueLabel(t, earlier.result),
+                supportingDateLabel(
+                  context,
+                  ref,
+                  earlier.record.snapshot.collectionDate,
+                ),
+              ),
+              style: VitalType.metadata,
+            ),
+            if (comparison.change case final change?)
+              Text(t.featureLabsChange(change), style: VitalType.metadata)
+            else if (result.value.isExactNumeric)
+              Text(t.featureLabsChangeUnavailable, style: VitalType.metadata),
+          ] else
+            Text(switch (comparison.status) {
+              SupportingEarlierStatus.incomplete =>
+                t.featureLabsEarlierIncomplete,
+              SupportingEarlierStatus.incompatible =>
+                t.featureLabsEarlierIncompatible,
+              _ => t.featureLabsNoEarlier,
+            }, style: VitalType.metadata),
+          if (loaded.limited)
+            Text(t.featureLabsEarlierLimited, style: VitalType.metadata),
+        ],
+      ),
     );
   }
 }

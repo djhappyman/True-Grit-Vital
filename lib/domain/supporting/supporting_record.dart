@@ -132,6 +132,8 @@ final class SupportingProvenance {
     this.specimenId,
     this.specimenText,
     this.sourceText,
+    this.accessionNumber,
+    this.reportIdentifier,
     this.recordedBy,
     Iterable<SupportingSourceReference> sourceReferences = const [],
   }) : sourceReferences = List.unmodifiable(sourceReferences) {
@@ -143,9 +145,16 @@ final class SupportingProvenance {
       methodText,
       specimenText,
       sourceText,
+      accessionNumber,
+      reportIdentifier,
       recordedBy,
     ]) {
       supportingOptionalText(value, 'provenance_text');
+    }
+    // Manually transcribed identifiers stay exact strings, but a corrupted
+    // snapshot cannot smuggle an unbounded value into the encrypted store.
+    for (final value in [accessionNumber, reportIdentifier]) {
+      supportingOptionalText(value, 'provenance_identifier', max: 256);
     }
     if (this.sourceReferences.length > 100) {
       throw const SupportingLimitException('source_references');
@@ -170,6 +179,8 @@ final class SupportingProvenance {
       specimenId,
       specimenText,
       sourceText,
+      accessionNumber,
+      reportIdentifier,
       recordedBy;
   final List<SupportingSourceReference> sourceReferences;
   Map<String, Object?> toJson() => {
@@ -181,6 +192,8 @@ final class SupportingProvenance {
     'specimenId': specimenId,
     'specimenText': specimenText,
     'sourceText': sourceText,
+    if (accessionNumber != null) 'accessionNumber': accessionNumber,
+    if (reportIdentifier != null) 'reportIdentifier': reportIdentifier,
     'recordedBy': recordedBy,
     'sourceReferences': [for (final s in sourceReferences) s.toJson()],
   };
@@ -194,6 +207,8 @@ final class SupportingProvenance {
         specimenId: j['specimenId'] as String?,
         specimenText: j['specimenText'] as String?,
         sourceText: j['sourceText'] as String?,
+        accessionNumber: j['accessionNumber'] as String?,
+        reportIdentifier: j['reportIdentifier'] as String?,
         recordedBy: j['recordedBy'] as String?,
         sourceReferences: [
           for (final s in j['sourceReferences'] as List)
@@ -236,6 +251,7 @@ final class LabResultSnapshot {
     this.unit,
     this.referenceRange,
     this.sourceFlag,
+    this.category,
     this.provenance,
   }) : originalMarkerText = originalMarkerText ?? markerName {
     supportingText(id, 'result_id');
@@ -244,10 +260,15 @@ final class LabResultSnapshot {
     supportingText(this.originalMarkerText, 'result_original_name', max: 8192);
     supportingOptionalText(unit, 'result_unit', max: 512);
     supportingOptionalText(sourceFlag, 'result_flag');
+    supportingOptionalText(category, 'result_category', max: 128);
   }
   final String id, metricId, markerName, originalMarkerText;
   final SupportingValue value;
   final String? unit, sourceFlag;
+
+  /// An authored or source-printed category. Null means the source did not
+  /// supply one; no category is inferred from the marker name.
+  final String? category;
   final SourceReferenceRange? referenceRange;
 
   /// A supplied override replaces provenance as a whole. Null identities in an
@@ -262,6 +283,7 @@ final class LabResultSnapshot {
     'unit': unit,
     'referenceRange': referenceRange?.toJson(),
     'sourceFlag': sourceFlag,
+    if (category != null) 'category': category,
     'provenance': provenance?.toJson(),
   };
   factory LabResultSnapshot.fromJson(Map<String, dynamic> j) =>
@@ -276,6 +298,7 @@ final class LabResultSnapshot {
             ? null
             : SourceReferenceRange.fromJson(_map(j['referenceRange'])),
         sourceFlag: j['sourceFlag'] as String?,
+        category: j['category'] as String?,
         provenance: j['provenance'] == null
             ? null
             : SupportingProvenance.fromJson(_map(j['provenance'])),

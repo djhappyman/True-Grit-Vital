@@ -118,6 +118,8 @@ class SupportingFormModel {
       'specimen': p.specimenText ?? '',
       'specimenId': p.specimenId ?? '',
       'source': p.sourceText ?? '',
+      'accession': p.accessionNumber ?? '',
+      'reportId': p.reportIdentifier ?? '',
       'by': p.recordedBy ?? '',
     });
     rows.clear();
@@ -135,6 +137,7 @@ class SupportingFormModel {
         'unit': r.unit ?? '',
         'range': r.referenceRange?.originalText ?? '',
         'flag': r.sourceFlag ?? '',
+        'category': r.category ?? '',
       });
     }
   }
@@ -222,6 +225,8 @@ class SupportingFormModel {
       specimenId: supportingOptional(get('specimenId')),
       specimenText: supportingOptional(get('specimen')),
       sourceText: supportingOptional(get('source')),
+      accessionNumber: supportingOptional(get('accession')),
+      reportIdentifier: supportingOptional(get('reportId')),
       recordedBy: supportingOptional(get('by')),
       sourceReferences: sourceReferences,
     );
@@ -256,6 +261,7 @@ class SupportingFormModel {
               ? old!.referenceRange
               : SourceReferenceRange(originalText: range),
           sourceFlag: supportingOptional(r['flag'] ?? ''),
+          category: supportingOptional(r['category'] ?? ''),
           provenance: old?.provenance,
         ),
       );

@@ -6948,7 +6948,7 @@ abstract class AppLocalizations {
   /// Privacy statement for single-person export.
   ///
   /// In en, this message translates to:
-  /// **'Your records are included. Notes stay private unless you include them.'**
+  /// **'Selected lab records include categories and source identifiers. Notes stay private unless selected.'**
   String get exportPrivateHelp;
 
   /// Heading for private inclusion choices.
@@ -8079,7 +8079,7 @@ abstract class AppLocalizations {
   /// Explains supporting context inclusion.
   ///
   /// In en, this message translates to:
-  /// **'Include supporting records from the selected period.'**
+  /// **'Include supporting records with saved categories and accession or report identifiers from the selected period.'**
   String get reportContextHelp;
 
   /// Toggle label for private notes.
@@ -11516,6 +11516,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{recorded} recorded · {skipped} skipped'**
   String featureEventsCounts(int recorded, int skipped);
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get screenLabsCategory;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy a category from the source, or enter your own. Leave blank to group as Other.'**
+  String get screenLabsCategoryHelp;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get screenLabsCategoryOther;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Accession'**
+  String get supportingAccession;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Report identifier'**
+  String get supportingReportId;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 exact result} other{{count} exact results}} from {first} to {last}. Open Table for dates and values.'**
+  String screenLabsSparklineSummary(int count, String first, String last);
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Dated exact values with matching units, laboratory, method and specimen.'**
+  String get screenLabsSparklineExactOnly;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Show trend dates and exact values'**
+  String get screenLabsSparklineTable;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get screenLabsSparklineDate;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get screenLabsSparklineValue;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous result'**
+  String get featureLabsEarlier;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous: {value}. Collected {date}.'**
+  String featureLabsEarlierValue(String value, String date);
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Change: {value}.'**
+  String featureLabsChange(String value);
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'The exact change has no short decimal form.'**
+  String get featureLabsChangeUnavailable;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'No comparable earlier result in the loaded window.'**
+  String get featureLabsNoEarlier;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier results are limited to 50 saved records before this panel. Older records may be outside this window.'**
+  String get featureLabsEarlierLimited;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection dates do not establish an unambiguous previous result.'**
+  String get featureLabsEarlierIncomplete;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Comparison needs an exact or qualitative value and matching units, laboratory, method and specimen.'**
+  String get featureLabsEarlierIncompatible;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous results could not load. Try again.'**
+  String get featureLabsEarlierFailure;
+
+  /// Lab categories, factual trends and source comparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading previous results.'**
+  String get featureLabsEarlierLoading;
+
+  /// Discloses source metadata included with selected lab records in reports and exports.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected lab records include saved categories and accession or report identifiers. Notes stay private unless selected.'**
+  String get featureLabsMetadataHelp;
 }
 
 class _AppLocalizationsDelegate

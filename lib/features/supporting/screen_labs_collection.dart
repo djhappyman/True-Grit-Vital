@@ -13,6 +13,7 @@ import '../../ui/vital_ui.dart';
 import '../recording/record_pages.dart';
 import 'screen_labs_latest.dart';
 import 'screen_labs_widgets.dart';
+import 'supporting_widgets.dart';
 
 /// Canonical `/supporting` collection, rebuilt around the saved labs reference.
 /// It reuses the existing query, paging, filters, forms, detail, trends, files
@@ -593,6 +594,11 @@ class _ScreenLabsCollectionPageState
     final visible = latestExpanded
         ? latestValue.values
         : latestValue.values.take(_initialLatestCards).toList();
+    final groups = groupSupportingCategories(
+      visible,
+      (value) => value.result.category,
+    );
+    final showCategories = groups.any((group) => !group.isUnnamed);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -634,13 +640,19 @@ class _ScreenLabsCollectionPageState
             ),
           ),
         const SizedBox(height: 12),
-        for (final value in visible) ...[
-          ScreenLabsLatestCard(
-            value: value,
-            person: person,
-            returnLocation: viewLocation(),
-          ),
-          const SizedBox(height: 12),
+        for (final group in groups) ...[
+          if (showCategories)
+            SupportingCategoryHeading(
+              label: group.isUnnamed ? t.screenLabsCategoryOther : group.label!,
+            ),
+          for (final value in group.values) ...[
+            ScreenLabsLatestCard(
+              value: value,
+              person: person,
+              returnLocation: viewLocation(),
+            ),
+            const SizedBox(height: 12),
+          ],
         ],
         if (latestValue.values.length > _initialLatestCards)
           Align(

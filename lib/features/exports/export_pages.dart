@@ -301,6 +301,8 @@ class _ExportPageState extends ConsumerState<ExportPage> {
             Text(t.featureContextExportSkipCount(preview.skippedActions)),
             Text(t.exportSupportingCount(preview.supportingRecords)),
             Text(t.exportSupportingResultCount(preview.supportingResults)),
+            if (preview.contents.contains(ExportContent.supporting))
+              Text(t.featureLabsMetadataHelp),
             if (undatedMessage != null) Text(undatedMessage),
             Text(t.exportByteCount(preview.byteCount)),
             Text(t.exportFileName(artifact.fileName)),

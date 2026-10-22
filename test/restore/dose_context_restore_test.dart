@@ -9,6 +9,7 @@ import 'package:true_grit_vital/domain/exports/exports.dart';
 import 'package:true_grit_vital/restore/restore_activation.dart';
 
 import 'fixtures/restore_fixture.dart';
+import '../supporting_categories_comparison_test.dart' show point;
 
 void main() {
   late Directory directory;
@@ -139,6 +140,18 @@ void main() {
         membershipReview: await live.previewEventMembership(eventCommand),
       );
 
+      final lab =
+          point('restored-panel', 20, category: 'Source category').snapshot
+              as LabPanelSnapshot;
+      await live.saveLabPanel(
+        SaveLabPanelCommand(
+          commandId: 'lab-save',
+          generation: live.generation,
+          expectedPersonRevision: 2,
+          panel: lab,
+        ),
+      );
+
       final service = BackupService(
         recordStore: live,
         stagingDirectory: Directory('${directory.path}/data/backup-staging'),
@@ -174,6 +187,13 @@ void main() {
         key: restoreTestKey,
         isNew: false,
       );
+      final restoredLab = (await live.supportingRecord(
+        meId,
+        'restored-panel',
+      ))!;
+      expect(restoredLab.snapshot.results.single.category, 'Source category');
+      expect(restoredLab.snapshot.provenance.accessionNumber, 'ACC-001');
+      expect(restoredLab.snapshot.provenance.reportIdentifier, 'REPORT/09');
       final restored = (await live.recordById(corrected.id))!;
       expect((await live.eventById(event.id))!.notes, event.notes);
       expect((await live.eventHistory(event.id)).single.notes, event.notes);

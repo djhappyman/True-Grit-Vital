@@ -135,6 +135,8 @@ final class ReportSupportingEntry {
     required this.collectionDate,
     this.reportDate,
     this.notes,
+    this.accessionNumber,
+    this.reportIdentifier,
     required Iterable<ReportSupportingValue> values,
   }) : values = List.unmodifiable(values);
   final String id, title;
@@ -142,6 +144,7 @@ final class ReportSupportingEntry {
   final SupportingDate collectionDate;
   final SupportingDate? reportDate;
   final String? notes;
+  final String? accessionNumber, reportIdentifier;
   final List<ReportSupportingValue> values;
 }
 
@@ -151,10 +154,17 @@ final class ReportSupportingValue {
     required this.value,
     this.unit,
     this.referenceRange,
+    this.category,
+    this.accessionNumber,
+    this.reportIdentifier,
   });
   final String name;
   final String value;
-  final String? unit, referenceRange;
+  final String? unit,
+      referenceRange,
+      category,
+      accessionNumber,
+      reportIdentifier;
 }
 
 /// Authored substance text captured only when private notes are selected.
@@ -738,6 +748,21 @@ final class ReportText {
     return null;
   }
 
+  static List<String> supportingMetadataLines(ReportSupportingEntry entry) => [
+    if (entry.accessionNumber != null) 'Accession: ${entry.accessionNumber}',
+    if (entry.reportIdentifier != null)
+      'Report identifier: ${entry.reportIdentifier}',
+    for (final value in entry.values) ...[
+      if (value.category != null) '${value.name}. Category: ${value.category}',
+      if (value.accessionNumber != null &&
+          value.accessionNumber != entry.accessionNumber)
+        '${value.name}. Accession: ${value.accessionNumber}',
+      if (value.reportIdentifier != null &&
+          value.reportIdentifier != entry.reportIdentifier)
+        '${value.name}. Report identifier: ${value.reportIdentifier}',
+    ],
+  ];
+
   /// Selected supporting records, private notes and source files for the
   /// text alternative used by R02 and R03.
   ///
@@ -770,7 +795,24 @@ final class ReportText {
               '${entry.title} (${entry.kind == SupportingRecordKind.labPanel ? 'Lab panel' : 'Observation'})',
             )
             ..add('Measured: ${formatSupportingDate(entry.collectionDate)}');
+          if (entry.accessionNumber != null) {
+            lines.add('Accession: ${entry.accessionNumber}');
+          }
+          if (entry.reportIdentifier != null) {
+            lines.add('Report identifier: ${entry.reportIdentifier}');
+          }
           for (final value in entry.values) {
+            if (value.category != null) {
+              lines.add('Category: ${value.category}');
+            }
+            if (value.accessionNumber != null &&
+                value.accessionNumber != entry.accessionNumber) {
+              lines.add('Accession: ${value.accessionNumber}');
+            }
+            if (value.reportIdentifier != null &&
+                value.reportIdentifier != entry.reportIdentifier) {
+              lines.add('Report identifier: ${value.reportIdentifier}');
+            }
             lines.add(
               '${value.name}: ${value.value}'
               '${value.unit == null ? '' : ' ${value.unit}'}'
@@ -938,7 +980,22 @@ final class ReportText {
             '${entry.title} (${entry.kind == SupportingRecordKind.labPanel ? 'Lab panel' : 'Observation'})',
           )
           ..add('Measured: ${formatSupportingDate(entry.collectionDate)}');
+        if (entry.accessionNumber != null) {
+          lines.add('Accession: ${entry.accessionNumber}');
+        }
+        if (entry.reportIdentifier != null) {
+          lines.add('Report identifier: ${entry.reportIdentifier}');
+        }
         for (final value in entry.values) {
+          if (value.category != null) lines.add('Category: ${value.category}');
+          if (value.accessionNumber != null &&
+              value.accessionNumber != entry.accessionNumber) {
+            lines.add('Accession: ${value.accessionNumber}');
+          }
+          if (value.reportIdentifier != null &&
+              value.reportIdentifier != entry.reportIdentifier) {
+            lines.add('Report identifier: ${value.reportIdentifier}');
+          }
           lines.add(
             '${value.name}: ${value.value}'
             '${value.unit == null ? '' : ' ${value.unit}'}'

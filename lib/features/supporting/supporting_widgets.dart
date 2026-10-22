@@ -187,6 +187,8 @@ class _SupportingProvenanceViewState extends State<SupportingProvenanceView> {
       t.supportingLabIdentity: p.laboratoryId,
       t.supportingMethodIdentity: p.methodId,
       t.supportingSpecimenIdentity: p.specimenId,
+      t.supportingAccession: p.accessionNumber,
+      t.supportingReportId: p.reportIdentifier,
     };
     final hasIdentities = identityRows.values.any((value) => value != null);
     return Column(
@@ -275,6 +277,19 @@ String? supportingSourceRoute(SupportingSourceReference source) {
       'version': source.contentVersionId!,
     },
   ).toString();
+}
+
+/// One authored category heading. The label is the saved source text, or the
+/// localised "Other" for rows whose source supplied no category.
+class SupportingCategoryHeading extends StatelessWidget {
+  const SupportingCategoryHeading({super.key, required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 4, bottom: 8),
+    child: Semantics(header: true, child: Text(label, style: VitalType.record)),
+  );
 }
 
 class SupportingDisclosure extends StatelessWidget {

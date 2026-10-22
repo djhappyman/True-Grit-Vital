@@ -4289,7 +4289,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportPrivateHelp =>
-      'Your records are included. Notes stay private unless you include them.';
+      'Selected lab records include categories and source identifiers. Notes stay private unless selected.';
 
   @override
   String get exportPrivacy => 'Privacy';
@@ -5043,7 +5043,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportContextHelp =>
-      'Include supporting records from the selected period.';
+      'Include supporting records with saved categories and accession or report identifiers from the selected period.';
 
   @override
   String get reportNotes => 'Private notes';
@@ -7431,4 +7431,88 @@ class AppLocalizationsEn extends AppLocalizations {
   String featureEventsCounts(int recorded, int skipped) {
     return '$recorded recorded · $skipped skipped';
   }
+
+  @override
+  String get screenLabsCategory => 'Category';
+
+  @override
+  String get screenLabsCategoryHelp =>
+      'Copy a category from the source, or enter your own. Leave blank to group as Other.';
+
+  @override
+  String get screenLabsCategoryOther => 'Other';
+
+  @override
+  String get supportingAccession => 'Accession';
+
+  @override
+  String get supportingReportId => 'Report identifier';
+
+  @override
+  String screenLabsSparklineSummary(int count, String first, String last) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count exact results',
+      one: '1 exact result',
+    );
+    return '$_temp0 from $first to $last. Open Table for dates and values.';
+  }
+
+  @override
+  String get screenLabsSparklineExactOnly =>
+      'Dated exact values with matching units, laboratory, method and specimen.';
+
+  @override
+  String get screenLabsSparklineTable => 'Show trend dates and exact values';
+
+  @override
+  String get screenLabsSparklineDate => 'Date';
+
+  @override
+  String get screenLabsSparklineValue => 'Value';
+
+  @override
+  String get featureLabsEarlier => 'Previous result';
+
+  @override
+  String featureLabsEarlierValue(String value, String date) {
+    return 'Previous: $value. Collected $date.';
+  }
+
+  @override
+  String featureLabsChange(String value) {
+    return 'Change: $value.';
+  }
+
+  @override
+  String get featureLabsChangeUnavailable =>
+      'The exact change has no short decimal form.';
+
+  @override
+  String get featureLabsNoEarlier =>
+      'No comparable earlier result in the loaded window.';
+
+  @override
+  String get featureLabsEarlierLimited =>
+      'Earlier results are limited to 50 saved records before this panel. Older records may be outside this window.';
+
+  @override
+  String get featureLabsEarlierIncomplete =>
+      'Collection dates do not establish an unambiguous previous result.';
+
+  @override
+  String get featureLabsEarlierIncompatible =>
+      'Comparison needs an exact or qualitative value and matching units, laboratory, method and specimen.';
+
+  @override
+  String get featureLabsEarlierFailure =>
+      'Previous results could not load. Try again.';
+
+  @override
+  String get featureLabsEarlierLoading => 'Loading previous results.';
+
+  @override
+  String get featureLabsMetadataHelp =>
+      'Selected lab records include saved categories and accession or report identifiers. Notes stay private unless selected.';
 }
