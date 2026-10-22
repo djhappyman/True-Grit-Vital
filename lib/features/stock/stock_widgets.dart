@@ -3,6 +3,7 @@ import 'vial_preparation_editor.dart';
 import 'dart:async';
 
 import '../../app/device_zone.dart';
+import '../../app/app_lock.dart';
 import '../../app/display_preferences.dart';
 import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
@@ -335,11 +336,76 @@ class _StockForecastLineState extends ConsumerState<StockForecastLine> {
                       style: StitchType.caption.copyWith(color: colors.muted),
                     ),
                   ],
+                  if (forecast.projection case final projection?)
+                    StockForecastDetails(
+                      key: ValueKey((
+                        widget.container.personId,
+                        widget.container.id,
+                      )),
+                      projection: projection,
+                      unit: widget.container.unit,
+                      showBasis: !forecast.isAvailable,
+                    ),
                 ],
               ),
             );
           },
         );
+  }
+}
+
+/// Discloses exact conditional totals without creating a stock movement.
+class StockForecastDetails extends ConsumerWidget {
+  const StockForecastDetails({
+    super.key,
+    required this.projection,
+    required this.unit,
+    this.showBasis = true,
+  });
+
+  final StockForecastProjection projection;
+  final String unit;
+  final bool showBasis;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(appLockProvider.select((state) => state.locked))) {
+      return const SizedBox.shrink();
+    }
+    final t = AppLocalizations.of(context);
+    String quantity(ExactAmount value) =>
+        t.stockQuantity(stockExactAmountEntry(value), unit);
+    final remaining = projection.remaining;
+    return VitalDisclosure(
+      title: t.moreForecastDetails,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            t.moreForecastRange(
+              projection.from.toString(),
+              projection.through.toString(),
+              projection.zoneId,
+            ),
+            style: StitchType.caption,
+          ),
+          const SizedBox(height: 8),
+          Text(t.moreForecastOpening(quantity(projection.opening))),
+          Text(t.moreForecastPlanned(quantity(projection.planned))),
+          Text(
+            remaining < ExactAmount.zero
+                ? t.moreForecastShortfall(
+                    quantity(ExactAmount.zero - remaining),
+                  )
+                : t.moreForecastRemaining(quantity(remaining)),
+          ),
+          const SizedBox(height: 8),
+          if (showBasis)
+            Text(t.featureStockRunOutHelp, style: StitchType.caption),
+          Text(t.moreForecastAssumptions, style: StitchType.caption),
+        ],
+      ),
+    );
   }
 }
 

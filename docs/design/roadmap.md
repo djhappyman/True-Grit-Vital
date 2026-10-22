@@ -318,7 +318,7 @@ scanning, FHIR and physical-device gates remain open.
 | D18b | Open the original earlier lab record from a panel comparison | DeepSeek | In progress |
 | D16c | Prepare an event-specific report in the existing report editor | DeepSeek | In progress |
 | D19c | Jump directly to an exact date in History | DeepSeek | In progress |
-| D14d | Inspect exact projected quantities and forecast assumptions | Lead | In progress |
+| D14d | Inspect exact projected quantities and forecast assumptions | Lead | Host verified |
 
 Every slice retains the canonical screens, shared controls, copy and motion
 standards, exact records and guarded actions. Worker results require lead

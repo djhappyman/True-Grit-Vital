@@ -133,3 +133,12 @@ with a compact receipt-based status and the same destination. Shared controls,
 lock handling and disclosure motion remain in use. Both themes, narrow layouts
 and host navigation are covered in the
 [batch evidence](reviews/2026-10-22-next-five-direct/README.md).
+
+## Forecast inspection
+
+D14d uses the existing stock forecast's shared Details disclosure. Exact totals,
+inclusive dates and the resolved plan zone appear only after complete
+calculation; unsupported results expose no partial totals. The initial forecast
+keeps its conditional basis visible. Lock hides the expanded quantities, and
+the shared disclosure supplies focus and reduced-motion behavior.
+See [host evidence](reviews/2026-10-22-more-five/forecast-details/README.md).

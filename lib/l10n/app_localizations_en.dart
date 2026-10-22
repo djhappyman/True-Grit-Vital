@@ -8370,4 +8370,36 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get directRestockRestored =>
       'An unfinished stock change has been restored. Review it before saving.';
+
+  @override
+  String get moreForecastDetails => 'Details';
+
+  @override
+  String moreForecastRange(String from, String through, String zone) {
+    return '$from to $through, inclusive. Time zone: $zone.';
+  }
+
+  @override
+  String moreForecastOpening(String amount) {
+    return 'Stock now: $amount';
+  }
+
+  @override
+  String moreForecastPlanned(String amount) {
+    return 'Planned use: $amount';
+  }
+
+  @override
+  String moreForecastRemaining(String amount) {
+    return 'Remaining: $amount';
+  }
+
+  @override
+  String moreForecastShortfall(String amount) {
+    return 'Shortfall: $amount';
+  }
+
+  @override
+  String get moreForecastAssumptions =>
+      'Includes every planned dose on the final day. It does not predict unplanned use, waste or restocking.';
 }

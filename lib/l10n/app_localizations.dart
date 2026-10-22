@@ -13034,6 +13034,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An unfinished stock change has been restored. Review it before saving.'**
   String get directRestockRestored;
+
+  /// Disclosure for exact conditional stock-forecast quantities.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get moreForecastDetails;
+
+  /// Inclusive range and resolved plan zone for the conditional stock projection.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {through}, inclusive. Time zone: {zone}.'**
+  String moreForecastRange(String from, String through, String zone);
+
+  /// Exact captured starting balance with its full container unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock now: {amount}'**
+  String moreForecastOpening(String amount);
+
+  /// Exact sum of all planned use over the disclosed range, in the container unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned use: {amount}'**
+  String moreForecastPlanned(String amount);
+
+  /// Exact conditional remaining balance after all planned use in the range.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining: {amount}'**
+  String moreForecastRemaining(String amount);
+
+  /// Exact amount by which all planned use through the final day exceeds the captured balance; not an actual stock deficit.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortfall: {amount}'**
+  String moreForecastShortfall(String amount);
+
+  /// Limits of the conditional forecast totals; no recommendation or actual stock movement.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes every planned dose on the final day. It does not predict unplanned use, waste or restocking.'**
+  String get moreForecastAssumptions;
 }
 
 class _AppLocalizationsDelegate

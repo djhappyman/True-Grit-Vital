@@ -36,12 +36,16 @@ final class StockRunOutForecast {
     required this.date,
     required this.days,
     required this.plannedThrough,
+    this.projection,
   }) : reason = null,
        throughDate = null;
-  const StockRunOutForecast.unavailable(this.reason, {this.throughDate})
-    : date = null,
-      days = null,
-      plannedThrough = null;
+  const StockRunOutForecast.unavailable(
+    this.reason, {
+    this.throughDate,
+    this.projection,
+  }) : date = null,
+       days = null,
+       plannedThrough = null;
 
   final CivilDate? date;
   final int? days;
@@ -49,7 +53,29 @@ final class StockRunOutForecast {
   final CivilDate? throughDate;
   final CivilDate? plannedThrough;
 
+  /// Present only after every planned amount in the disclosed range resolves.
+  final StockForecastProjection? projection;
+
   bool get isAvailable => date != null;
+}
+
+/// Exact conditional use over an inclusive range in one resolved plan zone.
+///
+/// The final day includes all its planned use. A negative [remaining] is the
+/// shortfall for that day's plans, not an actual stock movement or dose advice.
+final class StockForecastProjection {
+  const StockForecastProjection({
+    required this.from,
+    required this.through,
+    required this.zoneId,
+    required this.opening,
+    required this.planned,
+  });
+
+  final CivilDate from, through;
+  final String zoneId;
+  final ExactAmount opening, planned;
+  ExactAmount get remaining => opening - planned;
 }
 
 /// Default bounded calculation window. The UI never prints this number as a
@@ -316,21 +342,49 @@ StockRunOutForecast forecastStockRunOut({
         date: date,
         days: day,
         plannedThrough: date,
+        projection: StockForecastProjection(
+          from: today.addDays(1),
+          through: date,
+          zoneId: zone,
+          opening: remainingAtStart,
+          planned: remainingAtStart - remaining,
+        ),
       );
     }
   }
   if (!planned) {
-    return const StockRunOutForecast.unavailable(
+    return StockRunOutForecast.unavailable(
       StockForecastReason.noPlannedUse,
+      projection: StockForecastProjection(
+        from: today.addDays(1),
+        through: horizonEnd,
+        zoneId: zone,
+        opening: remainingAtStart,
+        planned: ExactAmount.zero,
+      ),
     );
   }
   if (latestPlanEnd != null && latestPlanEnd.compareTo(horizonEnd) <= 0) {
     return StockRunOutForecast.unavailable(
       StockForecastReason.planEndsFirst,
       throughDate: latestPlanEnd,
+      projection: StockForecastProjection(
+        from: today.addDays(1),
+        through: latestPlanEnd,
+        zoneId: zone,
+        opening: remainingAtStart,
+        planned: remainingAtStart - remaining,
+      ),
     );
   }
-  return const StockRunOutForecast.unavailable(
+  return StockRunOutForecast.unavailable(
     StockForecastReason.completeAfterHorizon,
+    projection: StockForecastProjection(
+      from: today.addDays(1),
+      through: horizonEnd,
+      zoneId: zone,
+      opening: remainingAtStart,
+      planned: remainingAtStart - remaining,
+    ),
   );
 }

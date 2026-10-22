@@ -9750,13 +9750,37 @@
   "dashboardUnitRequired": "Choose or enter the unit on the label.",
   "dashboardEmpty": "Empty",
   "dashboardTakenCount": "{taken}/{planned} taken",
-  "@dashboardTakenCount": {"placeholders": {"taken": {"type": "int"}, "planned": {"type": "int"}}},
+  "@dashboardTakenCount": {
+    "placeholders": {
+      "taken": {
+        "type": "int"
+      },
+      "planned": {
+        "type": "int"
+      }
+    }
+  },
   "dashboardPlanPeriod": "Plan for {period}",
-  "@dashboardPlanPeriod": {"placeholders": {"period": {"type": "String"}}},
+  "@dashboardPlanPeriod": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
   "dashboardUnplannedSubtitle": "For medicine you take outside your schedule.",
   "dashboardSchedule": "Schedule",
   "dashboardPeriodRange": "{start} to {end}",
-  "@dashboardPeriodRange": {"placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "@dashboardPeriodRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "dashboardName": "Name",
   "directRestockTitle": "Restock",
   "directRestockNewPack": "New pack",
@@ -9770,5 +9794,64 @@
       }
     }
   },
-  "directRestockRestored": "An unfinished stock change has been restored. Review it before saving."
+  "directRestockRestored": "An unfinished stock change has been restored. Review it before saving.",
+  "moreForecastDetails": "Details",
+  "@moreForecastDetails": {
+    "description": "Disclosure for exact conditional stock-forecast quantities."
+  },
+  "moreForecastRange": "{from} to {through}, inclusive. Time zone: {zone}.",
+  "@moreForecastRange": {
+    "description": "Inclusive range and resolved plan zone for the conditional stock projection.",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "through": {
+        "type": "String"
+      },
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
+  "moreForecastOpening": "Stock now: {amount}",
+  "@moreForecastOpening": {
+    "description": "Exact captured starting balance with its full container unit.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moreForecastPlanned": "Planned use: {amount}",
+  "@moreForecastPlanned": {
+    "description": "Exact sum of all planned use over the disclosed range, in the container unit.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moreForecastRemaining": "Remaining: {amount}",
+  "@moreForecastRemaining": {
+    "description": "Exact conditional remaining balance after all planned use in the range.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moreForecastShortfall": "Shortfall: {amount}",
+  "@moreForecastShortfall": {
+    "description": "Exact amount by which all planned use through the final day exceeds the captured balance; not an actual stock deficit.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "moreForecastAssumptions": "Includes every planned dose on the final day. It does not predict unplanned use, waste or restocking.",
+  "@moreForecastAssumptions": {
+    "description": "Limits of the conditional forecast totals; no recommendation or actual stock movement."
+  }
 }
