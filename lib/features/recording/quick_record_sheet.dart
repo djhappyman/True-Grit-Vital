@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../app/app_lock.dart';
 import '../../app/display_preferences.dart';
 import '../../app/storage.dart';
 import '../../data/record_store.dart';
@@ -11,6 +12,7 @@ import '../../l10n/app_localizations.dart';
 import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 import '../substances/substance_collection.dart';
+import 'quick_entry_context.dart';
 import 'record_pages.dart';
 
 /// One task route: searchable identity choice, minimal creation or the existing
@@ -24,11 +26,30 @@ class QuickRecordSheet extends ConsumerStatefulWidget {
 
 class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
   final search = TextEditingController();
+  late QuickEntryContext entry;
   int offset = 0;
+  String? acceptedLocation;
+  String? storeGeneration;
+  bool navigating = false, seeding = false, stale = false;
+
   @override
   void initState() {
     super.initState();
-    search.addListener(() => setState(() => offset = 0));
+    entry = QuickEntryContext.parse(widget.location);
+    storeGeneration = ref.read(recordStoreProvider).value?.generation;
+    _seed();
+    search.addListener(_searchChanged);
+  }
+
+  @override
+  void didUpdateWidget(QuickRecordSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.location == widget.location) return;
+    entry = QuickEntryContext.parse(widget.location);
+    acceptedLocation = null;
+    navigating = false;
+    stale = false;
+    _seed();
   }
 
   @override
@@ -37,37 +58,205 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
     super.dispose();
   }
 
+  void _seed() {
+    final uri = Uri.tryParse(widget.location);
+    final seed = uri == null ? (query: '', offset: 0) : quickEntryListSeed(uri);
+    seeding = true;
+    search.text = seed.query;
+    seeding = false;
+    offset = seed.offset;
+  }
+
+  void _searchChanged() {
+    if (seeding) return;
+    setState(() {
+      offset = 0;
+      stale = false;
+    });
+  }
+
+  /// One replacement navigation per tap. A locked, non-current or replaced
+  /// dataset route never advances, and a double tap cannot queue a second task.
+  void _go(String location) {
+    if (navigating || !mounted) return;
+    if (ref.read(appLockProvider).locked) return;
+    if (ModalRoute.of(context)?.isCurrent == false) return;
+    final generation = ref.read(recordStoreProvider).value?.generation;
+    if (generation == null) return;
+    if (storeGeneration == null) {
+      storeGeneration = generation;
+    } else if (storeGeneration != generation) {
+      setState(() {
+        storeGeneration = generation;
+        stale = true;
+        offset = 0;
+      });
+      return;
+    }
+    setState(() {
+      navigating = true;
+      stale = false;
+    });
+    context.replace(location);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => navigating = false);
+    });
+  }
+
+  VoidCallback _guardAction(VoidCallback action) {
+    final store = ref.read(recordStoreProvider).value;
+    final lock = ref.read(appLockProvider);
+    return () {
+      if (!mounted ||
+          lock.locked ||
+          !identical(ref.read(appLockProvider), lock) ||
+          !identical(ref.read(recordStoreProvider).value, store) ||
+          ModalRoute.of(context)?.isCurrent == false) {
+        return;
+      }
+      action();
+    };
+  }
+
+  void _accept() {
+    if (navigating) return;
+    if (ref.read(appLockProvider).locked) return;
+    if (ModalRoute.of(context)?.isCurrent == false) return;
+    setState(() => acceptedLocation = widget.location);
+  }
+
+  void _listenForStoreReplacement() {
+    ref.listen(recordStoreProvider.select((value) => value.value?.generation), (
+      previous,
+      next,
+    ) {
+      if (next == null || previous == next) return;
+      if (storeGeneration == null) {
+        storeGeneration = next;
+        return;
+      }
+      if (!mounted) return;
+      setState(() {
+        storeGeneration = next;
+        stale = true;
+        offset = 0;
+      });
+    });
+  }
+
+  String _issueText(AppLocalizations t, QuickEntryIssue issue) =>
+      switch (issue) {
+        QuickEntryIssue.invalidLocation => t.batch15T12LinkInvalid,
+        QuickEntryIssue.duplicateDay ||
+        QuickEntryIssue.duplicateTime ||
+        QuickEntryIssue.duplicateItem => t.batch15T12DuplicateOption,
+        QuickEntryIssue.invalidDay => t.batch15T12DayInvalid,
+        QuickEntryIssue.invalidTime => t.batch15T12TimeInvalid,
+        QuickEntryIssue.timeWithoutPlan => t.batch15T12TimeWithoutPlan,
+        QuickEntryIssue.invalidItem =>
+          entry.createNew || entry.plan
+              ? t.batch15T12ItemInvalidTask
+              : t.batch15T12ItemInvalid,
+        QuickEntryIssue.invalidNewFlag ||
+        QuickEntryIssue.invalidPlanFlag => t.batch15T12OptionInvalid,
+        QuickEntryIssue.newAndItem => t.batch15T12ChoiceItemNew,
+        QuickEntryIssue.planAndItem => t.batch15T12ChoiceItemPlan,
+      };
+
+  List<Widget> _issueMessages(AppLocalizations t) => [
+    for (final issue in entry.issues)
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Semantics(liveRegion: true, child: Text(_issueText(t, issue))),
+      ),
+  ];
+
+  Widget _staleNotice(AppLocalizations t) => stale
+      ? Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Semantics(liveRegion: true, child: Text(t.batch15T12Stale)),
+        )
+      : const SizedBox.shrink();
+
+  Widget _issuePage(AppLocalizations t) => EntryPage(
+    panelled: false,
+    children: [
+      Heading(t.batch15T12LinkHeading),
+      ..._issueMessages(t),
+      if (stale) _staleNotice(t),
+      const SizedBox(height: 8),
+      VitalButton(
+        onPressed: navigating ? null : _guardAction(_accept),
+        child: Text(t.batch15T12Continue),
+      ),
+    ],
+  );
+
+  Widget _choicePage(AppLocalizations t) {
+    Widget action(String label, String location, {bool primary = false}) {
+      final onPressed = _guardAction(() => _go(location));
+      return primary
+          ? VitalButton(onPressed: onPressed, child: Text(label))
+          : VitalButton.secondary(onPressed: onPressed, child: Text(label));
+    }
+
+    return EntryPage(
+      panelled: false,
+      children: [
+        Heading(t.batch15T12LinkHeading),
+        ..._issueMessages(t),
+        if (stale) _staleNotice(t),
+        const SizedBox(height: 8),
+        if (entry.createNew) ...[
+          action(
+            t.create,
+            quickEntryCreateLocation(entry),
+            primary: entry.createNew,
+          ),
+          const SizedBox(height: 8),
+        ],
+        if (entry.plan && entry.itemId != null) ...[
+          action(
+            t.batch15T12PlanAction,
+            quickEntryPlanLocation(entry),
+            primary: !entry.createNew,
+          ),
+          const SizedBox(height: 8),
+        ],
+        if (entry.itemId != null)
+          action(
+            t.record,
+            quickEntryRecordLocation(entry),
+            primary: !entry.createNew && !entry.plan,
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final parameters = Uri.parse(widget.location).queryParameters;
-    final day = DateTime.tryParse(parameters['day'] ?? '');
-    final selected = day == null || day.year < 1 || day.year > 9999
-        ? null
-        : CivilDate.fromDateTime(day);
-    final plan = parameters['plan'] == '1';
-    final time =
-        RegExp(r'^(?:[01][0-9]|2[0-3]):[0-5][0-9]$')
-            .hasMatch(parameters['time'] ?? '')
-        ? parameters['time']
-        : null;
-    if (parameters['new'] == '1') {
+    if (entry.hasIssues && acceptedLocation != widget.location) {
+      return entry.needsChoice ? _choicePage(t) : _issuePage(t);
+    }
+    if (entry.createNew) {
       return ItemForm(
         key: ValueKey(widget.location),
         quick: true,
-        day: selected,
-        plan: plan,
-        initialTime: time,
+        day: entry.day,
+        plan: entry.plan,
+        initialTime: entry.time,
       );
     }
-    if (parameters['item'] case final id?) {
+    if (entry.itemId case final id?) {
       return DoseForm(
-        key: ValueKey(id),
+        key: ValueKey(widget.location),
         itemId: id,
-        initialDay: selected,
+        initialDay: entry.day,
         returnLocation: '/today',
       );
     }
+    _listenForStoreReplacement();
     final query = SubstancesPageQuery(
       scope: const FeedScope.me(),
       search: search.text.trim(),
@@ -78,27 +267,18 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
     return EntryPage(
       panelled: false,
       children: [
-        Heading(plan ? t.dashboardPlanTitle : t.dashboardQuickTitle),
+        Heading(entry.plan ? t.dashboardPlanTitle : t.dashboardQuickTitle),
         Text(
-          plan ? t.dashboardPlanHelp : t.dashboardQuickHelp,
+          entry.plan ? t.dashboardPlanHelp : t.dashboardQuickHelp,
           style: StitchType.caption,
         ),
+        if (stale) _staleNotice(t),
         const SizedBox(height: 16),
         LabelledInput(label: t.search, controller: search),
         const SizedBox(height: 8),
         VitalButton.secondary(
           leading: const Icon(LucideIcons.plus),
-          onPressed: () => context.replace(
-            Uri(
-              path: '/unplanned',
-              queryParameters: {
-                'new': '1',
-                if (plan) 'plan': '1',
-                'time': ?time,
-                if (selected != null) 'day': selected.toString(),
-              },
-            ).toString(),
-          ),
+          onPressed: _guardAction(() => _go(quickEntryCreateLocation(entry))),
           child: Text(t.create),
         ),
         const SizedBox(height: 16),
@@ -109,43 +289,32 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
             onRetry: () => ref.invalidate(substancesPageProvider(query)),
           )
         else ...[
-          for (final item in items.requireValue.take(50)) ...[
+          for (final item in items.requireValue.take(quickEntryPageSize)) ...[
             VitalButton.secondary(
               multiline: true,
-              onPressed: () => plan
-                  ? context.replace(
-                      Uri(
-                        path: '/schedule/${item.id}',
-                        queryParameters: {
-                          if (selected != null) 'start': selected.toString(),
-                          'time': ?time,
-                        },
-                      ).toString(),
-                    )
-                  : context.replace(
-                      Uri(
-                        path: '/unplanned',
-                        queryParameters: {
-                          'item': item.id,
-                          if (selected != null) 'day': selected.toString(),
-                        },
-                      ).toString(),
-                    ),
+              onPressed: _guardAction(
+                () => _go(
+                  entry.plan
+                      ? quickEntryPlanLocation(entry, itemId: item.id)
+                      : quickEntryRecordLocation(entry, itemId: item.id),
+                ),
+              ),
               child: Text(item.name),
             ),
             const SizedBox(height: 8),
           ],
           if (items.requireValue.isEmpty)
             Text(t.historyNoOptions, style: StitchType.caption),
-          if (items.requireValue.length > 50)
+          if (items.requireValue.length > quickEntryPageSize)
             VitalButton.secondary(
-              onPressed: () => setState(() => offset += 50),
+              onPressed: () => setState(() => offset += quickEntryPageSize),
               child: Text(t.more),
             ),
           if (offset > 0)
             VitalButton.secondary(
-              onPressed: () =>
-                  setState(() => offset = (offset - 50).clamp(0, offset)),
+              onPressed: () => setState(
+                () => offset = (offset - quickEntryPageSize).clamp(0, offset),
+              ),
               child: Text(t.back),
             ),
         ],

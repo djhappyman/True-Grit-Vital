@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform;
+    show TargetPlatform, defaultTargetPlatform, immutable;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +9,7 @@ import '../data/record_store.dart';
 import '../domain/privacy/diagnostics.dart';
 import '../domain/privacy/licences.dart';
 import '../domain/privacy/settings_capabilities.dart';
+import 'app_lock.dart';
 import 'storage.dart';
 import 'generated_artifacts.dart';
 
@@ -72,6 +73,23 @@ final diagnosticEventsProvider = FutureProvider<List<DiagnosticEvent>>(
   },
 );
 
+/// The owner revision and dataset generation one delete confirmation belongs
+/// to. A replaced dataset can reuse the same person ID and revision, so the
+/// generation is part of the captured authority rather than a display detail.
+@immutable
+final class ProfileDeleteAuthority {
+  const ProfileDeleteAuthority({
+    required this.generation,
+    required this.personRevision,
+  });
+
+  final String generation;
+  final int personRevision;
+
+  bool matches({required String? generation, required int? personRevision}) =>
+      generation == this.generation && personRevision == this.personRevision;
+}
+
 /// Small injectable boundary for the destructive data-management actions so a
 /// failed write can be tested honestly without faking a successful store.
 abstract interface class ProfilePrivacyActions {
@@ -79,26 +97,79 @@ abstract interface class ProfilePrivacyActions {
     required String commandId,
     required String personId,
     required int expectedRevision,
+    required String expectedGeneration,
+    bool Function()? actionCurrent,
   });
 }
 
 final class StoreProfilePrivacyActions implements ProfilePrivacyActions {
-  StoreProfilePrivacyActions(this._store, {this.beforeDelete});
+  StoreProfilePrivacyActions(
+    this._store, {
+    this.beforeDelete,
+    this.canCommit,
+    this.captureGuard,
+  });
 
   final Future<RecordStore> Function() _store;
   final Future<void> Function()? beforeDelete;
+  final bool Function()? canCommit;
+  final bool Function() Function()? captureGuard;
+
+  void _requireOpen() {
+    if (canCommit != null && !canCommit!()) {
+      throw const CommandConflict('app_locked');
+    }
+  }
+
+  void _requireSameDataset(RecordStore store, String expectedGeneration) {
+    // The store's own command transaction also binds to its generation. This
+    // earlier check stops a confirmation captured from an older dataset before
+    // any generated-copy cleanup starts.
+    if (store.generation != expectedGeneration) {
+      throw const CommandConflict('generation');
+    }
+  }
 
   @override
   Future<void> delete({
     required String commandId,
     required String personId,
     required int expectedRevision,
+    required String expectedGeneration,
+    bool Function()? actionCurrent,
   }) async {
+    final captured = captureGuard?.call();
+    bool current() =>
+        (captured?.call() ?? true) &&
+        (actionCurrent?.call() ?? true) &&
+        (canCommit?.call() ?? true);
+    void requireCurrent() {
+      _requireOpen();
+      if (!current()) throw const CommandConflict('app_locked');
+    }
+
+    requireCurrent();
+    final store = await _store();
+    _requireSameDataset(store, expectedGeneration);
+    // The store rechecks the owner revision inside its command transaction,
+    // after its idempotent replay check. Keeping that ordering lets an exact
+    // retry of a committed command replay instead of looking like a conflict.
+    requireCurrent();
     await beforeDelete?.call();
-    await (await _store()).deleteProfile(
+    requireCurrent();
+    // Cleanup can await. Resolve the live store again so a replacement during
+    // it cannot pass the captured generation into the writer.
+    final live = await _store();
+    if (!identical(live, store)) {
+      throw const CommandConflict('generation');
+    }
+    _requireSameDataset(live, expectedGeneration);
+    requireCurrent();
+    await live.deleteProfile(
       commandId: commandId,
       personId: personId,
       expectedRevision: expectedRevision,
+      canCommit: current,
     );
   }
 }
@@ -107,6 +178,16 @@ final profilePrivacyActionsProvider = Provider<ProfilePrivacyActions>(
   (ref) => StoreProfilePrivacyActions(
     () => ref.read(recordStoreProvider.future),
     beforeDelete: () => prepareGeneratedArtifactsForDataChange(ref),
+    canCommit: () => ref.mounted && !ref.read(appLockProvider).locked,
+    captureGuard: () {
+      final lock = ref.read(appLockProvider);
+      final store = ref.read(recordStoreProvider).value;
+      return () =>
+          ref.mounted &&
+          !ref.read(appLockProvider).locked &&
+          identical(ref.read(appLockProvider), lock) &&
+          identical(ref.read(recordStoreProvider).value, store);
+    },
   ),
 );
 

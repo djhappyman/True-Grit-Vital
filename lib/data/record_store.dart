@@ -819,11 +819,21 @@ final class RecordStore {
     required String commandId,
     required String personId,
     required int expectedRevision,
+    bool Function()? canCommit,
+    Future<void> Function()? beforeCommit,
   }) async {
+    void requireAuthority() {
+      if (canCommit != null && !canCommit()) {
+        throw const CommandConflict('app_locked');
+      }
+    }
+
+    requireAuthority();
     await _command(
       commandId,
       ['profile_delete', personId, expectedRevision],
       () async {
+        requireAuthority();
         final current = await profileById(personId);
         if (current == null || current.revision != expectedRevision) {
           throw const CommandConflict('person_context');
@@ -887,6 +897,10 @@ final class RecordStore {
         }
         await _resetScope(personId);
         return {'person': personId, 'deleted': true};
+      },
+      beforeCommit: () async {
+        await beforeCommit?.call();
+        requireAuthority();
       },
     );
     // Association/ownership deletion is already committed. Reclaim only a

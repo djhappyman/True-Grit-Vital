@@ -1,0 +1,58 @@
+{
+  "baseline": "cdefb2a",
+  "scope": "Host integration checks; earlier task checks recorded in individual evidence. Not a full-suite or physical-device claim.",
+  "tests": [
+    {
+      "log": "T06-lead-final.log",
+      "passed": 30,
+      "note": "Scopes overlap; do not sum as unique tests."
+    },
+    {
+      "log": "T12-final.log",
+      "passed": 28,
+      "note": "Scopes overlap; do not sum as unique tests."
+    },
+    {
+      "log": "data-metadata-final2.log",
+      "passed": 28,
+      "note": "Scopes overlap; do not sum as unique tests."
+    },
+    {
+      "log": "movement-privacy-final.log",
+      "passed": 29,
+      "note": "Scopes overlap; do not sum as unique tests."
+    },
+    {
+      "log": "final-guards.log",
+      "passed": 37,
+      "note": "Scopes overlap; do not sum as unique tests."
+    },
+    {
+      "log": "final-data-regressions.log",
+      "passed": 23,
+      "note": "Scopes overlap; do not sum as unique tests."
+    },
+    {
+      "log": "T08-final-captures.log",
+      "passed": 2,
+      "note": "Scopes overlap; do not sum as unique tests."
+    },
+    {
+      "log": "T06-final-captures.log",
+      "passed": 2,
+      "note": "Scopes overlap; do not sum as unique tests."
+    },
+    {
+      "log": "T12-captures.log",
+      "passed": 1,
+      "note": "Scopes overlap; do not sum as unique tests."
+    },
+    {
+      "log": "T09-final-captures.log",
+      "passed": 1,
+      "note": "Scopes overlap; do not sum as unique tests."
+    }
+  ],
+  "analysis": "combined-analysis-final.log: No issues found",
+  "native": "native-result.json"
+}

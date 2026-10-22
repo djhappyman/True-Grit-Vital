@@ -8769,4 +8769,145 @@ class AppLocalizationsEn extends AppLocalizations {
   String batch15T05PresetEditSemantic(String amount, String unit) {
     return 'Edit saved amount $amount $unit';
   }
+
+  @override
+  String get batch15T06DateShortcuts => 'Date shortcuts';
+
+  @override
+  String get batch15T06RangeUnavailable =>
+      'The date range cannot be shown. Check the device date, then try again.';
+
+  @override
+  String get batch15T08FilterLabel => 'Movement kinds';
+
+  @override
+  String get batch15T08FilterAll => 'All';
+
+  @override
+  String get batch15T08FilterRecorded => 'Recorded';
+
+  @override
+  String get batch15T08FilterRestock => 'Restock';
+
+  @override
+  String get batch15T08FilterWaste => 'Waste';
+
+  @override
+  String get batch15T08FilterMeasured => 'Measured';
+
+  @override
+  String get batch15T08FilterCorrections => 'Corrections';
+
+  @override
+  String get batch15T08Reset => 'Reset';
+
+  @override
+  String get batch15T08NoMatches => 'No movements match this filter.';
+
+  @override
+  String get batch15T09FirstSaved => 'First saved version.';
+
+  @override
+  String get batch15T09NoChanges => 'No details changed.';
+
+  @override
+  String get batch15T09PreviousUnavailable =>
+      'Previous version unavailable, so changes are not shown.';
+
+  @override
+  String get batch15T09PredecessorCarriedForward =>
+      'The previous version was carried forward. Its details were not recorded.';
+
+  @override
+  String batch15T09FieldAdded(String field, String value) {
+    return '$field: $value (added)';
+  }
+
+  @override
+  String batch15T09FieldRecorded(String field, String value) {
+    return '$field: $value (first recorded)';
+  }
+
+  @override
+  String batch15T09FieldCleared(String field, String value) {
+    return '$field cleared. Was $value.';
+  }
+
+  @override
+  String batch15T09FieldChanged(String field, String before, String after) {
+    return '$field: $before, now $after';
+  }
+
+  @override
+  String batch15T09NotSet(String field) {
+    return '$field: not set';
+  }
+
+  @override
+  String batch15T09NotRecorded(String field) {
+    return '$field: not recorded';
+  }
+
+  @override
+  String get batch15T09Snapshot => 'Saved details';
+
+  @override
+  String get batch15T12LinkHeading => 'Link problem';
+
+  @override
+  String get batch15T12DayInvalid =>
+      'The day in this link is not valid. Continue with today instead.';
+
+  @override
+  String get batch15T12TimeInvalid =>
+      'The time in this link is not valid. Continue without a suggested time.';
+
+  @override
+  String get batch15T12ItemInvalidTask =>
+      'The item in this link is not valid. Continue without it.';
+
+  @override
+  String get batch15T12TimeWithoutPlan =>
+      'A suggested time needs a dose plan. Continue without the time.';
+
+  @override
+  String get batch15T12ItemInvalid =>
+      'The item in this link is not valid. Choose an item.';
+
+  @override
+  String get batch15T12DuplicateOption =>
+      'This link repeats an option. Continue with the default.';
+
+  @override
+  String get batch15T12OptionInvalid =>
+      'This link has an unknown option. Continue with the default.';
+
+  @override
+  String get batch15T12ChoiceItemNew =>
+      'This link asks to record an existing item and create a new item. Choose one.';
+
+  @override
+  String get batch15T12ChoiceItemPlan =>
+      'This link asks to plan the item and record it. Choose one.';
+
+  @override
+  String get batch15T12Continue => 'Continue';
+
+  @override
+  String get batch15T12PlanAction => 'Plan';
+
+  @override
+  String get batch15T12Stale => 'Your records changed. Choose the item again.';
+
+  @override
+  String get batch15T12LinkInvalid =>
+      'This link could not be read. Choose an item.';
+
+  @override
+  String get batch15T13PrivacyChanged =>
+      'Records changed. Review the latest records before trying again.';
+
+  @override
+  String get batch15T13PrivacyLocked =>
+      'Vital locked before the change. Nothing was deleted.';
 }

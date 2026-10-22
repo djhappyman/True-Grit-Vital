@@ -72,3 +72,13 @@
 6. **Concurrent work:** T01–T14 address backup isolation, attachment authority, report date/seed validation, catalogue search, presets, export date shortcuts, trend source return, pre-paged movement filtering, metadata diffs, site context, plan preview, quick-entry dates, privacy confirmation and reminder-cancellation copy. Final acceptance must be rechecked after the lead integrates them; this audit does not credit them.
 
 Skills read: `flutter-expert` (SKILL plus riverpod-state, widget-patterns, gorouter-navigation, performance, project-structure), `codebase-memory`, `verification-before-completion`, `dart-add-unit-test`, `dart-run-static-analysis`, `flutter-add-widget-test`, `flutter-apply-architecture-best-practices`, `flutter-build-responsive-layout`, `accessibility-compliance`, `vital-mobile-copy`, `better-writing`, `interaction-design`, `ui-ux-pro-max`. Graph coverage was rechecked for the cited `lib/` and Android paths; `tool/verify`, `app_en.arb` and the gitignored evidence docs were read directly. Docs/implementation evidence and `.scratch` are gitignored by design and were read from the parent; source citations resolve in this checkout.
+
+
+## Lead reconciliation, 23 October
+
+T01–T14 are now integrated with focused host verification; T15 is the completed
+bounded audit. The [final batch review](../README.md) records concrete outcomes,
+combined checks and remaining work. The baseline inventory counts and gate
+states above are historical evidence, not updated completion percentages. No
+physical, clinical-policy, catalogue-admission or distribution gate was closed
+by this integration.

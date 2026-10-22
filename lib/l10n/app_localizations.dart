@@ -13616,6 +13616,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit saved amount {amount} {unit}'**
   String batch15T05PresetEditSemantic(String amount, String unit);
+
+  /// Heading above the 30 day, 90 day and year shortcuts in Export.
+  ///
+  /// In en, this message translates to:
+  /// **'Date shortcuts'**
+  String get batch15T06DateShortcuts;
+
+  /// Recovery message when the device date or time zone cannot produce a representable export range.
+  ///
+  /// In en, this message translates to:
+  /// **'The date range cannot be shown. Check the device date, then try again.'**
+  String get batch15T06RangeUnavailable;
+
+  /// Accessible group label for the stock movement kind filters. The selected choice stays visible in the chip row.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement kinds'**
+  String get batch15T08FilterLabel;
+
+  /// Stock movement filter choice that shows every saved movement kind. This is the default.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get batch15T08FilterAll;
+
+  /// Stock movement filter choice for recorded doses that used this container.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded'**
+  String get batch15T08FilterRecorded;
+
+  /// Stock movement filter choice for restock movements.
+  ///
+  /// In en, this message translates to:
+  /// **'Restock'**
+  String get batch15T08FilterRestock;
+
+  /// Stock movement filter choice for waste movements.
+  ///
+  /// In en, this message translates to:
+  /// **'Waste'**
+  String get batch15T08FilterWaste;
+
+  /// Stock movement filter choice for measured reconciliation movements.
+  ///
+  /// In en, this message translates to:
+  /// **'Measured'**
+  String get batch15T08FilterMeasured;
+
+  /// Stock movement filter choice for corrections to earlier recorded-use or waste movements.
+  ///
+  /// In en, this message translates to:
+  /// **'Corrections'**
+  String get batch15T08FilterCorrections;
+
+  /// One-word command that returns the stock movement filter to All.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get batch15T08Reset;
+
+  /// Truthful empty state for a selected stock movement kind with no saved rows. The selected chip remains visible and Reset stays available.
+  ///
+  /// In en, this message translates to:
+  /// **'No movements match this filter.'**
+  String get batch15T08NoMatches;
+
+  /// Marks the first authored container details version, which has no earlier revision to compare.
+  ///
+  /// In en, this message translates to:
+  /// **'First saved version.'**
+  String get batch15T09FirstSaved;
+
+  /// A saved details version whose lot, expiry and capacity all match the immediately previous version.
+  ///
+  /// In en, this message translates to:
+  /// **'No details changed.'**
+  String get batch15T09NoChanges;
+
+  /// A later saved details version whose exact predecessor is not in the loaded page. No old value is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous version unavailable, so changes are not shown.'**
+  String get batch15T09PreviousUnavailable;
+
+  /// The immediately previous version came from the schema migration, so its empty details are not an authored clearing action.
+  ///
+  /// In en, this message translates to:
+  /// **'The previous version was carried forward. Its details were not recorded.'**
+  String get batch15T09PredecessorCarriedForward;
+
+  /// A saved pack-detail field that was absent in the previous comparable version and now has a value.
+  ///
+  /// In en, this message translates to:
+  /// **'{field}: {value} (added)'**
+  String batch15T09FieldAdded(String field, String value);
+
+  /// A saved pack-detail field whose earlier version was carried forward without recorded details, so this is its first recorded value.
+  ///
+  /// In en, this message translates to:
+  /// **'{field}: {value} (first recorded)'**
+  String batch15T09FieldRecorded(String field, String value);
+
+  /// A saved pack-detail field that had a value in the previous comparable version and is now absent.
+  ///
+  /// In en, this message translates to:
+  /// **'{field} cleared. Was {value}.'**
+  String batch15T09FieldCleared(String field, String value);
+
+  /// A saved pack-detail field with two exact known values in adjacent comparable versions.
+  ///
+  /// In en, this message translates to:
+  /// **'{field}: {before}, now {after}'**
+  String batch15T09FieldChanged(String field, String before, String after);
+
+  /// A field left empty in an authored container details version.
+  ///
+  /// In en, this message translates to:
+  /// **'{field}: not set'**
+  String batch15T09NotSet(String field);
+
+  /// A field absent in a version carried forward by the schema migration. It was never authored.
+  ///
+  /// In en, this message translates to:
+  /// **'{field}: not recorded'**
+  String batch15T09NotRecorded(String field);
+
+  /// Disclosure title for the complete saved facts of one container details version.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved details'**
+  String get batch15T09Snapshot;
+
+  /// Quick-entry recovery heading for a supplied route whose day, time, item or task flags cannot be used exactly as given.
+  ///
+  /// In en, this message translates to:
+  /// **'Link problem'**
+  String get batch15T12LinkHeading;
+
+  /// Explicit recovery after an impossible or malformed quick-entry day, such as 30 February. The day is not normalised to a neighbouring date.
+  ///
+  /// In en, this message translates to:
+  /// **'The day in this link is not valid. Continue with today instead.'**
+  String get batch15T12DayInvalid;
+
+  /// Explicit recovery after a malformed quick-entry time. No time is suggested; the actual time remains editable.
+  ///
+  /// In en, this message translates to:
+  /// **'The time in this link is not valid. Continue without a suggested time.'**
+  String get batch15T12TimeInvalid;
+
+  /// Quick-entry recovery when a bad item parameter arrives alongside an explicit new-item or planning task. The task continues without the unusable item.
+  ///
+  /// In en, this message translates to:
+  /// **'The item in this link is not valid. Continue without it.'**
+  String get batch15T12ItemInvalidTask;
+
+  /// Quick-entry recovery when a time is supplied for the recording flow, which uses its own actual-time field.
+  ///
+  /// In en, this message translates to:
+  /// **'A suggested time needs a dose plan. Continue without the time.'**
+  String get batch15T12TimeWithoutPlan;
+
+  /// Explicit recovery when the quick-entry item parameter is empty or malformed.
+  ///
+  /// In en, this message translates to:
+  /// **'The item in this link is not valid. Choose an item.'**
+  String get batch15T12ItemInvalid;
+
+  /// Quick-entry recovery when the same route parameter is supplied more than once and the intended value is ambiguous.
+  ///
+  /// In en, this message translates to:
+  /// **'This link repeats an option. Continue with the default.'**
+  String get batch15T12DuplicateOption;
+
+  /// Quick-entry recovery when a new or plan flag is not 0 or 1.
+  ///
+  /// In en, this message translates to:
+  /// **'This link has an unknown option. Continue with the default.'**
+  String get batch15T12OptionInvalid;
+
+  /// Quick-entry decision when the route supplies both an item and the new-item flag. Neither task is chosen silently.
+  ///
+  /// In en, this message translates to:
+  /// **'This link asks to record an existing item and create a new item. Choose one.'**
+  String get batch15T12ChoiceItemNew;
+
+  /// Quick-entry decision when the route supplies both an item and the plan flag. Recording and planning are different tasks.
+  ///
+  /// In en, this message translates to:
+  /// **'This link asks to plan the item and record it. Choose one.'**
+  String get batch15T12ChoiceItemPlan;
+
+  /// One-word action acknowledging explicit quick-entry recovery and using the safe default.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get batch15T12Continue;
+
+  /// One-word quick-entry choice for the planning flow, distinct from recording the same item.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get batch15T12PlanAction;
+
+  /// Quick-entry notice when a restored or replaced dataset changes the store generation while the chooser is open. The list is shown again rather than opening a stale item.
+  ///
+  /// In en, this message translates to:
+  /// **'Your records changed. Choose the item again.'**
+  String get batch15T12Stale;
+
+  /// Quick-entry recovery when the supplied route text cannot be parsed at all.
+  ///
+  /// In en, this message translates to:
+  /// **'This link could not be read. Choose an item.'**
+  String get batch15T12LinkInvalid;
+
+  /// Refusal when the confirmed delete no longer matches the live dataset, store or owner revision. It does not claim an outcome for an earlier uncertain attempt.
+  ///
+  /// In en, this message translates to:
+  /// **'Records changed. Review the latest records before trying again.'**
+  String get batch15T13PrivacyChanged;
+
+  /// Refusal when a delete confirmation spans a lock or unlock. States plainly that no deletion ran.
+  ///
+  /// In en, this message translates to:
+  /// **'Vital locked before the change. Nothing was deleted.'**
+  String get batch15T13PrivacyLocked;
 }
 
 class _AppLocalizationsDelegate

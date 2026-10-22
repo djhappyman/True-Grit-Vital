@@ -199,3 +199,18 @@ Retry affects that label only; exact ledger scope stays selected. Local return
 links are checked against registered routes, and inactive History does not
 capture Back after a tab switch. Existing dated membership and event bounds
 retain their meaning. [Host evidence](reviews/2026-10-22-third-five/d16d/README.md).
+
+## Fifteen-task follow-through, 23 October
+
+Catalogue search uses the shared input with debounce and immediate Search/Clear.
+Preset editing uses a short guarded dialog. Export date shortcuts leave review
+and Save explicit. Stock filters remain within the existing history surface;
+metadata snapshots use the shared disclosure. Trend/site sources retain their
+canonical viewers and return context. Quick entry reuses the current editors
+with strict route validation. Delete records retains the shared dialog, safe
+initial focus and captured transaction authority. Reminder cancellation facts
+remain under Details. These tasks add no screens or motion exceptions.
+
+Host checks include both themes, narrow/large text, dismissal, keyboard and the
+relevant draft/lock/navigation cases. The [batch review](reviews/2026-10-22-fifteen/README.md)
+records evidence and limits; physical accessibility/performance gates stay open.

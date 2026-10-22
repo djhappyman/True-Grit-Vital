@@ -5,28 +5,29 @@
 Owner authorised three Sol 6.1 workers, two OpenCode-hosted DeepSeek workers
 and ten direct-API DeepSeek workers concurrently, based on `cdefb2a`.
 Fourteen implementation/hardening packages and one original-plan acceptance
-audit are assigned below. Assignment is not a completion or release claim.
+audit are integrated below. Host verification does not close release gates.
 
 | Task | Scope | Lane | State |
 | --- | --- | --- | --- |
-| T01 | Isolate protected backup snapshot database lifetimes | Sol 6.1 | Assigned |
-| T02 | Guard protected file actions across lifecycle changes | Sol 6.1 | Assigned |
-| T03 | Unify safe report date and seed validation | Sol 6.1 | Assigned |
-| T04 | Make catalogue search cancellable and calm | OpenCode DeepSeek Free | Assigned |
-| T05 | Edit saved exact dose presets | OpenCode DeepSeek Free | Assigned |
-| T06 | Add reviewable export date shortcuts | Direct DeepSeek | Assigned |
-| T07 | Preserve exact lab trend source context | Direct DeepSeek | Assigned |
-| T08 | Filter stock movements before paging | Direct DeepSeek | Assigned |
-| T09 | Explain changes in stock metadata history | Direct DeepSeek | Assigned |
-| T10 | Inspect recorded injection-site history | Direct DeepSeek | Assigned |
-| T11 | Show exact seven-day plan preview totals | Direct DeepSeek | Assigned |
-| T12 | Reject invalid quick-entry dates and preserve task context | Direct DeepSeek | Assigned |
-| T13 | Fence destructive privacy confirmation to its dataset | Direct DeepSeek | Assigned |
-| T14 | Explain pending reminder cancellations | Direct DeepSeek | Assigned |
-| T15 | Reconcile the roadmap and original 28-step acceptance plan | Direct DeepSeek | Assigned |
+| T01 | Isolate protected backup snapshot database lifetimes | Sol 6.1 | Host verified |
+| T02 | Guard protected file actions across lifecycle changes | Sol 6.1 | Host verified |
+| T03 | Unify safe report date and seed validation | Sol 6.1 | Host verified |
+| T04 | Make catalogue search cancellable and calm | OpenCode DeepSeek → lead | Host verified |
+| T05 | Edit saved exact dose presets | OpenCode DeepSeek → lead | Host verified |
+| T06 | Add reviewable export date shortcuts | Direct DeepSeek → lead | Host verified |
+| T07 | Preserve exact lab trend source context | Direct DeepSeek → lead | Host verified |
+| T08 | Filter stock movements before paging | Direct DeepSeek → lead | Host verified |
+| T09 | Explain changes in stock metadata history | Direct DeepSeek → lead | Host verified |
+| T10 | Inspect recorded injection-site history | Direct DeepSeek → lead | Host verified |
+| T11 | Show exact seven-day plan preview totals | Direct DeepSeek → lead | Host verified |
+| T12 | Reject invalid quick-entry dates and preserve task context | Direct DeepSeek → lead | Host verified |
+| T13 | Fence destructive privacy confirmation to its dataset | Direct DeepSeek → lead | Host verified |
+| T14 | Explain pending reminder cancellations | Direct DeepSeek → lead | Host verified |
+| T15 | Reconcile the roadmap and original 28-step acceptance plan | Direct DeepSeek → lead | Host verified |
 
-The lead owns integration, combined verification, commit/push and the final
-plain-English report of remaining roadmap and original-plan work. Briefs,
+The lead recovered interrupted OpenCode checkpoints, finished the remaining
+implementation, reviewed changes and ran combined host verification. See the
+[finished batch and remaining work](reviews/2026-10-22-fifteen/README.md). Briefs,
 ownership, acceptance criteria and task identities are retained under
 `.scratch/vital-implementation/fifteen-2026-10-22/`. Timing tolerance,
 reminder follow-up policy, scanning/FHIR choices, automatic-backup lifecycle

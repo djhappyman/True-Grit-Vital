@@ -4,11 +4,14 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:true_grit_vital/app/appearance.dart';
 import 'package:true_grit_vital/app/device_zone.dart';
+import 'package:true_grit_vital/app/display_preferences.dart';
 import 'package:true_grit_vital/app/exports.dart';
 import 'package:true_grit_vital/app/storage.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
 import 'package:true_grit_vital/data/record_store.dart';
+import 'package:true_grit_vital/features/exports/export_pages.dart';
 import 'package:true_grit_vital/platform/device_zone.dart';
 import 'package:true_grit_vital/ui/vital_ui.dart';
 
@@ -133,10 +136,19 @@ final class FakeHandoff implements ExportHandoff {
   }
 }
 
+String _fieldText(WidgetTester tester, int index) =>
+    tester.widget<TextField>(find.byType(TextField).at(index)).controller!.text;
+
+DateTime _fixedNow() => DateTime.utc(2026, 10, 22, 12);
+
 Future<ProviderContainer> _launch(
   WidgetTester tester, {
   ExportCapture capture = _capture,
   ExportHandoff? handoff,
+  DateTime Function()? now,
+  String zoneId = 'Europe/London',
+  String? displayZone,
+  Stream<DeviceZoneObservation>? zoneChanges,
 }) async {
   final directory = await runIo(
     tester,
@@ -165,8 +177,12 @@ Future<ProviderContainer> _launch(
     overrides: [
       storeLoaderProvider.overrideWithValue(() => Future.value(store)),
       observedDeviceZoneProvider.overrideWith(
-        (ref) => Stream.value(DeviceZoneObservation.fromId('Europe/London')),
+        (ref) =>
+            zoneChanges ?? Stream.value(DeviceZoneObservation.fromId(zoneId)),
       ),
+      if (displayZone != null)
+        displayZoneProvider.overrideWithValue(displayZone),
+      if (now != null) exportNowProvider.overrideWithValue(now),
       exportCaptureProvider.overrideWithValue(capture),
       exportHandoffProvider.overrideWithValue(handoff ?? FakeHandoff()),
     ],
@@ -334,5 +350,253 @@ void main() {
       'This selection is too large. Choose a shorter date range or less content.',
     );
     expect(find.text('Review'), findsNothing);
+  });
+
+  appTest('date shortcuts update the visible range and need a new review', (
+    tester,
+  ) async {
+    final selections = <ExportSelection>[];
+    final handoff = FakeHandoff();
+    Future<ExportDocument> capture(
+      ExportSelection selection, {
+      ExportCancellation? cancellation,
+    }) async {
+      selections.add(selection);
+      return _emptyDocument(selection);
+    }
+
+    await _launch(tester, capture: capture, handoff: handoff, now: _fixedNow);
+    await waitForText(tester, 'Export');
+    expect(find.text('Date shortcuts'), findsOneWidget);
+    expect(_fieldText(tester, 0), '2026-09-23');
+    expect(_fieldText(tester, 1), '2026-10-23');
+
+    final semantics = tester.ensureSemantics();
+    await settle(tester);
+    expect(
+      find.bySemanticsLabel('Last 30 days, including today'),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel('Last 90 days, including today'),
+      findsOneWidget,
+    );
+    expect(find.bySemanticsLabel('Year to date'), findsOneWidget);
+    expect(
+      tester
+          .getSemantics(find.bySemanticsLabel('Year to date'))
+          .getSemanticsData()
+          .flagsCollection
+          .isButton,
+      isTrue,
+    );
+
+    semantics.dispose();
+    await tap(tester, '90d');
+    expect(_fieldText(tester, 0), '2026-07-25');
+    expect(_fieldText(tester, 1), '2026-10-23');
+    expect(selections, isEmpty, reason: 'a shortcut never generates a file');
+    await tap(tester, 'Year');
+    expect(_fieldText(tester, 0), '2026-01-01');
+    await tap(tester, '30d');
+    expect(_fieldText(tester, 0), '2026-09-23');
+    expect(selections, isEmpty);
+
+    await tap(tester, 'CSV');
+    await tap(tester, 'Notes');
+    expect(tester.widget<Switch>(find.byType(Switch).at(2)).value, isTrue);
+
+    await tap(tester, 'Preview');
+    await waitForText(tester, 'Review');
+    expect(selections, hasLength(1));
+    expect(selections.single.fromDay, CivilDate(2026, 9, 23));
+    expect(selections.single.beforeDay, CivilDate(2026, 10, 23));
+    expect(selections.single.format, ExportFormat.csv);
+    expect(selections.single.includeNotes, isTrue);
+    expect(handoff.received, isNull, reason: 'review never saves by itself');
+
+    await tap(tester, 'Change');
+    await waitForText(tester, 'Content');
+    expect(find.text('Review'), findsNothing);
+    await tap(tester, '90d');
+    expect(_fieldText(tester, 0), '2026-07-25');
+    expect(find.text('Review'), findsNothing);
+    await tap(tester, 'Preview');
+    await waitForText(tester, 'Review');
+    expect(selections, hasLength(2));
+    expect(selections.last.fromDay, CivilDate(2026, 7, 25));
+    expect(selections.last.beforeDay, CivilDate(2026, 10, 23));
+    expect(selections.last.format, ExportFormat.csv);
+    expect(selections.last.includeNotes, isTrue);
+    expect(selections.last.contents, {
+      ExportContent.doses,
+      ExportContent.supporting,
+    });
+    expect(selections.last.identity, isNot(selections.first.identity));
+
+    await tap(tester, 'Save');
+    await waitForText(tester, 'Saved.');
+    expect(
+      handoff.received!.document.selection.fromDay,
+      CivilDate(2026, 7, 25),
+    );
+    expect(handoff.received!.document.selection.includeNotes, isTrue);
+  });
+
+  appTest('a late zone observation seeds the actual local day', (tester) async {
+    final zones = StreamController<DeviceZoneObservation>.broadcast();
+    addTearDown(zones.close);
+    await _launch(
+      tester,
+      now: () => DateTime.utc(2026, 10, 22, 23, 30),
+      zoneChanges: zones.stream,
+    );
+    expect(_fieldText(tester, 0), isEmpty);
+    expect(find.textContaining('Dates use UTC.'), findsNothing);
+    zones.add(DeviceZoneObservation.fromId('Pacific/Kiritimati'));
+    await settle(tester);
+    expect(_fieldText(tester, 0), '2026-09-24');
+    expect(_fieldText(tester, 1), '2026-10-24');
+  });
+
+  appTest('late zone defaults preserve dates already typed', (tester) async {
+    final zones = StreamController<DeviceZoneObservation>.broadcast();
+    addTearDown(zones.close);
+    await _launch(tester, zoneChanges: zones.stream);
+    await tester.enterText(find.byType(TextField).at(0), '2026-01-02');
+    await tester.enterText(find.byType(TextField).at(1), '2026-02-03');
+    zones.add(DeviceZoneObservation.fromId('Pacific/Kiritimati'));
+    await settle(tester);
+    expect(_fieldText(tester, 0), '2026-01-02');
+    expect(_fieldText(tester, 1), '2026-02-03');
+  });
+
+  appTest('an unavailable zone does not silently use another day', (
+    tester,
+  ) async {
+    await _launch(tester, displayZone: 'Not/AZone');
+    await waitForText(tester, 'Export');
+    expect(_fieldText(tester, 0), isEmpty);
+    expect(_fieldText(tester, 1), isEmpty);
+    expect(
+      find.text(
+        'The display time zone is unavailable. Check the device time zone,'
+        ' then try again.',
+      ),
+      findsOneWidget,
+    );
+
+    await tap(tester, '30d');
+    expect(_fieldText(tester, 0), isEmpty);
+    expect(_fieldText(tester, 1), isEmpty);
+    expect(
+      find.text(
+        'The display time zone is unavailable. Check the device time zone,'
+        ' then try again.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Review'), findsNothing);
+  });
+
+  appTest('an unrepresentable device date explains the range failure', (
+    tester,
+  ) async {
+    await _launch(
+      tester,
+      now: () => DateTime.utc(9999, 12, 31, 12),
+      displayZone: 'UTC',
+    );
+    await waitForText(tester, 'Export');
+    expect(_fieldText(tester, 0), isEmpty);
+    expect(
+      find.text(
+        'The date range cannot be shown. Check the device date, then try again.',
+      ),
+      findsOneWidget,
+    );
+
+    await tap(tester, 'Year');
+    expect(_fieldText(tester, 0), isEmpty);
+    expect(
+      find.text(
+        'The date range cannot be shown. Check the device date, then try again.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Review'), findsNothing);
+  });
+
+  appTest('invalid date edits keep the selection and explain the range', (
+    tester,
+  ) async {
+    await _launch(tester, now: _fixedNow);
+    await waitForText(tester, 'Export');
+    await tap(tester, '30d');
+    await tester.enterText(find.byType(TextField).at(0), '2026-10-23');
+    await tester.enterText(find.byType(TextField).at(1), '2026-10-23');
+    await tap(tester, 'Preview');
+    await waitForText(
+      tester,
+      'Enter valid dates. Before must be later than From.',
+    );
+    expect(find.text('Review'), findsNothing);
+
+    await tap(tester, '90d');
+    expect(_fieldText(tester, 0), '2026-07-25');
+    expect(
+      find.text('Enter valid dates. Before must be later than From.'),
+      findsNothing,
+    );
+  });
+
+  appTest('shortcuts are unavailable while preparation is pending', (
+    tester,
+  ) async {
+    await _launch(tester, capture: _slowCapture);
+    await waitForText(tester, 'Export');
+    final retained = tester
+        .widget<Semantics>(find.bySemanticsLabel('Year to date'))
+        .properties
+        .onTap!;
+    await tap(tester, 'Preview');
+    await waitForText(tester, 'Preparing');
+    retained();
+    await settle(tester);
+    expect(find.text('Preparing'), findsOneWidget);
+    expect(find.text('Date shortcuts'), findsNothing);
+    expect(find.text('30d'), findsNothing);
+
+    await tap(tester, 'Cancel');
+    await waitForText(tester, 'Export cancelled. Nothing was saved.');
+    expect(find.text('Date shortcuts'), findsOneWidget);
+    expect(_fieldText(tester, 0), isNotEmpty);
+    expect(find.text('Review'), findsNothing);
+  });
+
+  appTest('shortcuts stay usable at narrow widths in both themes', (
+    tester,
+  ) async {
+    final container = await _launch(tester, now: _fixedNow);
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    addTearDown(tester.view.reset);
+
+    for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+      container.read(appearanceProvider.notifier).setMode(mode);
+      await settle(tester);
+      for (final width in [320.0, 390.0, 430.0]) {
+        tester.view.physicalSize = Size(width, 844);
+        tester.view.devicePixelRatio = 1;
+        await settle(tester);
+        expect(find.text('Date shortcuts'), findsOneWidget);
+        expect(tester.takeException(), isNull, reason: '$mode at $width');
+        await tap(tester, '90d');
+        expect(_fieldText(tester, 0), '2026-07-25');
+        await tap(tester, 'Year');
+        expect(_fieldText(tester, 0), '2026-01-01');
+        expect(tester.takeException(), isNull, reason: '$mode at $width');
+      }
+    }
   });
 }

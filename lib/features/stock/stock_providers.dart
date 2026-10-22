@@ -64,11 +64,38 @@ ExactAmount stockMeasurement(String input) {
   return ExactAmount.parseEntry(text);
 }
 
+/// One container's visible movement-kind choice. `null` is All and keeps the
+/// established query. The choice is keyed by container so two open histories
+/// never share a filter, and it stays outside the provider's record query so
+/// existing record-shaped callers keep the All default unchanged.
+class StockMovementKindFilterController extends Notifier<StockMovementKind?> {
+  StockMovementKindFilterController(String _);
+
+  @override
+  StockMovementKind? build() {
+    ref.watch(appLockProvider.select((value) => value.locked));
+    ref.watch(recordStoreProvider.select((value) => value.value?.generation));
+    return null;
+  }
+
+  void select(StockMovementKind? kind) {
+    if (!ref.read(appLockProvider).locked) state = kind;
+  }
+
+  void reset() => state = null;
+}
+
+final stockMovementKindFilterProvider = NotifierProvider.autoDispose
+    .family<StockMovementKindFilterController, StockMovementKind?, String>(
+      StockMovementKindFilterController.new,
+    );
+
 final stockMovementsProvider = FutureProvider.autoDispose
     .family<
       List<StoredStockMovement>,
       ({String personId, String containerId, int offset})
     >(retry: (_, _) => null, (ref, q) async {
+      final kind = ref.watch(stockMovementKindFilterProvider(q.containerId));
       await ref.watch(
         stockContainerProvider((
           personId: q.personId,
@@ -78,6 +105,7 @@ final stockMovementsProvider = FutureProvider.autoDispose
       return (await ref.watch(recordStoreProvider.future)).stockMovements(
         personId: q.personId,
         containerId: q.containerId,
+        kind: kind,
         limit: 51,
         offset: q.offset,
       );
@@ -251,6 +279,7 @@ final stockMetadataHistoryProvider = StreamProvider.autoDispose
               personId: q.personId,
               containerId: q.containerId,
               offset: q.offset,
+              // 20 displayed rows plus their exact predecessor/next page.
               limit: 21,
             );
       } on CommandConflict catch (error) {

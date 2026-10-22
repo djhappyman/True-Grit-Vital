@@ -985,9 +985,41 @@ class StockMovementHistory extends ConsumerStatefulWidget {
 
 class _StockMovementHistoryState extends ConsumerState<StockMovementHistory> {
   int offset = 0;
+  bool _clamping = false;
+
+  StockMovementKind? get _kind =>
+      ref.watch(stockMovementKindFilterProvider(widget.containerId));
+
+  void _select(StockMovementKind? kind) {
+    if (!mounted ||
+        ref.read(appLockProvider).locked ||
+        ModalRoute.of(context)?.isCurrent == false) {
+      return;
+    }
+    if (offset != 0) setState(() => offset = 0);
+    ref
+        .read(stockMovementKindFilterProvider(widget.containerId).notifier)
+        .select(kind);
+  }
+
+  /// A live correction or dataset change can shorten the selected ledger. An
+  /// empty page then steps back instead of leaving the reader on no rows.
+  void _clampPage(List<StoredStockMovement> rows) {
+    if (_clamping || offset == 0 || rows.isNotEmpty) return;
+    _clamping = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        offset = offset > 50 ? offset - 50 : 0;
+        _clamping = false;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context),
+        kind = _kind,
         q = (
           personId: widget.personId,
           containerId: widget.containerId,
@@ -997,6 +1029,19 @@ class _StockMovementHistoryState extends ConsumerState<StockMovementHistory> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Heading(t.stockHistory),
+        const SizedBox(height: 12),
+        _StockMovementKindFilters(selected: kind, onSelected: _select),
+        if (kind != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: VitalButton.secondary(
+                onPressed: () => _select(null),
+                child: Text(t.batch15T08Reset),
+              ),
+            ),
+          ),
         ref
             .watch(stockMovementsProvider(q))
             .when(
@@ -1004,90 +1049,151 @@ class _StockMovementHistoryState extends ConsumerState<StockMovementHistory> {
               error: (_, _) => LoadFailure(
                 onRetry: () => ref.invalidate(stockMovementsProvider(q)),
               ),
-              data: (rows) => Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final movement in rows.take(50))
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            t.stockMovementEntry(
-                              switch (movement.kind) {
-                                StockMovementKind.restock => t.stockRestock,
-                                StockMovementKind.waste => t.stockWaste,
-                                StockMovementKind.reconciliation =>
-                                  t.stockMeasure,
-                                StockMovementKind.actualUse => t.recordHeading,
-                                StockMovementKind.correction =>
-                                  t.correctHeading,
-                              },
-                              movement.amount == null
-                                  ? t.stockUnknownValue
-                                  : stockAmountText(
-                                      t,
-                                      movement.amount!,
-                                      widget.unit,
-                                    ),
-                            ),
-                          ),
-                          Text(displayStamp(context, ref, movement.recordedAt)),
-                          Text(t.stockStrengthValue(movement.strength.label)),
-                          if (movement.enteredText != null)
+              data: (rows) {
+                _clampPage(rows);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (rows.isEmpty && offset > 0)
+                      Text(t.loadingRecords)
+                    else if (rows.isEmpty && kind != null)
+                      Text(t.batch15T08NoMatches),
+                    for (final movement in rows.take(50))
+                      Padding(
+                        key: ValueKey('stock-movement-${movement.id}'),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
                             Text(
-                              t.stockEntered(
-                                movement.enteredText!,
-                                movement.enteredUnit!,
+                              t.stockMovementEntry(
+                                switch (movement.kind) {
+                                  StockMovementKind.restock => t.stockRestock,
+                                  StockMovementKind.waste => t.stockWaste,
+                                  StockMovementKind.reconciliation =>
+                                    t.stockMeasure,
+                                  StockMovementKind.actualUse =>
+                                    t.recordHeading,
+                                  StockMovementKind.correction =>
+                                    t.correctHeading,
+                                },
+                                movement.amount == null
+                                    ? t.stockUnknownValue
+                                    : stockAmountText(
+                                        t,
+                                        movement.amount!,
+                                        widget.unit,
+                                      ),
                               ),
                             ),
-                          if (movement.reason != null) Text(movement.reason!),
-                          if (movement.physicalCorrection != null)
                             Text(
-                              movement.physicalCorrection ==
-                                      PhysicalCorrection.reverseRecordedEffect
-                                  ? t.stockReverseHelp
-                                  : t.stockReviewedKeep,
+                              displayStamp(context, ref, movement.recordedAt),
                             ),
-                          if (movement.kind == StockMovementKind.actualUse &&
-                              movement.recordId != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Align(
-                                alignment: AlignmentDirectional.centerEnd,
-                                child: _StockMovementSourceOpen(
-                                  key: ValueKey(
-                                    'stock-movement-open-${movement.id}',
-                                  ),
-                                  personId: widget.personId,
-                                  recordId: movement.recordId!,
+                            Text(t.stockStrengthValue(movement.strength.label)),
+                            if (movement.enteredText != null)
+                              Text(
+                                t.stockEntered(
+                                  movement.enteredText!,
+                                  movement.enteredUnit!,
                                 ),
                               ),
-                            ),
-                        ],
+                            if (movement.reason != null) Text(movement.reason!),
+                            if (movement.physicalCorrection != null)
+                              Text(
+                                movement.physicalCorrection ==
+                                        PhysicalCorrection.reverseRecordedEffect
+                                    ? t.stockReverseHelp
+                                    : t.stockReviewedKeep,
+                              ),
+                            if (movement.kind == StockMovementKind.actualUse &&
+                                movement.recordId != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Align(
+                                  alignment: AlignmentDirectional.centerEnd,
+                                  child: _StockMovementSourceOpen(
+                                    key: ValueKey(
+                                      'stock-movement-open-${movement.id}',
+                                    ),
+                                    personId: widget.personId,
+                                    recordId: movement.recordId!,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        if (offset > 0)
+                          VitalButton.secondary(
+                            onPressed: () => setState(() => offset -= 50),
+                            child: Text(t.previous),
+                          ),
+                        if (rows.length > 50)
+                          VitalButton.secondary(
+                            onPressed: () => setState(() => offset += 50),
+                            child: Text(t.next),
+                          ),
+                      ],
                     ),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      if (offset > 0)
-                        VitalButton.secondary(
-                          onPressed: () => setState(() => offset -= 50),
-                          child: Text(t.previous),
-                        ),
-                      if (rows.length > 50)
-                        VitalButton.secondary(
-                          onPressed: () => setState(() => offset += 50),
-                          child: Text(t.next),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
+                  ],
+                );
+              },
             ),
       ],
+    );
+  }
+}
+
+/// Explicit movement-kind choices inside the existing stock-history surface.
+/// The chip row keeps its selection visible and never opens a nested overlay,
+/// because the history already lives inside a task sheet.
+class _StockMovementKindFilters extends StatelessWidget {
+  const _StockMovementKindFilters({
+    required this.selected,
+    required this.onSelected,
+  });
+  final StockMovementKind? selected;
+  final ValueChanged<StockMovementKind?> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+    final options = <(String, StockMovementKind?)>[
+      (t.batch15T08FilterAll, null),
+      (t.batch15T08FilterRecorded, StockMovementKind.actualUse),
+      (t.batch15T08FilterRestock, StockMovementKind.restock),
+      (t.batch15T08FilterWaste, StockMovementKind.waste),
+      (t.batch15T08FilterMeasured, StockMovementKind.reconciliation),
+      (t.batch15T08FilterCorrections, StockMovementKind.correction),
+    ];
+    return Semantics(
+      container: true,
+      label: t.batch15T08FilterLabel,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (final (name, kind) in options)
+              Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Semantics(
+                  selected: selected == kind,
+                  child: StitchButton(
+                    key: ValueKey('stock-movement-kind-${kind?.name ?? 'all'}'),
+                    primary: selected == kind,
+                    compact: true,
+                    onPressed: () => onSelected(kind),
+                    child: Text(name, style: StitchType.small),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/app_lock.dart';
+import '../../app/device_zone.dart';
 import '../../app/display_preferences.dart';
 import '../../app/exports.dart';
 import '../../app/settings_toggle_row.dart';
@@ -10,6 +13,10 @@ import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
+import 'export_range.dart';
+
+/// The device clock used to derive shortcut ranges. Tests replace it.
+final exportNowProvider = Provider<DateTime Function()>((ref) => DateTime.now);
 
 /// S18 structured export: one adult, one deliberate date range, named content.
 ///
@@ -24,7 +31,7 @@ class ExportPage extends ConsumerStatefulWidget {
 
 class _ExportPageState extends ConsumerState<ExportPage> {
   late final _seed = Uri.parse(widget.location).queryParameters;
-  late final _zone = ref.read(displayZoneProvider);
+  String get _zone => ref.read(displayZoneProvider);
   late final _from = TextEditingController(text: _seed['from'] ?? '');
   late final _before = TextEditingController(text: _seed['before'] ?? '');
   static const _person = meId;
@@ -41,6 +48,31 @@ class _ExportPageState extends ConsumerState<ExportPage> {
         };
   late bool _notes = _seed['notes'] == 'true';
   String? _selectionError;
+  ExportRangeShortcut? _shortcut;
+  ExportRangeFailure? _rangeFailure;
+  bool _applyingShortcut = false;
+  int _inputEpoch = 0;
+
+  bool get _canEdit {
+    if (!mounted) return false;
+    final state = ref.read(exportControllerProvider(widget.location));
+    return mounted &&
+        !ref.read(appLockProvider).locked &&
+        !state.building &&
+        !state.saving &&
+        !state.reviewing &&
+        ModalRoute.of(context)?.isCurrent != false;
+  }
+
+  String _currentZone() {
+    final observed = ref.read(observedDeviceZoneProvider);
+    if (observed.isLoading ||
+        observed.hasError ||
+        observed.value?.zoneId == null) {
+      throw const ExportRangeException(ExportRangeFailure.zoneUnavailable);
+    }
+    return _zone;
+  }
 
   ExportController get _controller =>
       ref.read(exportControllerProvider(widget.location).notifier);
@@ -48,12 +80,48 @@ class _ExportPageState extends ConsumerState<ExportPage> {
   @override
   void initState() {
     super.initState();
-    final display = DisplayTime();
-    final today = display.instant(DateTime.now().toUtc(), _zone).civilDate;
-    _from.text = _seed['from'] ?? today.addDays(-29).toString();
-    _before.text = _seed['before'] ?? today.addDays(1).toString();
+    final seededFrom = _seed['from'];
+    final seededBefore = _seed['before'];
+    _from.text = seededFrom ?? '';
+    _before.text = seededBefore ?? '';
     _from.addListener(_changed);
     _before.addListener(_changed);
+    if (seededFrom == null || seededBefore == null) {
+      unawaited(_initialiseRange());
+    }
+  }
+
+  Future<void> _initialiseRange() async {
+    final inputEpoch = _inputEpoch;
+    try {
+      await ref.read(observedDeviceZoneProvider.future);
+      if (!mounted || inputEpoch != _inputEpoch || !_canEdit) return;
+      final today = exportCivilToday(
+        ref.read(exportNowProvider)(),
+        _currentZone(),
+      );
+      final range = exportShortcutRange(today, ExportRangeShortcut.thirtyDays);
+      _applyingShortcut = true;
+      try {
+        if (_seed['from'] == null) _from.text = range.from.toString();
+        if (_seed['before'] == null) _before.text = range.before.toString();
+      } finally {
+        _applyingShortcut = false;
+      }
+      setState(() {
+        _rangeFailure = null;
+        if (_seed['from'] == null && _seed['before'] == null) {
+          _shortcut = ExportRangeShortcut.thirtyDays;
+        }
+      });
+    } catch (error) {
+      if (!mounted || inputEpoch != _inputEpoch || !_canEdit) return;
+      setState(
+        () => _rangeFailure = error is ExportRangeException
+            ? error.failure
+            : ExportRangeFailure.zoneUnavailable,
+      );
+    }
   }
 
   @override
@@ -66,12 +134,90 @@ class _ExportPageState extends ConsumerState<ExportPage> {
   }
 
   void _changed() {
+    if (!_canEdit) return;
     _controller.edit();
-    setState(() => _selectionError = null);
+    setState(() {
+      _selectionError = null;
+      if (!_applyingShortcut) {
+        _inputEpoch++;
+        _shortcut = null;
+        _rangeFailure = null;
+      }
+    });
+  }
+
+  void _applyShortcut(ExportRangeShortcut shortcut) {
+    if (!_canEdit) return;
+    try {
+      final today = exportCivilToday(
+        ref.read(exportNowProvider)(),
+        _currentZone(),
+      );
+      final range = exportShortcutRange(today, shortcut);
+      // Field listeners fire synchronously and would otherwise clear the
+      // just-chosen shortcut while the range is being applied.
+      _applyingShortcut = true;
+      try {
+        _from.text = range.from.toString();
+        _before.text = range.before.toString();
+      } finally {
+        _applyingShortcut = false;
+      }
+      setState(() {
+        _shortcut = shortcut;
+        _rangeFailure = null;
+        _selectionError = null;
+      });
+      _controller.edit();
+    } on ExportRangeException catch (error) {
+      setState(() {
+        _rangeFailure = error.failure;
+        _selectionError = null;
+      });
+    }
+  }
+
+  String? _rangeFailureText(AppLocalizations t) => switch (_rangeFailure) {
+    ExportRangeFailure.zoneUnavailable => t.exportZone,
+    ExportRangeFailure.rangeUnavailable => t.batch15T06RangeUnavailable,
+    null => null,
+  };
+
+  Widget _shortcutButton(AppLocalizations t, ExportRangeShortcut shortcut) {
+    final active = _shortcut == shortcut;
+    final (:label, :description) = switch (shortcut) {
+      ExportRangeShortcut.thirtyDays => (
+        label: t.featureVaultThirty,
+        description: t.featureVaultThirtyLabel,
+      ),
+      ExportRangeShortcut.ninetyDays => (
+        label: t.featureVaultNinety,
+        description: t.featureVaultNinetyLabel,
+      ),
+      ExportRangeShortcut.year => (
+        label: t.featureVaultYear,
+        description: t.featureVaultYearLabel,
+      ),
+    };
+    void apply() => _applyShortcut(shortcut);
+    return Semantics(
+      container: true,
+      button: true,
+      selected: active,
+      inMutuallyExclusiveGroup: true,
+      label: description,
+      onTap: apply,
+      excludeSemantics: true,
+      child: active
+          ? VitalButton(onPressed: apply, child: Text(label))
+          : VitalButton.secondary(onPressed: apply, child: Text(label)),
+    );
   }
 
   void _preview(AppLocalizations t) {
+    if (!_canEdit) return;
     try {
+      final zone = _currentZone();
       final from = CivilDate.parse(_from.text.trim());
       final before = CivilDate.parse(_before.text.trim());
       if (_contents.isEmpty) {
@@ -83,12 +229,14 @@ class _ExportPageState extends ConsumerState<ExportPage> {
           personId: _person,
           fromDay: from,
           beforeDay: before,
-          zoneId: _zone,
+          zoneId: zone,
           contents: _contents,
           format: _format,
           includeNotes: _notes,
         ),
       );
+    } on ExportRangeException catch (error) {
+      setState(() => _rangeFailure = error.failure);
     } on ExportLimitException {
       setState(() => _selectionError = t.exportTooLarge);
     } on ArgumentError {
@@ -118,6 +266,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+    ref.watch(observedDeviceZoneProvider);
     if (ref.watch(appLockProvider.select((state) => state.locked))) {
       return EntryPage(
         children: [Heading(t.exportTitle), Text(t.exportLocked)],
@@ -164,7 +313,21 @@ class _ExportPageState extends ConsumerState<ExportPage> {
             children: [
               LabelledInput(label: t.exportFrom, controller: _from),
               LabelledInput(label: t.exportBefore, controller: _before),
-              Text(t.exportRangeHelp(_zone)),
+              Text(t.batch15T06DateShortcuts, style: VitalType.label),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final shortcut in ExportRangeShortcut.values)
+                    _shortcutButton(t, shortcut),
+                ],
+              ),
+              if (_rangeFailureText(t) case final failure?)
+                Semantics(liveRegion: true, child: Text(failure)),
+              if (!ref.watch(observedDeviceZoneProvider).isLoading &&
+                  !ref.watch(observedDeviceZoneProvider).hasError &&
+                  ref.watch(observedDeviceZoneProvider).value?.zoneId != null)
+                Text(t.exportRangeHelp(_zone)),
             ],
           ),
           VitalSection(

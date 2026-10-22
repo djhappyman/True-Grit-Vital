@@ -1238,16 +1238,22 @@ extension StockRecordStore on RecordStore {
 
   static const _movementSelect =
       'SELECT m.*,c.physical_choice AS reviewed_choice FROM stock_movement m LEFT JOIN stock_movement c ON c.reverses=m.id';
+
+  /// One container's movements, newest first. [kind] narrows the whole ledger
+  /// before the limit and offset apply, so a filtered page is never a
+  /// post-page subset. Omitting it keeps the established All query.
   Future<List<StoredStockMovement>> stockMovements({
     required String personId,
     required String containerId,
+    StockMovementKind? kind,
     int limit = 100,
     int offset = 0,
   }) async {
     _pageBounds(limit, offset);
+    final kindSql = kind == null ? '' : ' AND m.kind=?';
     return (await _rows(
-      '$_movementSelect WHERE m.person=? AND m.container=? ORDER BY m.sequence DESC LIMIT ? OFFSET ?',
-      [personId, containerId, limit, offset],
+      '$_movementSelect WHERE m.person=? AND m.container=?$kindSql ORDER BY m.sequence DESC LIMIT ? OFFSET ?',
+      [personId, containerId, if (kind != null) kind.name, limit, offset],
     )).map(_stockMovement).toList();
   }
 

@@ -10340,5 +10340,202 @@
         "type": "String"
       }
     }
+  },
+  "batch15T06DateShortcuts": "Date shortcuts",
+  "@batch15T06DateShortcuts": {
+    "description": "Heading above the 30 day, 90 day and year shortcuts in Export."
+  },
+  "batch15T06RangeUnavailable": "The date range cannot be shown. Check the device date, then try again.",
+  "@batch15T06RangeUnavailable": {
+    "description": "Recovery message when the device date or time zone cannot produce a representable export range."
+  },
+  "batch15T08FilterLabel": "Movement kinds",
+  "@batch15T08FilterLabel": {
+    "description": "Accessible group label for the stock movement kind filters. The selected choice stays visible in the chip row."
+  },
+  "batch15T08FilterAll": "All",
+  "@batch15T08FilterAll": {
+    "description": "Stock movement filter choice that shows every saved movement kind. This is the default."
+  },
+  "batch15T08FilterRecorded": "Recorded",
+  "@batch15T08FilterRecorded": {
+    "description": "Stock movement filter choice for recorded doses that used this container."
+  },
+  "batch15T08FilterRestock": "Restock",
+  "@batch15T08FilterRestock": {
+    "description": "Stock movement filter choice for restock movements."
+  },
+  "batch15T08FilterWaste": "Waste",
+  "@batch15T08FilterWaste": {
+    "description": "Stock movement filter choice for waste movements."
+  },
+  "batch15T08FilterMeasured": "Measured",
+  "@batch15T08FilterMeasured": {
+    "description": "Stock movement filter choice for measured reconciliation movements."
+  },
+  "batch15T08FilterCorrections": "Corrections",
+  "@batch15T08FilterCorrections": {
+    "description": "Stock movement filter choice for corrections to earlier recorded-use or waste movements."
+  },
+  "batch15T08Reset": "Reset",
+  "@batch15T08Reset": {
+    "description": "One-word command that returns the stock movement filter to All."
+  },
+  "batch15T08NoMatches": "No movements match this filter.",
+  "@batch15T08NoMatches": {
+    "description": "Truthful empty state for a selected stock movement kind with no saved rows. The selected chip remains visible and Reset stays available."
+  },
+  "batch15T09FirstSaved": "First saved version.",
+  "@batch15T09FirstSaved": {
+    "description": "Marks the first authored container details version, which has no earlier revision to compare."
+  },
+  "batch15T09NoChanges": "No details changed.",
+  "@batch15T09NoChanges": {
+    "description": "A saved details version whose lot, expiry and capacity all match the immediately previous version."
+  },
+  "batch15T09PreviousUnavailable": "Previous version unavailable, so changes are not shown.",
+  "@batch15T09PreviousUnavailable": {
+    "description": "A later saved details version whose exact predecessor is not in the loaded page. No old value is inferred."
+  },
+  "batch15T09PredecessorCarriedForward": "The previous version was carried forward. Its details were not recorded.",
+  "@batch15T09PredecessorCarriedForward": {
+    "description": "The immediately previous version came from the schema migration, so its empty details are not an authored clearing action."
+  },
+  "batch15T09FieldAdded": "{field}: {value} (added)",
+  "@batch15T09FieldAdded": {
+    "description": "A saved pack-detail field that was absent in the previous comparable version and now has a value.",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "batch15T09FieldRecorded": "{field}: {value} (first recorded)",
+  "@batch15T09FieldRecorded": {
+    "description": "A saved pack-detail field whose earlier version was carried forward without recorded details, so this is its first recorded value.",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "batch15T09FieldCleared": "{field} cleared. Was {value}.",
+  "@batch15T09FieldCleared": {
+    "description": "A saved pack-detail field that had a value in the previous comparable version and is now absent.",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "batch15T09FieldChanged": "{field}: {before}, now {after}",
+  "@batch15T09FieldChanged": {
+    "description": "A saved pack-detail field with two exact known values in adjacent comparable versions.",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "before": {
+        "type": "String"
+      },
+      "after": {
+        "type": "String"
+      }
+    }
+  },
+  "batch15T09NotSet": "{field}: not set",
+  "@batch15T09NotSet": {
+    "description": "A field left empty in an authored container details version.",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "batch15T09NotRecorded": "{field}: not recorded",
+  "@batch15T09NotRecorded": {
+    "description": "A field absent in a version carried forward by the schema migration. It was never authored.",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "batch15T09Snapshot": "Saved details",
+  "@batch15T09Snapshot": {
+    "description": "Disclosure title for the complete saved facts of one container details version."
+  },
+  "batch15T12LinkHeading": "Link problem",
+  "@batch15T12LinkHeading": {
+    "description": "Quick-entry recovery heading for a supplied route whose day, time, item or task flags cannot be used exactly as given."
+  },
+  "batch15T12DayInvalid": "The day in this link is not valid. Continue with today instead.",
+  "@batch15T12DayInvalid": {
+    "description": "Explicit recovery after an impossible or malformed quick-entry day, such as 30 February. The day is not normalised to a neighbouring date."
+  },
+  "batch15T12TimeInvalid": "The time in this link is not valid. Continue without a suggested time.",
+  "@batch15T12TimeInvalid": {
+    "description": "Explicit recovery after a malformed quick-entry time. No time is suggested; the actual time remains editable."
+  },
+  "batch15T12ItemInvalidTask": "The item in this link is not valid. Continue without it.",
+  "@batch15T12ItemInvalidTask": {
+    "description": "Quick-entry recovery when a bad item parameter arrives alongside an explicit new-item or planning task. The task continues without the unusable item."
+  },
+  "batch15T12TimeWithoutPlan": "A suggested time needs a dose plan. Continue without the time.",
+  "@batch15T12TimeWithoutPlan": {
+    "description": "Quick-entry recovery when a time is supplied for the recording flow, which uses its own actual-time field."
+  },
+  "batch15T12ItemInvalid": "The item in this link is not valid. Choose an item.",
+  "@batch15T12ItemInvalid": {
+    "description": "Explicit recovery when the quick-entry item parameter is empty or malformed."
+  },
+  "batch15T12DuplicateOption": "This link repeats an option. Continue with the default.",
+  "@batch15T12DuplicateOption": {
+    "description": "Quick-entry recovery when the same route parameter is supplied more than once and the intended value is ambiguous."
+  },
+  "batch15T12OptionInvalid": "This link has an unknown option. Continue with the default.",
+  "@batch15T12OptionInvalid": {
+    "description": "Quick-entry recovery when a new or plan flag is not 0 or 1."
+  },
+  "batch15T12ChoiceItemNew": "This link asks to record an existing item and create a new item. Choose one.",
+  "@batch15T12ChoiceItemNew": {
+    "description": "Quick-entry decision when the route supplies both an item and the new-item flag. Neither task is chosen silently."
+  },
+  "batch15T12ChoiceItemPlan": "This link asks to plan the item and record it. Choose one.",
+  "@batch15T12ChoiceItemPlan": {
+    "description": "Quick-entry decision when the route supplies both an item and the plan flag. Recording and planning are different tasks."
+  },
+  "batch15T12Continue": "Continue",
+  "@batch15T12Continue": {
+    "description": "One-word action acknowledging explicit quick-entry recovery and using the safe default."
+  },
+  "batch15T12PlanAction": "Plan",
+  "@batch15T12PlanAction": {
+    "description": "One-word quick-entry choice for the planning flow, distinct from recording the same item."
+  },
+  "batch15T12Stale": "Your records changed. Choose the item again.",
+  "@batch15T12Stale": {
+    "description": "Quick-entry notice when a restored or replaced dataset changes the store generation while the chooser is open. The list is shown again rather than opening a stale item."
+  },
+  "batch15T12LinkInvalid": "This link could not be read. Choose an item.",
+  "@batch15T12LinkInvalid": {
+    "description": "Quick-entry recovery when the supplied route text cannot be parsed at all."
+  },
+  "batch15T13PrivacyChanged": "Records changed. Review the latest records before trying again.",
+  "@batch15T13PrivacyChanged": {
+    "description": "Refusal when the confirmed delete no longer matches the live dataset, store or owner revision. It does not claim an outcome for an earlier uncertain attempt."
+  },
+  "batch15T13PrivacyLocked": "Vital locked before the change. Nothing was deleted.",
+  "@batch15T13PrivacyLocked": {
+    "description": "Refusal when a delete confirmation spans a lock or unlock. States plainly that no deletion ran."
   }
 }

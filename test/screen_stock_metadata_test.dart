@@ -1,3 +1,8 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:true_grit_vital/app/app_lock.dart';
@@ -14,6 +19,7 @@ import 'design_system_test.dart' show host;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:true_grit_vital/app/vital_app.dart';
+import 'package:true_grit_vital/ui/vital_ui.dart';
 import 'package:true_grit_vital/data/record_store.dart';
 import 'package:true_grit_vital/features/recording/record_pages.dart'
     show LabelledInput;
@@ -24,6 +30,66 @@ import 'vital_app_test.dart'
 Finder field(String label) => find.descendant(
   of: find.widgetWithText(LabelledInput, label),
   matching: find.byType(TextField),
+);
+
+const metadataCaptures = String.fromEnvironment('VITAL_METADATA_CAPTURES');
+
+Future<void> saveMetadataCapture(
+  WidgetTester tester,
+  GlobalKey key,
+  String name,
+) async {
+  final boundary =
+      key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+  await tester.runAsync(() async {
+    final image = await boundary.toImage(pixelRatio: 2);
+    try {
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      final file = File('$metadataCaptures/$name.png');
+      await file.parent.create(recursive: true);
+      await file.writeAsBytes(bytes!.buffer.asUint8List());
+    } finally {
+      image.dispose();
+    }
+  });
+}
+
+final class _Unlocked extends AppLockController {
+  @override
+  AppLockState build() => const AppLockState(ready: true, locked: false);
+}
+
+final class _Locked extends AppLockController {
+  @override
+  AppLockState build() => const AppLockState(ready: true, locked: true);
+}
+
+Future<void> openMetadataSnapshot(WidgetTester tester, int revision) async {
+  final disclosure = find.byKey(ValueKey('stock-metadata-snapshot-$revision'));
+  await tester.ensureVisible(disclosure);
+  await tester.pumpAndSettle();
+  await tester.tap(
+    find.descendant(of: disclosure, matching: find.text('Saved details')),
+  );
+  await tester.pumpAndSettle();
+}
+
+StoredStockMetadataRevision metadataRow(
+  int revision, {
+  String source = 'edited',
+  String? lot,
+  CivilDate? expiry,
+  ExactAmount? capacity,
+}) => StoredStockMetadataRevision(
+  containerId: 'container',
+  revision: revision,
+  recordedAt: source == 'migrated'
+      ? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)
+      : DateTime.utc(2026, 10, 22),
+  source: source,
+  lot: lot,
+  expiryDate: expiry,
+  capacity: capacity,
 );
 
 Future<int> profileRevision(RecordStore store) async =>
@@ -206,30 +272,37 @@ void main() {
   );
 
   testWidgets(
-    'details history keeps exact facts, pages older versions and avoids invented migration time',
+    'details history explains changes and keeps full versions behind disclosure',
     (tester) async {
+      final third = ExactAmount(BigInt.one, BigInt.from(3));
       final rows = [
-        for (var i = 22; i > 0; i--)
-          StoredStockMetadataRevision(
-            containerId: 'container',
-            revision: i,
-            recordedAt: i == 1
-                ? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)
-                : DateTime.utc(2026, 10, 22),
-            source: i == 1 ? 'migrated' : 'edited',
-            lot: 'LOT-$i',
-            expiryDate: CivilDate(2027, 1, 31),
-            capacity: ExactAmount(BigInt.one, BigInt.from(3)),
-          ),
+        metadataRow(
+          6,
+          expiry: CivilDate(2027, 2, 28),
+          capacity: ExactAmount(BigInt.from(12)),
+        ),
+        metadataRow(
+          5,
+          expiry: CivilDate(2027, 2, 28),
+          capacity: ExactAmount(BigInt.from(12)),
+        ),
+        metadataRow(
+          4,
+          lot: 'OLD-LOT',
+          expiry: CivilDate(2027, 1, 31),
+          capacity: third,
+        ),
+        metadataRow(3, capacity: third),
+        metadataRow(2),
+        metadataRow(1, source: 'migrated'),
       ];
-      final offsets = <int>[];
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             displayZoneProvider.overrideWithValue('UTC'),
+            appLockProvider.overrideWith(_Unlocked.new),
             stockMetadataHistoryProvider.overrideWith((ref, q) async* {
-              offsets.add(q.offset);
-              yield rows.skip(q.offset).take(21).toList();
+              yield rows.skip(q.offset).take(22).toList();
             }),
           ],
           child: host(
@@ -247,24 +320,384 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Capacity: 1/3 ml'), findsNWidgets(20));
-      expect(find.text('Expiry date: 2027-01-31'), findsNWidgets(20));
-      expect(find.text('Lot: LOT-1'), findsNothing);
-      await tester.ensureVisible(find.text('More'));
-      await tester.tap(find.text('More'));
-      await tester.pumpAndSettle();
-      expect(find.text('Lot: LOT-1'), findsOneWidget);
+
+      expect(find.text('Lot or batch cleared. Was OLD-LOT.'), findsOneWidget);
+      expect(
+        find.text('Expiry date: 2027-01-31, now 2027-02-28'),
+        findsOneWidget,
+      );
+      expect(find.text('Pack capacity: 1/3 ml, now 12 ml'), findsOneWidget);
+      expect(find.text('Lot or batch: OLD-LOT (added)'), findsOneWidget);
+      expect(find.text('Expiry date: 2027-01-31 (added)'), findsOneWidget);
+      expect(find.text('Pack capacity: 1/3 ml (added)'), findsOneWidget);
+      expect(find.text('No details changed.'), findsOneWidget);
+      expect(
+        find.text(
+          'The previous version was carried forward. Its details were not recorded.',
+        ),
+        findsOneWidget,
+      );
       expect(
         find.text('Carried forward, version 1. Time not recorded.'),
         findsOneWidget,
       );
+      expect(find.text('First saved version.'), findsNothing);
+      // Full saved versions stay closed until asked for.
+      expect(find.text('Lot: OLD-LOT'), findsNothing);
+      expect(find.text('Capacity: 12 ml'), findsNothing);
+
+      await openMetadataSnapshot(tester, 5);
+      expect(find.text('Lot or batch: not set'), findsOneWidget);
+      expect(find.text('Expiry date: 2027-02-28'), findsOneWidget);
+      expect(find.text('Capacity: 12 ml'), findsOneWidget);
+
+      await openMetadataSnapshot(tester, 4);
+      expect(find.text('Lot: OLD-LOT'), findsOneWidget);
+      expect(find.text('Expiry date: 2027-01-31'), findsOneWidget);
+      expect(find.text('Capacity: 1/3 ml'), findsOneWidget);
+
+      await openMetadataSnapshot(tester, 1);
+      expect(find.text('Lot or batch: not recorded'), findsOneWidget);
+      expect(find.text('Expiry date: not recorded'), findsOneWidget);
+      expect(find.text('Pack capacity: not recorded'), findsOneWidget);
       expect(find.textContaining('1970'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'details history does not bridge a missing revision or guess an old value',
+    (tester) async {
+      final rows = [
+        metadataRow(6, lot: 'LOT-6'),
+        metadataRow(5, lot: 'LOT-5'),
+        metadataRow(3, lot: 'LOT-3'),
+        metadataRow(2, lot: 'LOT-2'),
+        metadataRow(1, source: 'migrated'),
+      ];
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            displayZoneProvider.overrideWithValue('UTC'),
+            appLockProvider.overrideWith(_Unlocked.new),
+            stockMetadataHistoryProvider.overrideWith((ref, q) async* {
+              yield rows.skip(q.offset).take(22).toList();
+            }),
+          ],
+          child: host(
+            const SizedBox(
+              width: 390,
+              child: SingleChildScrollView(
+                child: StockMetadataHistory(
+                  personId: meId,
+                  containerId: 'container',
+                  unit: 'ml',
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Lot or batch: LOT-5, now LOT-6'), findsOneWidget);
+      expect(
+        find.text('Previous version unavailable, so changes are not shown.'),
+        findsOneWidget,
+      );
+      expect(find.text('Lot or batch: LOT-2, now LOT-3'), findsOneWidget);
+      expect(find.text('Lot or batch: LOT-2 (first recorded)'), findsOneWidget);
+      expect(find.text('No details changed.'), findsNothing);
+      expect(find.textContaining('LOT-4'), findsNothing);
+      expect(
+        find.text(
+          'The previous version was carried forward. Its details were not recorded.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Carried forward, version 1. Time not recorded.'),
+        findsOneWidget,
+      );
+      await openMetadataSnapshot(tester, 5);
+      expect(find.text('Lot: LOT-5'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'details history compares the lookahead across both 20-row page boundaries',
+    (tester) async {
+      final third = ExactAmount(BigInt.one, BigInt.from(3));
+      final rows = [
+        for (var revision = 45; revision > 0; revision--)
+          metadataRow(
+            revision,
+            source: revision == 1 ? 'migrated' : 'edited',
+            lot: 'LOT-$revision',
+            capacity: third,
+          ),
+      ];
+      final offsets = <int>[];
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            displayZoneProvider.overrideWithValue('UTC'),
+            appLockProvider.overrideWith(_Unlocked.new),
+            stockMetadataHistoryProvider.overrideWith((ref, q) async* {
+              offsets.add(q.offset);
+              yield rows.skip(q.offset).take(22).toList();
+            }),
+          ],
+          child: host(
+            const SizedBox(
+              width: 430,
+              child: SingleChildScrollView(
+                child: StockMetadataHistory(
+                  personId: meId,
+                  containerId: 'container',
+                  unit: 'ml',
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Lot or batch: LOT-44, now LOT-45'), findsOneWidget);
+      expect(find.text('Lot or batch: LOT-25, now LOT-26'), findsOneWidget);
+      await tester.ensureVisible(find.text('More'));
+      await tester.tap(find.text('More'));
+      await tester.pumpAndSettle();
+      expect(offsets, containsAllInOrder([0, 20]));
+      expect(find.text('Lot or batch: LOT-24, now LOT-25'), findsOneWidget);
+      expect(find.text('Lot or batch: LOT-5, now LOT-6'), findsOneWidget);
       await tester.ensureVisible(find.text('Previous'));
       await tester.tap(find.text('Previous'));
       await tester.pumpAndSettle();
-      expect(find.text('Lot: LOT-22'), findsOneWidget);
-      expect(offsets, containsAllInOrder([0, 20]));
+      expect(find.text('Lot or batch: LOT-25, now LOT-26'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('details history keeps the final lookahead revision reachable', (
+    tester,
+  ) async {
+    final rows = [
+      for (var revision = 21; revision > 0; revision--)
+        metadataRow(
+          revision,
+          source: revision == 1 ? 'created' : 'edited',
+          lot: 'LOT-$revision',
+        ),
+    ];
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          displayZoneProvider.overrideWithValue('UTC'),
+          appLockProvider.overrideWith(_Unlocked.new),
+          stockMetadataHistoryProvider.overrideWith((ref, q) async* {
+            yield rows.skip(q.offset).take(22).toList();
+          }),
+        ],
+        child: host(
+          const SizedBox(
+            width: 390,
+            child: SingleChildScrollView(
+              child: StockMetadataHistory(
+                personId: meId,
+                containerId: 'container',
+                unit: 'ml',
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Lot or batch: LOT-1, now LOT-2'), findsOneWidget);
+    expect(find.text('More'), findsOneWidget);
+    await tester.ensureVisible(find.text('More'));
+    await tester.tap(find.text('More'));
+    await tester.pumpAndSettle();
+    expect(find.text('First saved version.'), findsOneWidget);
+    expect(find.text('More'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'details history recovers from a failed read and keeps expanded content across live data',
+    (tester) async {
+      final controller = StreamController<List<StoredStockMetadataRevision>>();
+      addTearDown(controller.close);
+      var reads = 0;
+      final initial = [
+        metadataRow(2, lot: 'LOT-B'),
+        metadataRow(1, source: 'created', lot: 'LOT-A'),
+      ];
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            displayZoneProvider.overrideWithValue('UTC'),
+            appLockProvider.overrideWith(_Unlocked.new),
+            stockMetadataHistoryProvider.overrideWith((ref, q) async* {
+              reads++;
+              if (reads == 1) throw StateError('synthetic read failure');
+              yield* controller.stream;
+            }),
+          ],
+          child: host(
+            const SizedBox(
+              width: 390,
+              child: SingleChildScrollView(
+                child: StockMetadataHistory(
+                  personId: meId,
+                  containerId: 'container',
+                  unit: 'ml',
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Retry'), findsOneWidget);
+      controller.add(initial);
+      await tester.tap(find.text('Retry'));
+      await tester.pumpAndSettle();
+      expect(reads, 2);
+      expect(find.text('Lot or batch: LOT-A, now LOT-B'), findsOneWidget);
+      expect(find.text('First saved version.'), findsOneWidget);
+
+      await openMetadataSnapshot(tester, 2);
+      expect(find.text('Lot: LOT-B'), findsOneWidget);
+      controller.add([metadataRow(3, lot: 'LOT-C'), ...initial]);
+      await tester.pumpAndSettle();
+      expect(find.text('Lot or batch: LOT-B, now LOT-C'), findsOneWidget);
+      expect(find.text('Lot: LOT-B'), findsOneWidget);
+      expect(find.text('Lot: LOT-C'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('details history hides while the app is locked', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          displayZoneProvider.overrideWithValue('UTC'),
+          appLockProvider.overrideWith(_Locked.new),
+          stockMetadataHistoryProvider.overrideWith((ref, q) async* {
+            yield [
+              metadataRow(2, lot: 'LOT-B'),
+              metadataRow(1, source: 'created', lot: 'LOT-A'),
+            ];
+          }),
+        ],
+        child: host(
+          const SizedBox(
+            width: 390,
+            child: SingleChildScrollView(
+              child: StockMetadataHistory(
+                personId: meId,
+                containerId: 'container',
+                unit: 'ml',
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Saved details'), findsNothing);
+    expect(find.textContaining('now LOT'), findsNothing);
+    expect(find.text('No saved details versions.'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'details history fits 320, 390 and 430 at double text in both themes',
+    (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.view.reset);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      final rows = [
+        metadataRow(
+          2,
+          lot: 'LOT-B',
+          expiry: CivilDate(2027, 2, 28),
+          capacity: ExactAmount(BigInt.from(12)),
+        ),
+        metadataRow(1, source: 'created', lot: 'LOT-A'),
+      ];
+      for (final brightness in Brightness.values) {
+        for (final width in [320.0, 390.0, 430.0]) {
+          final boundaryKey = GlobalKey();
+          tester.view.physicalSize = Size(width, 900);
+          tester.view.devicePixelRatio = 1;
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                displayZoneProvider.overrideWithValue('UTC'),
+                appLockProvider.overrideWith(_Unlocked.new),
+                stockMetadataHistoryProvider.overrideWith((ref, q) async* {
+                  yield rows;
+                }),
+              ],
+              child: host(
+                Builder(
+                  builder: (context) => RepaintBoundary(
+                    key: boundaryKey,
+                    child: SizedBox(
+                      width: width,
+                      child: ColoredBox(
+                        color: Theme.of(context).colorScheme.background,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: const SingleChildScrollView(
+                            child: StockMetadataHistory(
+                              personId: meId,
+                              containerId: 'container',
+                              unit: 'ml',
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                brightness: brightness,
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          expect(
+            tester.takeException(),
+            isNull,
+            reason: '${brightness.name} at $width and double text',
+          );
+          expect(find.text('Lot or batch: LOT-A, now LOT-B'), findsOneWidget);
+          if (metadataCaptures.isNotEmpty) {
+            await saveMetadataCapture(
+              tester,
+              boundaryKey,
+              '${brightness.name}-${width.toInt()}-double-text',
+            );
+          }
+          if (width == 320) {
+            await openMetadataSnapshot(tester, 2);
+            expect(tester.takeException(), isNull);
+            if (metadataCaptures.isNotEmpty) {
+              await saveMetadataCapture(
+                tester,
+                boundaryKey,
+                '${brightness.name}-320-double-text-expanded',
+              );
+            }
+          }
+        }
+      }
     },
   );
 
@@ -432,7 +865,10 @@ void main() {
     f.container.read(routerProvider).go('/stock/$meId/adjust/${container.id}');
     await settle(tester);
     await waitForText(tester, 'Adjust stock');
-    await tap(tester, 'Restock');
+    final restock = find.widgetWithText(VitalButton, 'Restock');
+    await tester.ensureVisible(restock);
+    await tester.tap(restock);
+    await settle(tester);
     await tester.enterText(field('Amount'), '4');
     await settle(tester);
     f.container.read(routerProvider).go('/today');

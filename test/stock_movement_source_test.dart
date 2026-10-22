@@ -223,7 +223,8 @@ void main() {
       location.queryParameters['return'],
       '/stock/$meId/adjust/${container.id}',
     );
-    expect(find.text('Recorded'), findsOneWidget);
+    // The underlying history also has a Recorded filter.
+    expect(find.text('Recorded'), findsWidgets);
     expect(find.text('Synthetic dose'), findsWidgets);
 
     await tap(tester, 'Back');
@@ -250,7 +251,8 @@ void main() {
     await settle(tester);
     await _tapOpen(tester, open);
     await waitForText(tester, 'Source');
-    expect(find.text('Recorded'), findsOneWidget);
+    // The underlying history also has a Recorded filter.
+    expect(find.text('Recorded'), findsWidgets);
     expect(find.text('Me: 2 ml'), findsOneWidget);
     await tap(tester, 'Back');
     await settle(tester);
@@ -415,7 +417,8 @@ void main() {
       location.path,
       endsWith('/history-source/combined/${group.actionId}'),
     );
-    expect(find.text('Recorded'), findsOneWidget);
+    // The underlying history also has a Recorded filter.
+    expect(find.text('Recorded'), findsWidgets);
     expect(
       find.text(
         'Correct or undo every source together. Each source retains its own history.',
@@ -522,7 +525,8 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     await settle(tester);
     await waitForText(tester, 'Source');
-    expect(find.text('Recorded'), findsOneWidget);
+    // The underlying history also has a Recorded filter.
+    expect(find.text('Recorded'), findsWidgets);
 
     await tap(tester, 'Back');
     await settle(tester);
@@ -645,7 +649,8 @@ void main() {
       }
       await _tapOpen(tester, open);
       await waitForText(tester, 'Source');
-      expect(find.text('Recorded'), findsOneWidget);
+      // The underlying history also has a Recorded filter.
+      expect(find.text('Recorded'), findsWidgets);
       expect(tester.takeException(), isNull);
       if (captures.isNotEmpty) {
         await _capture(
@@ -666,7 +671,8 @@ void main() {
       await settle(tester);
       await _tapOpen(tester, open);
       await waitForText(tester, 'Source');
-      expect(find.text('Recorded'), findsOneWidget);
+      // The underlying history also has a Recorded filter.
+      expect(find.text('Recorded'), findsWidgets);
       expect(tester.takeException(), isNull);
       await tap(tester, 'Back');
       await settle(tester);
@@ -737,7 +743,8 @@ void main() {
       }
       await _tapOpen(tester, open);
       await waitForText(tester, 'Source');
-      expect(find.text('Recorded'), findsOneWidget);
+      // The underlying history also has a Recorded filter.
+      expect(find.text('Recorded'), findsWidgets);
       if (captures.isNotEmpty) {
         await _capture(
           tester,

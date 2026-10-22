@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
+import '../../app/app_lock.dart';
 import '../../app/device_zone.dart';
 import '../../app/display_preferences.dart';
 import '../../app/storage.dart';
@@ -18,6 +19,7 @@ import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
 import '../profiles/profile_pages.dart';
 import '../recording/record_pages.dart';
+import 'stock_metadata_diff.dart';
 import 'stock_providers.dart';
 import 'stock_widgets.dart';
 import '../products/product_widgets.dart';
@@ -2302,9 +2304,27 @@ class StockMetadataHistory extends ConsumerStatefulWidget {
 
 class _StockMetadataHistoryState extends ConsumerState<StockMetadataHistory> {
   int offset = 0;
+  bool _clamping = false;
+
+  void _clamp(List<StoredStockMetadataRevision> rows) {
+    if (_clamping || offset == 0 || rows.isNotEmpty) return;
+    final requested = offset;
+    _clamping = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        if (offset == requested) offset -= 20;
+        _clamping = false;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+    if (ref.watch(appLockProvider.select((state) => state.locked))) {
+      return const SizedBox.shrink();
+    }
     final query = (
       personId: widget.personId,
       containerId: widget.containerId,
@@ -2317,63 +2337,183 @@ class _StockMetadataHistoryState extends ConsumerState<StockMetadataHistory> {
           error: (_, _) => LoadFailure(
             onRetry: () => ref.invalidate(stockMetadataHistoryProvider(query)),
           ),
-          data: (rows) => Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (rows.isEmpty) Text(t.featureStockMetadataEmpty),
-              for (final row in rows.take(20))
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        row.source == 'migrated'
-                            ? t.featureStockMetadataUndated(row.revision)
-                            : t.featureStockMetadataEntry(
-                                row.source == 'created'
-                                    ? t.featureStockMetadataCreated
-                                    : t.featureStockMetadataEdited,
-                                row.revision,
-                                displayStamp(context, ref, row.recordedAt),
-                              ),
-                      ),
-                      if (row.lot case final lot?)
-                        Text(t.featureStockLotValue(lot)),
-                      if (row.expiryDate case final expiry?)
-                        Text(t.featureStockExpiryValue(expiry.toString())),
-                      if (row.capacity case final capacity?)
-                        Text(
-                          t.featureStockCapacityValue(
-                            t.stockQuantity(
-                              stockExactAmountEntry(capacity),
-                              widget.unit,
-                            ),
-                          ),
-                        ),
-                    ],
+          data: (rows) {
+            _clamp(rows);
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (rows.isEmpty) Text(t.featureStockMetadataEmpty),
+                for (var index = 0; index < rows.length && index < 20; index++)
+                  Padding(
+                    key: ValueKey(
+                      'stock-metadata-revision-${rows[index].revision}',
+                    ),
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _revision(
+                      t,
+                      rows[index],
+                      predecessor: _predecessor(rows, index),
+                    ),
                   ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (offset > 0)
+                      VitalButton.secondary(
+                        onPressed: () => setState(() => offset -= 20),
+                        child: Text(t.previous),
+                      ),
+                    // The comparison lookahead is also a saved revision and
+                    // must remain reachable on the next page.
+                    if (rows.length > 20)
+                      VitalButton.secondary(
+                        onPressed: () => setState(() => offset += 20),
+                        child: Text(t.more),
+                      ),
+                  ],
                 ),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (offset > 0)
-                    VitalButton.secondary(
-                      onPressed: () => setState(() => offset -= 20),
-                      child: Text(t.previous),
-                    ),
-                  if (rows.length > 20)
-                    VitalButton.secondary(
-                      onPressed: () => setState(() => offset += 20),
-                      child: Text(t.more),
-                    ),
-                ],
-              ),
-            ],
-          ),
+              ],
+            );
+          },
         );
   }
+
+  StoredStockMetadataRevision? _predecessor(
+    List<StoredStockMetadataRevision> rows,
+    int index,
+  ) {
+    // The 21st row is the lookahead that supplies the oldest displayed row's
+    // predecessor. A gap in revision numbers is rejected by the diff helper.
+    return index + 1 < rows.length ? rows[index + 1] : null;
+  }
+
+  Widget _revision(
+    AppLocalizations t,
+    StoredStockMetadataRevision row, {
+    StoredStockMetadataRevision? predecessor,
+  }) {
+    final diff = stockMetadataRevisionDiff(row, predecessor);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          row.source == 'migrated'
+              ? t.featureStockMetadataUndated(row.revision)
+              : t.featureStockMetadataEntry(
+                  row.source == 'created'
+                      ? t.featureStockMetadataCreated
+                      : t.featureStockMetadataEdited,
+                  row.revision,
+                  displayStamp(context, ref, row.recordedAt),
+                ),
+        ),
+        if (diff.comparison == StockMetadataComparison.first)
+          Text(t.batch15T09FirstSaved, style: StitchType.caption),
+        if (diff.predecessorCarriedForward)
+          Text(
+            t.batch15T09PredecessorCarriedForward,
+            style: StitchType.caption,
+          ),
+        if (diff.comparison == StockMetadataComparison.unavailable)
+          Text(t.batch15T09PreviousUnavailable, style: StitchType.caption),
+        if (diff.comparison == StockMetadataComparison.compared) ...[
+          for (final change in diff.changes)
+            if (change.change != StockMetadataChange.unknown ||
+                change.after != null)
+              Text(_changeText(t, change)),
+          if (diff.changes.isEmpty && !diff.predecessorCarriedForward)
+            Text(t.batch15T09NoChanges, style: StitchType.caption),
+        ],
+        const SizedBox(height: 6),
+        VitalDisclosure(
+          key: ValueKey('stock-metadata-snapshot-${row.revision}'),
+          title: t.batch15T09Snapshot,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final field in StockMetadataField.values)
+                Text(_snapshotText(t, row, field)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _changeText(AppLocalizations t, StockMetadataFieldDiff change) {
+    final field = _fieldLabel(t, change.field);
+    return switch (change.change) {
+      StockMetadataChange.added => t.batch15T09FieldAdded(
+        field,
+        _fieldValue(t, change.field, change.after!),
+      ),
+      StockMetadataChange.cleared => t.batch15T09FieldCleared(
+        field,
+        _fieldValue(t, change.field, change.before!),
+      ),
+      StockMetadataChange.changed => t.batch15T09FieldChanged(
+        field,
+        _fieldValue(t, change.field, change.before!),
+        _fieldValue(t, change.field, change.after!),
+      ),
+      StockMetadataChange.unknown => t.batch15T09FieldRecorded(
+        field,
+        _fieldValue(t, change.field, change.after!),
+      ),
+      StockMetadataChange.unchanged => '',
+    };
+  }
+
+  String _snapshotText(
+    AppLocalizations t,
+    StoredStockMetadataRevision row,
+    StockMetadataField field,
+  ) {
+    final value = switch (field) {
+      StockMetadataField.lot => row.lot,
+      StockMetadataField.expiry => row.expiryDate,
+      StockMetadataField.capacity => row.capacity,
+    };
+    if (value != null) {
+      return switch (field) {
+        StockMetadataField.lot => t.featureStockLotValue(value as String),
+        StockMetadataField.expiry => t.featureStockExpiryValue(
+          (value as CivilDate).toString(),
+        ),
+        StockMetadataField.capacity => t.featureStockCapacityValue(
+          t.stockQuantity(
+            stockExactAmountEntry(value as ExactAmount),
+            widget.unit,
+          ),
+        ),
+      };
+    }
+    final label = _fieldLabel(t, field);
+    return row.source == 'migrated'
+        ? t.batch15T09NotRecorded(label)
+        : t.batch15T09NotSet(label);
+  }
+
+  String _fieldLabel(AppLocalizations t, StockMetadataField field) =>
+      switch (field) {
+        StockMetadataField.lot => t.featureStockLot,
+        StockMetadataField.expiry => t.featureStockExpiry,
+        StockMetadataField.capacity => t.featureStockCapacity,
+      };
+
+  String _fieldValue(
+    AppLocalizations t,
+    StockMetadataField field,
+    Object value,
+  ) => switch (field) {
+    StockMetadataField.lot => value as String,
+    StockMetadataField.expiry => (value as CivilDate).toString(),
+    StockMetadataField.capacity => t.stockQuantity(
+      stockExactAmountEntry(value as ExactAmount),
+      widget.unit,
+    ),
+  };
 }
 
 class StockNoticeSettings extends ConsumerStatefulWidget {
