@@ -49,6 +49,9 @@ void main() {
         'Interval',
         'Partly timed',
         'Time windows',
+        'Before food',
+        'Empty stomach',
+        'At bedtime',
       ]) {
         final chip = find.ancestor(
           of: find.text(label).last,

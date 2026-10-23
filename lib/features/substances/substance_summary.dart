@@ -8,6 +8,7 @@ import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
 import '../plans/plan_providers.dart';
+import '../plans/plan_requirement_badges.dart';
 import '../products/product_widgets.dart' show ProductLabelView;
 import '../stock/stock_widgets.dart'
     show
@@ -194,6 +195,8 @@ class _PlanLine extends ConsumerWidget {
       if (ended) VitalBadge(t.designSubstancesEnded),
       if (plan.instructions.isNotEmpty && !detailed)
         VitalBadge(t.featurePlanInstructionsHeading),
+      for (final label in planRequirementLabels(t, plan.requirements))
+        VitalBadge(label),
     ];
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),

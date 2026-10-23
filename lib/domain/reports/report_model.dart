@@ -1011,12 +1011,20 @@ final class ReportText {
   }
 
   static const planInstructionDisclosure =
-      'Authored instructions from the saved plan version linked to each dose. '
-      'These do not show whether an instruction was followed.';
+      'Authored instructions and optional food or bedtime labels from the '
+      'saved plan version linked to each dose. These do not show whether an '
+      'instruction was followed.';
 
-  static String planInstructionText(SavedPlanInstruction instruction) =>
-      'Plan ${instruction.planId} · version ${instruction.versionId}: '
-      '${instruction.text}';
+  static String planInstructionText(SavedPlanInstruction instruction) {
+    final parts = [
+      if (instruction.text.isNotEmpty) instruction.text,
+      if (instruction.requirements case final requirements?
+          when requirements.isNotEmpty)
+        requirements.reportSummary,
+    ];
+    return 'Plan ${instruction.planId} · version ${instruction.versionId}: '
+        '${parts.join(' · ')}';
+  }
 
   static List<String> planInstructionLines(ReportSnapshot snapshot) {
     if (!snapshot.selection.includeNotes) return const [];

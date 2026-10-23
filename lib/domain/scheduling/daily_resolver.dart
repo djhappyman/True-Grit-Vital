@@ -207,6 +207,7 @@ final class DailyResolver {
         pauses: plan.pauses,
         onOff: plan.onOff,
         instructions: plan.instructions,
+        requirements: plan.requirements,
         effectiveFrom: plan.effectiveFrom,
         effectiveUntil: plan.effectiveUntil,
       );

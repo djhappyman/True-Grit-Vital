@@ -89,6 +89,7 @@ final class TimelinePlanContext {
     required this.expectation,
     this.planName,
     this.itemName,
+    this.requirements,
   }) {
     _checkOptionalText(planName, 'plan_name');
     _checkOptionalText(itemName, 'item_name');
@@ -96,6 +97,7 @@ final class TimelinePlanContext {
 
   final DailyExpectation expectation;
   final String? planName, itemName;
+  final ScheduleRequirement? requirements;
 }
 
 sealed class TimelineEntry {

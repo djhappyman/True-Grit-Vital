@@ -9,7 +9,6 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/device_zone.dart';
-import '../../app/settings_toggle_row.dart';
 import '../../app/storage.dart';
 import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
@@ -18,6 +17,7 @@ import '../recording/record_pages.dart';
 import '../reminders/reminder_pages.dart';
 import 'plan_preview_totals.dart';
 import 'plan_providers.dart';
+import 'plan_requirement_badges.dart';
 import 'pause_editor.dart';
 import 'calendar_editor.dart';
 import 'interval_editor.dart';
@@ -74,6 +74,8 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
   String planId = newCommandId(), versionId = newCommandId();
   String mode = 'count', basis = 'local';
   bool initialised = false;
+  FoodRequirement? requirementFood;
+  bool requirementBedtime = false;
   final start = TextEditingController(),
       end = TextEditingController(),
       count = TextEditingController(),
@@ -112,6 +114,8 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     'home': home.text,
     'instructions': instructions.text,
     ...timingFields.capture(),
+    'requirementFood': requirementFood?.name ?? '',
+    'requirementBedtime': requirementBedtime ? '1' : '0',
     'intervalClockSample': encodeIntervalClock(intervalClockSample),
     ...calendar.capture(),
     ...blocks.capture(),
@@ -141,6 +145,11 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     home.text = fields['home'] ?? '';
     instructions.text = fields['instructions'] ?? '';
     timingFields.restore(fields);
+    requirementFood = switch (fields['requirementFood']) {
+      null || '' => null,
+      final value => FoodRequirement.values.byName(value),
+    };
+    requirementBedtime = fields['requirementBedtime'] == '1';
     calendar.restore(fields);
     blocks.restore(fields);
     interval.restore(fields);
@@ -260,6 +269,12 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     pauses: original?.plan.pauses ?? const [],
     instructions: instructions.text,
     timingPolicy: timingFields.candidate(),
+    requirements: requirementFood == null && !requirementBedtime
+        ? null
+        : ScheduleRequirement(
+            food: requirementFood,
+            atBedtime: requirementBedtime,
+          ),
     effectiveFrom: original?.plan.effectiveFrom,
     effectiveUntil: original?.plan.effectiveUntil,
     onOff: mode == 'prn' ? null : blocks.candidate(),
@@ -409,6 +424,8 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
         : '';
     instructions.text = p.instructions;
     timingFields.load(p.timingPolicy);
+    requirementFood = p.requirements?.food;
+    requirementBedtime = p.requirements?.atBedtime ?? false;
     switch (p.timing) {
       case ElapsedInterval():
         mode = 'interval';
@@ -749,11 +766,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
                       decimal: true,
                     ),
                   ),
-                  SchedulePreviewNote(
-                    body: t.screenScheduleTolerancePreview,
-                    label: t.preview,
-                    icon: LucideIcons.slidersHorizontal,
-                  ),
+
                   if (slots.length > 1)
                     Align(
                       alignment: AlignmentDirectional.centerEnd,
@@ -909,9 +922,91 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       const SizedBox(height: 20),
       ScheduleSectionHeader(
         title: t.screenScheduleRequirements,
-        meta: t.preview,
+        meta: t.finishR01Optional,
       ),
-      SchedulePreviewNote(body: t.screenScheduleRequirementsBody),
+      StitchSurface(
+        radius: VitalLayout.sectionRadius,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(t.finishR01RequirementsHelp, style: caption),
+            const SizedBox(height: 12),
+            Text(
+              t.finishR01FoodHeading,
+              style: StitchType.label.copyWith(color: c.ink),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ScheduleChoiceChip(
+                  key: const ValueKey('requirement-food-none'),
+                  label: t.finishR01FoodNotSet,
+                  selected: requirementFood == null,
+                  onPressed: enabled
+                      ? () => setState(() {
+                          requirementFood = null;
+                          changed();
+                        })
+                      : null,
+                ),
+                for (final (value, label) in [
+                  (FoodRequirement.beforeFood, t.finishR01FoodBefore),
+                  (FoodRequirement.withFood, t.finishR01FoodWith),
+                  (FoodRequirement.afterFood, t.finishR01FoodAfter),
+                  (FoodRequirement.emptyStomach, t.finishR01FoodEmptyStomach),
+                ])
+                  ScheduleChoiceChip(
+                    key: ValueKey('requirement-food-${value.name}'),
+                    label: label,
+                    selected: requirementFood == value,
+                    onPressed: enabled
+                        ? () => setState(() {
+                            requirementFood = value;
+                            changed();
+                          })
+                        : null,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              t.finishR01BedtimeHeading,
+              style: StitchType.label.copyWith(color: c.ink),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ScheduleChoiceChip(
+                  key: const ValueKey('requirement-bedtime-none'),
+                  label: t.finishR01BedtimeNotSet,
+                  selected: !requirementBedtime,
+                  onPressed: enabled
+                      ? () => setState(() {
+                          requirementBedtime = false;
+                          changed();
+                        })
+                      : null,
+                ),
+                ScheduleChoiceChip(
+                  key: const ValueKey('requirement-bedtime-at'),
+                  label: t.finishR01AtBedtime,
+                  selected: requirementBedtime,
+                  onPressed: enabled
+                      ? () => setState(() {
+                          requirementBedtime = true;
+                          changed();
+                        })
+                      : null,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
       const SizedBox(height: 20),
       StitchSurface(
         radius: VitalLayout.sectionRadius,
@@ -984,18 +1079,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
           radius: VitalLayout.sectionRadius,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              PlanReminderControl(saved: original!),
-              const SizedBox(height: 12),
-              SettingsToggleRow(
-                label: t.screenScheduleFollowUp,
-                description: t.screenScheduleFollowUpBody,
-                value: false,
-                enabled: false,
-                onChanged: (_) {},
-                reduceMotion: MediaQuery.disableAnimationsOf(context),
-              ),
-            ],
+            children: [PlanReminderControl(saved: original!)],
           ),
         )
       else
@@ -1242,6 +1326,10 @@ class _PlanPreviewState extends ConsumerState<PlanPreview> {
         if (plan.instructions.isNotEmpty) ...[
           Heading(t.featurePlanInstructionsHeading),
           Text(plan.instructions),
+        ],
+        if (plan.requirements?.isNotEmpty == true) ...[
+          Heading(t.screenScheduleRequirements),
+          PlanRequirementBadges(requirements: plan.requirements),
         ],
       ],
     );

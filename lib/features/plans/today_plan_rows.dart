@@ -13,6 +13,7 @@ import '../reminders/reminder_pages.dart';
 import 'interval_editor.dart';
 import 'plan_form.dart';
 import 'plan_providers.dart';
+import 'plan_requirement_badges.dart';
 
 /// Owner and item context for one plan, shown with its feed entry points.
 class PlanItemContext extends ConsumerWidget {
@@ -89,6 +90,11 @@ class _TodayPlanRow extends ConsumerWidget {
             const SizedBox(height: VitalLayout.gap),
             Text(t.featurePlanInstructionsHeading, style: VitalType.label),
             Text(plan.instructions),
+          ],
+          if (plan.requirements?.isNotEmpty == true) ...[
+            const SizedBox(height: VitalLayout.gap),
+            Text(t.screenScheduleRequirements, style: VitalType.label),
+            PlanRequirementBadges(requirements: plan.requirements),
           ],
           if (paused) ...[
             const SizedBox(height: VitalLayout.gap),

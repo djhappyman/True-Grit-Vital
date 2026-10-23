@@ -550,6 +550,29 @@ extension HistoryRecordStore on RecordStore {
     TimelineEntryId anchor,
   ) => _watch(() => timelineAnchor(query, anchor: anchor));
 
+  TimelinePlanContext _historyPlanContext(
+    DailyExpectation occurrence,
+    Object? snapshot,
+    String? itemName,
+  ) {
+    ScheduleRequirement? requirements;
+    if (snapshot != null) {
+      final plan = decodeDailyPlan(dailyObject(snapshot as String));
+      if (plan.personId != occurrence.identity.personId ||
+          plan.planId != occurrence.identity.planId ||
+          plan.versionId != occurrence.versionId ||
+          plan.itemId != occurrence.itemId) {
+        throw const TimelineModelException('plan_context_identity');
+      }
+      requirements = plan.requirements;
+    }
+    return TimelinePlanContext(
+      expectation: occurrence,
+      itemName: itemName,
+      requirements: requirements,
+    );
+  }
+
   Future<List<TimelineEntry>> _historyLoad(
     List<Map<String, Object?>> parents,
     TimelineQuery query,
@@ -569,7 +592,7 @@ extension HistoryRecordStore on RecordStore {
       // One batched current-row read carries the optional taken-action plan
       // context, so the page does not issue a second context statement.
       final rows = await _rows(
-        'SELECT x.*,pd.id AS plan_action_id,e.snapshot AS plan_snapshot,e.item_name AS plan_item_name FROM (${RecordStore._current}) x LEFT JOIN daily_action pd ON pd.record=x.id AND pd.person=x.person LEFT JOIN daily_expectation e ON e.id=pd.bucket AND e.person=pd.person WHERE x.id IN (${List.filled(singleIds.length, '?').join(',')})',
+        'SELECT x.*,pd.id AS plan_action_id,e.snapshot AS plan_snapshot,e.item_name AS plan_item_name,v.snapshot AS requirement_plan FROM (${RecordStore._current}) x LEFT JOIN daily_action pd ON pd.record=x.id AND pd.person=x.person LEFT JOIN daily_expectation e ON e.id=pd.bucket AND e.person=pd.person LEFT JOIN daily_version_audit v ON v.id=json_extract(e.snapshot,\'\$.version\') AND v.plan=e.plan AND v.person=e.person WHERE x.id IN (${List.filled(singleIds.length, '?').join(',')})',
         singleIds,
       );
       for (final row in rows) {
@@ -577,11 +600,10 @@ extension HistoryRecordStore on RecordStore {
         records[record.id] = record;
         final snapshot = row['plan_snapshot'];
         if (snapshot != null) {
-          contexts[record.id] = TimelinePlanContext(
-            expectation: decodeDailyExpectation(
-              dailyObject(snapshot as String),
-            ),
-            itemName: row['plan_item_name'] as String?,
+          contexts[record.id] = _historyPlanContext(
+            decodeDailyExpectation(dailyObject(snapshot as String)),
+            row['requirement_plan'],
+            row['plan_item_name'] as String?,
           );
         }
       }
@@ -613,16 +635,15 @@ extension HistoryRecordStore on RecordStore {
     final skipEntries = <String, SkippedTimelineEntry>{};
     if (skips.isNotEmpty) {
       for (final row in await _rows(
-        'SELECT d.*,e.snapshot,e.item_name FROM daily_action d JOIN daily_expectation e ON e.id=d.bucket AND e.person=d.person WHERE d.id IN (${List.filled(skips.length, '?').join(',')})',
+        'SELECT d.*,e.snapshot,e.item_name,v.snapshot AS requirement_plan FROM daily_action d JOIN daily_expectation e ON e.id=d.bucket AND e.person=d.person LEFT JOIN daily_version_audit v ON v.id=json_extract(e.snapshot,\'\$.version\') AND v.plan=e.plan AND v.person=e.person WHERE d.id IN (${List.filled(skips.length, '?').join(',')})',
         skips,
       )) {
         skipEntries[row['id'] as String] = SkippedTimelineEntry(
           action: _dailyAction(row),
-          context: TimelinePlanContext(
-            expectation: decodeDailyExpectation(
-              dailyObject(row['snapshot'] as String),
-            ),
-            itemName: row['item_name'] as String?,
+          context: _historyPlanContext(
+            decodeDailyExpectation(dailyObject(row['snapshot'] as String)),
+            row['requirement_plan'],
+            row['item_name'] as String?,
           ),
         );
       }
@@ -677,18 +698,17 @@ extension HistoryRecordStore on RecordStore {
   }) async {
     _requireWritable();
     final rows = await _rows(
-      'SELECT d.*,a.revision AS actual_revision,e.snapshot,e.item_name,e.item_type FROM daily_action d JOIN daily_expectation e ON e.id=d.bucket AND e.person=d.person LEFT JOIN administration a ON a.id=d.record WHERE d.id=? AND d.person=?',
+      'SELECT d.*,a.revision AS actual_revision,e.snapshot,e.item_name,e.item_type,v.snapshot AS requirement_plan FROM daily_action d JOIN daily_expectation e ON e.id=d.bucket AND e.person=d.person LEFT JOIN administration a ON a.id=d.record LEFT JOIN daily_version_audit v ON v.id=json_extract(e.snapshot,\'\$.version\') AND v.plan=e.plan AND v.person=e.person WHERE d.id=? AND d.person=?',
       [actionId, personId],
     );
     if (rows.isEmpty) return null;
     final r = rows.single;
     return DailyActionSource(
       action: _dailyAction(r),
-      context: TimelinePlanContext(
-        expectation: decodeDailyExpectation(
-          dailyObject(r['snapshot'] as String),
-        ),
-        itemName: r['item_name'] as String?,
+      context: _historyPlanContext(
+        decodeDailyExpectation(dailyObject(r['snapshot'] as String)),
+        r['requirement_plan'],
+        r['item_name'] as String?,
       ),
       recordedType: r['item_type'] as String,
     );

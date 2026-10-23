@@ -207,6 +207,7 @@ class PhaseEntry {
       onOff: mode == 'prn' ? null : blocks.candidate(),
       instructions: p.instructions,
       timingPolicy: p.timingPolicy,
+      requirements: p.requirements,
       calendar: mode == 'interval' || mode == 'prn'
           ? const EveryDay()
           : calendar.candidate(),

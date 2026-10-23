@@ -64,6 +64,8 @@ Map<String, Object?> encodeDailyPlan(DailyPlanVersion v) => {
   // byte-compatible after an update.
   if (v.instructions.isNotEmpty) 'instructions': v.instructions,
   if (v.timingPolicy != null) 'timingPolicy': v.timingPolicy!.toJson(),
+  if (v.requirements case final requirements?)
+    'requirements': requirements.toJson(),
   if (v.effectiveFrom != null)
     'effectiveFrom': v.effectiveFrom!.microsecondsSinceEpoch,
   if (v.effectiveUntil != null)
@@ -166,6 +168,7 @@ DailyPlanVersion decodeDailyPlan(Map<String, dynamic> v) {
         : PlanTimingPolicy.fromJson(
             Map<String, dynamic>.from(v['timingPolicy'] as Map),
           ),
+    requirements: ScheduleRequirement.fromJson(v['requirements']),
     effectiveFrom: v['effectiveFrom'] == null
         ? null
         : DateTime.fromMicrosecondsSinceEpoch(

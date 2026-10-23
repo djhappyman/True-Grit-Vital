@@ -174,6 +174,7 @@ extension DailyRecordStore on RecordStore {
               onOff: v.onOff,
               instructions: v.instructions,
               timingPolicy: v.timingPolicy,
+              requirements: v.requirements,
               effectiveFrom: v.effectiveFrom,
               effectiveUntil: v.effectiveUntil,
               zoneBasis: v.zoneBasis,

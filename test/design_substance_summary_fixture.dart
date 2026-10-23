@@ -173,6 +173,7 @@ class SummaryFixture {
     CalendarPattern calendar = const EveryDay(),
     int? expectedPlanRevision,
     String instructions = '',
+    ScheduleRequirement? requirements,
   }) async {
     final born = CivilDate.fromDateTime(
       DateTime.now().toUtc().subtract(const Duration(days: 7)),
@@ -193,6 +194,7 @@ class SummaryFixture {
           calendar: calendar,
           pauses: pauses,
           instructions: instructions,
+          requirements: requirements,
         ),
         expectedPersonRevision: (await store.profileById(meId))!.revision,
         expectedPlanRevision: expectedPlanRevision,

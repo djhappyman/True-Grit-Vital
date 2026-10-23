@@ -24,6 +24,7 @@ import '../events/event_pages.dart' show eventLookupProvider;
 import '../stock/stock_widgets.dart';
 import 'history_calendar.dart';
 import '../plans/plan_timing_fields.dart' show timingLabelText;
+import '../plans/plan_requirement_badges.dart';
 import 'history_date_jump.dart';
 import 'history_source.dart' show historySourceProvider;
 import 'routine_activity_summary.dart';
@@ -1744,6 +1745,12 @@ class HistoryEntryCard extends ConsumerWidget {
     }
 
     final details = <Widget>[];
+    final requirements = entry is RecordTimelineEntry
+        ? entry.planContext?.requirements
+        : skipped?.context.requirements;
+    if (requirements != null) {
+      details.add(PlanRequirementBadges(requirements: requirements));
+    }
     if (entry is RecordTimelineEntry && record != null) {
       final captured = entry.planContext?.expectation;
       final label = doseTimingLabel(

@@ -27,6 +27,9 @@ void main() {
           start: CivilDate(2026, 10, 23),
           zoneBasis: FixedHome('UTC'),
           timingPolicy: PlanTimingPolicy(allowanceMinutes: 15),
+          requirements: const ScheduleRequirement(
+            food: FoodRequirement.withFood,
+          ),
           timing: DailySlots([
             DailySlot(
               id: 'am',
@@ -58,7 +61,10 @@ void main() {
         );
         final entry = RecordTimelineEntry(
           record: record,
-          planContext: TimelinePlanContext(expectation: expected),
+          planContext: TimelinePlanContext(
+            expectation: expected,
+            requirements: p.requirements,
+          ),
         );
         tester.view.physicalSize = const Size(320, 844);
         tester.view.devicePixelRatio = 1;
@@ -105,6 +111,7 @@ void main() {
         );
         await tester.pumpAndSettle();
         expect(find.text('Within your window'), findsOneWidget);
+        expect(find.text('With food'), findsOneWidget);
         expect(tester.takeException(), isNull);
         const output = String.fromEnvironment('VITAL_TIMING_CAPTURES');
         if (output.isNotEmpty) {

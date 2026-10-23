@@ -222,6 +222,8 @@ final class OrdinaryDraft {
         'timingAllowance',
         'timingFollowUp',
         'timingDelay',
+        'requirementFood',
+        'requirementBedtime',
         'slots',
         'calendarPattern',
         'calendarSelector',

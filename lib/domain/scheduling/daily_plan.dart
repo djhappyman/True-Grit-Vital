@@ -3,8 +3,10 @@ export 'plan_timing_policy.dart';
 import '../records.dart';
 import 'calendar_pattern.dart';
 import 'pause_pattern.dart';
+import 'schedule_requirement.dart';
 export 'calendar_pattern.dart';
 export 'pause_pattern.dart';
+export 'schedule_requirement.dart';
 
 /// A calendar date, never a midnight instant in an implicit device zone.
 final class CivilDate implements Comparable<CivilDate> {
@@ -327,6 +329,7 @@ final class DailyPlanVersion {
     this.onOff,
     this.instructions = '',
     this.timingPolicy,
+    this.requirements,
     this.effectiveFrom,
     this.effectiveUntil,
   }) : pauses = List.unmodifiable(pauses) {
@@ -352,6 +355,9 @@ final class DailyPlanVersion {
     if (instructions.length > maxInstructionsLength) {
       throw ArgumentError('plan_instructions_bound');
     }
+    if (requirements?.isEmpty == true) {
+      throw ArgumentError('empty_plan_requirements');
+    }
   }
   final String personId, planId, itemId, versionId;
   final CivilDate start;
@@ -365,6 +371,10 @@ final class DailyPlanVersion {
   /// Exact authored text, including line breaks. Empty means no instructions.
   final String instructions;
   final PlanTimingPolicy? timingPolicy;
+
+  /// Optional labels the person chose for food and bedtime. Null means the
+  /// person made no structured choice; the labels add no timing rule.
+  final ScheduleRequirement? requirements;
 
   /// Independent half-open UTC bounds for an immutable intraday version.
   final DateTime? effectiveFrom, effectiveUntil;

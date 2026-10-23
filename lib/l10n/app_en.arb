@@ -7709,11 +7709,51 @@
   },
   "screenScheduleRequirements": "Requirements",
   "@screenScheduleRequirements": {
-    "description": "Section heading for the unavailable food and timing requirements."
+    "description": "Section heading for optional food and bedtime labels saved with the plan version."
   },
-  "screenScheduleRequirementsBody": "Food and timing requirements are not available yet. Nothing from this preview is saved.",
-  "@screenScheduleRequirementsBody": {
-    "description": "Explicit preview state. Does not offer clinical advice or save example requirements."
+  "finishR01Optional": "Optional",
+  "@finishR01Optional": {
+    "description": "Marks the requirements section as optional."
+  },
+  "finishR01RequirementsHelp": "Choose any labels that apply. They are saved with this plan version and add no timing rule.",
+  "@finishR01RequirementsHelp": {
+    "description": "States that requirements are explicit optional labels without inferred timing or compliance."
+  },
+  "finishR01FoodHeading": "Food",
+  "@finishR01FoodHeading": {
+    "description": "Heading for the optional food label choice."
+  },
+  "finishR01FoodNotSet": "Not set",
+  "@finishR01FoodNotSet": {
+    "description": "Clears the optional food label."
+  },
+  "finishR01FoodBefore": "Before food",
+  "@finishR01FoodBefore": {
+    "description": "Literal food label chosen by the person."
+  },
+  "finishR01FoodWith": "With food",
+  "@finishR01FoodWith": {
+    "description": "Literal food label chosen by the person."
+  },
+  "finishR01FoodAfter": "After food",
+  "@finishR01FoodAfter": {
+    "description": "Literal food label chosen by the person."
+  },
+  "finishR01FoodEmptyStomach": "Empty stomach",
+  "@finishR01FoodEmptyStomach": {
+    "description": "Literal food label chosen by the person."
+  },
+  "finishR01BedtimeHeading": "Bedtime",
+  "@finishR01BedtimeHeading": {
+    "description": "Heading for the optional bedtime label choice."
+  },
+  "finishR01BedtimeNotSet": "Not set",
+  "@finishR01BedtimeNotSet": {
+    "description": "Clears the optional bedtime label."
+  },
+  "finishR01AtBedtime": "At bedtime",
+  "@finishR01AtBedtime": {
+    "description": "Literal bedtime label chosen by the person."
   },
   "screenScheduleSaveFirst": "Save this plan before using pause or reminders.",
   "@screenScheduleSaveFirst": {

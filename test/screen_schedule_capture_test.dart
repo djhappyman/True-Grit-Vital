@@ -78,7 +78,7 @@ void main() {
     appTest('schedule renders loaded light and dark composition', (
       tester,
     ) async {
-      tester.view.physicalSize = const Size(390, 844);
+      tester.view.physicalSize = const Size(320, 740);
       tester.view.devicePixelRatio = 1;
       tester.view.padding = const FakeViewPadding(top: 28, bottom: 24);
       tester.view.viewPadding = const FakeViewPadding(top: 28, bottom: 24);
@@ -110,7 +110,11 @@ void main() {
             timing: _slots(),
             zoneBasis: const FollowingLocal(),
             calendar: const EveryDay(),
-            instructions: 'Take with food.\nAt bedtime.',
+            instructions: 'Take one tablet in the morning.',
+            requirements: const ScheduleRequirement(
+              food: FoodRequirement.withFood,
+              atBedtime: true,
+            ),
           ),
         ),
       ))!;
@@ -128,7 +132,7 @@ void main() {
           .go('/schedule/${item.id}?plan=${saved.plan.planId}');
       await waitForText(tester, 'RECURRENCE');
       expect(find.text('Telmisartan'), findsOneWidget);
-      expect(find.byType(ScheduleChoiceChip), findsNWidgets(8));
+      expect(find.byType(ScheduleChoiceChip), findsNWidgets(15));
       await capture(tester, key, '${theme.name}-schedule');
       final content =
           tester
@@ -147,8 +151,8 @@ void main() {
           )
           .height;
       tester.view.physicalSize = Size(
-        390,
-        (844 + math.max(0, content - viewport)).ceilToDouble(),
+        320,
+        (740 + math.max(0, content - viewport)).ceilToDouble(),
       );
       await settle(tester);
       await capture(tester, key, '${theme.name}-schedule-full');

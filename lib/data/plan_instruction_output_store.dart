@@ -47,11 +47,12 @@ ${records ? '' : 'AND a.undone=0'} ORDER BY $key''',
             plan.itemId != row['plan_item']) {
           throw const CommandConflict('plan_instruction_identity');
         }
-        if (plan.instructions.isNotEmpty) {
+        if (plan.instructions.isNotEmpty || plan.requirements != null) {
           result[target] = SavedPlanInstruction(
             planId: plan.planId,
             versionId: plan.versionId,
             text: plan.instructions,
+            requirements: plan.requirements,
           );
         }
       }

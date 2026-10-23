@@ -10365,17 +10365,77 @@ abstract class AppLocalizations {
   /// **'Timing tolerance is not available yet. This plan saves only the chosen time.'**
   String get screenScheduleTolerancePreview;
 
-  /// Section heading for the unavailable food and timing requirements.
+  /// Section heading for optional food and bedtime labels saved with the plan version.
   ///
   /// In en, this message translates to:
   /// **'Requirements'**
   String get screenScheduleRequirements;
 
-  /// Explicit preview state. Does not offer clinical advice or save example requirements.
+  /// Marks the requirements section as optional.
   ///
   /// In en, this message translates to:
-  /// **'Food and timing requirements are not available yet. Nothing from this preview is saved.'**
-  String get screenScheduleRequirementsBody;
+  /// **'Optional'**
+  String get finishR01Optional;
+
+  /// States that requirements are explicit optional labels without inferred timing or compliance.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose any labels that apply. They are saved with this plan version and add no timing rule.'**
+  String get finishR01RequirementsHelp;
+
+  /// Heading for the optional food label choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Food'**
+  String get finishR01FoodHeading;
+
+  /// Clears the optional food label.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get finishR01FoodNotSet;
+
+  /// Literal food label chosen by the person.
+  ///
+  /// In en, this message translates to:
+  /// **'Before food'**
+  String get finishR01FoodBefore;
+
+  /// Literal food label chosen by the person.
+  ///
+  /// In en, this message translates to:
+  /// **'With food'**
+  String get finishR01FoodWith;
+
+  /// Literal food label chosen by the person.
+  ///
+  /// In en, this message translates to:
+  /// **'After food'**
+  String get finishR01FoodAfter;
+
+  /// Literal food label chosen by the person.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty stomach'**
+  String get finishR01FoodEmptyStomach;
+
+  /// Heading for the optional bedtime label choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Bedtime'**
+  String get finishR01BedtimeHeading;
+
+  /// Clears the optional bedtime label.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get finishR01BedtimeNotSet;
+
+  /// Literal bedtime label chosen by the person.
+  ///
+  /// In en, this message translates to:
+  /// **'At bedtime'**
+  String get finishR01AtBedtime;
 
   /// Explains why pause and reminder actions are unavailable on a new plan.
   ///

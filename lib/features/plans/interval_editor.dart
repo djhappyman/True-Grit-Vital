@@ -1,3 +1,4 @@
+import 'plan_requirement_badges.dart';
 import 'plan_timing_fields.dart' show PlanTimingSummary;
 import '../../app/display_preferences.dart';
 import '../../ui/vital_ui.dart';
@@ -224,6 +225,10 @@ class IntervalPlanPreview extends ConsumerWidget {
             const SizedBox(height: 20),
             Heading(t.planPreview),
             PlanTimingSummary(policy: plan.timingPolicy),
+            if (plan.requirements != null) ...[
+              Heading(t.screenScheduleRequirements),
+              PlanRequirementBadges(requirements: plan.requirements),
+            ],
             if (plan.onOff case final block?) ...[
               Text(
                 t.pauseBlockSummary(

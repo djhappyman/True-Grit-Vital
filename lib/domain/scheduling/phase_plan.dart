@@ -424,6 +424,7 @@ final class PhaseResolver {
     onOff: phase.onOff,
     instructions: phase.instructions,
     timingPolicy: phase.timingPolicy,
+    requirements: phase.requirements,
     effectiveFrom: phase.effectiveFrom,
     effectiveUntil: phase.effectiveUntil,
   );

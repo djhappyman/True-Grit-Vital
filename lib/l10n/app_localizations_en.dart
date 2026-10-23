@@ -6645,8 +6645,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get screenScheduleRequirements => 'Requirements';
 
   @override
-  String get screenScheduleRequirementsBody =>
-      'Food and timing requirements are not available yet. Nothing from this preview is saved.';
+  String get finishR01Optional => 'Optional';
+
+  @override
+  String get finishR01RequirementsHelp =>
+      'Choose any labels that apply. They are saved with this plan version and add no timing rule.';
+
+  @override
+  String get finishR01FoodHeading => 'Food';
+
+  @override
+  String get finishR01FoodNotSet => 'Not set';
+
+  @override
+  String get finishR01FoodBefore => 'Before food';
+
+  @override
+  String get finishR01FoodWith => 'With food';
+
+  @override
+  String get finishR01FoodAfter => 'After food';
+
+  @override
+  String get finishR01FoodEmptyStomach => 'Empty stomach';
+
+  @override
+  String get finishR01BedtimeHeading => 'Bedtime';
+
+  @override
+  String get finishR01BedtimeNotSet => 'Not set';
+
+  @override
+  String get finishR01AtBedtime => 'At bedtime';
 
   @override
   String get screenScheduleSaveFirst =>

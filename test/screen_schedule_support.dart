@@ -20,6 +20,7 @@ openSchedule(
   bool saved = false,
   List<PlanPause> pauses = const [],
   String instructions = '',
+  ScheduleRequirement? requirements,
 }) async {
   final f = await launch(tester);
   final item = (await runIo(
@@ -52,6 +53,7 @@ openSchedule(
           calendar: const EveryDay(),
           pauses: pauses,
           instructions: instructions,
+          requirements: requirements,
         ),
       ),
     ))!;

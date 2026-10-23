@@ -205,6 +205,7 @@ DailyPlanVersion pauseCandidate(
     onOff: block,
     instructions: p.instructions,
     timingPolicy: p.timingPolicy,
+    requirements: p.requirements,
     pauses: open == null
         ? [...p.pauses, PlanPause(start: instant)]
         : [

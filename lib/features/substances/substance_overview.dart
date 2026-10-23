@@ -19,6 +19,7 @@ import '../plans/calendar_editor.dart' show weekdayLabel;
 import '../plans/phase_editor.dart' show phaseTimingSummary;
 import '../plans/plan_form.dart' show expectationLabel;
 import '../plans/plan_providers.dart' show nextDailyPlansProvider;
+import '../plans/plan_requirement_badges.dart';
 import '../plans/today_hero.dart' show todayNowProvider;
 import '../products/product_pages.dart' show ProductLabelPanel;
 import '../profiles/profile_pages.dart' show ownerLabel;
@@ -608,6 +609,12 @@ class _PlanRows extends ConsumerWidget {
           const SizedBox(height: 12),
           Text(t.featurePlanInstructionsHeading, style: VitalType.label),
           Text(plan.instructions, style: VitalType.body),
+        ],
+        if (plan.requirements?.isNotEmpty == true) ...[
+          const SizedBox(height: 12),
+          Text(t.screenScheduleRequirements, style: VitalType.label),
+          const SizedBox(height: 4),
+          PlanRequirementBadges(requirements: plan.requirements),
         ],
         const SizedBox(height: 12),
         Align(
