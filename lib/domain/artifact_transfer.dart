@@ -12,7 +12,15 @@ abstract final class ArtifactLimits {
   static const lifetime = Duration(hours: 24);
 }
 
-enum ArtifactKind { summaryPdf, dataJson, dataCsv, plainText, backup, generic }
+enum ArtifactKind {
+  summaryPdf,
+  dataJson,
+  dataCsv,
+  dataFhir,
+  plainText,
+  backup,
+  generic,
+}
 
 /// Names and media types come from the artifact kind, never from a person.
 extension ArtifactKindContract on ArtifactKind {
@@ -20,6 +28,7 @@ extension ArtifactKindContract on ArtifactKind {
     ArtifactKind.summaryPdf => 'vital-summary.pdf',
     ArtifactKind.dataJson => 'vital-export.json',
     ArtifactKind.dataCsv => 'vital-export.csv',
+    ArtifactKind.dataFhir => 'vital-export.json',
     ArtifactKind.plainText => 'vital-report.txt',
     ArtifactKind.backup => 'vital-backup.vitalbak',
     ArtifactKind.generic => 'vital-artifact.bin',
@@ -29,6 +38,7 @@ extension ArtifactKindContract on ArtifactKind {
     ArtifactKind.summaryPdf => 'application/pdf',
     ArtifactKind.dataJson => 'application/json',
     ArtifactKind.dataCsv => 'text/csv',
+    ArtifactKind.dataFhir => 'application/fhir+json',
     ArtifactKind.plainText => 'text/plain',
     ArtifactKind.backup => 'application/octet-stream',
     ArtifactKind.generic => 'application/octet-stream',

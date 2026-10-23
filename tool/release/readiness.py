@@ -27,6 +27,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 ANDROID_NS = "{http://schemas.android.com/apk/res/android}"
+TOOLS_NS = "{http://schemas.android.com/tools}"
 
 SCREEN_IDS = [f"S{i:02d}" for i in range(1, 21)]
 SHEET_IDS = [f"M{i:02d}" for i in range(1, 9)]
@@ -37,6 +38,7 @@ STORY_IDS = [f"US{i:02d}" for i in range(1, 79)]
 
 ALLOWED_PERMISSIONS = {
     "android.permission.USE_BIOMETRIC",
+    "android.permission.CAMERA",
     "android.permission.POST_NOTIFICATIONS",
     "android.permission.SCHEDULE_EXACT_ALARM",
     "android.permission.RECEIVE_BOOT_COMPLETED",
@@ -315,12 +317,26 @@ def check_android(root: Path) -> Result:
     permissions = {
         element.get(ANDROID_NS + "name")
         for element in manifest.findall("uses-permission")
+        if element.get(TOOLS_NS + "node") != "remove"
     }
     unexpected = permissions - ALLOWED_PERMISSIONS
     result.require(
         not unexpected,
         "unexpected Android permissions: " + ", ".join(sorted(str(item) for item in unexpected)),
     )
+
+    if "android.permission.CAMERA" in permissions:
+        features = {
+            element.get(ANDROID_NS + "name"): element.get(ANDROID_NS + "required")
+            for element in manifest.findall("uses-feature")
+        }
+        result.require(
+            all(features.get(name) == "false" for name in (
+                "android.hardware.camera", "android.hardware.camera.any",
+                "android.hardware.camera.autofocus",
+            )),
+            "barcode camera features must be explicitly optional",
+        )
 
     android_exported = ANDROID_NS + "exported"
     for tag in ("activity", "activity-alias", "provider", "receiver", "service"):

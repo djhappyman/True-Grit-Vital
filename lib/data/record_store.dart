@@ -850,6 +850,11 @@ final class RecordStore {
         await _db.customStatement('DELETE FROM ordinary_draft WHERE person=?', [
           personId,
         ]);
+        if (personId == meId) {
+          await _db.customStatement(
+            "DELETE FROM setting WHERE key='barcode_links'",
+          );
+        }
         await _forgetReminderPerson(personId);
         await _forgetAttachmentPerson(personId);
         await _forgetSupportingPerson(personId);
@@ -1892,6 +1897,44 @@ final class RecordStore {
       if (failBeforeCommit) {
         throw StateError('injected_settings_failure');
       }
+    });
+    _changes.add(null);
+  }
+
+  /// Atomically replaces a setting only while its reviewed item, owner and
+  /// previous setting snapshot still match. The authority guard is checked
+  /// inside the same transaction before and after writing.
+  Future<void> writeItemBoundSetting({
+    required String key,
+    required String value,
+    required String? expectedValue,
+    required String itemId,
+    required int expectedItemRevision,
+    required int expectedDetailRevision,
+    required int expectedPersonRevision,
+    required bool Function() canCommit,
+  }) async {
+    _requireWritable();
+    await _db.transaction(() async {
+      _requireWritable();
+      if (!canCommit()) throw const CommandConflict('app_locked');
+      await _activeOwner(meId, expectedPersonRevision);
+      final item = await itemById(itemId, personId: meId);
+      final detail = await itemDetail(itemId, personId: meId);
+      if (item == null ||
+          item.revision != expectedItemRevision ||
+          (detail?.revision ?? 0) != expectedDetailRevision) {
+        throw const CommandConflict('setting_item_changed');
+      }
+      if (await readSetting(key) != expectedValue) {
+        throw const CommandConflict('setting_changed');
+      }
+      await _db.customStatement(
+        'INSERT INTO setting VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
+        [key, value],
+      );
+      _requireWritable();
+      if (!canCommit()) throw const CommandConflict('app_locked');
     });
     _changes.add(null);
   }

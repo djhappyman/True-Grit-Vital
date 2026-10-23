@@ -82,3 +82,15 @@ combined checks and remaining work. The baseline inventory counts and gate
 states above are historical evidence, not updated completion percentages. No
 physical, clinical-policy, catalogue-admission or distribution gate was closed
 by this integration.
+
+## Roadmap follow-through reconciliation
+
+The later [23 October batch](../../2026-10-23-roadmap-finish/README.md) supersedes
+the baseline design-gap findings above: D11/D19 now retain user-set timing
+windows and food/bedtime labels; D12 adds optional follow-ups; D15 adds confirmed
+local barcode links and real decoding; D22 adds reviewed FHIR R4 JSON export.
+D24 has a runnable measurement harness but remains device-gated. D21 automatic
+backups were deferred by the owner; manual backups remain the current scope.
+Catalogue source admission, physical recovery/delivery/accessibility and owner
+release gates are unchanged. The older counts and unavailable-copy citations
+above describe that audit's baseline, not the current implementation.

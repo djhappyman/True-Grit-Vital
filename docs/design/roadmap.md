@@ -3,21 +3,55 @@
 ## Roadmap completion, 23 October
 
 The owner authorised five concurrent lanes and lead takeover of rate-limited
-work, from `3787c65`. Policy questions for timing/follow-ups, backup destination
-and FHIR/scanning are pending; dependent behaviour awaits those answers.
+work, from `3787c65`. Owner confirmed user-set timing/follow-ups off until configured, manual backups
+for now, FHIR R4 JSON with preview/Save and confirmed scan suggestions.
 
 | Lane | Work | Model | State |
 | --- | --- | --- | --- |
-| R01 | Structured food/bedtime schedule requirements | Free DeepSeek | Assigned |
-| R02 | Reproducible physical-performance/glass validation tooling | Free GLM | Assigned |
-| R03 | Automatic encrypted backup lifecycle | Paid OpenCode DeepSeek | Assigned; policy boundary explicit |
-| R04 | Local pack scanning and confirmed associations | Direct API DeepSeek | Assigned; policy/licence boundary explicit |
-| R05 | Timing labels, follow-up reminders, healthcare export and integration | Lead | In progress; policy boundary explicit |
+| R01 | Structured food/bedtime schedule requirements | Free DeepSeek | Integrated; host verified |
+| R02 | Reproducible physical-performance/glass validation tooling | Free GLM → lead | Tooling integrated; real host run verified; device acceptance open |
+| R03 | FHIR R4 reviewed export | Paid OpenCode DeepSeek → lead | Integrated; host verified; official R4 sample validation has no errors |
+| R04 | Local pack scanning and confirmed associations | Direct API DeepSeek → lead | Integrated; exact open-source dependencies admitted; device camera check open |
+| R05 | Timing labels, follow-up reminders and integration | Lead | Integrated; host verified; physical delivery open |
+
+The lead completed GLM's unfinished checkpoint and recovered the usage-limited
+and insufficient-balance DeepSeek lanes. [Batch evidence](reviews/2026-10-23-roadmap-finish/README.md)
+records review, real decoder checks, the integrated Android debug build, native
+Linux boot and the limitations of each package.
 
 Original device/release/catalogue admission gates remain separate. No Android
 device is currently attached; host checks cannot close physical validation.
 Briefs and task identities are retained under
 `.scratch/vital-implementation/roadmap-finish-2026-10-23/`.
+
+## Medicine catalogue
+
+Viability review, 23 October: use an official versioned bulk dataset, search it
+locally, and offer common-name shortcuts plus custom entry. The existing
+catalogue/update foundation is available but currently contains synthetic
+fixtures; no production corpus is admitted by this review.
+
+For the UK, [NHSBSA dm+d](https://www.nhsbsa.nhs.uk/pharmacies-gp-practices-and-appliance-contractors/nhs-dictionary-medicines-and-devices-dmd)
+is the preferred candidate: weekly refreshes and product/pack identifiers.
+[TRUD terms](https://isd.digital.nhs.uk/trud/user/guest/group/0/pack/1/subpack/24/licences)
+require an account and licence acceptance; exact chosen fields and third-party
+rights must pass G05 before import/distribution. Do not equate the separate
+SNOMED Drug Extension corpus with the dm+d XML licence.
+[RxTerms](https://lhncbc.nlm.nih.gov/MOR/RxTerms/) offers monthly bulk files/API
+and friendly names but is US-focused; it is a later regional candidate, subject
+to its own exact-data admission. A manually curated starter is possible but
+needs ongoing source-backed maintenance, not guessed doses or strengths.
+
+Prefer downloading public catalogue releases over live medicine-name API
+searches. Show last-updated/source/version facts and keep the old verified
+release until a replacement validates. Suggested disclosure: “Internet is
+needed to update the medicine list. Your health records and searches are not
+sent.” This is proposed copy for that future flow, not a newly shipped updater.
+Connections necessarily reveal network metadata such as IP addresses, and
+explicit exports can leave the device; a literal “no information ever leaves”
+promise would be inaccurate. Updates improve freshness without guaranteeing
+that every medicine is current or available. This review approves no network
+endpoint, dataset, licensing account or automatic update behaviour.
 
 ## Fifteen-task continuation, 22 October
 
@@ -115,20 +149,20 @@ These are recorded follow-up work, not completed features. Dependencies refer to
 | D08 | Integrated substance setup | Identity, schedule and optional opening stock in a coherent flow with drafts/recovery; optional authored instructions and notes; follows D04. | Host integrated and verified: resumable optional setup, canonical editors, authored instructions/private notes and privacy-gated outputs |
 | D09 | Dose presets and recording sheet | Exact preset quantities and strength equivalents, visible stock consequence, compact responsive sheet/page, existing validation and durable actions retained. | Integrated on host: exact user-saved/latest-schedule presets, responsive sheet and stock/strength previews; durable guards retained |
 | D10 | Dose context and skip reasons | Persist optional notes, food/context tags and skip reason through edits, history, exports and backup/restore. Optional observation entry links use existing supporting-record semantics. | Host integrated and verified: optional dose context and skip reasons, revision/draft recovery, private outputs and encrypted restore |
-| D11 | Schedule requirements and tolerance | Optional food/bedtime instructions and explicit timing-tolerance rules, reflected consistently in forms, summaries and history. No treatment recommendations or inferred maximum doses. | Partial: versioned authored instructions, drafts, shared summaries, encrypted recovery and optional original-version report/export text are host verified; timing-tolerance rules still need definition |
-| D12 | Reminder follow-ups and alert controls | Explicit opt-in follow-up timing, cancellation/reconciliation after actions, sound/haptic choices and truthful OS limitations. Existing snooze is preserved. Native/device evidence required. | Partial: sound/vibration preferences and real Android channel variants are host verified, with native OS-mute guards; follow-up timing and physical-device evidence remain open |
+| D11 | Schedule requirements and tolerance | Optional food/bedtime instructions and explicit timing-tolerance rules, reflected consistently in forms, summaries and history. No treatment recommendations or inferred maximum doses. | Host integrated: optional structured food/bedtime labels and user-set timing windows, off until configured; immutable history, drafts, previews and consented outputs verified |
+| D12 | Reminder follow-ups and alert controls | Explicit opt-in follow-up timing, cancellation/reconciliation after actions, sound/haptic choices and truthful OS limitations. Existing snooze is preserved. Native/device evidence required. | Host integrated: sound/vibration controls plus one optional user-set follow-up, off by default, with cancellation/terminal receipt guards; physical-device delivery remains open |
 | D13 | Stock lots and expiry | Optional lot/batch and expiry metadata, pack capacity and restock flow; schema migrations, history and export/backup round trips. | Host integrated and verified: schema 24, lot/expiry/exact capacity, guarded edits and paged history, structured provenance, encrypted restore and optional capture-time stock details in reports |
 | D14 | Stock forecast and inventory overview | Low/adequate/paused filtering, remaining-capacity display and schedule-based run-out estimates. PRN, unknown balance, incompatible units and incomplete schedules stay explicit; follows D03/D13. | Host integrated and verified: store-backed search/counts/filters, exact capacity proportions and conditional forecast from tomorrow; incomplete inventory reads and unsupported schedules are explicit |
-| D15 | Refill delivery and scanning | Native refill notices extend the currently agreed in-app stock notices. Barcode/pack recognition needs exact source, licence, privacy and ambiguity rules; manual entry always works. | Partial: opt-in Android low-stock/refill notices implemented and host verified; scanning remains backlog, physical delivery open |
+| D15 | Refill delivery and scanning | Native refill notices extend the currently agreed in-app stock notices. Barcode/pack recognition needs exact source, licence, privacy and ambiguity rules; manual entry always works. | Host integrated: opt-in Android low-stock/refill notices and local ZXing scanning with manual fallback and explicit Link/Use; atomic bounded encrypted associations, no invented national pack mapping; physical camera and notification delivery checks remain open |
 | D16 | Event overview | Status filters/counts, progress cards and linked-substance/recorded/skipped summaries using existing event dates/membership. Surface supported notes and configure/history actions. | Host integrated: saved private notes, whole-event summaries, whole-collection status counts and filter-before-page browsing; captured status instants and filtered-page clamping preserve current context |
 | D17 | Lab dashboard | Latest-value cards, categories, comparable trends/sparklines, baseline changes and source-range indicators with original units/flags. Existing panels/attachments/trends remain available. | Host integrated: latest dated values across the filtered collection with 24-marker pages and exact counts; trends sample 24 points and comparisons 48 results with disclosed limits; duplicate prior results retain uncertainty |
 | D18 | Lab panel detail | Categorised results, comparable prior values, context links and protected original-file/hash actions. Add accession/source identifiers only with storage and export support. | Host integrated: complete current-record prior comparisons relative to the viewed panel, exact source/date matching and order-independent ambiguity; saved accession/report identifiers remain available through outputs and encrypted restore |
-| D19 | History presentation and timing | Compact day groups, filters/counts, weekly summaries and on-time/late indicators using D11 rules; planned slots and actual use remain distinct. Existing reports/CSV/PDF remain available. | Partial: monthly calendar, compact day cards, disclosed filters and exact selected-week/monthly activity aggregates integrated; timing indicators await D11 |
+| D19 | History presentation and timing | Compact day groups, filters/counts, weekly summaries and on-time/late indicators using D11 rules; planned slots and actual use remain distinct. Existing reports/CSV/PDF remain available. | Host integrated: monthly calendar, compact day cards, filters/counts, activity summaries and factual timing labels from the captured user-set window; unknown/date-only/voided entries stay unlabelled |
 | D20 | Settings and vault overview | Reference-informed sections/tabs, real storage/record counts and report date shortcuts. Preserve current manual backup/restore, lock, appearance, privacy and support. | Host integrated and verified: live whole-collection counts, measured database storage and reviewed report date shortcuts; device gates remain open |
-| D21 | Automatic protected backups | Define destination, retention, encryption/key availability and interrupted-exit recovery. Never claim a completed backup before durable verification. | Partial foundation: bounded encrypted manual-backup receipts distinguish archive checks from confirmed saves; automatic destination/retention/key/recovery lifecycle remains open |
-| D22 | FHIR/HL7 export | Select exact format/version/mapping and validate representative artifacts; preserve units, source meaning and privacy. Existing structured exports are not FHIR/HL7. | Backlog: format decision |
+| D21 | Automatic protected backups | Define destination, retention, encryption/key availability and interrupted-exit recovery. Never claim a completed backup before durable verification. | Deferred by owner on 23 October: keep manual encrypted backups for now. Verified manual archive checks and confirmed-save receipts remain available; automatic destinations and scheduling are not implemented |
+| D22 | FHIR/HL7 export | Select exact format/version/mapping and validate representative artifacts; preserve units, source meaning and privacy. Existing structured exports are not FHIR/HL7. | Host integrated: FHIR R4 4.0.1 collection Bundle with exact recorded values, truthful mapping review and explicit Save; official representative validation has zero errors and 11 disclosed warnings, with terminology lookup disabled; national-profile/EHR acceptance remains separate |
 | D23 | Remaining screen and light-theme parity | Review forms, labs, events, history and settings against references; establish white-canvas light layouts where no current light PNG exists. Keep full names, amounts and safe areas. | Integrated on host: all ten canonical screens, white light theme and shared framework; physical-device gates remain open |
-| D24 | Selected glass surfaces | Validate targeted chrome on representative hardware, preserve opaque/reduced-effects fallback. Current glass validation gate remains off until measured evidence permits it. | Device gate open |
+| D24 | Selected glass surfaces | Validate targeted chrome on representative hardware, preserve opaque/reduced-effects fallback. Current glass validation gate remains off until measured evidence permits it. | Measurement fixture, validator and optional-budget comparator integrated; all four workloads exercised on host; production glass remains off, physical measurements and adopted budgets open |
 
 ## Current five-task batch
 

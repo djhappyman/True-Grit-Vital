@@ -69,9 +69,11 @@ final class ArtifactExportHandoff implements ExportHandoff {
       final outcome = await controller.save(
         ArtifactSource.bytes(
           artifact.bytes,
-          kind: artifact.format == ExportFormat.json
-              ? ArtifactKind.dataJson
-              : ArtifactKind.dataCsv,
+          kind: switch (artifact.format) {
+            ExportFormat.json => ArtifactKind.dataJson,
+            ExportFormat.csv => ArtifactKind.dataCsv,
+            ExportFormat.fhir => ArtifactKind.dataFhir,
+          },
           fileName: artifact.fileName,
           expectedSha256: artifact.sha256,
         ),

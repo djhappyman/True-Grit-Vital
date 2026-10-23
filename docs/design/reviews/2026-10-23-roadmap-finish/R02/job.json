@@ -1,0 +1,27 @@
+{
+  "deviceClass": "host",
+  "deviceFacts": {},
+  "deviceId": "linux-x86_64",
+  "evidenceClass": "host_smoke",
+  "glass": false,
+  "host": {
+    "dartSdkVersion": "3.13.5",
+    "fixtureSourceRevision": "1cd37c1c8ead2fadbc0e6c477bdf765355b9217139aedac2a4ddc861d12b255b",
+    "flutterSdkVersion": "3.47.7",
+    "gitRevision": "cb95dd2c127c3b2be3dcd79d0f2aaed6206afa7b",
+    "pubspecLockSha256": "024aeb32f19bf5bb0c4fae06b709e6f0f09d0ade3da8cf54278636b407172eba",
+    "sourceTreeSha256": "c589cc85b598a78c45712220bd66412b2becb4095693f4fed49be3d3b2bf821a"
+  },
+  "hostOut": "build/performance-r02-review/vital-perf-20261023T090032Z-linux-x86_64/artifact.json",
+  "reduceMotion": false,
+  "repeats": 2,
+  "runId": "vital-perf-20261023T090032Z-linux-x86_64",
+  "scenarios": [
+    "today_swipe",
+    "history_scroll",
+    "stock_scroll",
+    "record_save"
+  ],
+  "textScale": 1.2,
+  "volume": "standard"
+}

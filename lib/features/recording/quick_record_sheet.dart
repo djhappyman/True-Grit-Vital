@@ -12,6 +12,7 @@ import '../../l10n/app_localizations.dart';
 import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 import '../substances/substance_collection.dart';
+import 'barcode_scan_panel.dart';
 import 'quick_entry_context.dart';
 import 'record_pages.dart';
 
@@ -30,7 +31,7 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
   int offset = 0;
   String? acceptedLocation;
   String? storeGeneration;
-  bool navigating = false, seeding = false, stale = false;
+  bool navigating = false, seeding = false, stale = false, scanning = false;
 
   @override
   void initState() {
@@ -49,6 +50,7 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
     acceptedLocation = null;
     navigating = false;
     stale = false;
+    scanning = false;
     _seed();
   }
 
@@ -77,12 +79,12 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
 
   /// One replacement navigation per tap. A locked, non-current or replaced
   /// dataset route never advances, and a double tap cannot queue a second task.
-  void _go(String location) {
-    if (navigating || !mounted) return;
-    if (ref.read(appLockProvider).locked) return;
-    if (ModalRoute.of(context)?.isCurrent == false) return;
+  bool _go(String location) {
+    if (navigating || !mounted) return false;
+    if (ref.read(appLockProvider).locked) return false;
+    if (ModalRoute.of(context)?.isCurrent == false) return false;
     final generation = ref.read(recordStoreProvider).value?.generation;
-    if (generation == null) return;
+    if (generation == null) return false;
     if (storeGeneration == null) {
       storeGeneration = generation;
     } else if (storeGeneration != generation) {
@@ -91,7 +93,7 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
         stale = true;
         offset = 0;
       });
-      return;
+      return false;
     }
     setState(() {
       navigating = true;
@@ -101,6 +103,7 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() => navigating = false);
     });
+    return true;
   }
 
   VoidCallback _guardAction(VoidCallback action) {
@@ -257,6 +260,24 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
       );
     }
     _listenForStoreReplacement();
+    if (scanning) {
+      return EntryPage(
+        panelled: false,
+        children: [
+          BarcodeScanPanel(
+            onUse: (item) => _go(
+              entry.plan
+                  ? quickEntryPlanLocation(entry, itemId: item.id)
+                  : quickEntryRecordLocation(entry, itemId: item.id),
+            ),
+            onClose: () {
+              if (!mounted || ref.read(appLockProvider).locked) return;
+              setState(() => scanning = false);
+            },
+          ),
+        ],
+      );
+    }
     final query = SubstancesPageQuery(
       scope: const FeedScope.me(),
       search: search.text.trim(),
@@ -275,6 +296,12 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
         if (stale) _staleNotice(t),
         const SizedBox(height: 16),
         LabelledInput(label: t.search, controller: search),
+        const SizedBox(height: 8),
+        VitalButton.secondary(
+          leading: const Icon(LucideIcons.scanBarcode),
+          onPressed: _guardAction(() => setState(() => scanning = true)),
+          child: Text(t.finishR04Scan),
+        ),
         const SizedBox(height: 8),
         VitalButton.secondary(
           leading: const Icon(LucideIcons.plus),

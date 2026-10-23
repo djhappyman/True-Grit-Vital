@@ -398,9 +398,14 @@ class _ExportPageState extends ConsumerState<ExportPage> {
                 label: (value) => switch (value) {
                   ExportFormat.json => t.exportFormatJson,
                   ExportFormat.csv => t.exportFormatCsv,
+                  ExportFormat.fhir => t.finishR03FormatFhir,
                 },
               ),
-              Text(t.exportFormatHelp),
+              Text(
+                _format == ExportFormat.fhir
+                    ? t.finishR03FormatHelp
+                    : t.exportFormatHelp,
+              ),
             ],
           ),
           if (_selectionError != null)
@@ -418,6 +423,43 @@ class _ExportPageState extends ConsumerState<ExportPage> {
       ],
     );
   }
+
+  Widget _fhirReview(AppLocalizations t, FhirExportSummary fhir) =>
+      VitalSection(
+        title: Text(t.finishR03FhirHeading),
+        children: [
+          Text(t.finishR03FhirVersion),
+          Text(t.finishR03Patient),
+          Text(t.finishR03Medication),
+          Text(t.finishR03Grouping),
+          Text(t.finishR03TextCodes),
+          Text(t.finishR03Utc),
+          Text(t.finishR03StatementCount(fhir.medicationStatements)),
+          if (fhir.skippedStatements > 0)
+            Text(t.finishR03SkipCount(fhir.skippedStatements)),
+          if (fhir.observations > 0)
+            Text(t.finishR03ObservationCount(fhir.observations)),
+          if (fhir.dateOnlyTimes > 0)
+            Text(t.finishR03DateOnlyCount(fhir.dateOnlyTimes)),
+          if (fhir.uncertainTimes > 0)
+            Text(t.finishR03UncertainCount(fhir.uncertainTimes)),
+          if (fhir.voidedRecords > 0)
+            Text(t.finishR03VoidedCount(fhir.voidedRecords)),
+          if (fhir.supersededRevisions > 0)
+            Text(t.finishR03SupersededCount(fhir.supersededRevisions)),
+          if (fhir.exactTextQuantities > 0)
+            Text(t.finishR03TextQuantityCount(fhir.exactTextQuantities)),
+          if (fhir.missingValues > 0)
+            Text(t.finishR03MissingCount(fhir.missingValues)),
+          if (fhir.unresolvedReplacements > 0)
+            Text(t.finishR03UnresolvedCount(fhir.unresolvedReplacements)),
+          if (fhir.reportDatesWithoutInstant > 0)
+            Text(t.finishR03ReportDateCount(fhir.reportDatesWithoutInstant)),
+          Text(t.finishR03Omissions),
+          Text(t.finishR03Provenance),
+          Text(t.finishR03Files),
+        ],
+      );
 
   Widget _buildPreview(
     AppLocalizations t,
@@ -474,6 +516,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
             Text(t.exportExactArtifact),
           ],
         ),
+        if (preview.fhir case final fhir?) _fhirReview(t, fhir),
         VitalSection(
           title: Text(t.exportPreview),
           children: [

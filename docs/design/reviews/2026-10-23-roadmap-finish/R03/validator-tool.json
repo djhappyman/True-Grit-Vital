@@ -1,0 +1,10 @@
+{
+  "tool": "Official HL7 FHIR validator CLI",
+  "version": "7.0.3",
+  "sha256": "57aa43fb40cec5de41def81c927725fd85908eeb71509b7f9313e04d9b8ec79b",
+  "java": "17.0.20.1",
+  "fhirPackage": "hl7.fhir.r4.core#4.0.1",
+  "terminologyServer": "disabled (-tx n/a)",
+  "errors": 0,
+  "warnings": 11
+}

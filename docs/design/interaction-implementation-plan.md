@@ -214,3 +214,24 @@ remain under Details. These tasks add no screens or motion exceptions.
 Host checks include both themes, narrow/large text, dismissal, keyboard and the
 relevant draft/lock/navigation cases. The [batch review](reviews/2026-10-22-fifteen/README.md)
 records evidence and limits; physical accessibility/performance gates stay open.
+
+## Roadmap follow-through, 23 October
+
+Schedule requirements and timing/follow-up choices extend the canonical editor
+and its Preview/Save flow. Captured labels use the existing shared badges and
+History cards; no additional screen or gesture is introduced. All timing choices
+start off and neither food nor bedtime labels infer clinical intervals.
+
+FHIR is an option in the existing Export flow, followed by mapping review and
+explicit Save. Existing protected-file, Back/dismissal, lock and stale-dataset
+guards remain authoritative. Both rendered themes, narrow and double text are
+verified with persisted appearance and real-font captures.
+
+Scan opens inside the existing quick medication task. Camera/manual entry,
+current-identity review and Link/Use/Replace reuse shared controls and surfaces.
+Route coverage, backgrounding, lock, dataset replacement and old-camera callbacks
+invalidate captured authority. Return requires an explicit restart; no camera
+result automatically records use or changes stock. Manual entry stays available.
+Both themes and large text are host checked. The fixture-only performance tool
+exercises existing paging and composition without changing production motion or
+enabling glass. [Evidence and remaining device limits](reviews/2026-10-23-roadmap-finish/README.md).

@@ -31,20 +31,23 @@ class DelayedHandoff implements ExportHandoff {
   }
 }
 
-ExportSelection selection() => ExportSelection(
-  personId: meId,
-  fromDay: CivilDate(2026, 10, 1),
-  beforeDay: CivilDate(2026, 11, 1),
-  zoneId: 'UTC',
-  contents: const [ExportContent.doses],
-);
-ExportDocument document() => ExportDocument(
-  selection: selection(),
-  generatedAt: DateTime.utc(2026, 10, 20),
-  personName: 'Synthetic adult',
-  doses: const [],
-  supporting: const [],
-);
+ExportSelection selection({ExportFormat format = ExportFormat.json}) =>
+    ExportSelection(
+      personId: meId,
+      fromDay: CivilDate(2026, 10, 1),
+      beforeDay: CivilDate(2026, 11, 1),
+      zoneId: 'UTC',
+      contents: const [ExportContent.doses],
+      format: format,
+    );
+ExportDocument document({ExportFormat format = ExportFormat.json}) =>
+    ExportDocument(
+      selection: selection(format: format),
+      generatedAt: DateTime.utc(2026, 10, 20),
+      personName: 'Synthetic adult',
+      doses: const [],
+      supporting: const [],
+    );
 
 void main() {
   final provider = exportControllerProvider('test');
@@ -122,5 +125,42 @@ void main() {
     await old;
     expect(container.read(provider).stage, ExportStage.preview);
     expect(container.read(provider).artifact, same(artifact));
+  });
+
+  test('locking clears a reviewed FHIR preview', () async {
+    container.dispose();
+    container = ProviderContainer(
+      overrides: [
+        appLockProvider.overrideWith(TestLock.new),
+        exportCaptureProvider.overrideWithValue(
+          (selection, {cancellation}) async =>
+              document(format: ExportFormat.fhir),
+        ),
+      ],
+    );
+    container.listen(provider, (_, _) {}, fireImmediately: true);
+    final controller = container.read(provider.notifier);
+    await controller.generate(selection(format: ExportFormat.fhir));
+    expect(container.read(provider).stage, ExportStage.preview);
+    expect(container.read(provider).artifact!.preview.fhir, isNotNull);
+    container.read(appLockProvider.notifier).lock();
+    await Future<void>.delayed(Duration.zero);
+    expect(container.read(provider).stage, ExportStage.editing);
+    expect(container.read(provider).artifact, isNull);
+  });
+
+  test('a reviewed FHIR artifact stays with its own export route', () async {
+    const first = 'route-a';
+    const second = 'route-b';
+    final firstProvider = exportControllerProvider(first);
+    final secondProvider = exportControllerProvider(second);
+    container.listen(firstProvider, (_, _) {}, fireImmediately: true);
+    container.listen(secondProvider, (_, _) {}, fireImmediately: true);
+    final controller = container.read(firstProvider.notifier);
+    await controller.generate(selection(format: ExportFormat.fhir));
+    expect(container.read(firstProvider).stage, ExportStage.preview);
+    expect(container.read(firstProvider).artifact, isNotNull);
+    expect(container.read(secondProvider).stage, ExportStage.editing);
+    expect(container.read(secondProvider).artifact, isNull);
   });
 }

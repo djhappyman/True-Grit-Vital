@@ -1,0 +1,405 @@
+{
+  "resourceType": "Bundle",
+  "type": "collection",
+  "timestamp": "2026-10-20T12:00:00.000Z",
+  "entry": [
+    {
+      "fullUrl": "urn:vital:resource:Patient:patient",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "patient",
+        "identifier": [
+          {
+            "system": "urn:vital:person",
+            "value": "me"
+          }
+        ],
+        "name": [
+          {
+            "text": "Synthetic adult"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:vital:resource:Medication:medication-1",
+      "resource": {
+        "resourceType": "Medication",
+        "id": "medication-1",
+        "identifier": [
+          {
+            "system": "urn:vital:item",
+            "value": "item-1"
+          }
+        ],
+        "code": {
+          "text": "Synthetic tablet"
+        },
+        "form": {
+          "text": "Tablet"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:vital:resource:Medication:medication-2",
+      "resource": {
+        "resourceType": "Medication",
+        "id": "medication-2",
+        "identifier": [
+          {
+            "system": "urn:vital:item",
+            "value": "item-1"
+          }
+        ],
+        "code": {
+          "text": "Synthetic tablet"
+        },
+        "form": {
+          "text": "Tablet"
+        }
+      }
+    },
+    {
+      "fullUrl": "urn:vital:resource:MedicationStatement:statement-1",
+      "resource": {
+        "resourceType": "MedicationStatement",
+        "id": "statement-1",
+        "identifier": [
+          {
+            "system": "urn:vital:dose",
+            "value": "dose-exact"
+          },
+          {
+            "system": "urn:vital:dose-revision",
+            "value": "1"
+          }
+        ],
+        "status": "completed",
+        "medicationReference": {
+          "reference": "urn:vital:resource:Medication:medication-1"
+        },
+        "subject": {
+          "reference": "urn:vital:resource:Patient:patient"
+        },
+        "effectiveDateTime": "2026-10-05T10:00:00.000Z",
+        "dateAsserted": "2026-10-05T10:02:00.000Z",
+        "informationSource": {
+          "reference": "urn:vital:resource:Patient:patient"
+        },
+        "dosage": [
+          {
+            "text": "1234567890.123456 tablet Labelled strength: 500 mg/5 ml.",
+            "site": {
+              "text": "Left thigh"
+            },
+            "additionalInstruction": [
+              {
+                "text": "With food"
+              }
+            ],
+            "patientInstruction": "With food · At bedtime",
+            "doseAndRate": [
+              {
+                "doseQuantity": {
+                  "value": 1234567890.123456,
+                  "unit": "tablet"
+                }
+              }
+            ]
+          }
+        ],
+        "note": [
+          {
+            "text": "Synthetic note"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:vital:resource:MedicationStatement:statement-2",
+      "resource": {
+        "resourceType": "MedicationStatement",
+        "id": "statement-2",
+        "identifier": [
+          {
+            "system": "urn:vital:dose",
+            "value": "dose-third"
+          },
+          {
+            "system": "urn:vital:dose-revision",
+            "value": "1"
+          }
+        ],
+        "status": "completed",
+        "medicationReference": {
+          "reference": "urn:vital:resource:Medication:medication-2"
+        },
+        "subject": {
+          "reference": "urn:vital:resource:Patient:patient"
+        },
+        "effectiveDateTime": "2026-10-05T10:00:00.000Z",
+        "dateAsserted": "2026-10-05T10:02:00.000Z",
+        "informationSource": {
+          "reference": "urn:vital:resource:Patient:patient"
+        },
+        "dosage": [
+          {
+            "text": "Entered 1 tablet. Recorded as 1/3 tablet.",
+            "doseAndRate": [
+              {
+                "doseQuantity": {
+                  "value": 1,
+                  "unit": "tablet"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:vital:resource:MedicationStatement:statement-3",
+      "resource": {
+        "resourceType": "MedicationStatement",
+        "id": "statement-3",
+        "identifier": [
+          {
+            "system": "urn:vital:dose",
+            "value": "dose-void"
+          },
+          {
+            "system": "urn:vital:dose-revision",
+            "value": "1"
+          }
+        ],
+        "status": "entered-in-error",
+        "statusReason": [
+          {
+            "text": "Voided record"
+          }
+        ],
+        "medicationReference": {
+          "reference": "urn:vital:resource:Medication:medication-2"
+        },
+        "subject": {
+          "reference": "urn:vital:resource:Patient:patient"
+        },
+        "effectiveDateTime": "2026-10-05T10:00:00.000Z",
+        "dateAsserted": "2026-10-05T10:02:00.000Z",
+        "informationSource": {
+          "reference": "urn:vital:resource:Patient:patient"
+        },
+        "dosage": [
+          {
+            "text": "2.5 tablet",
+            "doseAndRate": [
+              {
+                "doseQuantity": {
+                  "value": 2.5,
+                  "unit": "tablet"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:vital:resource:MedicationStatement:statement-4",
+      "resource": {
+        "resourceType": "MedicationStatement",
+        "id": "statement-4",
+        "identifier": [
+          {
+            "system": "urn:vital:skip",
+            "value": "skip-1"
+          }
+        ],
+        "status": "not-taken",
+        "medicationReference": {
+          "reference": "urn:vital:resource:Medication:medication-2"
+        },
+        "subject": {
+          "reference": "urn:vital:resource:Patient:patient"
+        },
+        "effectiveDateTime": "2026-10-06",
+        "dateAsserted": "2026-10-06T08:05:00.000Z",
+        "note": [
+          {
+            "text": "Planned time needs review"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:vital:resource:Observation:observation-1",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-1",
+        "identifier": [
+          {
+            "system": "urn:vital:supporting-record",
+            "value": "panel-1"
+          },
+          {
+            "system": "urn:vital:supporting-revision",
+            "value": "1"
+          },
+          {
+            "system": "urn:vital:accession",
+            "value": "ACC-1"
+          },
+          {
+            "system": "urn:vital:report-identifier",
+            "value": "REP-1"
+          }
+        ],
+        "status": "final",
+        "code": {
+          "text": "Synthetic panel"
+        },
+        "subject": {
+          "reference": "urn:vital:resource:Patient:patient"
+        },
+        "effectiveDateTime": "2026-10-02",
+        "performer": [
+          {
+            "display": "Synthetic laboratory"
+          }
+        ],
+        "specimen": {
+          "display": "Blood"
+        },
+        "method": {
+          "text": "Synthetic method"
+        },
+        "hasMember": [
+          {
+            "reference": "urn:vital:resource:Observation:observation-2"
+          }
+        ],
+        "note": [
+          {
+            "text": "Synthetic panel note"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:vital:resource:Observation:observation-2",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-2",
+        "identifier": [
+          {
+            "system": "urn:vital:supporting-record",
+            "value": "panel-1"
+          },
+          {
+            "system": "urn:vital:supporting-revision",
+            "value": "1"
+          },
+          {
+            "system": "urn:vital:supporting-result",
+            "value": "result-1"
+          },
+          {
+            "system": "urn:vital:accession",
+            "value": "ACC-1"
+          },
+          {
+            "system": "urn:vital:report-identifier",
+            "value": "REP-1"
+          }
+        ],
+        "status": "final",
+        "category": [
+          {
+            "text": "Chemistry"
+          }
+        ],
+        "code": {
+          "text": "Source marker"
+        },
+        "subject": {
+          "reference": "urn:vital:resource:Patient:patient"
+        },
+        "effectiveDateTime": "2026-10-02",
+        "performer": [
+          {
+            "display": "Synthetic laboratory"
+          }
+        ],
+        "specimen": {
+          "display": "Blood"
+        },
+        "method": {
+          "text": "Synthetic method"
+        },
+        "valueQuantity": {
+          "value": 5.5,
+          "unit": "mmol/L"
+        },
+        "referenceRange": [
+          {
+            "low": {
+              "value": 3,
+              "unit": "mmol/L"
+            },
+            "high": {
+              "value": 7,
+              "unit": "mmol/L"
+            },
+            "text": "3.0-7.0"
+          }
+        ],
+        "interpretation": [
+          {
+            "text": "H"
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "urn:vital:resource:Observation:observation-3",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-3",
+        "identifier": [
+          {
+            "system": "urn:vital:supporting-record",
+            "value": "observation-1"
+          },
+          {
+            "system": "urn:vital:supporting-revision",
+            "value": "1"
+          }
+        ],
+        "status": "final",
+        "code": {
+          "text": "Synthetic observation"
+        },
+        "subject": {
+          "reference": "urn:vital:resource:Patient:patient"
+        },
+        "effectiveDateTime": "2026-10-03",
+        "performer": [
+          {
+            "display": "Synthetic laboratory"
+          }
+        ],
+        "component": [
+          {
+            "code": {
+              "text": "Source component"
+            },
+            "valueQuantity": {
+              "value": 12,
+              "unit": "drop"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -10644,7 +10644,7 @@ abstract class AppLocalizations {
   /// Stock screen. Names the remaining D15 capabilities; lot, expiry, capacity and run-out forecasts are implemented.
   ///
   /// In en, this message translates to:
-  /// **'Pack scanning and refill delivery are not available yet.'**
+  /// **'Choose Scan when recording a medicine to scan a pack.'**
   String get screenStockGaps;
 
   /// Stock screen. Truthful paging caption because no whole-collection stock filter is applied.
@@ -11253,10 +11253,10 @@ abstract class AppLocalizations {
   /// **'FHIR export'**
   String get screenSettingsFhir;
 
-  /// Points to the real structured export instead of implying FHIR or HL7 support.
+  /// Explains the reviewed FHIR R4 JSON export and explicit Save.
   ///
   /// In en, this message translates to:
-  /// **'Not available yet. Use Exports for structured data.'**
+  /// **'Preview FHIR R4 JSON, then choose Save.'**
   String get screenSettingsFhirBody;
 
   /// Complete form and recorded unit beneath the substance name. The type badge already names the type.
@@ -11427,10 +11427,10 @@ abstract class AppLocalizations {
   /// **'Copy checksum for {name}'**
   String screenPanelCopyChecksum(String name);
 
-  /// Lab panel detail. Truthful state for the missing FHIR export capability. Export opens the existing formats only.
+  /// Lab panel detail. Points to the implemented reviewed FHIR R4 JSON export.
   ///
   /// In en, this message translates to:
-  /// **'FHIR export is not available in this build. Use Export for the formats Vital supports.'**
+  /// **'Use Export to preview and save FHIR R4 JSON.'**
   String get screenPanelFhirUnavailable;
 
   /// Saved files exist in the bounded page but none have stored inspection hashes.
@@ -14000,6 +14000,480 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'One follow-up {minutes} minutes after the planned time, if you have not recorded or skipped it.'**
   String finishR05FollowUpSummary(int minutes);
+
+  /// Format option for a FHIR R4 JSON export.
+  ///
+  /// In en, this message translates to:
+  /// **'FHIR'**
+  String get finishR03FormatFhir;
+
+  /// Explains the FHIR format choice and the review requirement.
+  ///
+  /// In en, this message translates to:
+  /// **'FHIR R4 JSON for health records. Review the mapping and omissions before Save.'**
+  String get finishR03FormatHelp;
+
+  /// Heading for the FHIR mapping and omission summary.
+  ///
+  /// In en, this message translates to:
+  /// **'FHIR export'**
+  String get finishR03FhirHeading;
+
+  /// States the exact FHIR release and Bundle type; not a profile claim.
+  ///
+  /// In en, this message translates to:
+  /// **'FHIR R4 4.0.1 collection Bundle.'**
+  String get finishR03FhirVersion;
+
+  /// Privacy and truthfulness statement for the local Patient resource.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient name and local identifier only. No birth date, sex or verification.'**
+  String get finishR03Patient;
+
+  /// States that medication use is a patient-reported MedicationStatement, not a formal administration record.
+  ///
+  /// In en, this message translates to:
+  /// **'Medication use is patient-reported.'**
+  String get finishR03Medication;
+
+  /// Explains that codes and units are not invented.
+  ///
+  /// In en, this message translates to:
+  /// **'Codes are text only. No clinical codes or UCUM unit codes are added.'**
+  String get finishR03TextCodes;
+
+  /// Explains time and date-only handling.
+  ///
+  /// In en, this message translates to:
+  /// **'Times use UTC. Date-only values stay dates.'**
+  String get finishR03Utc;
+
+  /// Count of FHIR MedicationStatement resources for recorded doses.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No medication statements.} =1{One medication statement.} other{{count} medication statements.}}'**
+  String finishR03StatementCount(int count);
+
+  /// Count of explicit skips represented as not-taken MedicationStatements.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No not-taken statements.} =1{One not-taken statement.} other{{count} not-taken statements.}}'**
+  String finishR03SkipCount(int count);
+
+  /// Count of FHIR Observation resources.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No observations.} =1{One observation.} other{{count} observations.}}'**
+  String finishR03ObservationCount(int count);
+
+  /// Count of dates kept as date-only values rather than midnight instants.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No date-only times.} =1{One date-only time.} other{{count} date-only times.}}'**
+  String finishR03DateOnlyCount(int count);
+
+  /// Count of skips whose planned time has an unresolved clock.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No planned times need review.} =1{One planned time needs review.} other{{count} planned times need review.}}'**
+  String finishR03UncertainCount(int count);
+
+  /// Count of voided records represented with entered-in-error status.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No voided records.} =1{One voided record is marked entered in error.} other{{count} voided records are marked entered in error.}}'**
+  String finishR03VoidedCount(int count);
+
+  /// Count of superseded historical revisions represented with entered-in-error status.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No older revisions.} =1{One older revision is marked entered in error.} other{{count} older revisions are marked entered in error.}}'**
+  String finishR03SupersededCount(int count);
+
+  /// Count of exact quantities that cannot be written as a terminating decimal and stay as text.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No exact quantities need text.} =1{One exact quantity is kept as text.} other{{count} exact quantities are kept as text.}}'**
+  String finishR03TextQuantityCount(int count);
+
+  /// Count of observations with no recorded value.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No observations are missing a value.} =1{One observation has no value.} other{{count} observations have no value.}}'**
+  String finishR03MissingCount(int count);
+
+  /// Count of doses whose replacement strength is unknown; no converted amount is invented.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No replacement amounts are unresolved.} =1{One replacement amount is unresolved. The entered amount is used.} other{{count} replacement amounts are unresolved. The entered amounts are used.}}'**
+  String finishR03UnresolvedCount(int count);
+
+  /// Count of source report dates that are date-only and therefore not written as an instant.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No report dates need text.} =1{One report date has no time and is not added.} other{{count} report dates have no time and are not added.}}'**
+  String finishR03ReportDateCount(int count);
+
+  /// Lists fields outside the narrow FHIR mapping.
+  ///
+  /// In en, this message translates to:
+  /// **'Not included: report names, product labels, stock containers, plan names and substance type.'**
+  String get finishR03Omissions;
+
+  /// Explains source-label and component-provenance limits.
+  ///
+  /// In en, this message translates to:
+  /// **'Source labels other than self-reported and component provenance are not included.'**
+  String get finishR03Provenance;
+
+  /// Confirms that files and internal attachment references stay private.
+  ///
+  /// In en, this message translates to:
+  /// **'Files and attachment references are not included.'**
+  String get finishR03Files;
+
+  /// Explains why a panel contributes a parent Observation plus member Observations.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab panels group member results. Quick observations use components.'**
+  String get finishR03Grouping;
+
+  /// One-word command opening the pack scanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get finishR04Scan;
+
+  /// Authored two-word heading for the scanner panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan pack'**
+  String get finishR04ScanHeading;
+
+  /// Instruction shown beside the live camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Point the camera at the pack barcode.'**
+  String get finishR04ScanHelp;
+
+  /// Camera start-up status.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting camera…'**
+  String get finishR04CameraLoading;
+
+  /// Heading when camera permission is denied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera blocked'**
+  String get finishR04PermissionHeading;
+
+  /// Recovery path for denied camera permission. Manual entry and search remain available.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow camera access in Android settings, or enter the barcode number.'**
+  String get finishR04PermissionHelp;
+
+  /// Heading when no camera is available on this platform.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera unavailable'**
+  String get finishR04UnavailableHeading;
+
+  /// Recovery path when the camera cannot open. Manual entry remains available.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera cannot open here. Enter the barcode number.'**
+  String get finishR04UnavailableHelp;
+
+  /// Visible label for manual barcode digits.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode number'**
+  String get finishR04CodeLabel;
+
+  /// Example-free placeholder for manual barcode digits.
+  ///
+  /// In en, this message translates to:
+  /// **'Digits under the barcode'**
+  String get finishR04CodeHint;
+
+  /// Explains that the check digit is part of the entered number.
+  ///
+  /// In en, this message translates to:
+  /// **'Type the full number, including the check digit.'**
+  String get finishR04CodeHelp;
+
+  /// One-word command that validates a manually entered barcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Check'**
+  String get finishR04Check;
+
+  /// Heading for a number with a wrong check digit.
+  ///
+  /// In en, this message translates to:
+  /// **'Code not valid'**
+  String get finishR04InvalidHeading;
+
+  /// Recovery for an invalid check digit.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the full number and try again.'**
+  String get finishR04InvalidHelp;
+
+  /// Heading for a scanned symbol that is not a product number.
+  ///
+  /// In en, this message translates to:
+  /// **'Code not supported'**
+  String get finishR04UnsupportedCodeHeading;
+
+  /// Explains the supported GTIN, EAN and GS1 product numbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a pack barcode with a GTIN, EAN or GS1 number.'**
+  String get finishR04UnsupportedCodeHelp;
+
+  /// Heading when a frame contains more than one distinct product number.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a code'**
+  String get finishR04MultipleHeading;
+
+  /// Asks the person to choose between distinct detections; never selects one automatically.
+  ///
+  /// In en, this message translates to:
+  /// **'More than one pack code was found. Choose one.'**
+  String get finishR04MultipleHelp;
+
+  /// Heading when saved links disagree for one code.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a substance'**
+  String get finishR04AmbiguousHeading;
+
+  /// Asks the person to choose between conflicting saved links.
+  ///
+  /// In en, this message translates to:
+  /// **'This code has more than one saved link. Choose the right substance.'**
+  String get finishR04AmbiguousHelp;
+
+  /// Heading when no saved link uses this barcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked'**
+  String get finishR04NotLinkedHeading;
+
+  /// Explains that a link must be chosen explicitly.
+  ///
+  /// In en, this message translates to:
+  /// **'No substance is linked to this code. Choose one to link.'**
+  String get finishR04NotLinkedHelp;
+
+  /// Authored two-word heading for the final identity review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review pack'**
+  String get finishR04ReviewHeading;
+
+  /// Consequence of using a linked pack: full identity, form and strength are shown before Use.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the full name, form and strength before use.'**
+  String get finishR04ReviewHelp;
+
+  /// Consequence of linking: full saved identity is reviewed before it is saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the full name, form and strength before linking.'**
+  String get finishR04LinkHelp;
+
+  /// One-word command that opens the existing dose form for the reviewed substance.
+  ///
+  /// In en, this message translates to:
+  /// **'Use'**
+  String get finishR04Use;
+
+  /// One-word command that saves the reviewed barcode link.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get finishR04Link;
+
+  /// One-word command restarting the camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Rescan'**
+  String get finishR04Rescan;
+
+  /// One-word command opening manual barcode entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter'**
+  String get finishR04Enter;
+
+  /// One-word command returning to the camera from manual entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get finishR04Camera;
+
+  /// Shows the validated printed barcode digits without dropping leading zeros.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode {code}'**
+  String finishR04Code(String code);
+
+  /// Confirmation after a link is durable.
+  ///
+  /// In en, this message translates to:
+  /// **'Pack linked'**
+  String get finishR04Linked;
+
+  /// Notice when saved item details differ from the reviewed link snapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Details changed since linking. Check them before use.'**
+  String get finishR04Changed;
+
+  /// Notice after a stale review is refreshed; Use is required again.
+  ///
+  /// In en, this message translates to:
+  /// **'The substance changed. Check it again.'**
+  String get finishR04ReviewChanged;
+
+  /// Heading when a saved link points to a missing substance.
+  ///
+  /// In en, this message translates to:
+  /// **'Link missing'**
+  String get finishR04NotFoundHeading;
+
+  /// Recovery for a missing linked substance.
+  ///
+  /// In en, this message translates to:
+  /// **'The linked substance is no longer here. Link this pack again.'**
+  String get finishR04NotFoundHelp;
+
+  /// Heading when the guarded link setting cannot be read.
+  ///
+  /// In en, this message translates to:
+  /// **'Links unavailable'**
+  String get finishR04LinksUnavailableHeading;
+
+  /// Recovery for unreadable saved links.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved links could not be read. Search manually.'**
+  String get finishR04LinksUnavailableHelp;
+
+  /// Heading when linking did not save.
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked'**
+  String get finishR04LinkFailedHeading;
+
+  /// Recovery after a failed link write.
+  ///
+  /// In en, this message translates to:
+  /// **'The link was not saved. Try again.'**
+  String get finishR04LinkFailedHelp;
+
+  /// Heading when the per-substance link bound is reached.
+  ///
+  /// In en, this message translates to:
+  /// **'Link limit'**
+  String get finishR04LinkLimitHeading;
+
+  /// States the exact per-substance link bound.
+  ///
+  /// In en, this message translates to:
+  /// **'You can link up to 8 barcodes to one substance.'**
+  String get finishR04LinkLimitHelp;
+
+  /// Heading when a barcode is already linked to another substance.
+  ///
+  /// In en, this message translates to:
+  /// **'Already linked'**
+  String get finishR04AlreadyLinkedHeading;
+
+  /// Names the existing linked substance before an explicit replacement.
+  ///
+  /// In en, this message translates to:
+  /// **'This barcode is linked to {name}.'**
+  String finishR04AlreadyLinkedHelp(String name);
+
+  /// Heading when the app locks during scanning.
+  ///
+  /// In en, this message translates to:
+  /// **'App locked'**
+  String get finishR04LockedHeading;
+
+  /// Explains that the camera is hidden while locked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Vital to scan a pack.'**
+  String get finishR04LockedHelp;
+
+  /// Empty state for the substance link search.
+  ///
+  /// In en, this message translates to:
+  /// **'No substances found.'**
+  String get finishR04NoItems;
+
+  /// Loading state for the substance link search.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading substances…'**
+  String get finishR04LoadingItems;
+
+  /// Visible label for the substance link search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search substances'**
+  String get finishR04SearchItems;
+
+  /// Two-word command returning to the existing manual chooser.
+  ///
+  /// In en, this message translates to:
+  /// **'Search manually'**
+  String get finishR04SearchManual;
+
+  /// Privacy statement beside the live camera. It is factual for this local decoder and no network path.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera stays on this device. Nothing is uploaded.'**
+  String get finishR04ScanPrivacy;
+
+  /// Heading after the protected dataset changes while scanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan again'**
+  String get finishR04DatasetHeading;
+
+  /// Explains that a new dataset requires a fresh scan and review.
+  ///
+  /// In en, this message translates to:
+  /// **'Your records changed. Scan the pack again.'**
+  String get finishR04DatasetHelp;
+
+  /// One-word command opening the explicit relink choice for a confirmed barcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get finishR04Change;
+
+  /// Heading after Vital leaves the foreground while the camera is open.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan paused'**
+  String get finishR04PausedHeading;
+
+  /// States that the camera stopped on leaving the foreground and requires a fresh scan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning stopped when Vital left the screen. Scan the pack again.'**
+  String get finishR04PausedHelp;
 }
 
 class _AppLocalizationsDelegate

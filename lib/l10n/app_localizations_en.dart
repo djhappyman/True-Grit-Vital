@@ -6806,7 +6806,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get screenStockGaps =>
-      'Pack scanning and refill delivery are not available yet.';
+      'Choose Scan when recording a medicine to scan a pack.';
 
   @override
   String get screenStockLoadedOnly => 'Only the loaded page is shown.';
@@ -7252,7 +7252,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get screenSettingsFhirBody =>
-      'Not available yet. Use Exports for structured data.';
+      'Preview FHIR R4 JSON, then choose Save.';
 
   @override
   String screenOverviewFormUnit(String form, String unit) {
@@ -7358,7 +7358,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get screenPanelFhirUnavailable =>
-      'FHIR export is not available in this build. Use Export for the formats Vital supports.';
+      'Use Export to preview and save FHIR R4 JSON.';
 
   @override
   String get screenPanelNoChecksums =>
@@ -8998,4 +8998,368 @@ class AppLocalizationsEn extends AppLocalizations {
   String finishR05FollowUpSummary(int minutes) {
     return 'One follow-up $minutes minutes after the planned time, if you have not recorded or skipped it.';
   }
+
+  @override
+  String get finishR03FormatFhir => 'FHIR';
+
+  @override
+  String get finishR03FormatHelp =>
+      'FHIR R4 JSON for health records. Review the mapping and omissions before Save.';
+
+  @override
+  String get finishR03FhirHeading => 'FHIR export';
+
+  @override
+  String get finishR03FhirVersion => 'FHIR R4 4.0.1 collection Bundle.';
+
+  @override
+  String get finishR03Patient =>
+      'Patient name and local identifier only. No birth date, sex or verification.';
+
+  @override
+  String get finishR03Medication => 'Medication use is patient-reported.';
+
+  @override
+  String get finishR03TextCodes =>
+      'Codes are text only. No clinical codes or UCUM unit codes are added.';
+
+  @override
+  String get finishR03Utc => 'Times use UTC. Date-only values stay dates.';
+
+  @override
+  String finishR03StatementCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count medication statements.',
+      one: 'One medication statement.',
+      zero: 'No medication statements.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String finishR03SkipCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count not-taken statements.',
+      one: 'One not-taken statement.',
+      zero: 'No not-taken statements.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String finishR03ObservationCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count observations.',
+      one: 'One observation.',
+      zero: 'No observations.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String finishR03DateOnlyCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count date-only times.',
+      one: 'One date-only time.',
+      zero: 'No date-only times.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String finishR03UncertainCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count planned times need review.',
+      one: 'One planned time needs review.',
+      zero: 'No planned times need review.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String finishR03VoidedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count voided records are marked entered in error.',
+      one: 'One voided record is marked entered in error.',
+      zero: 'No voided records.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String finishR03SupersededCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count older revisions are marked entered in error.',
+      one: 'One older revision is marked entered in error.',
+      zero: 'No older revisions.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String finishR03TextQuantityCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count exact quantities are kept as text.',
+      one: 'One exact quantity is kept as text.',
+      zero: 'No exact quantities need text.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String finishR03MissingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count observations have no value.',
+      one: 'One observation has no value.',
+      zero: 'No observations are missing a value.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String finishR03UnresolvedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count replacement amounts are unresolved. The entered amounts are used.',
+      one: 'One replacement amount is unresolved. The entered amount is used.',
+      zero: 'No replacement amounts are unresolved.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String finishR03ReportDateCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count report dates have no time and are not added.',
+      one: 'One report date has no time and is not added.',
+      zero: 'No report dates need text.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get finishR03Omissions =>
+      'Not included: report names, product labels, stock containers, plan names and substance type.';
+
+  @override
+  String get finishR03Provenance =>
+      'Source labels other than self-reported and component provenance are not included.';
+
+  @override
+  String get finishR03Files =>
+      'Files and attachment references are not included.';
+
+  @override
+  String get finishR03Grouping =>
+      'Lab panels group member results. Quick observations use components.';
+
+  @override
+  String get finishR04Scan => 'Scan';
+
+  @override
+  String get finishR04ScanHeading => 'Scan pack';
+
+  @override
+  String get finishR04ScanHelp => 'Point the camera at the pack barcode.';
+
+  @override
+  String get finishR04CameraLoading => 'Starting camera…';
+
+  @override
+  String get finishR04PermissionHeading => 'Camera blocked';
+
+  @override
+  String get finishR04PermissionHelp =>
+      'Allow camera access in Android settings, or enter the barcode number.';
+
+  @override
+  String get finishR04UnavailableHeading => 'Camera unavailable';
+
+  @override
+  String get finishR04UnavailableHelp =>
+      'The camera cannot open here. Enter the barcode number.';
+
+  @override
+  String get finishR04CodeLabel => 'Barcode number';
+
+  @override
+  String get finishR04CodeHint => 'Digits under the barcode';
+
+  @override
+  String get finishR04CodeHelp =>
+      'Type the full number, including the check digit.';
+
+  @override
+  String get finishR04Check => 'Check';
+
+  @override
+  String get finishR04InvalidHeading => 'Code not valid';
+
+  @override
+  String get finishR04InvalidHelp => 'Check the full number and try again.';
+
+  @override
+  String get finishR04UnsupportedCodeHeading => 'Code not supported';
+
+  @override
+  String get finishR04UnsupportedCodeHelp =>
+      'Use a pack barcode with a GTIN, EAN or GS1 number.';
+
+  @override
+  String get finishR04MultipleHeading => 'Choose a code';
+
+  @override
+  String get finishR04MultipleHelp =>
+      'More than one pack code was found. Choose one.';
+
+  @override
+  String get finishR04AmbiguousHeading => 'Choose a substance';
+
+  @override
+  String get finishR04AmbiguousHelp =>
+      'This code has more than one saved link. Choose the right substance.';
+
+  @override
+  String get finishR04NotLinkedHeading => 'Not linked';
+
+  @override
+  String get finishR04NotLinkedHelp =>
+      'No substance is linked to this code. Choose one to link.';
+
+  @override
+  String get finishR04ReviewHeading => 'Review pack';
+
+  @override
+  String get finishR04ReviewHelp =>
+      'Check the full name, form and strength before use.';
+
+  @override
+  String get finishR04LinkHelp =>
+      'Check the full name, form and strength before linking.';
+
+  @override
+  String get finishR04Use => 'Use';
+
+  @override
+  String get finishR04Link => 'Link';
+
+  @override
+  String get finishR04Rescan => 'Rescan';
+
+  @override
+  String get finishR04Enter => 'Enter';
+
+  @override
+  String get finishR04Camera => 'Camera';
+
+  @override
+  String finishR04Code(String code) {
+    return 'Barcode $code';
+  }
+
+  @override
+  String get finishR04Linked => 'Pack linked';
+
+  @override
+  String get finishR04Changed =>
+      'Details changed since linking. Check them before use.';
+
+  @override
+  String get finishR04ReviewChanged => 'The substance changed. Check it again.';
+
+  @override
+  String get finishR04NotFoundHeading => 'Link missing';
+
+  @override
+  String get finishR04NotFoundHelp =>
+      'The linked substance is no longer here. Link this pack again.';
+
+  @override
+  String get finishR04LinksUnavailableHeading => 'Links unavailable';
+
+  @override
+  String get finishR04LinksUnavailableHelp =>
+      'Saved links could not be read. Search manually.';
+
+  @override
+  String get finishR04LinkFailedHeading => 'Not linked';
+
+  @override
+  String get finishR04LinkFailedHelp => 'The link was not saved. Try again.';
+
+  @override
+  String get finishR04LinkLimitHeading => 'Link limit';
+
+  @override
+  String get finishR04LinkLimitHelp =>
+      'You can link up to 8 barcodes to one substance.';
+
+  @override
+  String get finishR04AlreadyLinkedHeading => 'Already linked';
+
+  @override
+  String finishR04AlreadyLinkedHelp(String name) {
+    return 'This barcode is linked to $name.';
+  }
+
+  @override
+  String get finishR04LockedHeading => 'App locked';
+
+  @override
+  String get finishR04LockedHelp => 'Unlock Vital to scan a pack.';
+
+  @override
+  String get finishR04NoItems => 'No substances found.';
+
+  @override
+  String get finishR04LoadingItems => 'Loading substances…';
+
+  @override
+  String get finishR04SearchItems => 'Search substances';
+
+  @override
+  String get finishR04SearchManual => 'Search manually';
+
+  @override
+  String get finishR04ScanPrivacy =>
+      'The camera stays on this device. Nothing is uploaded.';
+
+  @override
+  String get finishR04DatasetHeading => 'Scan again';
+
+  @override
+  String get finishR04DatasetHelp =>
+      'Your records changed. Scan the pack again.';
+
+  @override
+  String get finishR04Change => 'Change';
+
+  @override
+  String get finishR04PausedHeading => 'Scan paused';
+
+  @override
+  String get finishR04PausedHelp =>
+      'Scanning stopped when Vital left the screen. Scan the pack again.';
 }

@@ -391,6 +391,7 @@ final class FakeArtifactGateway implements ArtifactTransferGateway {
   String? preserved;
   bool? includedOffered;
   String? begunName;
+  String? begunMimeType;
 
   @override
   Future<void> begin({
@@ -402,6 +403,7 @@ final class FakeArtifactGateway implements ArtifactTransferGateway {
   }) async {
     calls.add('begin');
     begunName = name;
+    begunMimeType = mimeType;
   }
 
   @override

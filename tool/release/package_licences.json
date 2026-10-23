@@ -67,6 +67,46 @@
       "licenceTextSha256": "b71519245009a3b8f126196a5408ec031e216e8e0d985085958c6543f82a8a2a"
     },
     {
+      "name": "camera",
+      "version": "0.12.1",
+      "archiveSha256": "3f30ca0ff376f91534f23afa2a7aea06ebb6c889fd9e260642437b37e3d9f753",
+      "notice": "docs/implementation/licenses/camera-0.12.1-LICENSE",
+      "noticeSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d",
+      "licenceTextSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "name": "camera_android_camerax",
+      "version": "0.7.6",
+      "archiveSha256": "faf885ca8140f22df8dc05d1839afc702d0329dd9b0b2f0bc6f9b05f3f20e10c",
+      "notice": "docs/implementation/licenses/camera_android_camerax-0.7.6-LICENSE",
+      "noticeSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d",
+      "licenceTextSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "name": "camera_avfoundation",
+      "version": "0.10.3+1",
+      "archiveSha256": "e409a731fad3fca10daa9567cf981720398659e6390f871a4e0f576058ff8940",
+      "notice": "docs/implementation/licenses/camera_avfoundation-0.10.3+1-LICENSE",
+      "noticeSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d",
+      "licenceTextSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "name": "camera_platform_interface",
+      "version": "2.15.0",
+      "archiveSha256": "b3083b183ef1daa408d5f0c98c8c7ac0325b490695fb4557ff4210fcf04c5984",
+      "notice": "docs/implementation/licenses/camera_platform_interface-2.15.0-LICENSE",
+      "noticeSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d",
+      "licenceTextSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "name": "camera_web",
+      "version": "0.3.5+6",
+      "archiveSha256": "5aecf1ac4dd4a949c5a7820e590020acb2bc35425384ab87a030e1739bfe12e2",
+      "notice": "docs/implementation/licenses/camera_web-0.3.5+6-LICENSE",
+      "noticeSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d",
+      "licenceTextSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
       "name": "characters",
       "version": "1.4.1",
       "archiveSha256": "faf38497bda5ead2a8c7615f4f7939df04333478bf32e4173fcb06d428b5716b",
@@ -243,6 +283,38 @@
       "licenceTextSha256": "12f7222de745bab3710ba88b59f33484ca423aa5e1deac9e56ed946706d5abab"
     },
     {
+      "name": "file_selector_linux",
+      "version": "0.9.4+1",
+      "archiveSha256": "da76400e7872ce7637ffdce12749ec24169c25f6195c28372208e65a24bcd2ab",
+      "notice": "docs/implementation/licenses/file_selector_linux-0.9.4+1-LICENSE",
+      "noticeSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d",
+      "licenceTextSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "name": "file_selector_macos",
+      "version": "0.9.5+2",
+      "archiveSha256": "d785431f1910aac8a50e5c492cae912320158030a88703c67b9ef7f1f96fd7ba",
+      "notice": "docs/implementation/licenses/file_selector_macos-0.9.5+2-LICENSE",
+      "noticeSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d",
+      "licenceTextSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "name": "file_selector_platform_interface",
+      "version": "2.7.0",
+      "archiveSha256": "35e0bd61ebcdb91a3505813b055b09b79dfdc7d0aee9c09a7ba59ae4bb13dc85",
+      "notice": "docs/implementation/licenses/file_selector_platform_interface-2.7.0-LICENSE",
+      "noticeSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d",
+      "licenceTextSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "name": "file_selector_windows",
+      "version": "0.9.3+6",
+      "archiveSha256": "fbefc5fb92c6d3cbe8d284a2cd971b593bb07d2cd6da8557b81a862250b4acec",
+      "notice": "docs/implementation/licenses/file_selector_windows-0.9.3+6-LICENSE",
+      "noticeSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d",
+      "licenceTextSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
       "name": "fixnum",
       "version": "1.1.1",
       "archiveSha256": "b6dc7065e46c974bc7c5f143080a6764ec7a4be6da1285ececdc37be96de53be",
@@ -267,12 +339,28 @@
       "licenceTextSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9"
     },
     {
+      "name": "flutter_plugin_android_lifecycle",
+      "version": "2.0.35",
+      "archiveSha256": "3854fe5e3bff0b113c658f260b90c95dea17c92db0f2addeac2e343dd9969785",
+      "notice": "docs/implementation/licenses/flutter_plugin_android_lifecycle-2.0.35-LICENSE",
+      "noticeSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d",
+      "licenceTextSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
       "name": "flutter_riverpod",
       "version": "3.4.3",
       "archiveSha256": "2b7f9d2a3c730ac1a98221b420cef966b990fca7ab546ede324642ca57a533e3",
       "notice": "docs/implementation/licenses/flutter_riverpod-LICENSE",
       "noticeSha256": "757d9c09a9a2a701144328c0fd596234ea287ff62952b39cd22f9ad4caed1171",
       "licenceTextSha256": "757d9c09a9a2a701144328c0fd596234ea287ff62952b39cd22f9ad4caed1171"
+    },
+    {
+      "name": "flutter_zxing",
+      "version": "3.1.0",
+      "archiveSha256": "ee2b97bf69b01385b91497501c060f4e3b53686709892e005de10f3ad30eee98",
+      "notice": "docs/implementation/licenses/flutter_zxing-3.1.0-LICENSE",
+      "noticeSha256": "ad30dc5aeb4d7f0d683b50ed57db592779095b840a56837e825c36b9bffd6172",
+      "licenceTextSha256": "ad30dc5aeb4d7f0d683b50ed57db592779095b840a56837e825c36b9bffd6172"
     },
     {
       "name": "gap",
@@ -329,6 +417,70 @@
       "notice": "docs/implementation/licenses/16-adopted-package-NOTICES.txt",
       "noticeSha256": "3bd2e329d06cb3b84858b9e4c6d1863542cdc2b72a24c584de05bcee952c0e70",
       "licenceTextSha256": "f3c17da84e0780e1c334325c73098257c32221d62498ed55ef3c1361904925aa"
+    },
+    {
+      "name": "image_picker",
+      "version": "1.2.4",
+      "archiveSha256": "e71b1bd9e40124041128d60fc3034c7b1598e1bba4e570bba0c70301c817013a",
+      "notice": "docs/implementation/licenses/image_picker-1.2.4-LICENSE",
+      "noticeSha256": "8e22fae63e4e8ac897f0cb3018ed94ed730b3e5da5d42c6856a26ba524f0fd88",
+      "licenceTextSha256": "8e22fae63e4e8ac897f0cb3018ed94ed730b3e5da5d42c6856a26ba524f0fd88"
+    },
+    {
+      "name": "image_picker_android",
+      "version": "0.8.13+25",
+      "archiveSha256": "8a7823d5d3e884f7780829d85d92110d072bdcd9ed48e2be158d2abe91a912d4",
+      "notice": "docs/implementation/licenses/image_picker_android-0.8.13+25-LICENSE",
+      "noticeSha256": "8e22fae63e4e8ac897f0cb3018ed94ed730b3e5da5d42c6856a26ba524f0fd88",
+      "licenceTextSha256": "8e22fae63e4e8ac897f0cb3018ed94ed730b3e5da5d42c6856a26ba524f0fd88"
+    },
+    {
+      "name": "image_picker_for_web",
+      "version": "3.1.1",
+      "archiveSha256": "66257a3191ab360d23a55c8241c91a6e329d31e94efa7be9cf7a212e65850214",
+      "notice": "docs/implementation/licenses/image_picker_for_web-3.1.1-LICENSE",
+      "noticeSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d",
+      "licenceTextSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "name": "image_picker_ios",
+      "version": "0.8.13+13",
+      "archiveSha256": "57255225702ace8c81b8d92c1de6a04b60ee9befa6dab242b10a7612116886fd",
+      "notice": "docs/implementation/licenses/image_picker_ios-0.8.13+13-LICENSE",
+      "noticeSha256": "8e22fae63e4e8ac897f0cb3018ed94ed730b3e5da5d42c6856a26ba524f0fd88",
+      "licenceTextSha256": "8e22fae63e4e8ac897f0cb3018ed94ed730b3e5da5d42c6856a26ba524f0fd88"
+    },
+    {
+      "name": "image_picker_linux",
+      "version": "0.2.2",
+      "archiveSha256": "1f81c5f2046b9ab724f85523e4af65be1d47b038160a8c8deed909762c308ed4",
+      "notice": "docs/implementation/licenses/image_picker_linux-0.2.2-LICENSE",
+      "noticeSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9",
+      "licenceTextSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9"
+    },
+    {
+      "name": "image_picker_macos",
+      "version": "0.2.2+1",
+      "archiveSha256": "86f0f15a309de7e1a552c12df9ce5b59fe927e71385329355aec4776c6a8ec91",
+      "notice": "docs/implementation/licenses/image_picker_macos-0.2.2+1-LICENSE",
+      "noticeSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d",
+      "licenceTextSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "name": "image_picker_platform_interface",
+      "version": "2.11.2",
+      "archiveSha256": "2dee4b4e3be429db71472c9c559c981498070a61af1ba82e0e4986fc5dadc042",
+      "notice": "docs/implementation/licenses/image_picker_platform_interface-2.11.2-LICENSE",
+      "noticeSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d",
+      "licenceTextSha256": "420f7739f169097f0aad1242045169cd643c8f1d94e62866fad265ae4c369b7d"
+    },
+    {
+      "name": "image_picker_windows",
+      "version": "0.2.2",
+      "archiveSha256": "d248c86554a72b5495a31c56f060cf73a41c7ff541689327b1a7dbccc33adfae",
+      "notice": "docs/implementation/licenses/image_picker_windows-0.2.2-LICENSE",
+      "noticeSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9",
+      "licenceTextSha256": "89519eca6f7b9529b35bdddd623a58c3af06a88c458dbd6531ddb4675acf75a9"
     },
     {
       "name": "intl",
@@ -449,6 +601,14 @@
       "notice": "docs/implementation/licenses/meta-LICENSE",
       "noticeSha256": "b71519245009a3b8f126196a5408ec031e216e8e0d985085958c6543f82a8a2a",
       "licenceTextSha256": "b71519245009a3b8f126196a5408ec031e216e8e0d985085958c6543f82a8a2a"
+    },
+    {
+      "name": "mime",
+      "version": "2.1.0",
+      "archiveSha256": "bd47de35f07e27267e69c8c8b22edf9473bfee170a60d60fcc93730c5144b7f6",
+      "notice": "docs/implementation/licenses/mime-2.1.0-LICENSE",
+      "noticeSha256": "ff15faa32a2e638107b7789592b14426162a75ba620044ee2340a20ec6ce5e73",
+      "licenceTextSha256": "ff15faa32a2e638107b7789592b14426162a75ba620044ee2340a20ec6ce5e73"
     },
     {
       "name": "native_toolchain_c",
@@ -697,6 +857,14 @@
       "notice": "docs/implementation/licenses/stream_channel-LICENSE",
       "noticeSha256": "ff15faa32a2e638107b7789592b14426162a75ba620044ee2340a20ec6ce5e73",
       "licenceTextSha256": "ff15faa32a2e638107b7789592b14426162a75ba620044ee2340a20ec6ce5e73"
+    },
+    {
+      "name": "stream_transform",
+      "version": "2.1.2",
+      "archiveSha256": "a00e5f18bffc764f923e7dec1038527f7fe7a1791361a7117f0358193f13d53a",
+      "notice": "docs/implementation/licenses/stream_transform-2.1.2-LICENSE",
+      "noticeSha256": "ea97a7558a7bd7cee4e2355f7529e3cbebb0dcbb546ddb9a90f10c9eb6b08da5",
+      "licenceTextSha256": "ea97a7558a7bd7cee4e2355f7529e3cbebb0dcbb546ddb9a90f10c9eb6b08da5"
     },
     {
       "name": "string_scanner",

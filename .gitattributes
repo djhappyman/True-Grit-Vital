@@ -1,2 +1,5 @@
 # Generated legal bundle retains upstream licence spacing and line endings.
 assets/legal/notices.txt -text -whitespace
+
+# Retain exact audited upstream LICENSE bytes, including intentional spacing.
+docs/implementation/licenses/*-LICENSE -text -whitespace

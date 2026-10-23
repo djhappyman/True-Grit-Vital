@@ -1,0 +1,22 @@
+{
+  "artifact": "build/app/outputs/flutter-apk/app-debug.apk",
+  "sha256": "ed00a19f3302652625a7d5868cc1ae37003c24ed73b0ae6e694a7399d293b6fb",
+  "permissions": [
+    "package: dev.truegrit.vital",
+    "uses-permission: name='android.permission.INTERNET'",
+    "uses-permission: name='android.permission.USE_BIOMETRIC'",
+    "uses-permission: name='android.permission.POST_NOTIFICATIONS'",
+    "uses-permission: name='android.permission.SCHEDULE_EXACT_ALARM'",
+    "uses-permission: name='android.permission.RECEIVE_BOOT_COMPLETED'",
+    "uses-permission: name='android.permission.CAMERA'",
+    "permission: dev.truegrit.vital.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
+    "uses-permission: name='dev.truegrit.vital.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'",
+    "uses-permission: name='android.permission.ACCESS_NETWORK_STATE'"
+  ],
+  "nativeDecoderLibraries": [
+    "lib/arm64-v8a/libflutter_zxing.so",
+    "lib/armeabi-v7a/libflutter_zxing.so",
+    "lib/x86_64/libflutter_zxing.so"
+  ],
+  "physicalDeviceTested": false
+}

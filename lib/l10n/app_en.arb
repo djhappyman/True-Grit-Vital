@@ -7930,7 +7930,7 @@
   "@screenStockContainers": {
     "description": "Stock screen. Section heading for the bounded container page."
   },
-  "screenStockGaps": "Pack scanning and refill delivery are not available yet.",
+  "screenStockGaps": "Choose Scan when recording a medicine to scan a pack.",
   "@screenStockGaps": {
     "description": "Stock screen. Names the remaining D15 capabilities; lot, expiry, capacity and run-out forecasts are implemented."
   },
@@ -8538,9 +8538,9 @@
   "@screenSettingsFhir": {
     "description": "Labelled preview for a clinical export format, which is not implemented."
   },
-  "screenSettingsFhirBody": "Not available yet. Use Exports for structured data.",
+  "screenSettingsFhirBody": "Preview FHIR R4 JSON, then choose Save.",
   "@screenSettingsFhirBody": {
-    "description": "Points to the real structured export instead of implying FHIR or HL7 support."
+    "description": "Explains the reviewed FHIR R4 JSON export and explicit Save."
   },
   "screenOverviewFormUnit": "{form} · {unit}",
   "@screenOverviewFormUnit": {
@@ -8692,9 +8692,9 @@
       }
     }
   },
-  "screenPanelFhirUnavailable": "FHIR export is not available in this build. Use Export for the formats Vital supports.",
+  "screenPanelFhirUnavailable": "Use Export to preview and save FHIR R4 JSON.",
   "@screenPanelFhirUnavailable": {
-    "description": "Lab panel detail. Truthful state for the missing FHIR export capability. Export opens the existing formats only."
+    "description": "Lab panel detail. Points to the implemented reviewed FHIR R4 JSON export."
   },
   "screenPanelNoChecksums": "The files shown have no recorded checksum. Open Files to review them.",
   "@screenPanelNoChecksums": {
@@ -10651,5 +10651,386 @@
         "type": "int"
       }
     }
+  },
+  "finishR03FormatFhir": "FHIR",
+  "@finishR03FormatFhir": {
+    "description": "Format option for a FHIR R4 JSON export."
+  },
+  "finishR03FormatHelp": "FHIR R4 JSON for health records. Review the mapping and omissions before Save.",
+  "@finishR03FormatHelp": {
+    "description": "Explains the FHIR format choice and the review requirement."
+  },
+  "finishR03FhirHeading": "FHIR export",
+  "@finishR03FhirHeading": {
+    "description": "Heading for the FHIR mapping and omission summary."
+  },
+  "finishR03FhirVersion": "FHIR R4 4.0.1 collection Bundle.",
+  "@finishR03FhirVersion": {
+    "description": "States the exact FHIR release and Bundle type; not a profile claim."
+  },
+  "finishR03Patient": "Patient name and local identifier only. No birth date, sex or verification.",
+  "@finishR03Patient": {
+    "description": "Privacy and truthfulness statement for the local Patient resource."
+  },
+  "finishR03Medication": "Medication use is patient-reported.",
+  "@finishR03Medication": {
+    "description": "States that medication use is a patient-reported MedicationStatement, not a formal administration record."
+  },
+  "finishR03TextCodes": "Codes are text only. No clinical codes or UCUM unit codes are added.",
+  "@finishR03TextCodes": {
+    "description": "Explains that codes and units are not invented."
+  },
+  "finishR03Utc": "Times use UTC. Date-only values stay dates.",
+  "@finishR03Utc": {
+    "description": "Explains time and date-only handling."
+  },
+  "finishR03StatementCount": "{count, plural, =0{No medication statements.} =1{One medication statement.} other{{count} medication statements.}}",
+  "@finishR03StatementCount": {
+    "description": "Count of FHIR MedicationStatement resources for recorded doses.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "finishR03SkipCount": "{count, plural, =0{No not-taken statements.} =1{One not-taken statement.} other{{count} not-taken statements.}}",
+  "@finishR03SkipCount": {
+    "description": "Count of explicit skips represented as not-taken MedicationStatements.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "finishR03ObservationCount": "{count, plural, =0{No observations.} =1{One observation.} other{{count} observations.}}",
+  "@finishR03ObservationCount": {
+    "description": "Count of FHIR Observation resources.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "finishR03DateOnlyCount": "{count, plural, =0{No date-only times.} =1{One date-only time.} other{{count} date-only times.}}",
+  "@finishR03DateOnlyCount": {
+    "description": "Count of dates kept as date-only values rather than midnight instants.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "finishR03UncertainCount": "{count, plural, =0{No planned times need review.} =1{One planned time needs review.} other{{count} planned times need review.}}",
+  "@finishR03UncertainCount": {
+    "description": "Count of skips whose planned time has an unresolved clock.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "finishR03VoidedCount": "{count, plural, =0{No voided records.} =1{One voided record is marked entered in error.} other{{count} voided records are marked entered in error.}}",
+  "@finishR03VoidedCount": {
+    "description": "Count of voided records represented with entered-in-error status.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "finishR03SupersededCount": "{count, plural, =0{No older revisions.} =1{One older revision is marked entered in error.} other{{count} older revisions are marked entered in error.}}",
+  "@finishR03SupersededCount": {
+    "description": "Count of superseded historical revisions represented with entered-in-error status.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "finishR03TextQuantityCount": "{count, plural, =0{No exact quantities need text.} =1{One exact quantity is kept as text.} other{{count} exact quantities are kept as text.}}",
+  "@finishR03TextQuantityCount": {
+    "description": "Count of exact quantities that cannot be written as a terminating decimal and stay as text.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "finishR03MissingCount": "{count, plural, =0{No observations are missing a value.} =1{One observation has no value.} other{{count} observations have no value.}}",
+  "@finishR03MissingCount": {
+    "description": "Count of observations with no recorded value.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "finishR03UnresolvedCount": "{count, plural, =0{No replacement amounts are unresolved.} =1{One replacement amount is unresolved. The entered amount is used.} other{{count} replacement amounts are unresolved. The entered amounts are used.}}",
+  "@finishR03UnresolvedCount": {
+    "description": "Count of doses whose replacement strength is unknown; no converted amount is invented.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "finishR03ReportDateCount": "{count, plural, =0{No report dates need text.} =1{One report date has no time and is not added.} other{{count} report dates have no time and are not added.}}",
+  "@finishR03ReportDateCount": {
+    "description": "Count of source report dates that are date-only and therefore not written as an instant.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "finishR03Omissions": "Not included: report names, product labels, stock containers, plan names and substance type.",
+  "@finishR03Omissions": {
+    "description": "Lists fields outside the narrow FHIR mapping."
+  },
+  "finishR03Provenance": "Source labels other than self-reported and component provenance are not included.",
+  "@finishR03Provenance": {
+    "description": "Explains source-label and component-provenance limits."
+  },
+  "finishR03Files": "Files and attachment references are not included.",
+  "@finishR03Files": {
+    "description": "Confirms that files and internal attachment references stay private."
+  },
+  "finishR03Grouping": "Lab panels group member results. Quick observations use components.",
+  "@finishR03Grouping": {
+    "description": "Explains why a panel contributes a parent Observation plus member Observations."
+  },
+  "finishR04Scan": "Scan",
+  "@finishR04Scan": {
+    "description": "One-word command opening the pack scanner."
+  },
+  "finishR04ScanHeading": "Scan pack",
+  "@finishR04ScanHeading": {
+    "description": "Authored two-word heading for the scanner panel."
+  },
+  "finishR04ScanHelp": "Point the camera at the pack barcode.",
+  "@finishR04ScanHelp": {
+    "description": "Instruction shown beside the live camera."
+  },
+  "finishR04CameraLoading": "Starting camera…",
+  "@finishR04CameraLoading": {
+    "description": "Camera start-up status."
+  },
+  "finishR04PermissionHeading": "Camera blocked",
+  "@finishR04PermissionHeading": {
+    "description": "Heading when camera permission is denied."
+  },
+  "finishR04PermissionHelp": "Allow camera access in Android settings, or enter the barcode number.",
+  "@finishR04PermissionHelp": {
+    "description": "Recovery path for denied camera permission. Manual entry and search remain available."
+  },
+  "finishR04UnavailableHeading": "Camera unavailable",
+  "@finishR04UnavailableHeading": {
+    "description": "Heading when no camera is available on this platform."
+  },
+  "finishR04UnavailableHelp": "The camera cannot open here. Enter the barcode number.",
+  "@finishR04UnavailableHelp": {
+    "description": "Recovery path when the camera cannot open. Manual entry remains available."
+  },
+  "finishR04CodeLabel": "Barcode number",
+  "@finishR04CodeLabel": {
+    "description": "Visible label for manual barcode digits."
+  },
+  "finishR04CodeHint": "Digits under the barcode",
+  "@finishR04CodeHint": {
+    "description": "Example-free placeholder for manual barcode digits."
+  },
+  "finishR04CodeHelp": "Type the full number, including the check digit.",
+  "@finishR04CodeHelp": {
+    "description": "Explains that the check digit is part of the entered number."
+  },
+  "finishR04Check": "Check",
+  "@finishR04Check": {
+    "description": "One-word command that validates a manually entered barcode."
+  },
+  "finishR04InvalidHeading": "Code not valid",
+  "@finishR04InvalidHeading": {
+    "description": "Heading for a number with a wrong check digit."
+  },
+  "finishR04InvalidHelp": "Check the full number and try again.",
+  "@finishR04InvalidHelp": {
+    "description": "Recovery for an invalid check digit."
+  },
+  "finishR04UnsupportedCodeHeading": "Code not supported",
+  "@finishR04UnsupportedCodeHeading": {
+    "description": "Heading for a scanned symbol that is not a product number."
+  },
+  "finishR04UnsupportedCodeHelp": "Use a pack barcode with a GTIN, EAN or GS1 number.",
+  "@finishR04UnsupportedCodeHelp": {
+    "description": "Explains the supported GTIN, EAN and GS1 product numbers."
+  },
+  "finishR04MultipleHeading": "Choose a code",
+  "@finishR04MultipleHeading": {
+    "description": "Heading when a frame contains more than one distinct product number."
+  },
+  "finishR04MultipleHelp": "More than one pack code was found. Choose one.",
+  "@finishR04MultipleHelp": {
+    "description": "Asks the person to choose between distinct detections; never selects one automatically."
+  },
+  "finishR04AmbiguousHeading": "Choose a substance",
+  "@finishR04AmbiguousHeading": {
+    "description": "Heading when saved links disagree for one code."
+  },
+  "finishR04AmbiguousHelp": "This code has more than one saved link. Choose the right substance.",
+  "@finishR04AmbiguousHelp": {
+    "description": "Asks the person to choose between conflicting saved links."
+  },
+  "finishR04NotLinkedHeading": "Not linked",
+  "@finishR04NotLinkedHeading": {
+    "description": "Heading when no saved link uses this barcode."
+  },
+  "finishR04NotLinkedHelp": "No substance is linked to this code. Choose one to link.",
+  "@finishR04NotLinkedHelp": {
+    "description": "Explains that a link must be chosen explicitly."
+  },
+  "finishR04ReviewHeading": "Review pack",
+  "@finishR04ReviewHeading": {
+    "description": "Authored two-word heading for the final identity review."
+  },
+  "finishR04ReviewHelp": "Check the full name, form and strength before use.",
+  "@finishR04ReviewHelp": {
+    "description": "Consequence of using a linked pack: full identity, form and strength are shown before Use."
+  },
+  "finishR04LinkHelp": "Check the full name, form and strength before linking.",
+  "@finishR04LinkHelp": {
+    "description": "Consequence of linking: full saved identity is reviewed before it is saved."
+  },
+  "finishR04Use": "Use",
+  "@finishR04Use": {
+    "description": "One-word command that opens the existing dose form for the reviewed substance."
+  },
+  "finishR04Link": "Link",
+  "@finishR04Link": {
+    "description": "One-word command that saves the reviewed barcode link."
+  },
+  "finishR04Rescan": "Rescan",
+  "@finishR04Rescan": {
+    "description": "One-word command restarting the camera."
+  },
+  "finishR04Enter": "Enter",
+  "@finishR04Enter": {
+    "description": "One-word command opening manual barcode entry."
+  },
+  "finishR04Camera": "Camera",
+  "@finishR04Camera": {
+    "description": "One-word command returning to the camera from manual entry."
+  },
+  "finishR04Code": "Barcode {code}",
+  "@finishR04Code": {
+    "description": "Shows the validated printed barcode digits without dropping leading zeros.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "finishR04Linked": "Pack linked",
+  "@finishR04Linked": {
+    "description": "Confirmation after a link is durable."
+  },
+  "finishR04Changed": "Details changed since linking. Check them before use.",
+  "@finishR04Changed": {
+    "description": "Notice when saved item details differ from the reviewed link snapshot."
+  },
+  "finishR04ReviewChanged": "The substance changed. Check it again.",
+  "@finishR04ReviewChanged": {
+    "description": "Notice after a stale review is refreshed; Use is required again."
+  },
+  "finishR04NotFoundHeading": "Link missing",
+  "@finishR04NotFoundHeading": {
+    "description": "Heading when a saved link points to a missing substance."
+  },
+  "finishR04NotFoundHelp": "The linked substance is no longer here. Link this pack again.",
+  "@finishR04NotFoundHelp": {
+    "description": "Recovery for a missing linked substance."
+  },
+  "finishR04LinksUnavailableHeading": "Links unavailable",
+  "@finishR04LinksUnavailableHeading": {
+    "description": "Heading when the guarded link setting cannot be read."
+  },
+  "finishR04LinksUnavailableHelp": "Saved links could not be read. Search manually.",
+  "@finishR04LinksUnavailableHelp": {
+    "description": "Recovery for unreadable saved links."
+  },
+  "finishR04LinkFailedHeading": "Not linked",
+  "@finishR04LinkFailedHeading": {
+    "description": "Heading when linking did not save."
+  },
+  "finishR04LinkFailedHelp": "The link was not saved. Try again.",
+  "@finishR04LinkFailedHelp": {
+    "description": "Recovery after a failed link write."
+  },
+  "finishR04LinkLimitHeading": "Link limit",
+  "@finishR04LinkLimitHeading": {
+    "description": "Heading when the per-substance link bound is reached."
+  },
+  "finishR04LinkLimitHelp": "You can link up to 8 barcodes to one substance.",
+  "@finishR04LinkLimitHelp": {
+    "description": "States the exact per-substance link bound."
+  },
+  "finishR04AlreadyLinkedHeading": "Already linked",
+  "@finishR04AlreadyLinkedHeading": {
+    "description": "Heading when a barcode is already linked to another substance."
+  },
+  "finishR04AlreadyLinkedHelp": "This barcode is linked to {name}.",
+  "@finishR04AlreadyLinkedHelp": {
+    "description": "Names the existing linked substance before an explicit replacement.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "finishR04LockedHeading": "App locked",
+  "@finishR04LockedHeading": {
+    "description": "Heading when the app locks during scanning."
+  },
+  "finishR04LockedHelp": "Unlock Vital to scan a pack.",
+  "@finishR04LockedHelp": {
+    "description": "Explains that the camera is hidden while locked."
+  },
+  "finishR04NoItems": "No substances found.",
+  "@finishR04NoItems": {
+    "description": "Empty state for the substance link search."
+  },
+  "finishR04LoadingItems": "Loading substances…",
+  "@finishR04LoadingItems": {
+    "description": "Loading state for the substance link search."
+  },
+  "finishR04SearchItems": "Search substances",
+  "@finishR04SearchItems": {
+    "description": "Visible label for the substance link search field."
+  },
+  "finishR04SearchManual": "Search manually",
+  "@finishR04SearchManual": {
+    "description": "Two-word command returning to the existing manual chooser."
+  },
+  "finishR04ScanPrivacy": "The camera stays on this device. Nothing is uploaded.",
+  "@finishR04ScanPrivacy": {
+    "description": "Privacy statement beside the live camera. It is factual for this local decoder and no network path."
+  },
+  "finishR04DatasetHeading": "Scan again",
+  "@finishR04DatasetHeading": {
+    "description": "Heading after the protected dataset changes while scanning."
+  },
+  "finishR04DatasetHelp": "Your records changed. Scan the pack again.",
+  "@finishR04DatasetHelp": {
+    "description": "Explains that a new dataset requires a fresh scan and review."
+  },
+  "finishR04Change": "Change",
+  "@finishR04Change": {
+    "description": "One-word command opening the explicit relink choice for a confirmed barcode."
+  },
+  "finishR04PausedHeading": "Scan paused",
+  "@finishR04PausedHeading": {
+    "description": "Heading after Vital leaves the foreground while the camera is open."
+  },
+  "finishR04PausedHelp": "Scanning stopped when Vital left the screen. Scan the pack again.",
+  "@finishR04PausedHelp": {
+    "description": "States that the camera stopped on leaving the foreground and requires a fresh scan."
   }
 }

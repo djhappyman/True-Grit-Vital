@@ -1,0 +1,158 @@
+{
+  "artifactsValidated": 11,
+  "driftChecks": 10,
+  "failures": [],
+  "results": [
+    {
+      "case": "positive_deterministic",
+      "expected": "valid",
+      "status": "pass",
+      "violations": []
+    },
+    {
+      "case": "repeat_determinism",
+      "status": "pass"
+    },
+    {
+      "case": "glass_gate_forgery",
+      "expected": "glass_gate_forgery",
+      "status": "pass",
+      "violations": [
+        "glass_gate_forgery"
+      ]
+    },
+    {
+      "case": "frames_count_mismatch",
+      "expected": "frames_count_mismatch:today_swipe",
+      "status": "pass",
+      "violations": [
+        "frames_count_mismatch:today_swipe"
+      ]
+    },
+    {
+      "case": "role_evidence_mismatch",
+      "expected": "role_evidence_mismatch:measured/selftest",
+      "status": "pass",
+      "violations": [
+        "role_evidence_mismatch:measured/selftest"
+      ]
+    },
+    {
+      "case": "unsupported_missing_reason",
+      "expected": "unsupported_missing_reason:record_save",
+      "status": "pass",
+      "violations": [
+        "unsupported_missing_reason:record_save"
+      ]
+    },
+    {
+      "case": "frames_stats_mismatch",
+      "expected": "frames_stats_mismatch:today_swipe",
+      "status": "pass",
+      "violations": [
+        "frames_stats_mismatch:today_swipe"
+      ]
+    },
+    {
+      "case": "keys_mismatch",
+      "expected": "keys_mismatch",
+      "status": "pass",
+      "violations": [
+        "keys_mismatch"
+      ]
+    },
+    {
+      "case": "scenario_key_unknown",
+      "expected": "scenario_key_unknown:why_not",
+      "status": "pass",
+      "violations": [
+        "scenario_key_unknown:why_not"
+      ]
+    },
+    {
+      "case": "emulator_role_measured",
+      "expected": "emulator_role_measured",
+      "status": "pass",
+      "violations": [
+        "role_evidence_mismatch:measured/selftest",
+        "emulator_role_measured"
+      ]
+    },
+    {
+      "case": "created_utc_bad",
+      "expected": "created_utc",
+      "status": "pass",
+      "violations": [
+        "created_utc"
+      ]
+    },
+    {
+      "case": "drift_tool_version_constant",
+      "dart": "vital-perf-harness/1",
+      "python": "vital-perf-harness/1",
+      "status": "pass"
+    },
+    {
+      "case": "drift_fixture_spec_constant",
+      "dart": "vital-perf-fixture/1",
+      "python": "vital-perf-fixture/1",
+      "status": "pass"
+    },
+    {
+      "case": "drift_artifact_kind_constant",
+      "dart": "vital-performance-artifact",
+      "python": "vital-performance-artifact",
+      "status": "pass"
+    },
+    {
+      "case": "drift_schema_version_constant",
+      "dart": 1,
+      "python": 1,
+      "status": "pass"
+    },
+    {
+      "case": "drift_scenario_registry_shape",
+      "scenarios": [
+        "today_swipe",
+        "history_scroll",
+        "stock_scroll",
+        "record_save"
+      ],
+      "status": "pass"
+    },
+    {
+      "case": "drift_roles_match_evidence_map",
+      "status": "pass"
+    },
+    {
+      "case": "drift_evidence_classes_complete",
+      "status": "pass"
+    },
+    {
+      "case": "drift_frames_summary_contains_raw_arrays",
+      "status": "pass"
+    },
+    {
+      "case": "drift_scenario_sections_use_contract_keys",
+      "scenarioKeys": [
+        "key",
+        "status",
+        "reason",
+        "repeats",
+        "refreshRateHz",
+        "refreshRateKnown",
+        "frameBudgetMicros",
+        "memoryBeforeKb",
+        "memoryAfterKb",
+        "frames"
+      ],
+      "status": "pass"
+    },
+    {
+      "case": "drift_top_keys_used_by_selftest",
+      "status": "pass"
+    }
+  ],
+  "status": "pass",
+  "tool": "vital-perf-selftest/1"
+}

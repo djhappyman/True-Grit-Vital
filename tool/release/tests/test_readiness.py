@@ -127,6 +127,35 @@ class AndroidConfigTest(unittest.TestCase):
                 result.failures,
             )
 
+    def test_optional_camera_and_removed_plugin_permissions_are_allowed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            manifest = MANIFEST.replace(
+                '<manifest ', '<manifest xmlns:tools="http://schemas.android.com/tools" ', 1,
+            ).replace(
+                '<application',
+                '<uses-permission android:name="android.permission.CAMERA" />'
+                '<uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />'
+                '<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />'
+                '<uses-feature android:name="android.hardware.camera" android:required="false" />'
+                '<uses-feature android:name="android.hardware.camera.any" android:required="false" />'
+                '<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />'
+                '<application', 1,
+            )
+            minimal_android(root, manifest, SAFE_GRADLE)
+            self.assertEqual(readiness.check_android(root).failures, [])
+            path = root / "android/app/src/main/AndroidManifest.xml"
+            path.write_text(manifest.replace('tools:node="remove"', '', 1))
+            self.assertTrue(any("RECORD_AUDIO" in issue for issue in readiness.check_android(root).failures))
+
+    def test_camera_must_remain_optional(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            minimal_android(root, MANIFEST.replace(
+                '<application', '<uses-permission android:name="android.permission.CAMERA" /><application', 1,
+            ), SAFE_GRADLE)
+            self.assertIn("barcode camera features must be explicitly optional", readiness.check_android(root).failures)
+
     def test_unexpected_network_permission_fails(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

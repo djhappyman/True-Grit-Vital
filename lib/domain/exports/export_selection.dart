@@ -1,16 +1,17 @@
 import '../scheduling/daily_plan.dart';
 
 /// Portable structured export formats owned by this feature.
-enum ExportFormat { json, csv }
+enum ExportFormat { json, csv, fhir }
 
 extension ExportFormatFile on ExportFormat {
   String get extension => switch (this) {
-    ExportFormat.json => 'json',
+    ExportFormat.json || ExportFormat.fhir => 'json',
     ExportFormat.csv => 'csv',
   };
   String get mimeType => switch (this) {
     ExportFormat.json => 'application/json',
     ExportFormat.csv => 'text/csv',
+    ExportFormat.fhir => 'application/fhir+json',
   };
 }
 

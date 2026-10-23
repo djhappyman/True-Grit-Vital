@@ -6,19 +6,35 @@ import 'package:crypto/crypto.dart' as crypto;
 import '../supporting/supporting.dart';
 import 'export_document.dart';
 import 'export_selection.dart';
+import 'fhir_r4.dart';
 
 /// Deterministic bytes for one reviewed export document.
 ///
 /// JSON is pretty-printed with stable key order. CSV follows RFC 4180 quoting
 /// and prefixes any cell that begins with a spreadsheet formula character.
-Uint8List encodeExport(ExportDocument document) {
-  final text = switch (document.selection.format) {
-    ExportFormat.json => const JsonEncoder.withIndent(
-      '  ',
-    ).convert(document.toJson()),
-    ExportFormat.csv => encodeExportCsv(document),
-  };
-  return Uint8List.fromList(utf8.encode(text));
+/// FHIR uses the narrow R4 collection Bundle in `fhir_r4.dart`.
+Uint8List encodeExport(ExportDocument document) =>
+    Uint8List.fromList(utf8.encode(_encodeDocument(document).text));
+
+final class _EncodedExport {
+  const _EncodedExport(this.text, this.fhir);
+  final String text;
+  final FhirExportSummary? fhir;
+}
+
+_EncodedExport _encodeDocument(ExportDocument document) {
+  switch (document.selection.format) {
+    case ExportFormat.json:
+      return _EncodedExport(
+        const JsonEncoder.withIndent('  ').convert(document.toJson()),
+        null,
+      );
+    case ExportFormat.csv:
+      return _EncodedExport(encodeExportCsv(document), null);
+    case ExportFormat.fhir:
+      final encoded = encodeFhirR4(document);
+      return _EncodedExport(encoded.json, encoded.summary);
+  }
 }
 
 /// Exact, locale-independent CSV. Numbers use a full stop; no thousands
@@ -433,8 +449,9 @@ final class ExportArtifact {
     ExportCancellation? cancellation,
   }) {
     cancellation?.throwIfCancelled();
-    final bytes = encodeExport(document);
+    final encoded = _encodeDocument(document);
     cancellation?.throwIfCancelled();
+    final bytes = Uint8List.fromList(utf8.encode(encoded.text));
     final limits = document.selection.limits;
     if (bytes.length > limits.maxBytes) {
       throw const ExportLimitException('export_bytes');
@@ -448,7 +465,13 @@ final class ExportArtifact {
     // Neutral by default: no person name, substance name or internal id.
     final fileName =
         'vital-export-$day-${digest.substring(0, 8)}.${document.selection.format.extension}';
-    final preview = ExportPreview._from(document, bytes, digest, limits);
+    final preview = ExportPreview._from(
+      document,
+      bytes,
+      digest,
+      limits,
+      fhir: encoded.fhir,
+    );
     return ExportArtifact._(
       bytes: bytes.asUnmodifiableView(),
       sha256: digest,
@@ -466,22 +489,23 @@ final class ExportPreview {
     ExportDocument document,
     Uint8List bytes,
     this.sha256,
-    ExportLimits limits,
-  ) : personName = document.personName,
-      fromDay = document.selection.fromDay,
-      beforeDay = document.selection.beforeDay,
-      zoneId = document.selection.zoneId,
-      format = document.selection.format,
-      contents = document.selection.contents,
-      notesIncluded = document.selection.includeNotes,
-      doseRecords = document.doseRecords,
-      doseRevisions = document.doses.length,
-      skippedActions = document.skippedActions,
-      supportingRecords = document.supportingRecords,
-      supportingResults = document.supportingResults,
-      byteCount = bytes.length,
-      undatedCollection = document.undatedCollection,
-      excerpt = _excerpt(bytes, limits.previewCharacters);
+    ExportLimits limits, {
+    this.fhir,
+  }) : personName = document.personName,
+       fromDay = document.selection.fromDay,
+       beforeDay = document.selection.beforeDay,
+       zoneId = document.selection.zoneId,
+       format = document.selection.format,
+       contents = document.selection.contents,
+       notesIncluded = document.selection.includeNotes,
+       doseRecords = document.doseRecords,
+       doseRevisions = document.doses.length,
+       skippedActions = document.skippedActions,
+       supportingRecords = document.supportingRecords,
+       supportingResults = document.supportingResults,
+       byteCount = bytes.length,
+       undatedCollection = document.undatedCollection,
+       excerpt = _excerpt(bytes, limits.previewCharacters);
 
   final String personName, zoneId, sha256;
   final CivilDate fromDay, beforeDay;
@@ -497,6 +521,9 @@ final class ExportPreview {
 
   /// Disclosed exclusion of unpositionable supporting collection dates.
   final ExportUndatedOmission? undatedCollection;
+
+  /// FHIR mapping facts for this exact artifact. Null for JSON and CSV.
+  final FhirExportSummary? fhir;
   final String excerpt;
 
   static String _excerpt(Uint8List bytes, int limit) {

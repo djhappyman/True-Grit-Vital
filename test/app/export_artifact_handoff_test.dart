@@ -62,4 +62,29 @@ void main() {
     expect(gateway.calls, isNot(contains('save')));
     expect(gateway.calls, contains('cancel'));
   });
+
+  test('FHIR export uses the FHIR media type and reviewed bytes', () async {
+    final fhir = ExportArtifact.build(
+      ExportDocument(
+        selection: ExportSelection(
+          personId: meId,
+          fromDay: CivilDate(2026, 10, 1),
+          beforeDay: CivilDate(2026, 11, 1),
+          zoneId: 'UTC',
+          contents: const [ExportContent.doses],
+          format: ExportFormat.fhir,
+        ),
+        generatedAt: DateTime.utc(2026, 10, 20),
+        personName: 'Synthetic adult',
+        doses: const [],
+        supporting: const [],
+      ),
+    );
+    final result = await container.read(exportHandoffProvider).deliver(fhir);
+    expect(result, ExportDelivery.saved);
+    expect(gateway.begunName, fhir.fileName);
+    expect(gateway.begunMimeType, 'application/fhir+json');
+    expect(gateway.publishedBytes, fhir.byteCount);
+    expect(gateway.publishedSha, fhir.sha256);
+  });
 }

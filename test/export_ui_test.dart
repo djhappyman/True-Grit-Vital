@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -60,6 +61,103 @@ Future<ExportDocument> _skipCapture(
       timeNeedsReview: false,
       savedDate: selection.fromDay,
       planZone: 'UTC',
+    ),
+  ],
+);
+
+Future<ExportDocument> _fhirCapture(
+  ExportSelection selection, {
+  ExportCancellation? cancellation,
+}) async => ExportDocument(
+  selection: selection,
+  generatedAt: DateTime.utc(2026, 10, 20, 12),
+  personName: 'Alex',
+  doses: [
+    ExportDoseRevision(
+      recordId: 'fhir-dose',
+      itemId: 'fhir-item',
+      revision: 1,
+      currentRevision: 1,
+      itemName: 'Synthetic tablet',
+      itemForm: 'Tablet',
+      itemType: 'Medicine',
+      primaryUnit: 'tablet',
+      enteredAmount: '1',
+      enteredUnit: 'tablet',
+      actualAmount: ExactAmount(BigInt.one, BigInt.from(3)),
+      actualUnit: 'tablet',
+      actualAt: DateTime.utc(2026, 10, 5, 10),
+      enteredAt: DateTime.utc(2026, 10, 5, 10, 2),
+      isVoided: false,
+      source: RecordSource.selfReported,
+      contextTags: const ['With food'],
+    ),
+  ],
+  skipped: [
+    ExportSkippedAction(
+      actionId: 'fhir-skip',
+      itemId: 'fhir-item',
+      itemName: 'Synthetic tablet',
+      itemForm: 'Tablet',
+      itemType: 'Medicine',
+      occurredAt: DateTime.utc(2026, 10, 6, 8),
+      recordedAt: DateTime.utc(2026, 10, 6, 8, 5),
+      dateOnly: true,
+      timeNeedsReview: true,
+      savedDate: CivilDate(2026, 10, 6),
+      planZone: 'Europe/London',
+    ),
+  ],
+  supporting: [
+    ExportSupportingRevision(
+      snapshot: LabPanelSnapshot(
+        id: SupportingRecordId(id: 'fhir-panel', personId: meId),
+        title: 'Synthetic panel',
+        collectionDate: SupportingDate.day(CivilDate(2026, 10, 2)),
+        reportDate: SupportingDate.day(CivilDate(2026, 10, 4)),
+        provenance: SupportingProvenance(
+          mode: SupportingProvenanceMode.manualTranscription,
+          laboratoryName: 'Synthetic laboratory',
+        ),
+        results: [
+          LabResultSnapshot(
+            id: 'fhir-result',
+            metricId: 'fhir-metric',
+            markerName: 'Marker',
+            originalMarkerText: 'Source marker',
+            value: SupportingValue.numeric('5.5'),
+            unit: 'mmol/L',
+          ),
+        ],
+      ),
+      revision: 1,
+      currentRevision: 1,
+      enteredAt: DateTime.utc(2026, 10, 7, 9),
+      revisionEnteredAt: DateTime.utc(2026, 10, 7, 9),
+      isVoided: false,
+    ),
+    ExportSupportingRevision(
+      snapshot: ObservationSnapshot(
+        id: SupportingRecordId(id: 'fhir-observation', personId: meId),
+        title: 'Synthetic observation',
+        measuredDate: SupportingDate.day(CivilDate(2026, 10, 3)),
+        provenance: SupportingProvenance(
+          mode: SupportingProvenanceMode.manualObservation,
+        ),
+        components: [
+          LabResultSnapshot(
+            id: 'fhir-component',
+            metricId: 'fhir-component-metric',
+            markerName: 'Missing',
+            value: SupportingValue.missing(),
+          ),
+        ],
+      ),
+      revision: 1,
+      currentRevision: 1,
+      enteredAt: DateTime.utc(2026, 10, 7, 9, 5),
+      revisionEnteredAt: DateTime.utc(2026, 10, 7, 9, 5),
+      isVoided: false,
     ),
   ],
 );
@@ -598,5 +696,58 @@ void main() {
         expect(tester.takeException(), isNull, reason: '$mode at $width');
       }
     }
+  });
+
+  appTest('FHIR review discloses the mapping and saves the exact bytes', (
+    tester,
+  ) async {
+    final handoff = FakeHandoff();
+    await _launch(tester, capture: _fhirCapture, handoff: handoff);
+    await waitForText(tester, 'Export');
+    await tap(tester, 'FHIR');
+    expect(
+      find.text(
+        'FHIR R4 JSON for health records. Review the mapping and omissions before Save.',
+      ),
+      findsOneWidget,
+    );
+    await tap(tester, 'Preview');
+    await waitForText(tester, 'FHIR export');
+    for (final text in [
+      'FHIR R4 4.0.1 collection Bundle.',
+      'Patient name and local identifier only. No birth date, sex or verification.',
+      'Medication use is patient-reported.',
+      'Lab panels group member results. Quick observations use components.',
+      'Codes are text only. No clinical codes or UCUM unit codes are added.',
+      'Times use UTC. Date-only values stay dates.',
+      'One medication statement.',
+      'One not-taken statement.',
+      '3 observations.',
+      '3 date-only times.',
+      'One planned time needs review.',
+      'One exact quantity is kept as text.',
+      'One observation has no value.',
+      'One report date has no time and is not added.',
+      'Not included: report names, product labels, stock containers, plan names and substance type.',
+      'Source labels other than self-reported and component provenance are not included.',
+      'Files and attachment references are not included.',
+    ]) {
+      expect(find.text(text), findsOneWidget, reason: text);
+    }
+
+    await tap(tester, 'Save');
+    await waitForText(tester, 'Saved.');
+    final artifact = handoff.received!;
+    expect(artifact.format, ExportFormat.fhir);
+    expect(artifact.mimeType, 'application/fhir+json');
+    expect(artifact.preview.fhir, isNotNull);
+    expect(artifact.preview.fhir!.medicationStatements, 1);
+    expect(artifact.preview.fhir!.skippedStatements, 1);
+    expect(artifact.preview.fhir!.observations, 3);
+    expect(artifact.preview.sha256, artifact.sha256);
+    expect(
+      artifact.bytes,
+      orderedEquals(utf8.encode(encodeFhirR4(artifact.document).json)),
+    );
   });
 }

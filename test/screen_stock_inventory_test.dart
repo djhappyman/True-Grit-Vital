@@ -369,7 +369,7 @@ void main() {
     await settle(tester);
     await waitForText(tester, 'Add container');
     expect(
-      find.text('Pack scanning and refill delivery are not available yet.'),
+      find.text('Choose Scan when recording a medicine to scan a pack.'),
       findsOneWidget,
     );
     await tester.ensureVisible(find.byKey(const ValueKey('stock-add-action')));
