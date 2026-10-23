@@ -200,4 +200,27 @@ void main() {
       false,
     );
   });
+  test(
+    'optional follow-ups cannot displace primary alerts or reserved snoozes',
+    () {
+      final allocation = allocateReminders([
+        for (var i = 0; i < 240; i++) candidate(i, kind: ReminderKind.followUp),
+        for (var i = 0; i < 232; i++) candidate(i),
+        for (var i = 0; i < 16; i++) candidate(i, kind: ReminderKind.snooze),
+      ]);
+      expect(
+        allocation.selected.where((r) => r.kind == ReminderKind.ordinary),
+        hasLength(232),
+      );
+      expect(
+        allocation.selected.where((r) => r.kind == ReminderKind.snooze),
+        hasLength(16),
+      );
+      expect(
+        allocation.selected.where((r) => r.kind == ReminderKind.followUp),
+        isEmpty,
+      );
+      expect(allocation.excluded, hasLength(240));
+    },
+  );
 }

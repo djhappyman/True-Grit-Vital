@@ -10537,5 +10537,79 @@
   "batch15T13PrivacyLocked": "Vital locked before the change. Nothing was deleted.",
   "@batch15T13PrivacyLocked": {
     "description": "Refusal when a delete confirmation spans a lock or unlock. States plainly that no deletion ran."
+  },
+  "finishR05Timing": "Timing",
+  "@finishR05Timing": {
+    "description": "User-configured schedule timing and follow-up control; no clinical timing inference."
+  },
+  "finishR05TimingHelp": "These options apply to doses with a planned time.",
+  "@finishR05TimingHelp": {
+    "description": "User-configured schedule timing and follow-up control; no clinical timing inference."
+  },
+  "finishR05Labels": "Timing labels",
+  "@finishR05Labels": {
+    "description": "User-configured schedule timing and follow-up control; no clinical timing inference."
+  },
+  "finishR05LabelsHelp": "Compare recorded times with your own timing window.",
+  "@finishR05LabelsHelp": {
+    "description": "User-configured schedule timing and follow-up control; no clinical timing inference."
+  },
+  "finishR05Allowance": "Allowance (minutes)",
+  "@finishR05Allowance": {
+    "description": "User-configured schedule timing and follow-up control; no clinical timing inference."
+  },
+  "finishR05AllowanceHelp": "How many minutes before or after the planned time count as within your window? Use a whole number from 0 to 10,080.",
+  "@finishR05AllowanceHelp": {
+    "description": "User-configured schedule timing and follow-up control; no clinical timing inference."
+  },
+  "finishR05FollowUp": "Follow-up reminder",
+  "@finishR05FollowUp": {
+    "description": "User-configured schedule timing and follow-up control; no clinical timing inference."
+  },
+  "finishR05FollowUpHelp": "One extra reminder if you have not recorded or skipped the dose. Uses this schedule’s reminders; your device may delay alerts.",
+  "@finishR05FollowUpHelp": {
+    "description": "User-configured schedule timing and follow-up control; no clinical timing inference."
+  },
+  "finishR05Delay": "Delay (minutes)",
+  "@finishR05Delay": {
+    "description": "User-configured schedule timing and follow-up control; no clinical timing inference."
+  },
+  "finishR05DelayHelp": "Minutes after the planned time. Use a whole number from 1 to 10,080.",
+  "@finishR05DelayHelp": {
+    "description": "User-configured schedule timing and follow-up control; no clinical timing inference."
+  },
+  "finishR05Invalid": "Enter a whole number in the range shown before continuing.",
+  "@finishR05Invalid": {
+    "description": "User-configured schedule timing and follow-up control; no clinical timing inference."
+  },
+  "finishR05Earlier": "Earlier",
+  "@finishR05Earlier": {
+    "description": "User-configured schedule timing and follow-up control; no clinical timing inference."
+  },
+  "finishR05Within": "Within your window",
+  "@finishR05Within": {
+    "description": "User-configured schedule timing and follow-up control; no clinical timing inference."
+  },
+  "finishR05Later": "Later",
+  "@finishR05Later": {
+    "description": "User-configured schedule timing and follow-up control; no clinical timing inference."
+  },
+  "finishR05WindowSummary": "Your window: {minutes} minutes before or after the planned time.",
+  "@finishR05WindowSummary": {
+    "description": "Summary of exact user-entered timing policy, not clinical advice.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "finishR05FollowUpSummary": "One follow-up {minutes} minutes after the planned time, if you have not recorded or skipped it.",
+  "@finishR05FollowUpSummary": {
+    "description": "Summary of exact user-entered timing policy, not clinical advice.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
   }
 }

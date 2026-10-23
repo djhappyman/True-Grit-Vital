@@ -63,6 +63,7 @@ Map<String, Object?> encodeDailyPlan(DailyPlanVersion v) => {
   // Additive and omitted for blank text so frozen legacy command shapes stay
   // byte-compatible after an update.
   if (v.instructions.isNotEmpty) 'instructions': v.instructions,
+  if (v.timingPolicy != null) 'timingPolicy': v.timingPolicy!.toJson(),
   if (v.effectiveFrom != null)
     'effectiveFrom': v.effectiveFrom!.microsecondsSinceEpoch,
   if (v.effectiveUntil != null)
@@ -160,6 +161,11 @@ DailyPlanVersion decodeDailyPlan(Map<String, dynamic> v) {
     start: CivilDate.parse(v['start'] as String),
     endExclusive: v['end'] == null ? null : CivilDate.parse(v['end'] as String),
     instructions: v['instructions'] as String? ?? '',
+    timingPolicy: v['timingPolicy'] == null
+        ? null
+        : PlanTimingPolicy.fromJson(
+            Map<String, dynamic>.from(v['timingPolicy'] as Map),
+          ),
     effectiveFrom: v['effectiveFrom'] == null
         ? null
         : DateTime.fromMicrosecondsSinceEpoch(
@@ -257,6 +263,7 @@ DailyPlanVersion decodeDailyPlan(Map<String, dynamic> v) {
 }
 
 Map<String, Object?> encodeDailyExpectation(DailyExpectation v) => {
+  if (v.timingPolicy != null) 'timingPolicy': v.timingPolicy!.toJson(),
   if (v.eligibilityConflict != null)
     'eligibilityConflict': v.eligibilityConflict,
   if (v.windowEndpoints.isNotEmpty)
@@ -295,6 +302,11 @@ Map<String, Object?> encodeDailyExpectation(DailyExpectation v) => {
 };
 DailyExpectation decodeDailyExpectation(Map<String, dynamic> v) =>
     DailyExpectation(
+      timingPolicy: v['timingPolicy'] == null
+          ? null
+          : PlanTimingPolicy.fromJson(
+              Map<String, dynamic>.from(v['timingPolicy'] as Map),
+            ),
       eligibilityConflict: v['eligibilityConflict'] as String?,
       windowEndpoints: [
         for (final e in v['windowEndpoints'] as List? ?? const [])

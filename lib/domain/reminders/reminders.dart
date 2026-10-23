@@ -3,7 +3,7 @@ import '../stock/stored_stock.dart' show ExactAmount, StockNoticeState;
 
 enum ReminderActionKind { open, taken, snooze, skip }
 
-enum ReminderKind { ordinary, snooze }
+enum ReminderKind { ordinary, snooze, followUp }
 
 enum ReminderTrigger { wall, elapsed }
 
@@ -146,14 +146,26 @@ final class DesiredReminder {
   final String? bootId, reason, adapterFingerprint;
   final ReminderClockSample? sample;
   final int? delayMinutes;
-  DateTime get projectedUtc => kind == ReminderKind.ordinary
-      ? (trigger == ReminderTrigger.elapsed
-            ? target.row.expectation.instant!
-            : DateTime.fromMillisecondsSinceEpoch(
-                deadlineMilliseconds,
-                isUtc: true,
-              ))
-      : snoozeDeadline(sample!, delayMinutes!).projectedUtc;
+  DateTime get projectedUtc {
+    if (trigger == ReminderTrigger.wall) {
+      return DateTime.fromMillisecondsSinceEpoch(
+        deadlineMilliseconds,
+        isUtc: true,
+      );
+    }
+    if (kind == ReminderKind.snooze) {
+      return snoozeDeadline(sample!, delayMinutes!).projectedUtc;
+    }
+    if (kind == ReminderKind.followUp) {
+      return DateTime.fromMillisecondsSinceEpoch(
+        sample!.utcMilliseconds +
+            deadlineMilliseconds -
+            sample!.elapsedMilliseconds,
+        isUtc: true,
+      );
+    }
+    return target.row.expectation.instant!;
+  }
 }
 
 final class SnoozeResult {
@@ -321,6 +333,10 @@ ReminderAllocation allocateReminders(Iterable<DesiredReminder> requests) {
   );
   final ordinary = order(
     schedulable.where((r) => r.kind == ReminderKind.ordinary),
+  );
+  // Optional follow-ups use only capacity left after primary dose alerts.
+  ordinary.addAll(
+    order(schedulable.where((r) => r.kind == ReminderKind.followUp)),
   );
   final snoozes = order(
     schedulable.where((r) => r.kind == ReminderKind.snooze),

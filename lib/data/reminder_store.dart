@@ -158,7 +158,7 @@ extension ReminderRecordStore on RecordStore {
 
   Future<void> _cancelReminderBucket(String bucket) async {
     await _db.customStatement(
-      "UPDATE reminder_request SET active=0,state='pending',reason='cancelled' WHERE bucket=? AND active=1",
+      "UPDATE reminder_request SET active=0,state=CASE WHEN json_extract(snapshot,'\$.kind')='followUp' AND state IN ('consumed','postUncertain') THEN state ELSE 'pending' END,reason='cancelled' WHERE bucket=? AND active=1",
       [bucket],
     );
     await _db.customStatement(
@@ -169,7 +169,7 @@ extension ReminderRecordStore on RecordStore {
 
   Future<void> _invalidateReminderPlan(String plan) async {
     await _db.customStatement(
-      "UPDATE reminder_request SET active=0,state='pending',reason='cancelled' WHERE plan=? AND active=1",
+      "UPDATE reminder_request SET active=0,state=CASE WHEN json_extract(snapshot,'\$.kind')='followUp' AND state IN ('consumed','postUncertain') THEN state ELSE 'pending' END,reason='cancelled' WHERE plan=? AND active=1",
       [plan],
     );
   }
@@ -196,7 +196,7 @@ extension ReminderRecordStore on RecordStore {
       [person],
     );
     await _db.customStatement(
-      "UPDATE reminder_request SET active=0,state='pending',reason='cancelled' WHERE person=? AND active=1",
+      "UPDATE reminder_request SET active=0,state=CASE WHEN json_extract(snapshot,'\$.kind')='followUp' AND state IN ('consumed','postUncertain') THEN state ELSE 'pending' END,reason='cancelled' WHERE person=? AND active=1",
       [person],
     );
   }
@@ -466,6 +466,77 @@ extension ReminderRecordStore on RecordStore {
       ],
     );
     return r;
+  }
+
+  Future<void> _prepareFollowUp(
+    DailyRow row,
+    DateTime now,
+    (DateTime, ReminderClockSample)? mappedClock,
+    String? observedZone,
+  ) async {
+    final e = row.expectation;
+    final deadline = planFollowUpInstant(e.timingPolicy, e.instant);
+    if (row.isResolved ||
+        !e.reminderEnabled ||
+        deadline == null ||
+        !deadline.isAfter(now) ||
+        deadline.isAfter(now.add(const Duration(days: 7))) ||
+        e.eligibilityConflict != null) {
+      return;
+    }
+    final config = await _rows(
+      'SELECT c.enabled,c.revision,o.reminders_stopped,o.archived FROM reminder_config c JOIN person o ON o.id=c.person WHERE c.plan=?',
+      [e.identity.planId],
+    );
+    if (config.isEmpty ||
+        config.single['enabled'] != 1 ||
+        config.single['reminders_stopped'] != 0 ||
+        config.single['archived'] != 0) {
+      return;
+    }
+    final state = await _reminderState(row);
+    // An explicit snooze replaces both the original and its optional nudge.
+    if (state['snooze_revision'] != 0) return;
+    final target = ReminderTarget(
+      row: row,
+      snoozeRevision: state['snooze_revision'] as int,
+      configRevision: config.single['revision'] as int,
+    );
+    final bucket = dailyIdentityKey(e.identity);
+    final prior = await _rows(
+      "SELECT token FROM reminder_request WHERE bucket=? AND snapshot IS NOT NULL AND json_extract(snapshot,'\$.kind')='followUp' AND (state IN ('consumed','postUncertain') OR (json_extract(snapshot,'\$.target.plan_revision')=? AND json_extract(snapshot,'\$.target.reminder_revision')=? AND json_extract(snapshot,'\$.target.config_revision')=?)) LIMIT 1",
+      [
+        bucket,
+        row.planRevision,
+        target.reminderRevision,
+        target.configRevision,
+      ],
+    );
+    if (prior.isNotEmpty) return;
+    try {
+      await _validateReminderTarget(target, observedZone);
+      await _validatePauseDeadline(target, deadline);
+    } on CommandConflict {
+      return;
+    }
+    final interval = e.identity.intervalSegmentId != null;
+    if (interval && mappedClock == null) return;
+    final sample = mappedClock?.$2;
+    final wall =
+        deadline.millisecondsSinceEpoch +
+        (deadline.microsecondsSinceEpoch % 1000 == 0 ? 0 : 1);
+    final native = interval
+        ? sample!.elapsedMilliseconds + wall - sample.utcMilliseconds
+        : wall;
+    if (native < 0 || native > 9223372036854775807) return;
+    await _ensureReminderState(row);
+    await _insertReminder(
+      target,
+      kind: ReminderKind.followUp,
+      deadline: native,
+      sample: interval ? sample : null,
+      delay: e.timingPolicy!.followUpMinutes,
+    );
   }
 
   Future<SnoozeResult> snoozeReminder(
@@ -895,7 +966,7 @@ extension ReminderRecordStore on RecordStore {
       }
     }
     await _db.customStatement(
-      "UPDATE reminder_request SET state='expired',reason='deadline_passed' WHERE active=1 AND json_extract(snapshot,'\$.kind')='ordinary' AND json_extract(snapshot,'\$.trigger')='wall' AND state IN ('pending','prepared','failed','unknown','capacity') AND json_extract(snapshot,'\$.deadline')<=?",
+      "UPDATE reminder_request SET state='expired',reason='deadline_passed' WHERE active=1 AND json_extract(snapshot,'\$.kind') IN ('ordinary','followUp') AND json_extract(snapshot,'\$.trigger')='wall' AND state IN ('pending','prepared','failed','unknown','capacity') AND json_extract(snapshot,'\$.deadline')<=?",
       [now.toUtc().millisecondsSinceEpoch],
     );
     // Repair rows stranded by an earlier durable write: an active row in a
@@ -919,6 +990,9 @@ extension ReminderRecordStore on RecordStore {
       final r = _desiredRead(raw);
       try {
         await _validateReminderTarget(r.target, observedZone);
+        if (r.kind == ReminderKind.followUp) {
+          await _validatePauseDeadline(r.target, r.projectedUtc);
+        }
         if (r.kind == ReminderKind.snooze && r.sample != null) {
           await _validatePauseDeadline(
             r.target,
@@ -938,7 +1012,7 @@ extension ReminderRecordStore on RecordStore {
           );
         } else {
           await _db.customStatement(
-            "UPDATE reminder_request SET active=0,state='pending',reason='cancelled' WHERE token=?",
+            "UPDATE reminder_request SET active=0,state=CASE WHEN json_extract(snapshot,'\$.kind')='followUp' AND state IN ('consumed','postUncertain') THEN state ELSE 'pending' END,reason='cancelled' WHERE token=?",
             [r.requestToken],
           );
         }
@@ -975,6 +1049,9 @@ extension ReminderRecordStore on RecordStore {
           intervalClocks['${e.identity.planId}:${e.identity.intervalSegmentId}'];
       final projectionNow = mappedClock?.$1 ?? now;
       final projectionHorizon = projectionNow.add(const Duration(days: 7));
+      if (e.timingPolicy?.followUpMinutes != null) {
+        await _prepareFollowUp(row, projectionNow, mappedClock, observedZone);
+      }
       if (row.isResolved ||
           e.instant == null ||
           !e.instant!.isAfter(projectionNow) ||
@@ -994,7 +1071,7 @@ extension ReminderRecordStore on RecordStore {
       final state = await _reminderState(row);
       final bucket = dailyIdentityKey(e.identity);
       final exists = await _rows(
-        'SELECT token FROM reminder_request WHERE bucket=? AND active=1 LIMIT 1',
+        "SELECT token FROM reminder_request WHERE bucket=? AND active=1 AND json_extract(snapshot,'\$.kind')!='followUp' LIMIT 1",
         [bucket],
       );
       if (exists.isNotEmpty || state['ordinary_terminal'] == 1) continue;
@@ -1479,8 +1556,8 @@ extension ReminderRecordStore on RecordStore {
       return true;
     }
     await _db.customStatement(
-      "UPDATE reminder_request SET cancel_ack=1,state=CASE WHEN active=0 THEN 'cancelled' ELSE state END,fingerprint=? WHERE token=?",
-      [adapterFingerprint, requestToken],
+      "UPDATE reminder_request SET cancel_ack=1,state=CASE WHEN json_extract(snapshot,'\$.kind')='followUp' AND state IN ('consumed','postUncertain') THEN state WHEN json_extract(snapshot,'\$.kind')='followUp' AND ? IN ('consumed','postUncertain') THEN ? WHEN active=0 THEN 'cancelled' ELSE state END,fingerprint=? WHERE token=?",
+      [receipt.name, receipt.name, adapterFingerprint, requestToken],
     );
     return true;
   });

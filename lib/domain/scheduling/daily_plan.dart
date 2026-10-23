@@ -1,3 +1,5 @@
+import 'plan_timing_policy.dart';
+export 'plan_timing_policy.dart';
 import '../records.dart';
 import 'calendar_pattern.dart';
 import 'pause_pattern.dart';
@@ -324,6 +326,7 @@ final class DailyPlanVersion {
     Iterable<PlanPause> pauses = const [],
     this.onOff,
     this.instructions = '',
+    this.timingPolicy,
     this.effectiveFrom,
     this.effectiveUntil,
   }) : pauses = List.unmodifiable(pauses) {
@@ -361,6 +364,7 @@ final class DailyPlanVersion {
 
   /// Exact authored text, including line breaks. Empty means no instructions.
   final String instructions;
+  final PlanTimingPolicy? timingPolicy;
 
   /// Independent half-open UTC bounds for an immutable intraday version.
   final DateTime? effectiveFrom, effectiveUntil;
@@ -507,6 +511,7 @@ final class DailyExpectation {
     this.effectiveDate,
     this.eligibilityConflict,
     this.reminderEnabled = false,
+    this.timingPolicy,
     Iterable<DateTime> clockCandidates = const [],
     Iterable<DailyExpectation> windowEndpoints = const [],
   }) : clockCandidates = List.unmodifiable(clockCandidates),
@@ -600,6 +605,7 @@ final class DailyExpectation {
       }
     }
   }
+  final PlanTimingPolicy? timingPolicy;
   final DailyIdentity identity;
   final String itemId,
       versionId,
@@ -623,6 +629,7 @@ final class DailyExpectation {
   final List<DailyExpectation> windowEndpoints;
   DailyExpectation withEligibilityConflict(String code) => DailyExpectation(
     identity: identity,
+    timingPolicy: timingPolicy,
     itemId: itemId,
     versionId: versionId,
     zoneId: zoneId,

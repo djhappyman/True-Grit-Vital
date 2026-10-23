@@ -423,6 +423,7 @@ final class PhaseResolver {
     calendar: phase.calendar,
     onOff: phase.onOff,
     instructions: phase.instructions,
+    timingPolicy: phase.timingPolicy,
     effectiveFrom: phase.effectiveFrom,
     effectiveUntil: phase.effectiveUntil,
   );
@@ -431,6 +432,7 @@ final class PhaseResolver {
     identity: row.identity,
     itemId: row.itemId,
     versionId: row.versionId,
+    timingPolicy: row.timingPolicy,
     zoneId: row.zoneId,
     amount: row.amount,
     resolution: row.resolution,
@@ -564,6 +566,7 @@ final class PhaseResolver {
       identity: original.identity,
       itemId: original.itemId,
       versionId: original.versionId,
+      timingPolicy: original.timingPolicy,
       zoneId: zone,
       amount: override.amount ?? original.amount,
       resolution: target != null

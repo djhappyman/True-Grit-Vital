@@ -333,6 +333,7 @@ final class IntervalResolver {
           identity: identity,
           itemId: plan.itemId,
           versionId: plan.versionId,
+          timingPolicy: plan.timingPolicy,
           zoneId: zone,
           amount: timing.amount,
           resolution: DailyResolution.exact,

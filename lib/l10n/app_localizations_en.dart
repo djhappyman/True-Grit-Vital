@@ -8910,4 +8910,62 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get batch15T13PrivacyLocked =>
       'Vital locked before the change. Nothing was deleted.';
+
+  @override
+  String get finishR05Timing => 'Timing';
+
+  @override
+  String get finishR05TimingHelp =>
+      'These options apply to doses with a planned time.';
+
+  @override
+  String get finishR05Labels => 'Timing labels';
+
+  @override
+  String get finishR05LabelsHelp =>
+      'Compare recorded times with your own timing window.';
+
+  @override
+  String get finishR05Allowance => 'Allowance (minutes)';
+
+  @override
+  String get finishR05AllowanceHelp =>
+      'How many minutes before or after the planned time count as within your window? Use a whole number from 0 to 10,080.';
+
+  @override
+  String get finishR05FollowUp => 'Follow-up reminder';
+
+  @override
+  String get finishR05FollowUpHelp =>
+      'One extra reminder if you have not recorded or skipped the dose. Uses this schedule’s reminders; your device may delay alerts.';
+
+  @override
+  String get finishR05Delay => 'Delay (minutes)';
+
+  @override
+  String get finishR05DelayHelp =>
+      'Minutes after the planned time. Use a whole number from 1 to 10,080.';
+
+  @override
+  String get finishR05Invalid =>
+      'Enter a whole number in the range shown before continuing.';
+
+  @override
+  String get finishR05Earlier => 'Earlier';
+
+  @override
+  String get finishR05Within => 'Within your window';
+
+  @override
+  String get finishR05Later => 'Later';
+
+  @override
+  String finishR05WindowSummary(int minutes) {
+    return 'Your window: $minutes minutes before or after the planned time.';
+  }
+
+  @override
+  String finishR05FollowUpSummary(int minutes) {
+    return 'One follow-up $minutes minutes after the planned time, if you have not recorded or skipped it.';
+  }
 }

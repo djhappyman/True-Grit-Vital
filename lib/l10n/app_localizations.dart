@@ -13844,6 +13844,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Vital locked before the change. Nothing was deleted.'**
   String get batch15T13PrivacyLocked;
+
+  /// User-configured schedule timing and follow-up control; no clinical timing inference.
+  ///
+  /// In en, this message translates to:
+  /// **'Timing'**
+  String get finishR05Timing;
+
+  /// User-configured schedule timing and follow-up control; no clinical timing inference.
+  ///
+  /// In en, this message translates to:
+  /// **'These options apply to doses with a planned time.'**
+  String get finishR05TimingHelp;
+
+  /// User-configured schedule timing and follow-up control; no clinical timing inference.
+  ///
+  /// In en, this message translates to:
+  /// **'Timing labels'**
+  String get finishR05Labels;
+
+  /// User-configured schedule timing and follow-up control; no clinical timing inference.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare recorded times with your own timing window.'**
+  String get finishR05LabelsHelp;
+
+  /// User-configured schedule timing and follow-up control; no clinical timing inference.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowance (minutes)'**
+  String get finishR05Allowance;
+
+  /// User-configured schedule timing and follow-up control; no clinical timing inference.
+  ///
+  /// In en, this message translates to:
+  /// **'How many minutes before or after the planned time count as within your window? Use a whole number from 0 to 10,080.'**
+  String get finishR05AllowanceHelp;
+
+  /// User-configured schedule timing and follow-up control; no clinical timing inference.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up reminder'**
+  String get finishR05FollowUp;
+
+  /// User-configured schedule timing and follow-up control; no clinical timing inference.
+  ///
+  /// In en, this message translates to:
+  /// **'One extra reminder if you have not recorded or skipped the dose. Uses this schedule’s reminders; your device may delay alerts.'**
+  String get finishR05FollowUpHelp;
+
+  /// User-configured schedule timing and follow-up control; no clinical timing inference.
+  ///
+  /// In en, this message translates to:
+  /// **'Delay (minutes)'**
+  String get finishR05Delay;
+
+  /// User-configured schedule timing and follow-up control; no clinical timing inference.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes after the planned time. Use a whole number from 1 to 10,080.'**
+  String get finishR05DelayHelp;
+
+  /// User-configured schedule timing and follow-up control; no clinical timing inference.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number in the range shown before continuing.'**
+  String get finishR05Invalid;
+
+  /// User-configured schedule timing and follow-up control; no clinical timing inference.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get finishR05Earlier;
+
+  /// User-configured schedule timing and follow-up control; no clinical timing inference.
+  ///
+  /// In en, this message translates to:
+  /// **'Within your window'**
+  String get finishR05Within;
+
+  /// User-configured schedule timing and follow-up control; no clinical timing inference.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get finishR05Later;
+
+  /// Summary of exact user-entered timing policy, not clinical advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Your window: {minutes} minutes before or after the planned time.'**
+  String finishR05WindowSummary(int minutes);
+
+  /// Summary of exact user-entered timing policy, not clinical advice.
+  ///
+  /// In en, this message translates to:
+  /// **'One follow-up {minutes} minutes after the planned time, if you have not recorded or skipped it.'**
+  String finishR05FollowUpSummary(int minutes);
 }
 
 class _AppLocalizationsDelegate

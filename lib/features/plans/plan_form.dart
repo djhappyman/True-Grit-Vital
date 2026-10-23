@@ -21,6 +21,7 @@ import 'plan_providers.dart';
 import 'pause_editor.dart';
 import 'calendar_editor.dart';
 import 'interval_editor.dart';
+import 'plan_timing_fields.dart';
 import 'interval_clock.dart';
 import 'schedule_screen.dart';
 
@@ -79,6 +80,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       amount = TextEditingController(),
       home = TextEditingController(),
       instructions = TextEditingController();
+  final timingFields = PlanTimingFields();
   final slots = <PlanSlotEntry>[];
   late final CalendarFormFields calendar;
   late final IntervalFormFields interval;
@@ -109,6 +111,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     'amount': amount.text,
     'home': home.text,
     'instructions': instructions.text,
+    ...timingFields.capture(),
     'intervalClockSample': encodeIntervalClock(intervalClockSample),
     ...calendar.capture(),
     ...blocks.capture(),
@@ -137,6 +140,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     amount.text = fields['amount'] ?? '';
     home.text = fields['home'] ?? '';
     instructions.text = fields['instructions'] ?? '';
+    timingFields.restore(fields);
     calendar.restore(fields);
     blocks.restore(fields);
     interval.restore(fields);
@@ -164,6 +168,9 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     calendar = CalendarFormFields(initialDate: today);
     interval = IntervalFormFields();
     blocks = OnOffFormFields();
+    for (final c in timingFields.controllers) {
+      c.addListener(changed);
+    }
     for (final c in blocks.controllers) {
       c.addListener(changed);
     }
@@ -219,6 +226,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
 
   @override
   void dispose() {
+    timingFields.dispose();
     calendar.dispose();
     blocks.dispose();
     interval.dispose();
@@ -251,6 +259,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     versionId: versionId,
     pauses: original?.plan.pauses ?? const [],
     instructions: instructions.text,
+    timingPolicy: timingFields.candidate(),
     effectiveFrom: original?.plan.effectiveFrom,
     effectiveUntil: original?.plan.effectiveUntil,
     onOff: mode == 'prn' ? null : blocks.candidate(),
@@ -309,7 +318,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
   );
   void makePreview() {
     final t = AppLocalizations.of(context);
-    if (instructionsTooLong) {
+    if (instructionsTooLong || !timingFields.valid) {
       setState(() {
         preview = null;
         previewZone = null;
@@ -399,6 +408,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
         ? (p.zoneBasis as FixedHome).zoneId
         : '';
     instructions.text = p.instructions;
+    timingFields.load(p.timingPolicy);
     switch (p.timing) {
       case ElapsedInterval():
         mode = 'interval';
@@ -874,6 +884,12 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
           ),
         ),
       const SizedBox(height: 20),
+      PlanTimingEditor(
+        fields: timingFields,
+        enabled: enabled,
+        onChanged: changed,
+      ),
+      const SizedBox(height: 20),
       ScheduleSectionHeader(title: t.featurePlanInstructionsHeading),
       StitchSurface(
         radius: VitalLayout.sectionRadius,
@@ -1222,6 +1238,7 @@ class _PlanPreviewState extends ConsumerState<PlanPreview> {
         ],
         if (plan.endExclusive != null)
           Text(t.planEnds(plan.endExclusive!.addDays(-1).toString())),
+        PlanTimingSummary(policy: plan.timingPolicy),
         if (plan.instructions.isNotEmpty) ...[
           Heading(t.featurePlanInstructionsHeading),
           Text(plan.instructions),

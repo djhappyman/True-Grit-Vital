@@ -204,6 +204,7 @@ DailyPlanVersion pauseCandidate(
     calendar: calendar,
     onOff: block,
     instructions: p.instructions,
+    timingPolicy: p.timingPolicy,
     pauses: open == null
         ? [...p.pauses, PlanPause(start: instant)]
         : [

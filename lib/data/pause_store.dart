@@ -132,6 +132,7 @@ extension PauseRecordStore on RecordStore {
               pauses: proposed.pauses,
               onOff: p.onOff,
               instructions: p.instructions,
+              timingPolicy: p.timingPolicy,
               effectiveFrom: p.effectiveFrom,
               effectiveUntil: restartAt,
             ),
@@ -201,6 +202,7 @@ extension PauseRecordStore on RecordStore {
       pauses: proposed.pauses,
       onOff: proposed.onOff,
       instructions: proposed.instructions,
+      timingPolicy: proposed.timingPolicy,
       effectiveFrom: restartAt,
       effectiveUntil: proposed.effectiveUntil,
     );
@@ -365,6 +367,7 @@ extension PauseRecordStore on RecordStore {
             pauses: proposed.pauses,
             onOff: p.onOff,
             instructions: p.instructions,
+            timingPolicy: p.timingPolicy,
             effectiveFrom: p.effectiveFrom,
             effectiveUntil: review.restartAt,
           );

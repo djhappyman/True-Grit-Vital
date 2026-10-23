@@ -23,6 +23,7 @@ import '../recording/record_pages.dart';
 import '../events/event_pages.dart' show eventLookupProvider;
 import '../stock/stock_widgets.dart';
 import 'history_calendar.dart';
+import '../plans/plan_timing_fields.dart' show timingLabelText;
 import 'history_date_jump.dart';
 import 'history_source.dart' show historySourceProvider;
 import 'routine_activity_summary.dart';
@@ -1743,6 +1744,25 @@ class HistoryEntryCard extends ConsumerWidget {
     }
 
     final details = <Widget>[];
+    if (entry is RecordTimelineEntry && record != null) {
+      final captured = entry.planContext?.expectation;
+      final label = doseTimingLabel(
+        policy: captured?.timingPolicy,
+        planned: captured?.instant,
+        actual: record.actualAt,
+        dateOnly: entry.dateOnly,
+        voided: record.isVoided,
+      );
+      if (label != null) {
+        details.add(
+          VitalBadge(
+            timingLabelText(t, label),
+            tone: VitalTone.neutral,
+            compact: true,
+          ),
+        );
+      }
+    }
     if (combined != null) {
       for (final component in combined.components) {
         details.add(
