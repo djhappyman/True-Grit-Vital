@@ -96,7 +96,7 @@ void main() {
     await tester.pump();
     expect(find.text('Reduced motion is active.'), findsOneWidget);
     expect(f.container.read(appearanceProvider).reduceMotion, false);
-    expect(find.byKey(const ValueKey('opaque-sample')), findsOneWidget);
+    expect(find.byKey(const ValueKey('glass-sample')), findsOneWidget);
   });
   appTest('Appearance direct route returns to Today', (tester) async {
     final f = await launch(tester);
@@ -108,10 +108,10 @@ void main() {
     expect(find.text('Morning'), findsOneWidget);
     expect(find.text('Empty'), findsNWidgets(3));
   });
-  test('effective effects honour system and validation combinations', () {
+  test('effective effects honour system and enabled combinations', () {
     for (final opaque in [false, true]) {
       for (final systemOpaque in [false, true]) {
-        for (final validated in [false, true]) {
+        for (final enabled in [false, true]) {
           for (final motion in [false, true]) {
             for (final systemMotion in [false, true]) {
               final effective = EffectiveAppearance.compose(
@@ -121,9 +121,9 @@ void main() {
                 ),
                 systemReduceMotion: systemMotion,
                 systemReduceTransparency: systemOpaque,
-                glassValidated: validated,
+                glassEnabled: enabled,
               );
-              expect(effective.opaque, opaque || systemOpaque || !validated);
+              expect(effective.opaque, opaque || systemOpaque || !enabled);
               expect(effective.reduceMotion, motion || systemMotion);
             }
           }

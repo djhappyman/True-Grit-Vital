@@ -51,7 +51,7 @@ class _RestorePageState extends ConsumerState<RestorePage> {
         state.phase == RestorePhase.replacing;
     return PopScope(
       canPop: !active,
-      child: Scaffold(
+      child: VitalScaffold(
         headers: [
           SafeArea(
             bottom: false,
@@ -76,7 +76,7 @@ class _RestorePageState extends ConsumerState<RestorePage> {
         ],
         child: SafeArea(
           top: false,
-          child: SingleChildScrollView(
+          child: VitalInsetScrollView(
             child: VitalPageBody(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
               child: Column(

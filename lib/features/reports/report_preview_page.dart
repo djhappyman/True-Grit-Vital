@@ -48,7 +48,7 @@ class ReportPreviewPage extends ConsumerWidget {
       360.0,
       760.0,
     );
-    return Scaffold(
+    return VitalScaffold(
       headers: [
         SafeArea(
           bottom: false,

@@ -162,7 +162,7 @@ def synthetic_artifact() -> dict:
         "glass": {
             "requested": False,
             "fixtureOnly": True,
-            "productionGateProviderValue": False,
+            "productionDeviceValidated": False,
             "disclosure": "Synthetic selftest disclosure longer than the "
                           "minimum required by the artifact contract, so the "
                           "glass fields exercise type and length checks.",
@@ -193,7 +193,7 @@ def _set_unsupported_reasonless(artifact: dict) -> None:
 NEGATIVE_CASES: tuple[tuple[str, callable, str], ...] = (
     (
         "glass_gate_forgery",
-        lambda a: a["glass"].__setitem__("productionGateProviderValue", True),
+        lambda a: a["glass"].__setitem__("productionDeviceValidated", True),
         "glass_gate_forgery",
     ),
     (

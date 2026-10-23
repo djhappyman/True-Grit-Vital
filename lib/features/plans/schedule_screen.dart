@@ -2,6 +2,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../ui/stitch_ui.dart';
+import '../../ui/vital_scaffold.dart';
 
 /// Page chrome for the schedule editor.
 ///
@@ -24,7 +25,9 @@ class SchedulePageScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     return SafeArea(
-      child: Scaffold(
+      top: false,
+      bottom: false,
+      child: VitalScaffold(
         headers: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),

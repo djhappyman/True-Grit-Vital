@@ -80,10 +80,10 @@ For an existing ungrouped form, `VitalPage(panelled: true, ...)` supplies one pa
 
 - Read semantic colours from shadcn `Theme.of(context).colorScheme`; update shared tokens in `lib/app/vital_theme.dart`.
 - Use the bundled Noto Sans family. `VitalType` supplies title, section, record, body, metadata, label and quantity roles. Quantities use tabular figures.
-- Use 16px page gutters, a 640px maximum content region, 24px card corners, 32px sheet corners and at least 48px interactive targets. Containers grow for content and text scaling.
+- Use 16px page gutters, a 640px maximum content region, 24px card corners, 28px sheet corners and at least 48px interactive targets. Containers grow for content and text scaling.
 - Place related information in one panel. Use the inset surface for a meaningful subgroup, without turning every line into another card.
-- Every route is protected by the app-level safe area. `VitalPage` also works safely on its own. Keep custom scroll views clear of device insets and the keyboard; retain the shell's fixed dock outside the scrolling body.
-- Forms, records and charts remain opaque. `VitalChrome` integrates the existing glass preference/capability gate for selected chrome, with a styled opaque fallback. The device-performance gate remains open; a dependency does not establish measured glass readiness.
+- Use `VitalScaffold` and `VitalInsetScrollView` for measured header/footer and device insets. Content starts below the transparent app bar, scrolls behind the glass, and has enough trailing padding to clear the bottom bar. Keep keyboard avoidance and one scroll owner. Decoration reaches screen edges; interactive content respects safe areas.
+- `VitalFauxGlassSurface` paints the Workout-family card treatment without per-card backdrop blur. `VitalGlassSurface` supplies live glass for selected bars and overlays while retaining shadcn controls. The bottom bar is full-width and edge-attached. Glass is enabled by owner direction, with opaque/high-contrast fallbacks; physical-device performance validation remains open.
 
 ## Before a UI pull request
 
@@ -98,3 +98,5 @@ For a focused capture, add `--dart-define=VITAL_UI_ROUTES=substances` (or comma-
 Today uses the owner’s framed calendar and daypart Schedule cards. Only the date strip pages; the surrounding surface and month controls stay stationary; no selected-date footer or divider is shown. Borderless Empty/taken-count chips sit on the period title row. Empty periods offer a centred plus with a visible suggested time in the existing schedule editor. One outlined Plan button sits below the timeline. Unplanned medication uses a plain-English subtitle, compact name/amount rows and an outlined Add command beneath the card matching Plan. Observations remains a compact Coming soon preview. The greeting uses the shared detail-title type role; card borders and optional outlined shadcn commands are rendered by the shared foundation. Taken and Undo retain their durable commands, while source/interval/stale-data/clock guards retain their existing review UI. Substances keeps its live bounded summaries and unified overview.
 
 Regenerate this closer reference review with `./tool/flutterw test --no-pub test/stitch_reference_screens_test.dart --dart-define=VITAL_STITCH_CAPTURES=output/stitch-review`. The fixture uses synthetic records only and captures loaded light/dark viewport and full-content screens. Physical-device accessibility and performance remain separate gates.
+
+The 23 October owner direction defers comprehensive tests for the family glass/motion pass. The commands above remain the later verification workflow; static analysis alone does not validate motion, screenshots or device performance.

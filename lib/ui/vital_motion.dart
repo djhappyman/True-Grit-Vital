@@ -1,27 +1,28 @@
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:flutter/gestures.dart' show kTouchSlop;
 
 /// Semantic timing shared by all current and future Vital screens.
 abstract final class VitalMotion {
-  static const press = Duration(milliseconds: 100);
-  static const release = Duration(milliseconds: 180);
-  static const choice = Duration(milliseconds: 220);
-  static const root = Duration(milliseconds: 280);
-  static const detail = Duration(milliseconds: 380);
-  static const returning = Duration(milliseconds: 300);
-  static const expand = Duration(milliseconds: 420);
-  static const collapse = Duration(milliseconds: 300);
-  static const sheet = Duration(milliseconds: 440);
+  static const press = Duration(milliseconds: 90);
+  static const release = Duration(milliseconds: 140);
+  static const choice = Duration(milliseconds: 180);
+  static const root = Duration(milliseconds: 360);
+  static const detail = Duration(milliseconds: 360);
+  static const returning = Duration(milliseconds: 280);
+  static const expand = Duration(milliseconds: 380);
+  static const collapse = Duration(milliseconds: 220);
+  static const sheet = Duration(milliseconds: 400);
   static const sheetClose = Duration(milliseconds: 300);
-  static const dialog = Duration(milliseconds: 320);
-  static const dialogClose = Duration(milliseconds: 220);
-  static const row = Duration(milliseconds: 340);
-  static const calendar = Duration(milliseconds: 340);
-  static const filter = Duration(milliseconds: 220);
+  static const dialog = Duration(milliseconds: 260);
+  static const dialogClose = Duration(milliseconds: 200);
+  static const row = Duration(milliseconds: 220);
+  static const calendar = Duration(milliseconds: 320);
+  static const filter = Duration(milliseconds: 180);
   static const progress = Duration(milliseconds: 480);
-  static const theme = Duration(milliseconds: 280);
-  static const arrival = Cubic(.22, 1, .36, 1);
-  static const geometry = Cubic(.65, 0, .35, 1);
-  static const departure = Cubic(.4, 0, 1, 1);
+  static const theme = Duration(milliseconds: 180);
+  static const arrival = Curves.easeOutCubic;
+  static const geometry = Curves.easeOutCubic;
+  static const departure = Curves.easeInCubic;
 
   static bool reduced(BuildContext context) =>
       MediaQuery.disableAnimationsOf(context) ||
@@ -32,22 +33,36 @@ abstract final class VitalMotion {
 
 /// Visual feedback around the existing shadcn control. Its hit box never moves.
 class VitalPress extends StatefulWidget {
-  const VitalPress({super.key, required this.child});
+  const VitalPress({super.key, required this.child, this.enabled = true});
   final Widget child;
+  final bool enabled;
   @override
   State<VitalPress> createState() => _VitalPressState();
 }
 
 class _VitalPressState extends State<VitalPress> {
-  final _pointers = <int>{};
+  final _pointers = <int, Offset>{};
   @override
   Widget build(BuildContext context) => Listener(
-    onPointerDown: (event) => setState(() => _pointers.add(event.pointer)),
+    onPointerDown: (event) {
+      if (widget.enabled) {
+        setState(() => _pointers[event.pointer] = event.position);
+      }
+    },
+    onPointerMove: (event) {
+      final start = _pointers[event.pointer];
+      if (start != null && (event.position - start).distance > kTouchSlop) {
+        setState(() => _pointers.remove(event.pointer));
+      }
+    },
     onPointerUp: (event) => setState(() => _pointers.remove(event.pointer)),
     onPointerCancel: (event) => setState(() => _pointers.remove(event.pointer)),
     child: TweenAnimationBuilder<double>(
       tween: Tween(
-        end: _pointers.isEmpty || VitalMotion.reduced(context) ? 1 : .985,
+        end:
+            !widget.enabled || _pointers.isEmpty || VitalMotion.reduced(context)
+            ? 1
+            : .97,
       ),
       duration: VitalMotion.duration(
         context,
@@ -87,7 +102,16 @@ class VitalReveal extends StatelessWidget {
               offstage: value == 0,
               // Content tickers pause only while hidden. Keeping this inside
               // the builder lets the reveal itself finish collapsing.
-              child: TickerMode(enabled: expanded, child: child!),
+              child: TickerMode(
+                enabled: expanded,
+                child: Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, -12 * (1 - value)),
+                    child: child!,
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -106,18 +130,21 @@ class VitalPager extends StatefulWidget {
     required this.onChanged,
     this.duration = VitalMotion.root,
     this.retainPages = true,
+    this.controller,
   });
   final int index, itemCount;
   final IndexedWidgetBuilder itemBuilder;
   final ValueChanged<int> onChanged;
   final Duration duration;
   final bool retainPages;
+  final PageController? controller;
   @override
   State<VitalPager> createState() => _VitalPagerState();
 }
 
 class _VitalPagerState extends State<VitalPager> {
-  late final _controller = PageController(initialPage: widget.index);
+  late final _controller =
+      widget.controller ?? PageController(initialPage: widget.index);
   int _generation = 0;
   bool _programmed = false;
   int? _gestureSelection;
@@ -176,7 +203,7 @@ class _VitalPagerState extends State<VitalPager> {
   @override
   void dispose() {
     _generation++;
-    _controller.dispose();
+    if (widget.controller == null) _controller.dispose();
     super.dispose();
   }
 

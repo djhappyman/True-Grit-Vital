@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart' show CupertinoPageTransition;
+
 import '../features/stock/restock_sheet.dart';
 
 import '../domain/scheduling/daily_plan.dart' show CivilDate;
@@ -16,7 +18,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart' as glass;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../l10n/app_localizations.dart';
@@ -339,11 +340,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           onDestination: shell.goBranch,
           child: shell,
         ),
-        navigatorContainerBuilder: (context, shell, children) => VitalPager(
-          index: shell.currentIndex,
-          itemCount: children.length,
-          onChanged: shell.goBranch,
-          itemBuilder: (_, index) => children[index],
+        navigatorContainerBuilder: (_, shell, children) => Builder(
+          builder: (context) => VitalPager(
+            controller: VitalRootPagerScope.maybeOf(context),
+            index: shell.currentIndex,
+            itemCount: children.length,
+            onChanged: shell.goBranch,
+            itemBuilder: (_, index) => children[index],
+          ),
         ),
         branches: [
           for (final destination in Destination.values)
@@ -684,7 +688,7 @@ class VitalApp extends ConsumerWidget {
                     ),
               child: ColoredBox(
                 color: Theme.of(context).colorScheme.background,
-                child: SafeArea(
+                child: _VitalAppSurfaces(
                   child: ReminderRuntime(
                     child: BackupRuntime(
                       child: ArtifactTransferRuntime(
@@ -702,6 +706,33 @@ class VitalApp extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _VitalAppSurfaces extends ConsumerWidget {
+  const _VitalAppSurfaces({required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final effects = EffectiveAppearance.compose(
+      preferences: ref.watch(appearanceProvider),
+      systemReduceMotion:
+          MediaQuery.disableAnimationsOf(context) ||
+          MediaQuery.accessibleNavigationOf(context),
+      systemReduceTransparency: MediaQuery.highContrastOf(context),
+      glassEnabled: ref.watch(glassEnabledProvider),
+    );
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        overscroll: false,
+      ),
+      child: VitalGlassTheme(
+        child: VitalGlassScope(opaque: effects.opaque, child: child),
+      ),
     );
   }
 }
@@ -795,7 +826,7 @@ class _TodayGreetingState extends ConsumerState<_TodayGreeting>
 }
 
 /// App chrome remains fixed while feature content scrolls.
-class VitalShell extends StatelessWidget {
+class VitalShell extends StatefulWidget {
   const VitalShell({
     super.key,
     required this.path,
@@ -805,6 +836,23 @@ class VitalShell extends StatelessWidget {
   final String path;
   final Widget child;
   final ValueChanged<int>? onDestination;
+  @override
+  State<VitalShell> createState() => _VitalShellState();
+}
+
+class _VitalShellState extends State<VitalShell> {
+  late final _pages = PageController(
+    initialPage: Destination.values
+        .indexWhere((d) => d.path == widget.path)
+        .clamp(0, 3),
+  );
+  String get path => widget.path;
+  @override
+  void dispose() {
+    _pages.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
@@ -819,226 +867,283 @@ class VitalShell extends StatelessWidget {
             destination?.label(text) ?? text.today,
             style: StitchType.name.copyWith(color: c.ink),
           );
-    return Scaffold(
-      headers: [
-        const RestoreRecoveryBanner(),
-        SafeArea(
-          bottom: false,
-          child: VitalPageBody(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Semantics(
-                            label: text.profile,
-                            button: true,
-                            child: StitchButton(
-                              onPressed: () => context.push('/profile'),
-                              compact: true,
-                              outlined: true,
-                              child: const ExcludeSemantics(
-                                child: Icon(LucideIcons.userRound, size: 22),
+    return VitalRootPagerScope(
+      controller: _pages,
+      child: VitalScaffold(
+        scrollKey: path,
+        headers: [
+          const RestoreRecoveryBanner(),
+          SafeArea(
+            bottom: false,
+            child: VitalPageBody(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Semantics(
+                              label: text.profile,
+                              button: true,
+                              child: StitchButton(
+                                onPressed: () => context.push('/profile'),
+                                compact: true,
+                                outlined: true,
+                                child: const ExcludeSemantics(
+                                  child: Icon(LucideIcons.userRound, size: 22),
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  text.appTitle.toUpperCase(),
-                                  style: StitchType.small.copyWith(
-                                    color: c.accent,
-                                    letterSpacing: 1.4,
-                                    fontWeight: FontWeight.w600,
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    text.appTitle.toUpperCase(),
+                                    style: StitchType.small.copyWith(
+                                      color: c.accent,
+                                      letterSpacing: 1.4,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                                if (!largeText) title(),
-                              ],
+                                  if (!largeText) title(),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    Tooltip(
-                      tooltip: (_) =>
-                          TooltipContainer(child: Text(text.settings)),
-                      child: Semantics(
-                        label: text.settings,
-                        button: true,
-                        child: StitchButton(
-                          onPressed: () => context.push('/settings'),
-                          outlined: true,
-                          compact: true,
-                          child: ExcludeSemantics(
-                            child: Icon(
-                              LucideIcons.settings,
-                              size: 22,
-                              color: c.muted,
+                      Tooltip(
+                        tooltip: (_) =>
+                            TooltipContainer(child: Text(text.settings)),
+                        child: Semantics(
+                          label: text.settings,
+                          button: true,
+                          child: StitchButton(
+                            onPressed: () => context.push('/settings'),
+                            outlined: true,
+                            compact: true,
+                            child: ExcludeSemantics(
+                              child: Icon(
+                                LucideIcons.settings,
+                                size: 22,
+                                color: c.muted,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                if (largeText) ...[const SizedBox(height: 8), title()],
-              ],
-            ),
-          ),
-        ),
-      ],
-      child: Column(
-        children: [
-          Expanded(child: child),
-          SafeArea(
-            top: false,
-            child: SizedBox(
-              width: double.infinity,
-              child: ShellNavigation(
-                path: path,
-                vertical: false,
-                onDestination: onDestination,
+                    ],
+                  ),
+                  if (largeText) ...[const SizedBox(height: 8), title()],
+                ],
               ),
             ),
           ),
         ],
+        footers: [
+          ShellNavigation(
+            path: path,
+            vertical: false,
+            pageController: _pages,
+            onDestination: widget.onDestination,
+          ),
+        ],
+        child: widget.child,
       ),
     );
   }
 }
 
-class ShellNavigation extends StatelessWidget {
+class ShellNavigation extends StatefulWidget {
   const ShellNavigation({
     super.key,
     required this.path,
     required this.vertical,
+    this.pageController,
     this.onDestination,
   });
   final String path;
   final bool vertical;
+  final PageController? pageController;
   final ValueChanged<int>? onDestination;
-  void select(BuildContext context, Destination destination) {
-    if (onDestination != null) {
-      onDestination!(destination.index);
+  @override
+  State<ShellNavigation> createState() => _ShellNavigationState();
+}
+
+class _ShellNavigationState extends State<ShellNavigation> {
+  double? _dragStart, _startPage;
+  int get _selected =>
+      Destination.values.indexWhere((d) => d.path == widget.path).clamp(0, 3);
+  void select(Destination destination) {
+    if (destination.index == _selected) return;
+    HapticFeedback.selectionClick();
+    if (widget.onDestination != null) {
+      widget.onDestination!(destination.index);
     } else {
       context.go(destination.path);
+    }
+  }
+
+  void _finishDrag() {
+    final pages = widget.pageController;
+    if (_dragStart == null || pages == null || !pages.hasClients) return;
+    _dragStart = null;
+    _startPage = null;
+    final target = (pages.page ?? _selected.toDouble()).round().clamp(0, 3);
+    if (VitalMotion.reduced(context)) {
+      pages.jumpToPage(target);
+    } else {
+      pages.animateToPage(
+        target,
+        duration: VitalMotion.root,
+        curve: VitalMotion.arrival,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
-    final colors = Theme.of(context).colorScheme;
+    final c = StitchColors(context);
     final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
-    if (largeText) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        child: VitalChrome(
-          child: SingleChildScrollView(
+    Widget items(double visualPage, {bool compact = false}) => Row(
+      mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
+      children: [
+        for (final destination in Destination.values)
+          if (compact)
+            _item(destination, text, c, visualPage)
+          else
+            Expanded(child: _item(destination, text, c, visualPage)),
+      ],
+    );
+    Widget navigation(double page) => largeText || widget.vertical
+        ? SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 8,
-              children: [
-                for (final destination in Destination.values)
-                  Semantics(
-                    selected: path == destination.path,
-                    child: VitalButton.secondary(
-                      onPressed: () => select(context, destination),
-                      child: Text(destination.label(text)),
-                    ),
+            child: items(page, compact: true),
+          )
+        : LayoutBuilder(
+            builder: (context, constraints) => GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onHorizontalDragStart: (details) {
+                final controller = widget.pageController;
+                if (controller == null || !controller.hasClients) return;
+                final tabWidth =
+                    constraints.maxWidth / Destination.values.length;
+                final target = Rect.fromCenter(
+                  center: Offset(tabWidth * (_selected + .5), 25),
+                  width: 58,
+                  height: 44,
+                );
+                if (!target.contains(details.localPosition)) return;
+                HapticFeedback.selectionClick();
+                _dragStart = details.localPosition.dx;
+                _startPage = controller.page;
+              },
+              onHorizontalDragUpdate: (details) {
+                final controller = widget.pageController;
+                if (_dragStart == null ||
+                    _startPage == null ||
+                    controller == null ||
+                    !controller.hasClients) {
+                  return;
+                }
+                final tabWidth =
+                    constraints.maxWidth / Destination.values.length;
+                final target =
+                    (_startPage! +
+                            (details.localPosition.dx - _dragStart!) / tabWidth)
+                        .clamp(0.0, 3.0);
+                controller.jumpTo(
+                  target * controller.position.viewportDimension,
+                );
+              },
+              onHorizontalDragEnd: (_) => _finishDrag(),
+              onHorizontalDragCancel: _finishDrag,
+              child: items(page),
+            ),
+          );
+    return VitalGlassSurface(
+      key: const ValueKey('vital-bottom-bar'),
+      role: VitalGlassRole.bottomBar,
+      borderRadius: BorderRadius.zero,
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          width: double.infinity,
+          height: largeText ? 80 : 64,
+          child: widget.pageController == null
+              ? navigation(_selected.toDouble())
+              : AnimatedBuilder(
+                  animation: widget.pageController!,
+                  builder: (_, _) => navigation(
+                    widget.pageController!.hasClients
+                        ? widget.pageController!.page ?? _selected.toDouble()
+                        : _selected.toDouble(),
                   ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-    final items = <Widget>[
-      for (final destination in Destination.values)
-        Semantics(
-          selected: path == destination.path,
-          child: ButtonStyleOverride(
-            decoration: (context, states, decoration) =>
-                decoration is BoxDecoration
-                ? decoration.copyWith(
-                    color: path == destination.path
-                        ? colors.accent
-                        : const Color(0x00000000),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: path == destination.path
-                          ? colors.primary.withValues(alpha: 0.25)
-                          : const Color(0x00000000),
-                    ),
-                  )
-                : decoration,
-            padding: (context, states, padding) =>
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            child: Button(
-              style: ButtonVariance.ghost,
-              onPressed: () => select(context, destination),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 36, minWidth: 48),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ExcludeSemantics(
-                      child: Icon(
-                        destination.icon,
-                        size: 20,
-                        color: path == destination.path
-                            ? colors.accentForeground
-                            : colors.mutedForeground,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      destination.label(text),
-                      style: StitchType.small.copyWith(
-                        color: path == destination.path
-                            ? colors.accentForeground
-                            : colors.mutedForeground,
-                      ),
-                    ),
-                  ],
                 ),
-              ),
-            ),
-          ),
         ),
-    ];
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: VitalLayout.contentWidth),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          child: VitalChrome(
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: largeText || vertical
-                  ? Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 4,
-                      runSpacing: 4,
-                      children: items,
-                    )
-                  : Row(
-                      children: [
-                        for (final item in items) Expanded(child: item),
-                      ],
-                    ),
+      ),
+    );
+  }
+
+  Widget _item(
+    Destination destination,
+    AppLocalizations text,
+    StitchColors c,
+    double page,
+  ) {
+    final proximity = (1 - (page - destination.index).abs()).clamp(0.0, 1.0);
+    final color = Color.lerp(c.muted, c.accent, proximity)!;
+    return Semantics(
+      selected: widget.path == destination.path,
+      child: ButtonStyleOverride(
+        decoration: (_, _, decoration) => decoration is BoxDecoration
+            ? decoration.copyWith(
+                color: Colors.transparent,
+                border: const Border.fromBorderSide(BorderSide.none),
+                borderRadius: BorderRadius.zero,
+                boxShadow: const [],
+              )
+            : decoration,
+        padding: (_, _, _) => EdgeInsets.symmetric(
+          horizontal: MediaQuery.textScalerOf(context).scale(14) > 21 ? 12 : 4,
+          vertical: 5,
+        ),
+        child: Button(
+          style: ButtonVariance.ghost,
+          onPressed: () => select(destination),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 46,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: c.accent.withValues(alpha: .18 * proximity),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: ExcludeSemantics(
+                    child: Icon(destination.icon, color: color, size: 21),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  destination.label(text),
+                  style: StitchType.small.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -1047,45 +1152,16 @@ class ShellNavigation extends StatelessWidget {
   }
 }
 
-/// A selected glass surface with a complete opaque accessibility fallback.
-class VitalChrome extends ConsumerWidget {
+/// Compatibility chrome uses the same borderless family surface.
+class VitalChrome extends StatelessWidget {
   const VitalChrome({super.key, required this.child});
   final Widget child;
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
-    final effective = EffectiveAppearance.compose(
-      preferences: ref.watch(appearanceProvider),
-      systemReduceMotion:
-          MediaQuery.disableAnimationsOf(context) ||
-          MediaQuery.accessibleNavigationOf(context),
-      systemReduceTransparency: MediaQuery.highContrastOf(context),
-      glassValidated: ref.watch(glassValidatedProvider),
-    );
-    final surface = DecoratedBox(
-      decoration: BoxDecoration(
-        color: effective.opaque
-            ? colors.card
-            : colors.card.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: colors.border),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF000000).withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: child,
-    );
-    if (effective.opaque) return surface;
-    return glass.AdaptiveGlass(
-      shape: const glass.LiquidRoundedSuperellipse(borderRadius: 48),
-      settings: const glass.LiquidGlassSettings(),
-      child: surface,
-    );
-  }
+  Widget build(BuildContext context) => VitalGlassSurface(
+    role: VitalGlassRole.bottomBar,
+    borderRadius: BorderRadius.zero,
+    child: child,
+  );
 }
 
 /// One scrolling, keyboard-aware body for primary and secondary screens.
@@ -1128,9 +1204,9 @@ class AppearancePage extends ConsumerWidget {
           MediaQuery.disableAnimationsOf(context) ||
           MediaQuery.accessibleNavigationOf(context),
       // Flutter has no portable reduced-transparency MediaQuery field. The
-      // explicit preference and unvalidated-renderer fallback remain available.
-      systemReduceTransparency: false,
-      glassValidated: ref.watch(glassValidatedProvider),
+      // explicit preference and high-contrast fallback remain available.
+      systemReduceTransparency: MediaQuery.highContrastOf(context),
+      glassEnabled: ref.watch(glassEnabledProvider),
     );
     return EntryPage(
       children: [
@@ -1297,10 +1373,9 @@ class SurfaceSample extends StatelessWidget {
         child: child,
       );
     }
-    return glass.AdaptiveGlass(
+    return VitalGlassSurface(
       key: const ValueKey('glass-sample'),
-      shape: const glass.LiquidRoundedSuperellipse(borderRadius: 20),
-      settings: const glass.LiquidGlassSettings(),
+      role: VitalGlassRole.dialog,
       child: child,
     );
   }
@@ -1354,7 +1429,12 @@ GoRoute vitalRoute({
                             : VitalMotion.sheetClose)
                       : VitalMotion.returning,
                 ),
-                child: task ? VitalTaskScope(child: child) : child,
+                child: task
+                    ? VitalTaskScope(child: child)
+                    : ColoredBox(
+                        color: Theme.of(context).colorScheme.background,
+                        child: child,
+                      ),
                 transitionsBuilder: (context, animation, secondary, child) {
                   final reduced = VitalMotion.reduced(context);
                   final curve = animation.drive(
@@ -1365,22 +1445,18 @@ GoRoute vitalRoute({
                     ),
                   );
                   if (!task) {
-                    // Keep the route subtree mounted when reduced motion
-                    // changes while a workflow/disclosure is open.
-                    return FadeTransition(
-                      opacity: reduced
+                    // Same native push/parallax used by Workout's
+                    // AppPageTransitions.nativePushTransition. Keep the
+                    // subtree stable if reduced motion changes mid-workflow.
+                    return CupertinoPageTransition(
+                      primaryRouteAnimation: reduced
                           ? const AlwaysStoppedAnimation(1)
-                          : curve,
-                      child: AnimatedBuilder(
-                        animation: curve,
-                        child: child,
-                        builder: (_, child) => Transform.translate(
-                          offset: reduced
-                              ? Offset.zero
-                              : Offset(18 * (1 - curve.value), 0),
-                          child: child,
-                        ),
-                      ),
+                          : animation,
+                      secondaryRouteAnimation: reduced
+                          ? const AlwaysStoppedAnimation(0)
+                          : secondary,
+                      linearTransition: false,
+                      child: child,
                     );
                   }
                   final frame = VitalTaskFrame(dialog: dialog, child: child);

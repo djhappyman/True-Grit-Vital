@@ -1,6 +1,6 @@
 # Vital interaction blueprint
 
-Version 4. Owner approved the standard on 21 October 2026 and the Today simplification and framed Schedule direction on 22 October 2026. This is the definitive presentation and motion standard for existing and future screens. Implementation status is tracked separately in the [rollout plan](interaction-implementation-plan.md); approval of this standard does not mean every screen has migrated.
+Version 5. Owner approved the standard on 21 October 2026, the Today simplification on 22 October, and the Workout-family glass and motion direction on 23 October 2026. This is the definitive presentation and motion standard for existing and future screens. Implementation status is tracked separately in the [rollout plan](interaction-implementation-plan.md); approval of this standard does not mean every screen has migrated.
 
 Use this blueprint with the [shared components](components.md), [design references](README.md), single-user specification and mobile copy contract. The original Stitch exports remain visual evidence; the owner's later History calendar and interaction decisions take precedence. Changes to this blueprint require an explicit explanation of the changed rule and updated examples/tests. Keep one current rule rather than adding contradictory exceptions.
 
@@ -63,26 +63,34 @@ Use shared motion tokens and adapters behind the existing Vital/Stitch APIs. Fea
 
 | Motion | Duration | Geometry |
 | --- | --- | --- |
-| Press/release | 100 / 180 ms | Visual scale to 0.985; hit target stays fixed. |
-| Choice/switch | 220 ms | Selected surface/thumb moves to its new position. |
-| Root selection | 280 ms | Page movement and dock selection remain coordinated. |
-| Detail arrival/return | 380 / 300 ms | Short directional movement, up to 18 px, with fade. |
-| Expand/collapse | 420 / 300 ms | Continuous bounds/corners; dependent content follows. |
-| Sheet open/close | 440 / 300 ms | Movement from the invoking edge and coordinated scrim. |
-| Dialog open/close | 320 / 220 ms | Fade with 0.96 to 1 scale around its centre. |
-| Row changes | 300–360 ms | Add/remove and neighbouring layout settle together. |
-| Calendar movement | 340 ms | Programmed period navigation; direct dragging uses physics. |
-| Filter results | 220 ms | Stable controls, bounded result transition. |
+| Press/release | 90 / 140 ms | Visual scale to 0.97; hit target stays fixed. Cancel pressed appearance when a drag takes over. |
+| Choice/switch | 180 ms | Shared segment highlight moves continuously; retain native shadcn switch behaviour. |
+| Root selection | 360 ms | Page movement and bottom-bar selection share one controller. |
+| Detail arrival/return | 360 / 280 ms | Cupertino push with outgoing-page parallax, matching Workout's active push adapter. |
+| Expand/collapse | 380 / 220 ms | Continuous bounds with a small reveal offset and fade; retain the content subtree. |
+| Sheet open/close | 400 / 300 ms | Movement from the lower edge and coordinated scrim. |
+| Dialog open/close | 260 / 200 ms | Fade with 0.96 to 1 scale around its centre. |
+| Row changes | 220 ms | Add/remove and neighbouring layout settle together. |
+| Calendar movement | 320 ms | Programmed period navigation; direct dragging uses physics. |
+| Filter results | 180 ms | Stable controls, bounded result transition. |
 | Progress | 480 ms | Animate to a confirmed factual value. |
-| Theme | 280 ms | Palette changes without moving layout. |
+| Theme | 180 ms | Palette changes without moving layout. |
 
-Curves: arrival `Cubic(0.22, 1, 0.36, 1)`, geometry `Cubic(0.65, 0, 0.35, 1)`, departure `Cubic(0.4, 0, 1, 1)`. Gesture-driven snaps are gently damped and respect release velocity. Avoid visible oscillation and large travel. Optional choreography uses at most three groups, approximately 35 ms apart, finishing within 500 ms.
+Curves: arrival and geometry use `Curves.easeOutCubic`; departure uses `Curves.easeInCubic`. Full pages use Flutter's Cupertino transition geometry, including the secondary route animation, as Workout does. Scroll physics use bouncing with always-scrollable content and no glow; preserve inherited desktop input behaviour. Selection haptics accompany deliberate bottom-bar and segment changes. Avoid visible oscillation and decorative delays.
 
 Execute commands immediately when invoked; animation does not delay dispatch. Retarget/reverse interrupted motion. Keep full-sized readable text stable during geometric transitions. Display exact new quantities directly, rather than counting through invented intermediate doses or balances. Animate surrounding progress only when its denominator/state is known. Show saved state after commit; Undo reverses the confirmed change.
 
 Pinned shadcn controls retain their internal thumb/focus microinteractions where their API exposes no timing hook. Keep their native semantics and behaviour; do not copy a control merely to retime it. This exception is limited to internal control feedback. Vital owns the surrounding press, route, paging, sheet, dialog, disclosure, progress and theme motion.
 
-Apply the app and system reduced-motion preferences centrally: direct state changes, stable geometry and usable status feedback. Keep scrolling user-controlled. Stop decorative animation while hidden/locked. Privacy coverage happens immediately. Keep blur strength fixed during transitions; glass still requires its existing measured-device gate.
+Apply the app and system reduced-motion preferences centrally: direct state changes, stable geometry and usable status feedback. Keep scrolling user-controlled. Stop decorative animation while hidden/locked. Privacy coverage happens immediately. Keep blur strength fixed during transitions. Glass is enabled by owner direction; measured physical-device acceptance remains separate.
+
+## Family surfaces
+
+Adapt the sibling Workout tracker's shared surfaces to shadcn controls. Use a full-width, edge-attached bottom bar with an icon selection pill. The app bar is transparent at rest and reaches its glass treatment over the first 21 px of scroll, with Workout's eased progression. Ordinary cards use the inexpensive painted faux-glass fill, vignette and rims. Bars, sheets, dialogs and menus use selected live glass, with a 28 px overlay radius and the existing opaque/high-contrast fallback. Light canvas remains pure white.
+
+`VitalScaffold` measures its actual header/footer, including device insets. Content begins below the transparent header. Its scrolling viewport can paint behind both bars; trailing padding lets the final action scroll fully above the bottom bar. `VitalChromeInsets` carries geometry through branch Navigators. The transparent pinned obstruction in `VitalInsetScrollView` keeps focus/ensure-visible targets below the header. Feature code must reuse these adapters rather than add competing top/bottom SafeAreas.
+
+Owner direction on 23 October supersedes the earlier runtime glass-off rule. Enabled appearance is not device validation: preserve explicit opaque surfaces, high-contrast fallbacks and the separate false physical-validation marker. Do not claim frame-time or accessibility acceptance from static analysis.
 
 ## Screen creation recipe
 
@@ -104,3 +112,7 @@ Before claiming a migration complete, demonstrate that controls use the intended
 - `VitalSurfaceFrame`, `VitalControlStyle`, `VitalProgress` and `VitalDisclosure` apply the standard to existing containers and controls.
 - `vitalRoute` in `lib/app/vital_app.dart` selects the canonical route presentation. `EntryPage` reuses the current form engine inside task routes; modal presentation does not create another editor.
 - `test/motion_standards_test.dart` exercises navigation retention, nested paging, scrim/Escape protection, pending writes, reduced motion and keyboard clearance.
+
+## Current verification scope
+
+On 23 October the owner explicitly deferred comprehensive tests while reviewing the live app. This family pass uses static analysis; an earlier focused inset diagnostic covered initial clearance and focus reveal. Full motion, capture, accessibility and device-performance regression runs remain deferred. Capture helpers depending on the old SingleChildScrollView or inset Scaffold rectangle need adaptation to the edge-to-edge viewport before that later run. This records the owner's current direction; it does not replace evidence requirements for future release claims.

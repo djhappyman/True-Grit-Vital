@@ -916,11 +916,11 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
         final target = returnLocation;
         if (target != null) context.go(target);
       },
-      child: ListView(
+      child: VitalInsetScrollView(
         controller: scroll,
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-        children: [
-          Center(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
                 maxWidth: VitalLayout.contentWidth,
@@ -931,7 +931,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

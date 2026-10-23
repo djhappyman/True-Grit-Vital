@@ -24,18 +24,15 @@ void main() {
     final frames = find.byType(VitalSurfaceFrame);
     expect(frames, findsNWidgets(2));
     for (final frame in frames.evaluate()) {
-      final container = tester.widget<Container>(
-        find
-            .descendant(
-              of: find.byElementPredicate((e) => e == frame),
-              matching: find.byType(Container),
-            )
-            .first,
+      final surface = tester.widget<VitalFauxGlassSurface>(
+        find.descendant(
+          of: find.byElementPredicate((e) => e == frame),
+          matching: find.byType(VitalFauxGlassSurface),
+        ),
       );
-      final decoration = container.decoration! as BoxDecoration;
-      expect(decoration.color, customCard);
+      expect(surface.color, customCard);
       expect(
-        decoration.borderRadius,
+        surface.borderRadius,
         BorderRadius.circular(VitalLayout.surfaceRadius),
       );
     }

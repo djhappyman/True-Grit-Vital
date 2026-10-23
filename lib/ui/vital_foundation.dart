@@ -1,4 +1,5 @@
 import 'vital_motion.dart';
+import 'vital_glass.dart';
 
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -10,7 +11,7 @@ abstract final class VitalLayout {
   static const double target = 48;
   static const double surfaceRadius = 24;
   static const double sectionRadius = 16;
-  static const double sheetRadius = 32;
+  static const double sheetRadius = 28;
   static const double pillRadius = 999;
   static const double gap = 12;
   static const double sectionGap = 24;
@@ -153,38 +154,33 @@ class _VitalSurfaceFrameState extends State<VitalSurfaceFrame> {
   Widget build(BuildContext context) {
     final c = VitalColors(context);
     final content = KeyedSubtree(key: _contentKey, child: widget.child);
-    return AnimatedContainer(
-      duration: VitalMotion.duration(context, VitalMotion.theme),
-      curve: VitalMotion.geometry,
-      decoration: BoxDecoration(
-        color: widget.inset ? c.inset : c.surface,
+    final body = DefaultTextStyle.merge(
+      style: VitalType.body.copyWith(color: c.ink),
+      child: VitalMotion.reduced(context)
+          ? content
+          : AnimatedSize(
+              duration: VitalMotion.expand,
+              reverseDuration: VitalMotion.collapse,
+              curve: VitalMotion.geometry,
+              alignment: Alignment.topCenter,
+              child: content,
+            ),
+    );
+    if (widget.sheet) {
+      return VitalGlassSurface(
+        role: VitalGlassRole.sheet,
         borderRadius: BorderRadius.circular(widget.radius),
-        border: Border.all(color: c.line.withValues(alpha: .8)),
-        boxShadow: widget.inset
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(
-                    alpha: c.dark ? (widget.sheet ? .2 : .12) : .025,
-                  ),
-                  blurRadius: widget.sheet ? 24 : 8,
-                  offset: Offset(0, widget.sheet ? 8 : 3),
-                ),
-              ],
-      ),
+        padding: widget.padding,
+        child: body,
+      );
+    }
+    return VitalFauxGlassSurface(
+      color: widget.inset ? c.inset : c.surface,
+      borderColor: c.line,
+      borderRadius: BorderRadius.circular(widget.radius),
       padding: widget.padding,
-      child: DefaultTextStyle.merge(
-        style: VitalType.body.copyWith(color: c.ink),
-        child: VitalMotion.reduced(context)
-            ? content
-            : AnimatedSize(
-                duration: VitalMotion.expand,
-                reverseDuration: VitalMotion.collapse,
-                curve: VitalMotion.geometry,
-                alignment: Alignment.topCenter,
-                child: content,
-              ),
-      ),
+      inset: widget.inset,
+      child: body,
     );
   }
 }
@@ -224,6 +220,9 @@ class VitalControlStyle extends StatelessWidget {
         ? Colors.transparent
         : c.inset;
     return VitalPress(
+      enabled:
+          !isLoading &&
+          (child is! Button || (child as Button).onPressed != null),
       child: ConstrainedBox(
         constraints: const BoxConstraints(
           minHeight: VitalLayout.target,

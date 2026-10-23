@@ -20,9 +20,9 @@ import 'perf/scenarios.dart';
 // The file is excluded from ordinary host checks (tool/verify only runs
 // `test/`), refuses to execute without the harness job dart-define and never
 // touches production storage: the encrypted dataset is created in a
-// fixture-only directory that the artifact declares. Glass is only exercised
-// through a fixture-scope override of the unvalidated provider; the
-// production gate file is never edited.
+// fixture-only directory that the artifact declares. The fixture selects glass
+// or opaque explicitly without changing production preferences or granting
+// physical-device acceptance.
 //
 // Device runs:   tool/performance/measure.py   (physical device, profile)
 // Host smoke:    tool/performance/measure.py --host-smoke
@@ -82,9 +82,7 @@ void main() {
       // Fixture-only glass exercise. The production provider stays untouched;
       // the override lives in this scope and the artifact reports it as
       // fixture-only.
-      if (job.glass) {
-        overrides.add(glassValidatedProvider.overrideWithValue(true));
-      }
+      overrides.add(glassEnabledProvider.overrideWithValue(job.glass));
       final providers = ProviderContainer(overrides: overrides);
       addTearDown(providers.dispose);
 
@@ -184,7 +182,7 @@ void main() {
         'glass': {
           'requested': job.glass,
           'fixtureOnly': true,
-          'productionGateProviderValue': false,
+          'productionDeviceValidated': false,
           'disclosure': perfGlassDisclosure,
         },
         'fixtureIdentity': {
@@ -204,9 +202,8 @@ void main() {
         'limitations': [
           if (job.glass)
             'Glass surfaces were exercised through the fixture-only provider '
-                'override; the production gate stays off and the composed glass '
-                'render path still needs human visual review on the target '
-                'device before any gate change.',
+                'override; the composed glass render path still needs human visual '
+                'review and performance acceptance on the target device.',
           if (memoryAtStart == null)
             'Process memory reading was unavailable on this host.',
           // The per-scenario jank counts come from the pinned SDK summarizer

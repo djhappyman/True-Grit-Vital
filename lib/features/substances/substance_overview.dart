@@ -143,7 +143,9 @@ class _LoadedOverviewState extends ConsumerState<_LoadedOverview> {
       t.history,
     ];
     return SafeArea(
-      child: Scaffold(
+      top: false,
+      bottom: false,
+      child: VitalScaffold(
         headers: [
           VitalPageBody(
             child: Column(

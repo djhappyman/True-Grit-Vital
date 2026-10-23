@@ -66,7 +66,7 @@ class _LockGateState extends ConsumerState<LockGate>
             ),
           ),
         if (hidden)
-          Scaffold(
+          VitalScaffold(
             child: SafeArea(
               child: SingleChildScrollView(
                 child: Padding(

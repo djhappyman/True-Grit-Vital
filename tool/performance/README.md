@@ -88,10 +88,10 @@ also mirrors them for review records.
 | `record_save` | `/record/<itemId>` | the dose form field | One navigation, one real save and one Undo per repeat. |
 
 `--glass` only composes the glass surface in the fixture: it overrides
-`glassValidatedProvider` inside the run's own ProviderScope while the
-production file `lib/app/appearance.dart` stays false and untouched.
+`glassEnabledProvider` inside the run's own ProviderScope. Production glass
+is now enabled by owner direction; physical validation remains separate.
 The artifact's `glass` block says exactly that (`fixtureOnly: true`,
-`productionGateProviderValue: false` plus the fixed disclosure string).
+`productionDeviceValidated: false` plus the fixed disclosure string).
 
 ## What the artifact records
 
@@ -183,3 +183,7 @@ budgets are rejected, and device/dataset/SDK/condition differences prevent a
 budget pass. Glass-on versus opaque remains an intentional permitted experiment.
 Unbudgeted comparisons disclose differences and never grant device acceptance.
 Run `python3 tool/performance/test_tools.py` for these failure-path checks.
+
+Artifact schema/tool version 2 separates the enabled visual treatment from
+physical-device acceptance. Earlier version 1 artifacts remain dated evidence
+in their review folders and must not be compared as current-contract runs.

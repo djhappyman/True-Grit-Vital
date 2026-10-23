@@ -137,7 +137,7 @@ const perfArtifactConditionKeys = [
 const perfArtifactGlassKeys = [
   'requested',
   'fixtureOnly',
-  'productionGateProviderValue',
+  'productionDeviceValidated',
   'disclosure',
 ];
 
@@ -163,10 +163,10 @@ String serializePerfArtifact(Map<String, dynamic> artifact) {
       !artifact.keys.toSet().containsAll(perfArtifactTopLevelKeys)) {
     throw const ArtifactError('keys_mismatch');
   }
-  if (artifact['schemaVersion'] != 1) {
+  if (artifact['schemaVersion'] != perfArtifactSchemaVersion) {
     throw const ArtifactError('schema_version');
   }
-  if (artifact['toolVersion'] != 'vital-perf-harness/1') {
+  if (artifact['toolVersion'] != perfHarnessToolVersion) {
     throw const ArtifactError('tool_version');
   }
   final evidenceClass = artifact['evidenceClass'];
@@ -210,7 +210,7 @@ String serializePerfArtifact(Map<String, dynamic> artifact) {
   }
 
   final glass = artifact['glass'] as Map;
-  if (glass['productionGateProviderValue'] != false ||
+  if (glass['productionDeviceValidated'] != false ||
       glass['fixtureOnly'] != true) {
     throw const ArtifactError('glass_gate_forgery');
   }

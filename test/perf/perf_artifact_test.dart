@@ -5,10 +5,10 @@ import '../../integration_test/perf/artifact.dart';
 /// A structurally valid artifact assembled outside the fixture so the
 /// serializer's error codes can be driven directly on the host.
 Map<String, dynamic> validArtifact() => {
-  'schemaVersion': 1,
+  'schemaVersion': 2,
   'kind': 'vital-performance-artifact',
   'role': 'selftest',
-  'toolVersion': 'vital-perf-harness/1',
+  'toolVersion': 'vital-perf-harness/2',
   'runId': 'vital-perf-selftest-00000001',
   'createdUtc': '2026-10-23T00:00:00Z',
   'evidenceClass': 'selftest',
@@ -42,13 +42,13 @@ Map<String, dynamic> validArtifact() => {
   'glass': {
     'requested': false,
     'fixtureOnly': true,
-    'productionGateProviderValue': false,
+    'productionDeviceValidated': false,
     'disclosure':
         'Fixture-only glass disclosure well beyond 40 characters '
         'so the serializer length expectations are engaged.',
   },
   'fixtureIdentity': {
-    'spec': 'vital-perf-fixture/1',
+    'spec': 'vital-perf-fixture/2',
     'seed': 20261023,
     'dataset': {'items': 6, 'records': 480, 'containers': 36},
     'datasetHash': 'hash',
@@ -157,8 +157,7 @@ void main() {
 
   test('glass forgery cannot be serialised', () {
     final artifact = validArtifact();
-    (artifact['glass']!
-            as Map<String, Object?>)['productionGateProviderValue'] =
+    (artifact['glass']! as Map<String, Object?>)['productionDeviceValidated'] =
         true;
     expect(
       () => serializePerfArtifact(artifact),

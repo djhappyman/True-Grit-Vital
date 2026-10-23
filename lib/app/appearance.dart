@@ -173,8 +173,10 @@ class AppearanceController extends Notifier<AppearancePreferences> {
       _save(state.copyWith(reduceMotion: value));
 }
 
-// Keep false until G06 supplies measured device/renderer evidence. A package's
-// fallback support alone does not validate the application's composed surface.
+// Owner enabled the shared Workout-family glass treatment on 23 October.
+final glassEnabledProvider = Provider<bool>((ref) => true);
+
+// Evidence only: enabling the visual treatment is not a device-performance pass.
 final glassValidatedProvider = Provider<bool>((ref) => false);
 
 class EffectiveAppearance {
@@ -183,9 +185,9 @@ class EffectiveAppearance {
     required AppearancePreferences preferences,
     required bool systemReduceMotion,
     required bool systemReduceTransparency,
-    required bool glassValidated,
+    required bool glassEnabled,
   }) => EffectiveAppearance(
-    opaque: preferences.opaque || systemReduceTransparency || !glassValidated,
+    opaque: preferences.opaque || systemReduceTransparency || !glassEnabled,
     reduceMotion: preferences.reduceMotion || systemReduceMotion,
   );
 

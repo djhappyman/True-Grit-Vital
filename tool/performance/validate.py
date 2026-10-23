@@ -19,8 +19,8 @@ ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_DART = ROOT / "integration_test/perf/artifact.dart"
 JOB_DART = ROOT / "integration_test/perf/job.dart"
 
-TOOL_VERSION = "vital-perf-harness/1"
-FIXTURE_SPEC = "vital-perf-fixture/1"
+TOOL_VERSION = "vital-perf-harness/2"
+FIXTURE_SPEC = "vital-perf-fixture/2"
 ARTIFACT_KIND = "vital-performance-artifact"
 
 
@@ -241,7 +241,7 @@ def validate(artifact: dict, source: str | None = None) -> dict:
 
     glass = _block(artifact, "glass", c["glassKeys"], bad)
     if isinstance(glass, dict) and glass:
-        if glass.get("productionGateProviderValue") is not False:
+        if glass.get("productionDeviceValidated") is not False:
             bad("glass_gate_forgery")
         if glass.get("fixtureOnly") is not True:
             bad("glass_gate_forgery")

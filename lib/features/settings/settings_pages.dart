@@ -148,7 +148,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ),
     ];
     return SafeArea(
-      child: Scaffold(
+      top: false,
+      bottom: false,
+      child: VitalScaffold(
         headers: [
           VitalPageBody(
             child: Column(

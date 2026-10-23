@@ -250,7 +250,7 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
             .whenComplete(() => openedPreview = false);
       }
     });
-    return Scaffold(
+    return VitalScaffold(
       headers: [
         SafeArea(
           bottom: false,

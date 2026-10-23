@@ -235,3 +235,11 @@ result automatically records use or changes stock. Manual entry stays available.
 Both themes and large text are host checked. The fixture-only performance tool
 exercises existing paging and composition without changing production motion or
 enabling glass. [Evidence and remaining device limits](reviews/2026-10-23-roadmap-finish/README.md).
+
+## Workout family, 23 October
+
+Shared adapters now provide Workout-style faux-glass cards, glass overlays, a transparent-to-glass app bar and a full-width bottom bar. Measured chrome insets survive branch Navigators; initial content and focus reveal clear the header, and trailing padding clears the bottom bar. Canonical page wrappers use the same adapter.
+
+Motion tokens match Workout's active push, press, selection, disclosure and modal timings. Full pages use Cupertino push/parallax; root pages and the bottom selection share a controller. Segments move their highlight, disclosures rotate their chevron, and vertical scrolling uses the family physics. Retain existing draft, dismissal, lock, exact-quantity and revision guards. Reduced motion keeps stable route/form subtrees.
+
+Verification: whole-project static analysis passed. A focused inset diagnostic passed before the final motion edits. The owner explicitly stopped comprehensive testing; no full regression, final capture matrix, native build or physical-device acceptance is claimed for this pass. Old capture helpers and safe-rectangle expectations require adaptation for the edge-to-edge viewport during the later test run. Production appearance is enabled by owner instruction; physical validation remains open.

@@ -8,6 +8,7 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 import '../l10n/app_localizations.dart';
 import 'vital_foundation.dart';
 import 'vital_motion.dart';
+import 'vital_glass.dart';
 
 /// Route-backed tasks retain the feature's existing draft and PopScope engine.
 class VitalTaskScope extends InheritedWidget {
@@ -76,7 +77,6 @@ class _VitalTaskFrameState extends State<VitalTaskFrame> {
                     : Duration.zero,
                 curve: VitalMotion.arrival,
                 child: Container(
-                  clipBehavior: Clip.antiAlias,
                   constraints: BoxConstraints(
                     maxWidth: widget.dialog ? 560 : VitalLayout.contentWidth,
                     maxHeight: math.max(48, constraints.maxHeight * .94),
@@ -84,57 +84,58 @@ class _VitalTaskFrameState extends State<VitalTaskFrame> {
                   margin: widget.dialog
                       ? const EdgeInsets.all(16)
                       : EdgeInsets.zero,
-                  decoration: BoxDecoration(
-                    color: c.surface,
+                  child: VitalGlassSurface(
+                    role: widget.dialog
+                        ? VitalGlassRole.dialog
+                        : VitalGlassRole.sheet,
                     borderRadius: BorderRadius.vertical(
-                      top: const Radius.circular(VitalLayout.sheetRadius),
-                      bottom: Radius.circular(
-                        widget.dialog ? VitalLayout.sheetRadius : 0,
-                      ),
+                      top: const Radius.circular(28),
+                      bottom: Radius.circular(widget.dialog ? 28 : 0),
                     ),
-                    border: Border.all(color: c.line),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onVerticalDragUpdate: widget.dialog
-                            ? null
-                            : (details) => setState(
-                                () => _drag = math.max(
-                                  0,
-                                  _drag + details.delta.dy,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onVerticalDragUpdate: widget.dialog
+                              ? null
+                              : (details) => setState(
+                                  () => _drag = math.max(
+                                    0,
+                                    _drag + details.delta.dy,
+                                  ),
                                 ),
-                              ),
-                        onVerticalDragEnd: widget.dialog
-                            ? null
-                            : (details) {
-                                if (_drag > 72 ||
-                                    (details.primaryVelocity ?? 0) > 650) {
-                                  _dismiss();
-                                }
-                                setState(() => _drag = 0);
-                              },
-                        onVerticalDragCancel: () => setState(() => _drag = 0),
-                        child: Semantics(
-                          label: text.cancel,
-                          button: true,
-                          onTap: _dismiss,
-                          child: ExcludeSemantics(
-                            child: Button(
-                              style: ButtonVariance.ghost,
-                              onPressed: _dismiss,
-                              child: SizedBox(
-                                height: 36,
-                                width: 80,
-                                child: Center(
-                                  child: Container(
-                                    width: 40,
-                                    height: 5,
-                                    decoration: BoxDecoration(
-                                      color: c.muted,
-                                      borderRadius: BorderRadius.circular(999),
+                          onVerticalDragEnd: widget.dialog
+                              ? null
+                              : (details) {
+                                  if (_drag > 72 ||
+                                      (details.primaryVelocity ?? 0) > 650) {
+                                    _dismiss();
+                                  }
+                                  setState(() => _drag = 0);
+                                },
+                          onVerticalDragCancel: () => setState(() => _drag = 0),
+                          child: Semantics(
+                            label: text.cancel,
+                            button: true,
+                            onTap: _dismiss,
+                            child: ExcludeSemantics(
+                              child: Button(
+                                style: ButtonVariance.ghost,
+                                onPressed: _dismiss,
+                                child: SizedBox(
+                                  height: 36,
+                                  width: 80,
+                                  child: Center(
+                                    child: Container(
+                                      width: 40,
+                                      height: 5,
+                                      decoration: BoxDecoration(
+                                        color: c.muted,
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -142,10 +143,10 @@ class _VitalTaskFrameState extends State<VitalTaskFrame> {
                             ),
                           ),
                         ),
-                      ),
-                      Flexible(child: widget.child),
-                      SizedBox(height: MediaQuery.paddingOf(context).bottom),
-                    ],
+                        Flexible(child: widget.child),
+                        SizedBox(height: MediaQuery.paddingOf(context).bottom),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -312,22 +313,44 @@ class _VitalLocalOptionsState extends State<VitalLocalOptions>
     );
     if (narrow) {
       _animation.value = 0;
-      _overlay = SheetConfiguration(
+      _overlay = openRawDrawer<void>(
+        anchor: ContextAnchor(anchor),
+        transformBackdrop: false,
         animationController: _animation,
         position: OverlayPosition.bottom,
-        useSafeArea: true,
+        useSafeArea: false,
+        autoOpen: false,
         constraints: const BoxConstraints(maxWidth: 640),
-      ).show<void>(anchor, body);
+        builder: (context, extraSize, size, padding, stackIndex) =>
+            VitalGlassSurface(
+              role: VitalGlassRole.sheet,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
+              child: SafeArea(top: false, child: body(context)),
+            ),
+      );
       // shadcn leaves custom controllers with their owner, including opening.
       _animation.animateTo(1, curve: VitalMotion.arrival);
     } else {
-      _overlay = PopoverConfiguration(
-        follow: false,
-        alignment: Alignment.topRight,
-        anchorAlignment: Alignment.bottomRight,
-        showDuration: VitalMotion.duration(anchor, VitalMotion.filter),
-        dismissDuration: VitalMotion.duration(anchor, VitalMotion.dialogClose),
-      ).show<void>(anchor, (context) => SurfaceCard(child: body(context)));
+      _overlay =
+          PopoverConfiguration(
+            follow: false,
+            alignment: Alignment.topRight,
+            anchorAlignment: Alignment.bottomRight,
+            showDuration: VitalMotion.duration(anchor, VitalMotion.filter),
+            dismissDuration: VitalMotion.duration(
+              anchor,
+              VitalMotion.dialogClose,
+            ),
+          ).show<void>(
+            anchor,
+            (context) => VitalGlassSurface(
+              role: VitalGlassRole.menu,
+              borderRadius: BorderRadius.circular(18),
+              child: body(context),
+            ),
+          );
     }
     setState(() => _open = true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -414,24 +437,38 @@ class VitalOverflow extends StatelessWidget {
             anchor,
             VitalMotion.dialogClose,
           ),
-          builder: (_) => DropdownMenu(
-            children: [
-              for (final action in actions)
-                MenuButton(
-                  leading: action.icon == null ? null : Icon(action.icon),
-                  onPressed: (_) => action.onPressed(),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      minHeight: 48,
-                      minWidth: 48,
+          builder: (_) => VitalGlassSurface(
+            role: VitalGlassRole.menu,
+            borderRadius: BorderRadius.circular(18),
+            child: ComponentTheme<MenuPopupTheme>(
+              data: const MenuPopupTheme(
+                fillColor: Colors.transparent,
+                borderColor: Colors.transparent,
+                surfaceBlur: 0,
+                surfaceOpacity: 0,
+              ),
+              child: DropdownMenu(
+                surfaceBlur: 0,
+                surfaceOpacity: 0,
+                children: [
+                  for (final action in actions)
+                    MenuButton(
+                      leading: action.icon == null ? null : Icon(action.icon),
+                      onPressed: (_) => action.onPressed(),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          minHeight: 48,
+                          minWidth: 48,
+                        ),
+                        child: Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Text(action.label),
+                        ),
+                      ),
                     ),
-                    child: Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Text(action.label),
-                    ),
-                  ),
-                ),
-            ],
+                ],
+              ),
+            ),
           ),
         ),
         child: const SizedBox(

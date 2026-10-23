@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:flutter/services.dart' show HapticFeedback;
+
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../l10n/app_localizations.dart';
@@ -8,9 +10,13 @@ export 'vital_summary.dart';
 export 'vital_motion.dart';
 export 'vital_presenters.dart';
 export 'vital_foundation.dart';
+export 'vital_glass.dart';
+export 'vital_scaffold.dart';
 
 import 'vital_foundation.dart';
 import 'vital_motion.dart';
+import 'vital_glass.dart';
+import 'vital_scaffold.dart';
 
 enum VitalButtonVariant { primary, secondary, destructive }
 
@@ -305,7 +311,9 @@ class VitalPage extends StatelessWidget {
   final bool panelled;
   @override
   Widget build(BuildContext context) => SafeArea(
-    child: Scaffold(
+    top: false,
+    bottom: false,
+    child: VitalScaffold(
       headers: [
         if (leading != null || headerActions.isNotEmpty)
           VitalPageBody(
@@ -343,18 +351,14 @@ class VitalScrollBody extends StatelessWidget {
   final Key? contentKey;
   final EdgeInsetsGeometry padding;
   @override
-  Widget build(BuildContext context) => SafeArea(
-    top: false,
-    child: SingleChildScrollView(
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      child: VitalPageBody(
-        padding: padding,
-        maxWidth: maxWidth,
-        child: Column(
-          key: contentKey,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: children,
-        ),
+  Widget build(BuildContext context) => VitalInsetScrollView(
+    child: VitalPageBody(
+      padding: padding,
+      maxWidth: maxWidth,
+      child: Column(
+        key: contentKey,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
       ),
     ),
   );
@@ -893,11 +897,23 @@ class VitalDialog extends StatelessWidget {
       child: Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxWidth, maxHeight: maxHeight),
-          child: AlertDialog(
-            content: body,
-            padding: EdgeInsets.all(padding),
-            surfaceBlur: 0,
-            surfaceOpacity: 1,
+          child: VitalGlassSurface(
+            role: VitalGlassRole.dialog,
+            child: Theme(
+              data: theme.copyWith(
+                colorScheme: () => theme.colorScheme.copyWith(
+                  popover: () => Colors.transparent,
+                  muted: () => Colors.transparent,
+                ),
+              ),
+              child: AlertDialog(
+                content: body,
+                padding: EdgeInsets.all(padding),
+                barrierColor: Colors.transparent,
+                surfaceBlur: 0,
+                surfaceOpacity: 0,
+              ),
+            ),
           ),
         ),
       ),
@@ -925,17 +941,32 @@ class VitalSegments<T> extends StatelessWidget {
   final String Function(T) label;
   final bool expand;
 
-  Widget _option(T value) {
+  Widget _option(BuildContext context, T value) {
     final isSelected = value == selected;
-    final text = Text(label(value));
-    void action() => onChanged(value);
+    final colors = VitalColors(context);
     return MergeSemantics(
       child: Semantics(
         selected: isSelected,
         inMutuallyExclusiveGroup: true,
-        child: isSelected
-            ? VitalButton(onPressed: action, child: text)
-            : VitalButton.secondary(onPressed: action, child: text),
+        child: VitalControlStyle(
+          quiet: true,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          child: Button(
+            style: ButtonVariance.ghost,
+            onPressed: () {
+              if (isSelected) return;
+              HapticFeedback.selectionClick();
+              onChanged(value);
+            },
+            child: Text(
+              label(value),
+              style: VitalType.label.copyWith(
+                color: isSelected ? colors.accent : colors.muted,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -972,34 +1003,63 @@ class VitalSegments<T> extends StatelessWidget {
           final fitsRow =
               constraints.hasBoundedWidth &&
               widths.every((width) => width <= equalWidth);
-          if (expand && fitsRow) {
-            return Row(
+          final equal = expand && fitsRow;
+          final optionWidths = equal
+              ? List<double>.filled(values.length, equalWidth)
+              : widths;
+          final selectedIndex = values.indexOf(selected);
+          final start = selectedIndex <= 0
+              ? 0.0
+              : optionWidths
+                    .take(selectedIndex)
+                    .fold<double>(0, (sum, value) => sum + value + 4);
+          final strip = SizedBox(
+            width: equal
+                ? constraints.maxWidth
+                : optionWidths.fold<double>(0, (sum, value) => sum + value) +
+                      math.max(0, values.length - 1) * 4,
+            child: Stack(
               children: [
-                for (var i = 0; i < values.length; i++) ...[
-                  if (i > 0) const SizedBox(width: 4),
-                  Expanded(child: _option(values[i])),
-                ],
-              ],
-            );
-          }
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (var i = 0; i < values.length; i++) ...[
-                  if (i > 0) const SizedBox(width: 4),
-                  SizedBox(
-                    width: widths[i],
-                    child: _SelectedSegment(
-                      selected: values[i] == selected,
-                      child: _option(values[i]),
+                if (selectedIndex >= 0)
+                  AnimatedPositionedDirectional(
+                    start: start,
+                    width: optionWidths[selectedIndex],
+                    top: 0,
+                    bottom: 0,
+                    duration: VitalMotion.duration(context, VitalMotion.choice),
+                    curve: VitalMotion.arrival,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: .18),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
                     ),
                   ),
-                ],
+                Row(
+                  children: [
+                    for (var i = 0; i < values.length; i++) ...[
+                      if (i > 0) const SizedBox(width: 4),
+                      SizedBox(
+                        width: optionWidths[i],
+                        child: equal
+                            ? _option(context, values[i])
+                            : _SelectedSegment(
+                                selected: values[i] == selected,
+                                child: _option(context, values[i]),
+                              ),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
           );
+          return equal
+              ? strip
+              : SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: strip,
+                );
         },
       ),
     );
@@ -1070,8 +1130,11 @@ class _VitalDisclosureState extends State<VitalDisclosure> {
       Semantics(
         expanded: _expanded,
         child: VitalButton.secondary(
-          leading: Icon(
-            _expanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+          leading: AnimatedRotation(
+            turns: _expanded ? .5 : 0,
+            duration: VitalMotion.duration(context, VitalMotion.choice),
+            curve: VitalMotion.arrival,
+            child: const Icon(LucideIcons.chevronDown),
           ),
           onPressed: () => setState(() => _expanded = !_expanded),
           child: Text(widget.title),

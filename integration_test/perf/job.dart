@@ -32,16 +32,16 @@ const perfJobMaxContainers = 200;
 const perfJobMaxItems = 40;
 
 /// Artifact identity of the synthetic dataset spec this fixture emits.
-const perfFixtureSpec = 'vital-perf-fixture/1';
+const perfFixtureSpec = 'vital-perf-fixture/2';
 
 /// Current artifact contract version.
-const perfArtifactSchemaVersion = 1;
+const perfArtifactSchemaVersion = 2;
 
 /// Fixed kind marker used by every artifact this harness produces.
 const perfArtifactKind = 'vital-performance-artifact';
 
 /// Harness version written into artifacts so tooling can detect contract age.
-const perfHarnessToolVersion = 'vital-perf-harness/1';
+const perfHarnessToolVersion = 'vital-perf-harness/2';
 
 /// Valid scenario-only status values in artifacts.
 const perfScenarioStatuses = ['measured', 'unsupported'];
@@ -65,10 +65,9 @@ const perfBuildModes = ['profile', 'host_smoke'];
 
 /// Fixed disclosure that every artifact carries about the glass gate.
 const perfGlassDisclosure =
-    'Fixture-only override of the unvalidated-glass provider. The production '
-    'gate (lib/app/appearance.dart glassValidatedProvider) stays false and '
-    'untouched. This artifact exercises the composed glass surface for '
-    'measurement only and never enables glass in the product.';
+    'Fixture-only selection of glass or opaque surfaces. Production glass is '
+    'enabled by owner direction; physical-device validation remains separate. '
+    'This artifact never grants device acceptance.';
 
 /// Seed default the fixture uses so mandated artefacts record an editable
 /// provenance value instead of an ad-hoc choice at run time.

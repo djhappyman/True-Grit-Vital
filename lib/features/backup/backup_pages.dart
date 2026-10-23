@@ -73,7 +73,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     final operations = ref.watch(backupOperationsProvider);
     final state = ref.watch(backupProvider);
     final controller = ref.read(backupProvider.notifier);
-    return Scaffold(
+    return VitalScaffold(
       headers: [
         SafeArea(
           bottom: false,
@@ -95,7 +95,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
           ),
         ),
       ],
-      child: SingleChildScrollView(
+      child: VitalInsetScrollView(
         child: VitalPageBody(
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
           child: Column(

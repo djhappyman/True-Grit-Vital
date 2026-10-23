@@ -150,7 +150,7 @@ class StorageGate extends ConsumerWidget {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (context.mounted) context.go('/profile');
                       });
-                      return Scaffold(
+                      return VitalScaffold(
                         child: PageContent(
                           children: [Text(text.loadingRecords)],
                         ),
@@ -158,7 +158,7 @@ class StorageGate extends ConsumerWidget {
                     }
                     return child;
                   },
-                  error: (_, _) => Scaffold(
+                  error: (_, _) => VitalScaffold(
                     child: PageContent(
                       children: [
                         LoadFailure(
@@ -167,15 +167,15 @@ class StorageGate extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  loading: () => Scaffold(
+                  loading: () => VitalScaffold(
                     child: PageContent(children: [Text(text.loadingRecords)]),
                   ),
                 );
           },
-          loading: () => Scaffold(
+          loading: () => VitalScaffold(
             child: PageContent(children: [Text(text.loadingRecords)]),
           ),
-          error: (error, _) => Scaffold(
+          error: (error, _) => VitalScaffold(
             child: PageContent(
               children: [
                 Heading(
