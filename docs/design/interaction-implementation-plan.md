@@ -243,3 +243,11 @@ Shared adapters now provide Workout-style faux-glass cards, glass overlays, a tr
 Motion tokens match Workout's active push, press, selection, disclosure and modal timings. Full pages use Cupertino push/parallax; root pages and the bottom selection share a controller. Segments move their highlight, disclosures rotate their chevron, and vertical scrolling uses the family physics. Retain existing draft, dismissal, lock, exact-quantity and revision guards. Reduced motion keeps stable route/form subtrees.
 
 Verification: whole-project static analysis passed. A focused inset diagnostic passed before the final motion edits. The owner explicitly stopped comprehensive testing; no full regression, final capture matrix, native build or physical-device acceptance is claimed for this pass. Old capture helpers and safe-rectangle expectations require adaptation for the edge-to-edge viewport during the later test run. Production appearance is enabled by owner instruction; physical validation remains open.
+
+## Canonical controls, 23 October
+
+The follow-up family pass adapts Workout's canonical overlay frame/actions, pill fields and soft action rows. Vital and Stitch buttons share revised emphasis, warning/destructive tints and hover/press feedback. The shared dialog now owns explicit title/body/footer styles with a transparent shadcn ModalContainer; editor dialogs omit sheet handles. Filter/overflow triggers use VitalIconButton, and settings destinations use VitalNavigationRow. Existing callbacks, focus nodes, form controllers and guarded routes remain in place. No dependencies or fonts were added.
+
+Reference sources: Workout's shared overlays/canonical app_overlay_frame.dart and app_overlay_actions.dart, app_overlay_models.dart, forms/app_form_fields.dart, layout/app_media_picker_components.dart, and app/theme spacing/typography/color_schemes.dart. These inform Vital adapters; sibling Material widgets are not imported into Vital.
+
+Static analysis and hot reload passed. Comprehensive interaction, capture and device checks remain deferred by the owner's standing direction. No measured visual/accessibility acceptance is claimed from the source comparison alone.

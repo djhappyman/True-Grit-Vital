@@ -2,7 +2,6 @@ import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
-import '../../ui/stitch_ui.dart';
 
 /// One authored settings group. Space carries the grouping between rows.
 ///
@@ -49,34 +48,11 @@ class SettingsNavigationRow extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData? icon;
   @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
+  Widget build(BuildContext context) => VitalNavigationRow(
     label: label,
-    hint: description,
-    onTap: onPressed,
-    child: ExcludeSemantics(
-      child: VitalSurfaceFrame(
-        inset: true,
-        radius: VitalLayout.sectionRadius,
-        padding: EdgeInsets.zero,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 72),
-          child: StitchButton(
-            quiet: true,
-            onPressed: onPressed,
-            child: _SettingsRowContent(
-              label: label,
-              description: description,
-              icon: icon,
-              trailing: Icon(
-                LucideIcons.chevronRight,
-                color: VitalColors(context).muted,
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
+    description: description,
+    icon: icon,
+    onPressed: onPressed,
   );
 }
 

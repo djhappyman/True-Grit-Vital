@@ -78,7 +78,9 @@ class _VitalTaskFrameState extends State<VitalTaskFrame> {
                 curve: VitalMotion.arrival,
                 child: Container(
                   constraints: BoxConstraints(
-                    maxWidth: widget.dialog ? 560 : VitalLayout.contentWidth,
+                    maxWidth: widget.dialog
+                        ? VitalLayout.dialogWidth
+                        : VitalLayout.contentWidth,
                     maxHeight: math.max(48, constraints.maxHeight * .94),
                   ),
                   margin: widget.dialog
@@ -95,45 +97,48 @@ class _VitalTaskFrameState extends State<VitalTaskFrame> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onVerticalDragUpdate: widget.dialog
-                              ? null
-                              : (details) => setState(
-                                  () => _drag = math.max(
-                                    0,
-                                    _drag + details.delta.dy,
+                        if (!widget.dialog)
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onVerticalDragUpdate: widget.dialog
+                                ? null
+                                : (details) => setState(
+                                    () => _drag = math.max(
+                                      0,
+                                      _drag + details.delta.dy,
+                                    ),
                                   ),
-                                ),
-                          onVerticalDragEnd: widget.dialog
-                              ? null
-                              : (details) {
-                                  if (_drag > 72 ||
-                                      (details.primaryVelocity ?? 0) > 650) {
-                                    _dismiss();
-                                  }
-                                  setState(() => _drag = 0);
-                                },
-                          onVerticalDragCancel: () => setState(() => _drag = 0),
-                          child: Semantics(
-                            label: text.cancel,
-                            button: true,
-                            onTap: _dismiss,
-                            child: ExcludeSemantics(
-                              child: Button(
-                                style: ButtonVariance.ghost,
-                                onPressed: _dismiss,
-                                child: SizedBox(
-                                  height: 36,
-                                  width: 80,
-                                  child: Center(
-                                    child: Container(
-                                      width: 40,
-                                      height: 5,
-                                      decoration: BoxDecoration(
-                                        color: c.muted,
-                                        borderRadius: BorderRadius.circular(
-                                          999,
+                            onVerticalDragEnd: widget.dialog
+                                ? null
+                                : (details) {
+                                    if (_drag > 72 ||
+                                        (details.primaryVelocity ?? 0) > 650) {
+                                      _dismiss();
+                                    }
+                                    setState(() => _drag = 0);
+                                  },
+                            onVerticalDragCancel: () =>
+                                setState(() => _drag = 0),
+                            child: Semantics(
+                              label: text.cancel,
+                              button: true,
+                              onTap: _dismiss,
+                              child: ExcludeSemantics(
+                                child: Button(
+                                  style: ButtonVariance.ghost,
+                                  onPressed: _dismiss,
+                                  child: SizedBox(
+                                    height: 36,
+                                    width: 80,
+                                    child: Center(
+                                      child: Container(
+                                        width: 40,
+                                        height: 5,
+                                        decoration: BoxDecoration(
+                                          color: c.muted,
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -142,8 +147,11 @@ class _VitalTaskFrameState extends State<VitalTaskFrame> {
                               ),
                             ),
                           ),
+                        Flexible(
+                          child: widget.dialog
+                              ? VitalControlScope(child: widget.child)
+                              : widget.child,
                         ),
-                        Flexible(child: widget.child),
                         SizedBox(height: MediaQuery.paddingOf(context).bottom),
                       ],
                     ),
@@ -370,18 +378,12 @@ class _VitalLocalOptionsState extends State<VitalLocalOptions>
   Widget build(BuildContext context) => Builder(
     builder: (anchor) => MergeSemantics(
       child: Semantics(
-        label: widget.label,
         expanded: _open,
-        button: true,
-        child: Button(
+        child: VitalIconButton(
+          label: widget.label,
+          icon: widget.icon,
           focusNode: _triggerFocus,
-          style: ButtonVariance.ghost,
           onPressed: () => _show(anchor),
-          child: SizedBox(
-            width: 40,
-            height: 36,
-            child: Center(child: Icon(widget.icon, size: 20)),
-          ),
         ),
       ),
     ),
@@ -424,57 +426,46 @@ class VitalOverflow extends StatelessWidget {
   final List<VitalMenuAction> actions;
   @override
   Widget build(BuildContext context) => Builder(
-    builder: (anchor) => Semantics(
+    builder: (anchor) => VitalIconButton(
       label: label,
-      button: true,
-      child: Button(
-        style: ButtonVariance.ghost,
-        onPressed: () => showDropdown<void>(
-          context: anchor,
-          follow: false,
-          showDuration: VitalMotion.duration(anchor, VitalMotion.filter),
-          dismissDuration: VitalMotion.duration(
-            anchor,
-            VitalMotion.dialogClose,
-          ),
-          builder: (_) => VitalGlassSurface(
-            role: VitalGlassRole.menu,
-            borderRadius: BorderRadius.circular(18),
-            child: ComponentTheme<MenuPopupTheme>(
-              data: const MenuPopupTheme(
-                fillColor: Colors.transparent,
-                borderColor: Colors.transparent,
-                surfaceBlur: 0,
-                surfaceOpacity: 0,
-              ),
-              child: DropdownMenu(
-                surfaceBlur: 0,
-                surfaceOpacity: 0,
-                children: [
-                  for (final action in actions)
-                    MenuButton(
-                      leading: action.icon == null ? null : Icon(action.icon),
-                      onPressed: (_) => action.onPressed(),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          minHeight: 48,
-                          minWidth: 48,
-                        ),
-                        child: Align(
-                          alignment: AlignmentDirectional.centerStart,
-                          child: Text(action.label),
-                        ),
+      icon: LucideIcons.ellipsis,
+      onPressed: () => showDropdown<void>(
+        context: anchor,
+        follow: false,
+        showDuration: VitalMotion.duration(anchor, VitalMotion.filter),
+        dismissDuration: VitalMotion.duration(anchor, VitalMotion.dialogClose),
+        builder: (_) => VitalGlassSurface(
+          role: VitalGlassRole.menu,
+          borderRadius: BorderRadius.circular(18),
+          child: ComponentTheme<MenuPopupTheme>(
+            data: const MenuPopupTheme(
+              fillColor: Colors.transparent,
+              borderColor: Colors.transparent,
+              surfaceBlur: 0,
+              surfaceOpacity: 0,
+            ),
+            child: DropdownMenu(
+              surfaceBlur: 0,
+              surfaceOpacity: 0,
+              children: [
+                for (final action in actions)
+                  MenuButton(
+                    leading: action.icon == null ? null : Icon(action.icon),
+                    onPressed: (_) => action.onPressed(),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        minHeight: 48,
+                        minWidth: 48,
+                      ),
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Text(action.label, style: VitalType.control),
                       ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
           ),
-        ),
-        child: const SizedBox(
-          width: 40,
-          height: 36,
-          child: Center(child: Icon(LucideIcons.ellipsis, size: 20)),
         ),
       ),
     ),

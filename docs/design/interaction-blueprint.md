@@ -1,6 +1,6 @@
 # Vital interaction blueprint
 
-Version 5. Owner approved the standard on 21 October 2026, the Today simplification on 22 October, and the Workout-family glass and motion direction on 23 October 2026. This is the definitive presentation and motion standard for existing and future screens. Implementation status is tracked separately in the [rollout plan](interaction-implementation-plan.md); approval of this standard does not mean every screen has migrated.
+Version 6. Owner approved the standard on 21 October 2026, the Today simplification on 22 October, and the Workout-family glass, motion and canonical-control direction on 23 October 2026. This is the definitive presentation and motion standard for existing and future screens. Implementation status is tracked separately in the [rollout plan](interaction-implementation-plan.md); approval of this standard does not mean every screen has migrated.
 
 Use this blueprint with the [shared components](components.md), [design references](README.md), single-user specification and mobile copy contract. The original Stitch exports remain visual evidence; the owner's later History calendar and interaction decisions take precedence. Changes to this blueprint require an explicit explanation of the changed rule and updated examples/tests. Keep one current rule rather than adding contradictory exceptions.
 
@@ -91,6 +91,14 @@ Adapt the sibling Workout tracker's shared surfaces to shadcn controls. Use a fu
 `VitalScaffold` measures its actual header/footer, including device insets. Content begins below the transparent header. Its scrolling viewport can paint behind both bars; trailing padding lets the final action scroll fully above the bottom bar. `VitalChromeInsets` carries geometry through branch Navigators. The transparent pinned obstruction in `VitalInsetScrollView` keeps focus/ensure-visible targets below the header. Feature code must reuse these adapters rather than add competing top/bottom SafeAreas.
 
 Owner direction on 23 October supersedes the earlier runtime glass-off rule. Enabled appearance is not device validation: preserve explicit opaque surfaces, high-contrast fallbacks and the separate false physical-validation marker. Do not claim frame-time or accessibility acceptance from static analysis.
+
+## Family controls
+
+Use the shared control renderer for Vital and Stitch APIs. Adapt Workout's canonical overlay frame/action bar and form tokens to shadcn. Primary commands have a filled accent, secondary commands have softer emphasis, and dialog secondary actions use a quiet accent label. Warning/destructive commands use labelled tints. Retain explicit outlines where the owner requested them, native focus feedback, disabled/pending states and 48px targets. Shared icon commands and destination rows use the same interaction styling.
+
+Short dialogs use a compact 440px maximum width, 18px bold title, 14px body and an 8px header/body gap. Keep footer actions 20px below the body; use an overflow action bar that stacks when needed while preserving action order and focus nodes. Do not apply an additional AlertDialog small-text/muted layer around an already composed frame. Small editor dialogs have no sheet handle. Keep current save, cancellation, draft, PopScope and pending-write guards.
+
+Inputs use a soft fill and pill shape, with a 14px radius for multiline text. Preserve visible labels, native focus rings and high-contrast borders. Existing English copy, full medicine names, quantities and the current bundled font remain authoritative. Geometry belongs in the shared component tokens, not individual screens.
 
 ## Screen creation recipe
 

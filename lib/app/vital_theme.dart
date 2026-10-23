@@ -29,7 +29,7 @@ ThemeData vitalTheme(Brightness brightness) {
       secondaryForeground: () => palette.ink,
       accent: () => palette.accentSurface,
       accentForeground: () => palette.accent,
-      muted: () => palette.inset,
+      muted: () => palette.ink.withValues(alpha: .04),
       mutedForeground: () => palette.muted,
       border: () => palette.line,
       input: () => Color(dark ? 0xFF708A7C : 0xFF6B7D74),

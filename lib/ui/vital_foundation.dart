@@ -12,6 +12,9 @@ abstract final class VitalLayout {
   static const double surfaceRadius = 24;
   static const double sectionRadius = 16;
   static const double sheetRadius = 28;
+  static const double dialogWidth = 440;
+  static const double inputRadius = 999;
+  static const double multilineRadius = 14;
   static const double pillRadius = 999;
   static const double gap = 12;
   static const double sectionGap = 24;
@@ -65,6 +68,19 @@ abstract final class VitalType {
     height: 18 / 13,
     fontWeight: FontWeight.w500,
     letterSpacing: .13,
+  );
+  static const control = TextStyle(
+    fontFamily: 'StitchSans',
+    fontSize: 14,
+    height: 20 / 14,
+    fontWeight: FontWeight.w600,
+    letterSpacing: .1,
+  );
+  static const dialogTitle = TextStyle(
+    fontFamily: 'StitchSans',
+    fontSize: 18,
+    height: 26 / 18,
+    fontWeight: FontWeight.w700,
   );
   static const micro = TextStyle(
     fontFamily: 'StitchSans',
@@ -187,6 +203,17 @@ class _VitalSurfaceFrameState extends State<VitalSurfaceFrame> {
 
 enum VitalControlTone { primary, secondary, warning, danger, destructive }
 
+/// Context changes emphasis, never the command or its dismissal authority.
+class VitalControlScope extends InheritedWidget {
+  const VitalControlScope({super.key, required super.child});
+
+  static bool inDialog(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<VitalControlScope>() != null;
+
+  @override
+  bool updateShouldNotify(VitalControlScope oldWidget) => false;
+}
+
 /// One shadcn style resolver, including disabled/pending presentation and shape.
 class VitalControlStyle extends StatelessWidget {
   const VitalControlStyle({
@@ -196,29 +223,35 @@ class VitalControlStyle extends StatelessWidget {
     this.quiet = false,
     this.isLoading = false,
     this.outlined = false,
+    this.radius = VitalLayout.pillRadius,
     this.padding = const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
   });
   final Widget child;
   final VitalControlTone tone;
   final bool quiet, isLoading, outlined;
   final EdgeInsetsGeometry padding;
+  final double radius;
   @override
   Widget build(BuildContext context) {
     final c = VitalColors(context);
+    final dialog = VitalControlScope.inDialog(context);
+    final quietSecondary =
+        quiet || (dialog && tone == VitalControlTone.secondary);
     final ink = switch (tone) {
       VitalControlTone.primary => c.accentInk,
       VitalControlTone.warning => c.amber,
       VitalControlTone.danger => c.danger,
-      VitalControlTone.destructive => Colors.white,
-      VitalControlTone.secondary => c.ink,
+      VitalControlTone.destructive => c.danger,
+      VitalControlTone.secondary => dialog ? c.accent : c.ink,
     };
-    final fill = tone == VitalControlTone.primary
-        ? c.accent
-        : tone == VitalControlTone.destructive
-        ? c.scheme.destructive
-        : quiet
-        ? Colors.transparent
-        : c.inset;
+    final fill = switch (tone) {
+      VitalControlTone.primary => c.accent,
+      VitalControlTone.destructive ||
+      VitalControlTone.danger => c.danger.withValues(alpha: .14),
+      VitalControlTone.warning => c.amber.withValues(alpha: .16),
+      VitalControlTone.secondary =>
+        quietSecondary ? Colors.transparent : c.ink.withValues(alpha: .045),
+    };
     return VitalPress(
       enabled:
           !isLoading &&
@@ -234,24 +267,29 @@ class VitalControlStyle extends StatelessWidget {
             if (decoration is! BoxDecoration) return decoration;
             final disabled =
                 states.contains(WidgetState.disabled) && !isLoading;
+            final activeFill = states.contains(WidgetState.pressed)
+                ? Color.alphaBlend(ink.withValues(alpha: .09), fill)
+                : states.contains(WidgetState.hovered)
+                ? Color.alphaBlend(ink.withValues(alpha: .05), fill)
+                : fill;
             return decoration.copyWith(
-              color: disabled ? c.inset : fill,
-              border: Border.all(
-                color: disabled
-                    ? c.muted
-                    : outlined
-                    ? c.line
-                    : Colors.transparent,
-              ),
-              borderRadius: BorderRadius.circular(VitalLayout.pillRadius),
+              color: disabled
+                  ? quietSecondary
+                        ? Colors.transparent
+                        : c.ink.withValues(alpha: .035)
+                  : activeFill,
+              border: Border.all(color: outlined ? c.line : Colors.transparent),
+              borderRadius: BorderRadius.circular(radius),
               boxShadow: const [],
             );
           },
-          textStyle: (_, states, _) => VitalType.label.copyWith(
+          textStyle: (_, states, _) => VitalType.control.copyWith(
             color: states.contains(WidgetState.disabled) && !isLoading
                 ? c.muted
                 : ink,
-            fontWeight: FontWeight.w600,
+            fontWeight: tone == VitalControlTone.primary
+                ? FontWeight.w700
+                : FontWeight.w600,
           ),
           iconTheme: (_, states, theme) => theme.copyWith(
             color: states.contains(WidgetState.disabled) && !isLoading
@@ -264,4 +302,37 @@ class VitalControlStyle extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Shared icon command: a full-size target with the same family feedback.
+class VitalIconButton extends StatelessWidget {
+  const VitalIconButton({
+    super.key,
+    required this.label,
+    required this.icon,
+    this.onPressed,
+    this.focusNode,
+    this.quiet = true,
+  });
+  final String label;
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final FocusNode? focusNode;
+  final bool quiet;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: label,
+    child: VitalControlStyle(
+      quiet: quiet,
+      padding: const EdgeInsets.all(14),
+      child: Button(
+        style: ButtonVariance.ghost,
+        onPressed: onPressed,
+        focusNode: focusNode,
+        disableTransition: VitalMotion.reduced(context),
+        child: ExcludeSemantics(child: Icon(icon, size: 20)),
+      ),
+    ),
+  );
 }

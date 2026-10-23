@@ -11,11 +11,12 @@ export 'vital_motion.dart';
 export 'vital_presenters.dart';
 export 'vital_foundation.dart';
 export 'vital_glass.dart';
+export 'vital_dialog.dart';
+export 'vital_navigation_row.dart';
 export 'vital_scaffold.dart';
 
 import 'vital_foundation.dart';
 import 'vital_motion.dart';
-import 'vital_glass.dart';
 import 'vital_scaffold.dart';
 
 enum VitalButtonVariant { primary, secondary, destructive }
@@ -81,8 +82,11 @@ class VitalButton extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final foreground = switch (variant) {
       VitalButtonVariant.primary => colors.primaryForeground,
-      VitalButtonVariant.secondary => colors.secondaryForeground,
-      VitalButtonVariant.destructive => Colors.white,
+      VitalButtonVariant.secondary =>
+        VitalControlScope.inDialog(context)
+            ? colors.primary
+            : colors.secondaryForeground,
+      VitalButtonVariant.destructive => VitalColors(context).danger,
     };
     final effectiveAlignment = multiline
         ? AlignmentDirectional.centerStart
@@ -98,8 +102,12 @@ class VitalButton extends StatelessWidget {
       final painter = TextPainter(
         text: TextSpan(
           text: text.data,
-          style: VitalType.label
-              .copyWith(fontWeight: FontWeight.w600)
+          style: VitalType.control
+              .copyWith(
+                fontWeight: variant == VitalButtonVariant.primary
+                    ? FontWeight.w700
+                    : FontWeight.w600,
+              )
               .merge(text.style),
         ),
         textDirection: Directionality.of(context),
@@ -782,143 +790,17 @@ class VitalComponentThemes extends StatelessWidget {
     data: TextFieldTheme(
       filled: true,
       borderRadius: const BorderRadius.all(
-        Radius.circular(VitalLayout.sectionRadius),
+        Radius.circular(VitalLayout.inputRadius),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      border: Border.all(color: Theme.of(context).colorScheme.input),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      border: Border.all(
+        color: MediaQuery.highContrastOf(context)
+            ? Theme.of(context).colorScheme.input
+            : Colors.transparent,
+      ),
     ),
     child: child,
   );
-}
-
-/// Shared material boundary around shadcn's dialog anatomy and behaviour.
-class VitalDialog extends StatelessWidget {
-  const VitalDialog({
-    super.key,
-    this.title,
-    this.content,
-    this.actions,
-    this.leading,
-    this.trailing,
-  });
-
-  final Widget? title;
-  final Widget? content;
-  final List<Widget>? actions;
-  final Widget? leading;
-  final Widget? trailing;
-
-  static bool _isScrollable(Widget? widget) =>
-      widget is SingleChildScrollView || widget is ScrollView;
-
-  @override
-  Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    final screen = media.size;
-    final largeText = media.textScaler.scale(14) >= 28;
-    final padding = largeText ? 8.0 : 24.0;
-    final theme = Theme.of(context);
-    final maxWidth = math.min(560.0, screen.width - (largeText ? 0 : 32));
-    final maxHeight = math.max(
-      48.0,
-      screen.height -
-          media.viewInsets.bottom -
-          media.padding.top -
-          media.padding.bottom -
-          32,
-    );
-    final contentMaxHeight = math.max(
-      0.0,
-      maxHeight - padding * 2 - 2 * theme.scaling,
-    );
-    final densityGap = theme.density.baseGap * theme.scaling;
-    final hasHeader = title != null || leading != null || trailing != null;
-    final hasActions = actions?.isNotEmpty ?? false;
-
-    final header = hasHeader
-        ? Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (leading != null) leading!.iconXLarge().iconMutedForeground(),
-              if (title != null)
-                Flexible(child: title!.foreground().large().semiBold()),
-              if (trailing != null)
-                trailing!.iconXLarge().iconMutedForeground(),
-            ],
-          ).gap(densityGap * 2)
-        : null;
-    final actionRow = hasActions
-        ? Wrap(
-            alignment: WrapAlignment.end,
-            spacing: 12,
-            runSpacing: 12,
-            children: actions!,
-          )
-        : null;
-
-    // The header and body share a bounded, scrollable region. Actions stay
-    // outside it so they remain reachable when real copy or large text exceeds
-    // the available height. Callers that already supply their own scroll view
-    // keep it as the single scrollable region.
-    final body = ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: contentMaxHeight),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (_isScrollable(content)) ...[
-            if (header != null) ...[header, SizedBox(height: densityGap)],
-            Flexible(fit: FlexFit.loose, child: content!),
-          ] else if (header != null || content != null)
-            Flexible(
-              fit: FlexFit.loose,
-              child: SingleChildScrollView(
-                key: const ValueKey('vital-dialog-scroll'),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ?header,
-                    if (header != null && content != null)
-                      SizedBox(height: densityGap),
-                    ?content,
-                  ],
-                ),
-              ),
-            ),
-          if (actionRow != null) ...[const SizedBox(height: 20), actionRow],
-        ],
-      ),
-    );
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: maxWidth, maxHeight: maxHeight),
-          child: VitalGlassSurface(
-            role: VitalGlassRole.dialog,
-            child: Theme(
-              data: theme.copyWith(
-                colorScheme: () => theme.colorScheme.copyWith(
-                  popover: () => Colors.transparent,
-                  muted: () => Colors.transparent,
-                ),
-              ),
-              child: AlertDialog(
-                content: body,
-                padding: EdgeInsets.all(padding),
-                barrierColor: Colors.transparent,
-                surfaceBlur: 0,
-                surfaceOpacity: 0,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// Short section choices with shadcn focus, keyboard and button behaviour.

@@ -215,7 +215,15 @@ class Heading extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(top: 8, bottom: 16),
-    child: Semantics(header: true, child: Text(text, style: VitalType.section)),
+    child: Semantics(
+      header: true,
+      child: Text(
+        text,
+        style: VitalControlScope.inDialog(context)
+            ? VitalType.dialogTitle
+            : VitalType.section,
+      ),
+    ),
   );
 }
 
@@ -950,6 +958,11 @@ class LabelledInput extends StatelessWidget {
             enabled: enabled,
             keyboardType: keyboardType,
             maxLines: maxLines,
+            borderRadius: BorderRadius.circular(
+              maxLines > 1
+                  ? VitalLayout.multilineRadius
+                  : VitalLayout.inputRadius,
+            ),
             minLines: maxLines > 1 ? 1 : null,
             onSubmitted: onSubmitted,
             textInputAction:

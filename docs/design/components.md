@@ -20,6 +20,8 @@ The owner selected the strongest components from the [Stitch references](stitch/
 | `VitalField` | Visible label and helper around an existing input. |
 | `VitalActions` | Actions that wrap safely with narrow widths or larger text. |
 | `VitalButton` | Primary, secondary or destructive shadcn command, including pending state. |
+| `VitalIconButton` | Labelled 48px icon command with shared press, hover and focus behaviour. Used by filter and overflow triggers. |
+| `VitalNavigationRow` | One destination with an optional icon and explanation, a soft action-row surface and a trailing chevron. Settings rows delegate here. |
 | `VitalSegments` | Short mutually exclusive choices with accessible selection and keyboard behaviour. |
 | `VitalBadge` | A factual, labelled status. Tone supplements the text. |
 | `VitalCompactRow` | A wrapping identity/summary row with optional keyboard-accessible activation and a visible focus ring. Trailing content stays non-interactive when the whole row is an action. |
@@ -30,12 +32,16 @@ The owner selected the strongest components from the [Stitch references](stitch/
 | `StitchEmptySlot` | Borderless inset empty slot with a quiet centred plus and a descriptive accessible action. |
 | `VitalEmptyState` | Clear orientation and an optional next action for an empty collection. |
 | `VitalIconTile` | Consistent decorative icon container beside a meaningful label. |
-| `VitalDialog` | Bounded dialog with scrolling content and reachable actions. |
+| `VitalDialog`, `VitalDialogActions` | Compact glass decision/editor frame with a bounded body and footer actions that stack when a row cannot fit. |
 | `VitalType`, `VitalLayout` | Semantic typography and shared spacing/geometry. |
 
 `EntryPage`, `Heading` and `PageContent` remain compatibility adapters for existing features. Durable forms can override `buildEntryPage(children)` to compose their page chrome while keeping draft, lock, generation, safe-exit and deferred post-save navigation in `DurableFormState.wrap`; do not copy those guards into a screen. New features should use the shared UI entry point directly. Settings retain their established semantic navigation/toggle rows within `VitalPanel` groups.
 
-`VitalComponentThemes` gives native shadcn text fields the shared inset fill and section radius. Input borders and focus rings remain visible; screens should inherit this styling rather than set their own field decoration.
+`VitalComponentThemes` gives native shadcn text fields the Workout-family soft fill, pill radius and 18/16px horizontal/vertical padding. Resting borders are quiet; native focus rings remain visible, and high contrast retains an explicit input border. `LabelledInput` uses a 14px radius for multiline text. Screens inherit these defaults rather than copying local field decoration.
+
+`VitalControlStyle` is the renderer for both Vital and Stitch buttons. Primary commands use a filled accent and a bold 14px label. Ordinary secondary commands use a soft neutral fill; dialog secondary commands use a quiet accent label. Warning and destructive commands use labelled amber/red tints. Explicit outlined commands retain their outline. Disabled/pending, hover, focus and press states remain distinct without adding Material controls.
+
+`lib/ui/vital_dialog.dart` adapts Workout's canonical overlay frame and action-bar composition. Short dialogs default to 440px maximum width, an 18px bold title, 14px body text, 24px content padding and a 20px footer gap. Large text reduces content padding to 16px. The existing dialog presenter retains route and dismissal ownership; shadcn's transparent `ModalContainer` provides the modal surface without another AlertDialog content-style layer. Existing action callbacks, order and focus nodes are passed through unchanged. Small route editors use the same width/title/action emphasis and omit sheet handles.
 
 `SubstanceSummary(item: ..., detailed: ...)` in `lib/features/substances/substance_summary.dart` supplies bounded live schedule, next-dose and per-container stock information. It renders content inside the caller's container, preserves units and partial states, and uses the existing resolver rather than inventing dates or dose equivalents. `SubstanceContainerSummary` reuses its per-container presentation inside overview sections without duplicating whole schedule or stock sections.
 
