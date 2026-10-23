@@ -108,10 +108,12 @@ final class PhasePlan {
     required Iterable<DailyPlanVersion> phases,
     Iterable<DailyPlanVersion> originPhases = const [],
     this.end,
+    Map<String, PlanEnd> versionEnds = const {},
     Iterable<OccurrenceOverride> overrides = const [],
   }) : phases = List.unmodifiable(phases),
        originPhases = List.unmodifiable(originPhases),
-       overrides = List.unmodifiable(overrides) {
+       overrides = List.unmodifiable(overrides),
+       versionEnds = Map.unmodifiable(versionEnds) {
     if (this.phases.isEmpty) throw ArgumentError('empty_phases');
     final first = this.phases.first;
     final all = [...this.phases, ...this.originPhases];
@@ -171,6 +173,18 @@ final class PhasePlan {
   }
   final List<DailyPlanVersion> phases, originPhases;
   final PlanEnd? end;
+
+  /// Runtime bounds derived from recorded course progress, never forecasts.
+  final Map<String, PlanEnd> versionEnds;
+  PlanEnd? endFor(String versionId) {
+    final bound = versionEnds[versionId];
+    return bound != null &&
+            (end == null ||
+                bound.exclusiveInstant.isBefore(end!.exclusiveInstant))
+        ? bound
+        : end;
+  }
+
   final List<OccurrenceOverride> overrides;
   String get personId => phases.first.personId;
   String get itemId => phases.first.itemId;
@@ -268,8 +282,8 @@ final class PhaseResolver {
           rows.add(
             row.plannedCount != null &&
                     now != null &&
-                    plan.end != null &&
-                    !now.isBefore(plan.end!.exclusiveInstant)
+                    plan.endFor(row.versionId) != null &&
+                    !now.isBefore(plan.endFor(row.versionId)!.exclusiveInstant)
                 ? _endedBucket(row)
                 : row,
           );
@@ -425,6 +439,8 @@ final class PhaseResolver {
     instructions: phase.instructions,
     timingPolicy: phase.timingPolicy,
     requirements: phase.requirements,
+    doseDisplay: phase.doseDisplay,
+    stopCondition: phase.stopCondition,
     effectiveFrom: phase.effectiveFrom,
     effectiveUntil: phase.effectiveUntil,
   );
@@ -449,9 +465,10 @@ final class PhaseResolver {
     if (row.eligibilityConflict != null) return row.eligibilityConflict;
     final start = row.windowStart, end = row.windowEnd;
     if (start == null || end == null) return null;
-    if (plan.end != null &&
-        start.isBefore(plan.end!.exclusiveInstant) &&
-        end.isAfter(plan.end!.exclusiveInstant)) {
+    final bound = plan.endFor(row.versionId);
+    if (bound != null &&
+        start.isBefore(bound.exclusiveInstant) &&
+        end.isAfter(bound.exclusiveInstant)) {
       return 'window_crosses_plan_end';
     }
     for (final phase in plan.phases) {
@@ -488,7 +505,7 @@ final class PhaseResolver {
     if (end != null && start != null && !end.isAfter(start)) {
       throw ArgumentError('invalid_window_clock_order');
     }
-    if (plan.end case final bound?) {
+    if (plan.endFor(row.versionId) case final bound?) {
       if (start != null && !start.isBefore(bound.exclusiveInstant)) {
         return false;
       }
@@ -687,10 +704,10 @@ final class PhaseResolver {
           candidates.addAll(rows);
           break;
         }
-        if (plan.end != null &&
+        if (plan.endFor(phase.versionId) != null &&
             !PauseEligibility(clock)
                 .boundary(date, phase.zoneBasis.zoneFor(observedZone))
-                .isBefore(plan.end!.exclusiveInstant)) {
+                .isBefore(plan.endFor(phase.versionId)!.exclusiveInstant)) {
           break;
         }
         if (date == CivilDate(9999, 12, 31)) break;
@@ -783,8 +800,10 @@ final class PhaseResolver {
           candidates.add(row);
           break;
         }
-        if (plan.end != null &&
-            !row.instant!.isBefore(plan.end!.exclusiveInstant)) {
+        if (plan.endFor(phase.versionId) != null &&
+            !row.instant!.isBefore(
+              plan.endFor(phase.versionId)!.exclusiveInstant,
+            )) {
           break;
         }
         cursor = row.instant!;

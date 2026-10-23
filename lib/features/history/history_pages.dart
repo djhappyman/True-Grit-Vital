@@ -480,12 +480,14 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
               style: StitchType.caption,
             ),
             const SizedBox(height: 12),
-            LabelledInput(
-              label: t.historyFrom,
-              controller: from,
+            VitalDateRangeField(
+              start: from,
+              end: through,
+              startLabel: t.historyFrom,
+              endLabel: t.historyThrough,
+              endExclusive: false,
               error: dateError,
             ),
-            LabelledInput(label: t.historyThrough, controller: through),
             Text(
               t.historyDateHelp,
               style: StitchType.caption.copyWith(color: c.muted),

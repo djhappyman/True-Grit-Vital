@@ -5,8 +5,8 @@ import '../../ui/vital_ui.dart';
 
 /// One authored settings group. Space carries the grouping between rows.
 ///
-/// The optional icon and helper line come from the shared panel composition, so
-/// every group keeps one surface, radius and typography scale.
+/// The optional icon and helper line use the shared, uncontained settings
+/// section. Rows retain their own action and do not add nested card surfaces.
 class SettingsSection extends StatelessWidget {
   const SettingsSection({
     super.key,
@@ -22,11 +22,10 @@ class SettingsSection extends StatelessWidget {
   final String? description;
 
   @override
-  Widget build(BuildContext context) => VitalPanel(
+  Widget build(BuildContext context) => VitalSettingsSection(
     title: title,
     icon: icon,
     description: description,
-    gap: 8,
     children: children,
   );
 }
@@ -48,7 +47,7 @@ class SettingsNavigationRow extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData? icon;
   @override
-  Widget build(BuildContext context) => VitalNavigationRow(
+  Widget build(BuildContext context) => VitalSettingsRow(
     label: label,
     description: description,
     icon: icon,
@@ -78,11 +77,11 @@ class _SettingsRowContent extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: VitalType.label),
+            Text(label, style: VitalSettingsType.item),
             const SizedBox(height: 4),
             Text(
               description,
-              style: VitalType.metadata.copyWith(
+              style: VitalSettingsType.detail.copyWith(
                 color: VitalColors(context).muted,
               ),
             ),

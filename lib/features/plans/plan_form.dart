@@ -1,14 +1,20 @@
 import '../../app/display_preferences.dart';
+import '../../app/settings_toggle_row.dart';
 import '../../ui/stitch_ui.dart';
 import '../../ui/vital_ui.dart';
 
 import 'dart:convert';
+
+import 'package:intl/intl.dart' show DateFormat;
+
+import 'package:flutter/material.dart' as material show TimeOfDay;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/device_zone.dart';
+import '../../app/app_lock.dart';
 import '../../app/storage.dart';
 import '../../data/record_store.dart';
 import '../../l10n/app_localizations.dart';
@@ -24,6 +30,12 @@ import 'interval_editor.dart';
 import 'plan_timing_fields.dart';
 import 'interval_clock.dart';
 import 'schedule_screen.dart';
+import '../substances/substance_detail_providers.dart';
+import '../stock/stock_providers.dart'
+    show stockContainersProvider, stockDecimal;
+import '../stock/strength_equivalent.dart';
+
+part 'plan_editor_view.dart';
 
 class PlanSlotEntry {
   PlanSlotEntry({
@@ -72,7 +84,14 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
   AdultProfile? owner;
   SavedDailyPlan? original;
   String planId = newCommandId(), versionId = newCommandId();
-  String mode = 'count', basis = 'local';
+  String mode = 'slots', basis = 'local';
+  String? doseUnit;
+  LabelledStrength? doseStrength;
+  String durationMode = 'ongoing', durationUnit = 'weeks';
+  final durationCount = TextEditingController(),
+      totalAmount = TextEditingController();
+  String? endContainer;
+  bool differentAmounts = false, reviewing = false;
   bool initialised = false;
   FoodRequirement? requirementFood;
   bool requirementBedtime = false;
@@ -113,6 +132,16 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     'amount': amount.text,
     'home': home.text,
     'instructions': instructions.text,
+    'doseUnit': doseUnit ?? '',
+    'doseStrength': doseStrength == null
+        ? ''
+        : jsonEncode(doseStrength!.toJson()),
+    'durationMode': durationMode,
+    'durationUnit': durationUnit,
+    'durationCount': durationCount.text,
+    'totalAmount': totalAmount.text,
+    'endContainer': endContainer ?? '',
+    'differentAmounts': '$differentAmounts',
     ...timingFields.capture(),
     'requirementFood': requirementFood?.name ?? '',
     'requirementBedtime': requirementBedtime ? '1' : '0',
@@ -144,6 +173,23 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     amount.text = fields['amount'] ?? '';
     home.text = fields['home'] ?? '';
     instructions.text = fields['instructions'] ?? '';
+    doseUnit = fields['doseUnit']?.isNotEmpty == true
+        ? fields['doseUnit']
+        : item?.unit;
+    if (fields['doseStrength']?.isNotEmpty == true) {
+      doseStrength = LabelledStrength.fromJson(
+        jsonDecode(fields['doseStrength']!) as Map<String, dynamic>,
+      );
+    }
+    durationMode =
+        fields['durationMode'] ?? (end.text.isEmpty ? 'ongoing' : 'range');
+    durationUnit = fields['durationUnit'] ?? 'weeks';
+    durationCount.text = fields['durationCount'] ?? '';
+    totalAmount.text = fields['totalAmount'] ?? '';
+    endContainer = fields['endContainer']?.isNotEmpty == true
+        ? fields['endContainer']
+        : null;
+    differentAmounts = fields['differentAmounts'] == 'true';
     timingFields.restore(fields);
     requirementFood = switch (fields['requirementFood']) {
       null || '' => null,
@@ -168,6 +214,12 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       );
     }
     intervalClockSample = decodeIntervalClock(fields['intervalClockSample']);
+    if (amount.text.isEmpty && slots.isNotEmpty) {
+      amount.text = slots.first.amount.text;
+    }
+    if (!fields.containsKey('differentAmounts')) {
+      differentAmounts = slots.map((s) => s.amount.text).toSet().length > 1;
+    }
   }
 
   @override
@@ -190,7 +242,17 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       c.addListener(changed);
     }
     start.text = (widget.initialDay ?? today).toString();
-    for (final c in [start, end, count, amount, home, instructions]) {
+    count.text = '1';
+    for (final c in [
+      start,
+      end,
+      count,
+      amount,
+      home,
+      instructions,
+      durationCount,
+      totalAmount,
+    ]) {
       c.addListener(changed);
     }
     if (widget.planId == null &&
@@ -199,7 +261,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       mode = 'slots';
       addSlot(time: widget.initialTime!);
     } else {
-      addSlot();
+      addSlot(time: '08:00');
     }
   }
 
@@ -228,6 +290,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
 
   void changed() {
     preview = null;
+    reviewing = false;
     if (!uncertain) intervalClockSample = null;
     entryChanged();
     if (mounted && draftReady) setState(() {});
@@ -239,7 +302,16 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     calendar.dispose();
     blocks.dispose();
     interval.dispose();
-    for (final c in [start, end, count, amount, home, instructions]) {
+    for (final c in [
+      start,
+      end,
+      count,
+      amount,
+      home,
+      instructions,
+      durationCount,
+      totalAmount,
+    ]) {
       c.dispose();
     }
     for (final s in slots) {
@@ -254,11 +326,23 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     return WallTime(int.parse(m[1]!), int.parse(m[2]!));
   }
 
-  PlannedAmount parseAmount(String value) => PlannedAmount(
-    quantity: ExactQuantity.parse(value.trim()),
-    unit: item!.unit,
-    enteredText: value.trim(),
-  );
+  PlannedAmount parseAmount(String value) {
+    final entered = ExactAmount.parseEntry(stockDecimal(value));
+    final converted = convertScheduleAmount(
+      entered,
+      doseUnit ?? item!.unit,
+      item!.unit,
+      doseStrength,
+    );
+    if (converted == null) throw const FormatException('schedule_conversion');
+    final text = exactScheduleEntry(converted);
+    return PlannedAmount(
+      quantity: ExactQuantity.parse(text),
+      unit: item!.unit,
+      enteredText: text,
+    );
+  }
+
   bool get instructionsTooLong =>
       instructions.text.length > DailyPlanVersion.maxInstructionsLength;
   DailyPlanVersion candidate() => DailyPlanVersion(
@@ -279,9 +363,12 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     effectiveUntil: original?.plan.effectiveUntil,
     onOff: mode == 'prn' ? null : blocks.candidate(),
     start: CivilDate.parse(start.text.trim()),
-    endExclusive: end.text.trim().isEmpty
-        ? null
-        : CivilDate.parse(end.text.trim()).addDays(1),
+    endExclusive: _durationEnd(),
+    doseDisplay: PlanDoseDisplay(
+      unit: doseUnit ?? item!.unit,
+      strength: doseStrength,
+    ),
+    stopCondition: _stopCondition(),
     zoneBasis: basis == 'local'
         ? const FollowingLocal()
         : FixedHome(home.text.trim()),
@@ -298,7 +385,11 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
               id: s.id,
               start: parseTime(s.time.text),
               end: parseTime(s.end.text),
-              amount: parseAmount(s.amount.text),
+              amount: parseAmount(
+                (mode == 'windows' || mode == 'mixed' || differentAmounts)
+                    ? s.amount.text
+                    : amount.text,
+              ),
               reminderAnchor: s.anchor.text.trim().isEmpty
                   ? null
                   : parseTime(s.anchor.text),
@@ -314,7 +405,11 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
             DailySlot(
               id: s.id,
               time: parseTime(s.time.text),
-              amount: parseAmount(s.amount.text),
+              amount: parseAmount(
+                (mode == 'windows' || mode == 'mixed' || differentAmounts)
+                    ? s.amount.text
+                    : amount.text,
+              ),
               reminderEnabled: s.reminderEnabled,
             ),
         ],
@@ -324,7 +419,7 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
           DailySlot(
             id: s.id,
             time: parseTime(s.time.text),
-            amount: parseAmount(s.amount.text),
+            amount: parseAmount(differentAmounts ? s.amount.text : amount.text),
             reminderEnabled: s.reminderEnabled,
           ),
       ]),
@@ -413,6 +508,19 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
   void loadPlan(SavedDailyPlan saved) {
     original = saved;
     final p = saved.plan;
+    doseUnit = p.doseDisplay?.unit ?? item!.unit;
+    doseStrength = p.doseDisplay?.strength ?? doseStrength;
+    durationMode = p.stopCondition?.total != null
+        ? 'total'
+        : p.stopCondition?.containerId != null
+        ? 'container'
+        : p.endExclusive == null
+        ? 'ongoing'
+        : 'range';
+    endContainer = p.stopCondition?.containerId;
+    if (p.stopCondition?.total case final total?) {
+      totalAmount.text = _displayAmount(total, p.stopCondition!.unit!);
+    }
     calendar.load(p.calendar);
     blocks.load(p.onOff);
     planId = p.planId;
@@ -430,6 +538,15 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
       case ElapsedInterval():
         mode = 'interval';
         interval.load(p.timing as ElapsedInterval);
+        final timing = p.timing as ElapsedInterval;
+        final zone = basis == 'home'
+            ? home.text.trim()
+            : ref.read(observedDeviceZoneProvider).value?.zoneId;
+        if (timing.plannedAnchor != null && zone != null) {
+          slots.first.time.text = wallLabel(
+            DailyResolver().clock.timeAt(timing.plannedAnchor!, zone),
+          );
+        }
         amount.text = (p.timing as ElapsedInterval).amount.enteredText;
       case AsNeeded():
         mode = 'prn';
@@ -486,6 +603,24 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
           );
         }
     }
+    if (mode == 'slots' || mode == 'windows' || mode == 'mixed') {
+      for (final slot in slots) {
+        slot.amount.text = _displayAmount(
+          ExactAmount.parseEntry(slot.amount.text),
+          item!.unit,
+        );
+      }
+      differentAmounts = slots.map((s) => s.amount.text).toSet().length > 1;
+      if (mode == 'slots' || mode == 'windows') {
+        amount.text = slots.first.amount.text;
+      }
+    }
+    if (mode == 'count' || mode == 'mixed' || mode == 'interval') {
+      amount.text = _displayAmount(
+        ExactAmount.parseEntry(amount.text),
+        item!.unit,
+      );
+    }
   }
 
   @override
@@ -506,19 +641,25 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     final lookup = ref.watch(itemLookupProvider(widget.itemId));
     final people = ref.watch(profilesProvider);
     final plans = ref.watch(itemPlansProvider(widget.itemId));
+    final details = ref.watch(itemDetailProvider(widget.itemId));
     if (!lookup.hasValue ||
         !people.hasValue ||
         !plans.hasValue ||
+        !details.hasValue ||
         !initialised &&
             (lookup.isLoading || people.isLoading || plans.isLoading)) {
       return EntryPage(
         children: [
-          if (lookup.hasError || people.hasError || plans.hasError)
+          if (lookup.hasError ||
+              people.hasError ||
+              plans.hasError ||
+              details.hasError)
             LoadFailure(
               onRetry: () {
                 ref.invalidate(itemLookupProvider(widget.itemId));
                 ref.invalidate(profilesProvider);
                 ref.invalidate(itemPlansProvider(widget.itemId));
+                ref.invalidate(itemDetailProvider(widget.itemId));
               },
             )
           else
@@ -532,6 +673,11 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     }
     if (!initialised) {
       item = lookup.value;
+      doseUnit = item!.unit;
+      doseStrength = details.value?.profile?.labelledStrength(
+        item!.id,
+        item!.name,
+      );
       owner = people.value!.where((p) => p.id == item!.personId).firstOrNull;
       final saved = plans.value!
           .where((p) => widget.planId == null || p.plan.planId == widget.planId)
@@ -555,592 +701,20 @@ class _DailyPlanFormState extends DurableFormState<DailyPlanForm> {
     final now = DateTime.now().toUtc();
     final paused =
         original?.plan.pauses.any((pause) => pause.contains(now)) == true;
-    final strength = item!.catalogueSnapshot?.product.strength.trim() ?? '';
-    final modeLabel = switch (mode) {
-      'count' => t.planCount,
-      'slots' => t.planTimes,
-      'prn' => t.planAsNeeded,
-      'interval' => t.intervalPattern,
-      'mixed' => t.phaseMixed,
-      _ => t.phaseWindows,
-    };
-    String slotMeta() => switch (mode) {
-      'windows' => t.screenScheduleWindowCount(slots.length),
-      _ => t.screenScheduleSlotCount(slots.length),
-    };
-    final c = StitchColors(context);
-    final caption = StitchType.caption.copyWith(color: c.muted);
-
-    return wrap([
-      ScheduleTitleBlock(title: t.schedule, subtitle: t.screenScheduleSubtitle),
-      ScheduleIdentityCard(
-        name: item!.name,
-        detail: '${item!.form} · ${item!.unit}',
-        badge: Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            StitchBadge(item!.type),
-            if (strength.isNotEmpty) StitchBadge(strength),
-          ],
-        ),
-      ),
-      if (!valid)
-        Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: StitchSurface(
-            radius: VitalLayout.sectionRadius,
-            inset: true,
-            padding: const EdgeInsets.all(12),
-            child: Semantics(
-              liveRegion: true,
-              child: Text(t.profileChanged, style: caption),
-            ),
-          ),
-        ),
-      if (original != null)
-        Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: Text(t.planEditHelp, style: caption),
-        ),
-      if (original?.plan.timing is ElapsedInterval)
-        Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: Text(t.intervalEditHelp, style: caption),
-        ),
-      const SizedBox(height: 20),
-      ScheduleSectionHeader(title: t.screenScheduleRecurrence, meta: modeLabel),
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final (value, label) in [
-            ('count', t.planCount),
-            ('slots', t.planTimes),
-            ('prn', t.planAsNeeded),
-            ('interval', t.intervalPattern),
-            ('mixed', t.phaseMixed),
-            ('windows', t.phaseWindows),
-          ])
-            ScheduleChoiceChip(
-              label: label,
-              selected: mode == value,
-              onPressed: enabled
-                  ? () => setState(() {
-                      mode = value;
-                      changed();
-                    })
-                  : null,
-            ),
-        ],
-      ),
-      const SizedBox(height: 16),
-      if (mode == 'interval')
-        StitchSurface(
-          radius: VitalLayout.sectionRadius,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              IntervalEditor(
-                fields: interval,
-                enabled: enabled,
-                onChanged: changed,
-              ),
-              LabelledInput(
-                label: t.amountLabel,
-                semanticLabel: '${t.amountLabel}, ${item!.unit}',
-                controller: amount,
-                helper: item!.unit,
-                enabled: enabled,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-              ),
-            ],
-          ),
-        ),
-      if (mode == 'count' || mode == 'mixed')
-        StitchSurface(
-          radius: VitalLayout.sectionRadius,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              LabelledInput(
-                label: t.planCount,
-                controller: count,
-                enabled: enabled,
-                keyboardType: TextInputType.number,
-              ),
-              LabelledInput(
-                label: t.amountLabel,
-                semanticLabel: '${t.amountLabel}, ${item!.unit}',
-                controller: amount,
-                helper: item!.unit,
-                enabled: enabled,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-              ),
-              Text(
-                mode == 'mixed' ? t.phaseMixedHelp : t.planCountHelp,
-                style: caption,
-              ),
-            ],
-          ),
-        ),
-      if (mode == 'prn')
-        SchedulePreviewNote(
-          body: t.planPrnHelp,
-          icon: LucideIcons.calendarClock,
-        ),
-      if (mode == 'slots' || mode == 'mixed' || mode == 'windows') ...[
-        Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: ScheduleSectionHeader(
-            title: switch (mode) {
-              'windows' => t.phaseWindows,
-              'mixed' => t.screenScheduleChosenTimes,
-              _ => t.screenScheduleDoseWindows,
-            },
-            meta: slotMeta(),
-          ),
-        ),
-        if (mode == 'windows')
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(t.phaseWindowHelp, style: caption),
-          ),
-        for (final s in slots)
-          Padding(
-            key: ValueKey(s.id),
-            padding: const EdgeInsets.only(bottom: 12),
-            child: StitchSurface(
-              radius: VitalLayout.sectionRadius,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: StitchIcon(LucideIcons.clock3, size: 40),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: LabelledInput(
-                          label: mode == 'windows'
-                              ? t.phaseWindowStart
-                              : t.planTime,
-                          controller: s.time,
-                          helper: t.timeExample,
-                          enabled: enabled,
-                          keyboardType: TextInputType.datetime,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (mode == 'windows') ...[
-                    LabelledInput(
-                      label: t.phaseWindowEnd,
-                      controller: s.end,
-                      helper: t.phaseWindowEndHelp,
-                      enabled: enabled,
-                      keyboardType: TextInputType.datetime,
-                    ),
-                    LabelledInput(
-                      label: t.phaseWindowAnchor,
-                      controller: s.anchor,
-                      helper: t.phaseWindowAnchorHelp,
-                      enabled: enabled,
-                      keyboardType: TextInputType.datetime,
-                    ),
-                  ],
-                  LabelledInput(
-                    label: t.amountLabel,
-                    semanticLabel: '${t.amountLabel}, ${item!.unit}',
-                    controller: s.amount,
-                    helper: item!.unit,
-                    enabled: enabled,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                  ),
-
-                  if (slots.length > 1)
-                    Align(
-                      alignment: AlignmentDirectional.centerEnd,
-                      child: StitchButton(
-                        destructive: true,
-                        icon: LucideIcons.trash2,
-                        onPressed: enabled
-                            ? () => setState(() {
-                                slots.remove(s);
-                                s.dispose();
-                                changed();
-                              })
-                            : null,
-                        child: Text(t.remove),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        SizedBox(
-          width: double.infinity,
-          child: StitchButton(
-            icon: LucideIcons.plus,
-            onPressed: enabled
-                ? () => setState(() {
-                    addSlot();
-                    changed();
-                  })
-                : null,
-            child: Text(t.add),
-          ),
-        ),
-      ],
-      const SizedBox(height: 20),
-      ScheduleSectionHeader(
-        title: t.screenScheduleDates,
-        meta: original == null ? t.screenScheduleNew : t.saved,
-      ),
-      StitchSurface(
-        radius: VitalLayout.sectionRadius,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            LabelledInput(
-              label: original == null ? t.planStart : t.planEffective,
-              controller: start,
-              helper: t.dateExample,
-              enabled: enabled,
-              keyboardType: TextInputType.datetime,
-            ),
-            LabelledInput(
-              label: t.planEnd,
-              controller: end,
-              helper: t.planEndHelp,
-              enabled: enabled,
-              keyboardType: TextInputType.datetime,
-            ),
-          ],
-        ),
-      ),
-      if (mode != 'prn' && mode != 'interval') ...[
-        const SizedBox(height: 12),
-        StitchSurface(
-          radius: VitalLayout.sectionRadius,
-          child: CalendarEditor(
-            fields: calendar,
-            enabled: enabled,
-            onChanged: changed,
-          ),
-        ),
-      ],
-      if (mode != 'prn') ...[
-        const SizedBox(height: 12),
-        StitchSurface(
-          radius: VitalLayout.sectionRadius,
-          child: OnOffEditor(
-            fields: blocks,
-            enabled: enabled,
-            onChanged: changed,
-          ),
-        ),
-      ],
-      const SizedBox(height: 20),
-      ScheduleSectionHeader(
-        title: t.planZone,
-        meta: basis == 'local' ? t.planLocal : t.planHome,
-      ),
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final (value, label) in [
-            ('local', t.planLocal),
-            ('home', t.planHome),
-          ])
-            ScheduleChoiceChip(
-              label: label,
-              selected: basis == value,
-              onPressed: enabled
-                  ? () => setState(() {
-                      basis = value;
-                      changed();
-                    })
-                  : null,
-            ),
-        ],
-      ),
-      const SizedBox(height: 12),
-      if (basis == 'home')
-        LabelledInput(
-          label: t.planHomeZone,
-          controller: home,
-          helper: t.planZoneExample,
-          enabled: enabled,
-        )
-      else
-        StitchSurface(
-          radius: VitalLayout.sectionRadius,
-          inset: true,
-          padding: const EdgeInsets.all(12),
-          child: Text(
-            t.planObserved(
-              ref.watch(observedDeviceZoneProvider).value?.zoneId ??
-                  t.planZoneUnknown,
-            ),
-            style: caption,
-          ),
-        ),
-      const SizedBox(height: 20),
-      PlanTimingEditor(
-        fields: timingFields,
-        enabled: enabled,
-        onChanged: changed,
-      ),
-      const SizedBox(height: 20),
-      ScheduleSectionHeader(title: t.featurePlanInstructionsHeading),
-      StitchSurface(
-        radius: VitalLayout.sectionRadius,
-        child: LabelledInput(
-          label: t.featurePlanInstructionsLabel,
-          controller: instructions,
-          enabled: enabled,
-          maxLines: 5,
-          helper: t.featurePlanInstructionsHelp,
-          error: instructionsTooLong
-              ? t.featurePlanInstructionsTooLong(
-                  DailyPlanVersion.maxInstructionsLength,
-                )
-              : null,
-        ),
-      ),
-      const SizedBox(height: 20),
-      ScheduleSectionHeader(
-        title: t.screenScheduleRequirements,
-        meta: t.finishR01Optional,
-      ),
-      StitchSurface(
-        radius: VitalLayout.sectionRadius,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(t.finishR01RequirementsHelp, style: caption),
-            const SizedBox(height: 12),
-            Text(
-              t.finishR01FoodHeading,
-              style: StitchType.label.copyWith(color: c.ink),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ScheduleChoiceChip(
-                  key: const ValueKey('requirement-food-none'),
-                  label: t.finishR01FoodNotSet,
-                  selected: requirementFood == null,
-                  onPressed: enabled
-                      ? () => setState(() {
-                          requirementFood = null;
-                          changed();
-                        })
-                      : null,
-                ),
-                for (final (value, label) in [
-                  (FoodRequirement.beforeFood, t.finishR01FoodBefore),
-                  (FoodRequirement.withFood, t.finishR01FoodWith),
-                  (FoodRequirement.afterFood, t.finishR01FoodAfter),
-                  (FoodRequirement.emptyStomach, t.finishR01FoodEmptyStomach),
-                ])
-                  ScheduleChoiceChip(
-                    key: ValueKey('requirement-food-${value.name}'),
-                    label: label,
-                    selected: requirementFood == value,
-                    onPressed: enabled
-                        ? () => setState(() {
-                            requirementFood = value;
-                            changed();
-                          })
-                        : null,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              t.finishR01BedtimeHeading,
-              style: StitchType.label.copyWith(color: c.ink),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ScheduleChoiceChip(
-                  key: const ValueKey('requirement-bedtime-none'),
-                  label: t.finishR01BedtimeNotSet,
-                  selected: !requirementBedtime,
-                  onPressed: enabled
-                      ? () => setState(() {
-                          requirementBedtime = false;
-                          changed();
-                        })
-                      : null,
-                ),
-                ScheduleChoiceChip(
-                  key: const ValueKey('requirement-bedtime-at'),
-                  label: t.finishR01AtBedtime,
-                  selected: requirementBedtime,
-                  onPressed: enabled
-                      ? () => setState(() {
-                          requirementBedtime = true;
-                          changed();
-                        })
-                      : null,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      const SizedBox(height: 20),
-      StitchSurface(
-        radius: VitalLayout.sectionRadius,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                StitchIcon(LucideIcons.circlePause, size: 40),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        paused ? t.pauseResume : t.pauseHeading,
-                        style: StitchType.heading.copyWith(color: c.ink),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        t.pauseConsequence,
-                        style: StitchType.body.copyWith(color: c.muted),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                StitchButton(
-                  icon: paused ? LucideIcons.play : LucideIcons.pause,
-                  onPressed: enabled && original != null
-                      ? () => context.push(
-                          '/pause/${item!.id}?plan=${original!.plan.planId}',
-                        )
-                      : null,
-                  child: Text(paused ? t.resume : t.pauseAction),
-                ),
-                StitchButton(
-                  icon: LucideIcons.calendarRange,
-                  onPressed: enabled && original != null
-                      ? () => context.push(
-                          '/phases/${item!.id}?plan=${original!.plan.planId}',
-                        )
-                      : null,
-                  child: Text(t.phaseHeading),
-                ),
-              ],
-            ),
-            if (original == null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(t.screenScheduleSaveFirst, style: caption),
-              ),
-          ],
-        ),
-      ),
-      const SizedBox(height: 20),
-      ScheduleSectionHeader(
-        title: t.screenScheduleAlerts,
-        meta: t.screenScheduleAlertsMeta,
-      ),
-      if (valid && original != null)
-        StitchSurface(
-          radius: VitalLayout.sectionRadius,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [PlanReminderControl(saved: original!)],
-          ),
-        )
-      else
-        SchedulePreviewNote(
-          body: t.screenScheduleRemindersAfterSave,
-          label: t.preview,
-          icon: LucideIcons.bell,
-        ),
-      const SizedBox(height: 20),
-      ?failure(),
-      VitalButton.secondary(
-        expand: true,
-        leading: const Icon(LucideIcons.eye),
-        onPressed: enabled ? makePreview : null,
-        child: Text(t.planPreview),
-      ),
-      if (preview == null)
-        Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: Text(t.screenSchedulePreviewHelp, style: caption),
-        )
-      else
-        Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: StitchSurface(
-            radius: VitalLayout.sectionRadius,
-            inset: true,
-            child: preview!.timing is ElapsedInterval
-                ? IntervalPlanPreview(
-                    plan: preview!,
-                    observedZone: previewZone!,
-                  )
-                : PlanPreview(plan: preview!, observedZone: previewZone!),
-          ),
-        ),
-      const SizedBox(height: 12),
-      VitalButton(
-        expand: true,
-        onPressed:
-            busy ||
-                conflict ||
-                (!valid && !uncertain) ||
-                (preview == null && !uncertain)
-            ? null
-            : save,
-        child: Text(
-          busy
-              ? t.saving
-              : uncertain
-              ? t.retry
-              : t.save,
-        ),
-      ),
-      const SizedBox(height: 8),
-      VitalButton.secondary(
-        expand: true,
-        onPressed: busy ? null : leave,
-        child: Text(t.discard),
-      ),
-    ]);
+    return wrap(_simpleEditor(enabled: enabled, paused: paused, valid: valid));
   }
+
+  void _edit(VoidCallback change) {
+    setState(change);
+    changed();
+  }
+
+  void _review() {
+    makePreview();
+    if (preview != null) setState(() => reviewing = true);
+  }
+
+  void _setReview(bool value) => setState(() => reviewing = value);
 
   @override
   Widget buildEntryPage(List<Widget> children) {

@@ -208,6 +208,8 @@ class PhaseEntry {
       instructions: p.instructions,
       timingPolicy: p.timingPolicy,
       requirements: p.requirements,
+      doseDisplay: p.doseDisplay,
+      stopCondition: p.stopCondition,
       calendar: mode == 'interval' || mode == 'prn'
           ? const EveryDay()
           : calendar.candidate(),
@@ -907,6 +909,10 @@ class _PhasePlanFormState extends DurableFormState<PhasePlanForm> {
       ),
       if (endMode != 'none') ...[
         LabelledInput(
+          picker: endMode == 'date'
+              ? VitalPickerKind.date
+              : VitalPickerKind.instant,
+          pickerZone: endZone.text.trim(),
           key: const ValueKey('phaseEndValue'),
           label: endMode == 'date' ? t.phaseDateEnd : t.phaseExactEnd,
           controller: endValue,
@@ -926,6 +932,7 @@ class _PhasePlanFormState extends DurableFormState<PhasePlanForm> {
       Heading(t.phaseChangeHeading),
       Text(t.phaseChangeHelp),
       LabelledInput(
+        picker: VitalPickerKind.date,
         key: const ValueKey('phaseOriginalDate'),
         label: t.phaseOriginalDate,
         controller: originalDate,
@@ -985,6 +992,8 @@ class _PhasePlanFormState extends DurableFormState<PhasePlanForm> {
           Text(t.phaseSingleCount),
         if (selected!.originalTime != null || selected!.windowStart != null)
           LabelledInput(
+            picker: VitalPickerKind.instant,
+            pickerZone: targetZone.text.trim(),
             key: const ValueKey('phaseTarget'),
             label: selected!.windowStart == null
                 ? t.phaseTarget
@@ -996,6 +1005,8 @@ class _PhasePlanFormState extends DurableFormState<PhasePlanForm> {
           ),
         if (selected!.windowStart != null) ...[
           LabelledInput(
+            picker: VitalPickerKind.instant,
+            pickerZone: targetZone.text.trim(),
             key: const ValueKey('phaseWindowTargetEnd'),
             label: t.phaseWindowEnd,
             controller: windowEnd,
@@ -1004,6 +1015,8 @@ class _PhasePlanFormState extends DurableFormState<PhasePlanForm> {
             keyboardType: TextInputType.datetime,
           ),
           LabelledInput(
+            picker: VitalPickerKind.instant,
+            pickerZone: targetZone.text.trim(),
             key: const ValueKey('phaseWindowTargetAnchor'),
             label: t.phaseWindowAnchor,
             controller: windowAnchor,
@@ -1197,6 +1210,7 @@ class _PhasePlanFormState extends DurableFormState<PhasePlanForm> {
           ),
         ),
       LabelledInput(
+        picker: VitalPickerKind.date,
         key: ValueKey('phaseStart-${p.id}'),
         label: t.phaseStart,
         controller: p.start,
@@ -1205,6 +1219,7 @@ class _PhasePlanFormState extends DurableFormState<PhasePlanForm> {
         keyboardType: TextInputType.datetime,
       ),
       LabelledInput(
+        picker: VitalPickerKind.date,
         key: ValueKey('phaseLast-${p.id}'),
         label: t.phaseLast,
         controller: p.last,
@@ -1212,18 +1227,20 @@ class _PhasePlanFormState extends DurableFormState<PhasePlanForm> {
         enabled: enabled,
         keyboardType: TextInputType.datetime,
       ),
-      CalendarChoices(
+      VitalSelect<String>(
+        label: t.simpleScheduleRepeat,
         value: p.mode,
+        values: const ['count', 'slots', 'mixed', 'windows', 'interval', 'prn'],
+        labelOf: (mode) => {
+          'count': t.planCount,
+          'slots': t.planTimes,
+          'mixed': t.phaseMixed,
+          'windows': t.phaseWindows,
+          'interval': t.intervalPattern,
+          'prn': t.planAsNeeded,
+        }[mode]!,
         enabled: enabled,
-        choices: [
-          ('count', t.planCount),
-          ('slots', t.planTimes),
-          ('mixed', t.phaseMixed),
-          ('windows', t.phaseWindows),
-          ('interval', t.intervalPattern),
-          ('prn', t.planAsNeeded),
-        ],
-        onSelected: (v) {
+        onChanged: (v) {
           p.mode = v;
           if (p.slots.isEmpty) {
             final s = PlanSlotEntry();
@@ -1261,6 +1278,7 @@ class _PhasePlanFormState extends DurableFormState<PhasePlanForm> {
       if (p.mode == 'slots' || p.mode == 'mixed' || p.mode == 'windows') ...[
         for (final s in p.slots) ...[
           LabelledInput(
+            picker: VitalPickerKind.time,
             label: p.mode == 'windows' ? t.phaseWindowStart : t.planTime,
             controller: s.time,
             helper: t.timeExample,
@@ -1269,12 +1287,14 @@ class _PhasePlanFormState extends DurableFormState<PhasePlanForm> {
           ),
           if (p.mode == 'windows') ...[
             LabelledInput(
+              picker: VitalPickerKind.time,
               label: t.phaseWindowEnd,
               controller: s.end,
               helper: t.phaseWindowEndHelp,
               enabled: enabled,
             ),
             LabelledInput(
+              picker: VitalPickerKind.time,
               label: t.phaseWindowAnchor,
               controller: s.anchor,
               helper: t.phaseWindowAnchorHelp,

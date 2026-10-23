@@ -1,4 +1,5 @@
 import '../../app/display_preferences.dart';
+import '../../app/settings_toggle_row.dart';
 import '../../ui/vital_ui.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -74,37 +75,38 @@ class OnOffEditor extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Heading(t.pauseBlocks),
-        CalendarChoices(
-          value: f.enabled ? 'blocks' : 'continuous',
+        SettingsToggleRow(
+          label: t.simpleScheduleBreaks,
+          description: t.simpleScheduleBreakHelp,
+          value: f.enabled,
           enabled: enabled,
-          choices: [
-            ('continuous', t.pauseContinuous),
-            ('blocks', t.pauseBlocks),
-          ],
-          onSelected: (v) {
-            f.enabled = v == 'blocks';
+          reduceMotion: VitalMotion.reduced(context),
+          onChanged: (value) {
+            f.enabled = value;
             onChanged();
           },
         ),
         if (f.enabled) ...[
-          Text(t.pauseIntersection),
-          LabelledInput(
-            key: const ValueKey('blockOn'),
+          Text(
+            t.simpleScheduleBreakDates,
+            style: VitalType.metadata.copyWith(
+              color: VitalColors(context).muted,
+            ),
+          ),
+          VitalRepeatStepper(
             label: t.pauseOnDays,
             controller: f.on,
             enabled: enabled,
-            keyboardType: TextInputType.number,
+            max: 9999,
           ),
-          LabelledInput(
-            key: const ValueKey('blockOff'),
+          VitalRepeatStepper(
             label: t.pauseOffDays,
-            helper: t.pauseOffHelp,
             controller: f.off,
             enabled: enabled,
-            keyboardType: TextInputType.number,
+            max: 9999,
           ),
           LabelledInput(
+            picker: VitalPickerKind.date,
             key: const ValueKey('blockAnchor'),
             label: t.pauseBlockAnchor,
             helper: t.dateExample,
@@ -206,6 +208,8 @@ DailyPlanVersion pauseCandidate(
     instructions: p.instructions,
     timingPolicy: p.timingPolicy,
     requirements: p.requirements,
+    doseDisplay: p.doseDisplay,
+    stopCondition: p.stopCondition,
     pauses: open == null
         ? [...p.pauses, PlanPause(start: instant)]
         : [
@@ -463,6 +467,7 @@ class _PausePlanFormState extends DurableFormState<PausePlanForm> {
       Text(t.pauseConsequence),
       if (!valid) Text(t.profileChanged),
       LabelledInput(
+        picker: VitalPickerKind.instant,
         key: const ValueKey('pauseInstant'),
         label: open == null ? t.pauseStart : t.pauseResumeAt,
         helper: t.intervalAnchorHelp,
@@ -487,6 +492,9 @@ class _PausePlanFormState extends DurableFormState<PausePlanForm> {
         Text(choice == 'restart' ? t.pauseRestartHelp : t.pausePreserveHelp),
         if (choice == 'restart')
           LabelledInput(
+            picker: p.timing is ElapsedInterval
+                ? VitalPickerKind.instant
+                : VitalPickerKind.date,
             key: const ValueKey('restartAnchor'),
             label: p.timing is ElapsedInterval
                 ? t.intervalAnchor

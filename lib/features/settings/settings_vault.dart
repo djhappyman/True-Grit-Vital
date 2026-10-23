@@ -24,6 +24,16 @@ final settingsDateClockProvider = Provider<DateTime Function()>(
   (ref) => DateTime.now,
 );
 
+class LocalDataPage extends StatelessWidget {
+  const LocalDataPage({super.key});
+
+  @override
+  Widget build(BuildContext context) => VitalSettingsPage(
+    title: AppLocalizations.of(context).featureVaultTitle,
+    children: const [SettingsVaultSummary()],
+  );
+}
+
 class SettingsVaultSummary extends ConsumerWidget {
   const SettingsVaultSummary({super.key});
 
@@ -74,13 +84,11 @@ class SettingsVaultSummary extends ConsumerWidget {
               (t.supportingRecordsHeading, summary.supportingRecords),
               (t.attachments, summary.files),
             ];
-            return VitalSurfaceFrame(
-              inset: true,
-              radius: VitalLayout.sectionRadius,
+            return VitalSettingsCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(t.featureVaultTitle, style: VitalType.section),
+                  Text(t.featureVaultTitle, style: VitalSettingsType.item),
                   const SizedBox(height: 12),
                   Semantics(
                     label: t.featureVaultDatabase,
@@ -156,13 +164,11 @@ class _SettingsReportDatesState extends ConsumerState<SettingsReportDates> {
       t.featureVaultNinetyLabel,
       t.featureVaultYearLabel,
     ];
-    return VitalSurfaceFrame(
-      inset: true,
-      radius: VitalLayout.sectionRadius,
+    return VitalSettingsCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(t.featureVaultReportDates, style: VitalType.section),
+          Text(t.featureVaultReportDates, style: VitalSettingsType.item),
           const SizedBox(height: 12),
           Semantics(
             label: descriptions[period.index],

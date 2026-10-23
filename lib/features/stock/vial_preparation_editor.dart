@@ -151,6 +151,7 @@ class VialPreparationEditor extends StatelessWidget {
                     ),
                   ),
                   LabelledInput(
+                    picker: VitalPickerKind.date,
                     label: t.vialDate,
                     controller: data.date,
                     enabled: enabled,

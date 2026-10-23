@@ -66,61 +66,66 @@ class PlanTimingEditor extends StatelessWidget {
     required this.fields,
     required this.enabled,
     required this.onChanged,
+    this.collapsible = true,
   });
   final PlanTimingFields fields;
   final bool enabled;
   final VoidCallback onChanged;
+  final bool collapsible;
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    return VitalDisclosure(
-      title: t.finishR05Timing,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(t.finishR05TimingHelp),
-          SettingsToggleRow(
-            reduceMotion: MediaQuery.disableAnimationsOf(context),
-            label: t.finishR05Labels,
-            description: t.finishR05LabelsHelp,
-            value: fields.labels,
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          t.finishR05TimingHelp,
+          style: VitalType.metadata.copyWith(color: VitalColors(context).muted),
+        ),
+        SettingsToggleRow(
+          reduceMotion: MediaQuery.disableAnimationsOf(context),
+          label: t.finishR05Labels,
+          description: t.finishR05LabelsHelp,
+          value: fields.labels,
+          enabled: enabled,
+          onChanged: (value) {
+            fields.labels = value;
+            onChanged();
+          },
+        ),
+        if (fields.labels)
+          LabelledInput(
+            label: t.finishR05Allowance,
+            controller: fields.allowance,
+            helper: t.finishR05AllowanceHelp,
             enabled: enabled,
-            onChanged: (value) {
-              fields.labels = value;
-              onChanged();
-            },
+            keyboardType: TextInputType.number,
           ),
-          if (fields.labels)
-            LabelledInput(
-              label: t.finishR05Allowance,
-              controller: fields.allowance,
-              helper: t.finishR05AllowanceHelp,
-              enabled: enabled,
-              keyboardType: TextInputType.number,
-            ),
-          SettingsToggleRow(
-            reduceMotion: MediaQuery.disableAnimationsOf(context),
-            label: t.finishR05FollowUp,
-            description: t.finishR05FollowUpHelp,
-            value: fields.followUp,
+        SettingsToggleRow(
+          reduceMotion: MediaQuery.disableAnimationsOf(context),
+          label: t.finishR05FollowUp,
+          description: t.finishR05FollowUpHelp,
+          value: fields.followUp,
+          enabled: enabled,
+          onChanged: (value) {
+            fields.followUp = value;
+            onChanged();
+          },
+        ),
+        if (fields.followUp)
+          LabelledInput(
+            label: t.finishR05Delay,
+            controller: fields.delay,
+            helper: t.finishR05DelayHelp,
             enabled: enabled,
-            onChanged: (value) {
-              fields.followUp = value;
-              onChanged();
-            },
+            keyboardType: TextInputType.number,
           ),
-          if (fields.followUp)
-            LabelledInput(
-              label: t.finishR05Delay,
-              controller: fields.delay,
-              helper: t.finishR05DelayHelp,
-              enabled: enabled,
-              keyboardType: TextInputType.number,
-            ),
-          if (!fields.valid) Text(t.finishR05Invalid),
-        ],
-      ),
+        if (!fields.valid) Text(t.finishR05Invalid),
+      ],
     );
+    return collapsible
+        ? VitalDisclosure(title: t.finishR05Timing, child: content)
+        : content;
   }
 }
 

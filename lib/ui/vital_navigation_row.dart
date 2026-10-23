@@ -12,12 +12,14 @@ class VitalNavigationRow extends StatelessWidget {
     this.description,
     this.icon,
     this.focusNode,
+    this.quiet = false,
   });
   final String label;
   final String? description;
   final IconData? icon;
   final VoidCallback onPressed;
   final FocusNode? focusNode;
+  final bool quiet;
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +31,7 @@ class VitalNavigationRow extends StatelessWidget {
       onTap: onPressed,
       child: ExcludeSemantics(
         child: VitalControlStyle(
+          quiet: quiet,
           radius: 18,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           child: Button(

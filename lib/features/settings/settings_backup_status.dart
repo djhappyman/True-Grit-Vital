@@ -31,14 +31,12 @@ class SettingsBackupStatus extends ConsumerWidget {
     final text = AppLocalizations.of(context);
     final history = ref.watch(backupHistoryProvider);
     final path = backupPath;
-    return VitalSurfaceFrame(
+    return VitalSettingsCard(
       key: const ValueKey('settings-backup-status'),
-      inset: true,
-      radius: VitalLayout.sectionRadius,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(text.directBackupStatusHeading, style: VitalType.section),
+          Text(text.directBackupStatusHeading, style: VitalSettingsType.item),
           const SizedBox(height: 8),
           history.when(
             skipError: false,

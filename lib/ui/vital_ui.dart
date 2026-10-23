@@ -8,15 +8,23 @@ import '../l10n/app_localizations.dart';
 
 export 'vital_summary.dart';
 export 'vital_motion.dart';
+export 'vital_animated_rows.dart';
 export 'vital_presenters.dart';
 export 'vital_foundation.dart';
 export 'vital_glass.dart';
 export 'vital_dialog.dart';
 export 'vital_navigation_row.dart';
 export 'vital_scaffold.dart';
+export 'vital_settings.dart';
+export 'vital_select.dart';
+export 'pickers/vital_date_picker.dart';
+export 'pickers/vital_picker_field.dart';
+export 'pickers/vital_date_range_field.dart';
+export 'vital_repeat.dart';
 
 import 'vital_foundation.dart';
 import 'vital_motion.dart';
+import 'vital_presenters.dart' show VitalTaskScope;
 import 'vital_scaffold.dart';
 
 enum VitalButtonVariant { primary, secondary, destructive }
@@ -206,6 +214,111 @@ class VitalButton extends StatelessWidget {
             ? SizedBox(width: double.infinity, child: button)
             : button,
       ),
+    );
+  }
+}
+
+/// Related form fields share equal columns when their full text can fit.
+class VitalFormRow extends StatelessWidget {
+  const VitalFormRow({super.key, required this.first, required this.second});
+  final Widget first, second;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+      if (constraints.maxWidth < 300 * scale + 12) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [first, const SizedBox(height: 16), second],
+        );
+      }
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: first),
+          const SizedBox(width: 12),
+          Expanded(child: second),
+        ],
+      );
+    },
+  );
+}
+
+/// Form footer matching the approved medicine form. Callers own all commands,
+/// draft/dismissal guards and pending-state labels.
+class VitalFormActions extends StatelessWidget {
+  const VitalFormActions({
+    super.key,
+    required this.primaryLabel,
+    required this.onPrimary,
+    required this.onCancel,
+    this.cancelLabel,
+    this.isLoading = false,
+    this.stacked,
+  });
+
+  final String primaryLabel;
+  final String? cancelLabel;
+  final VoidCallback? onPrimary, onCancel;
+  final bool isLoading;
+  final bool? stacked;
+
+  @override
+  Widget build(BuildContext context) {
+    final cancel = cancelLabel ?? AppLocalizations.of(context).cancel;
+    final sheet = stacked ?? VitalTaskScope.contains(context);
+    final primary = VitalButton(
+      expand: true,
+      isLoading: isLoading,
+      onPressed: onPrimary,
+      child: Text(primaryLabel),
+    );
+    final secondary = VitalButton.secondary(
+      expand: true,
+      onPressed: onCancel,
+      child: Text(cancel),
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double labelWidth(String label, FontWeight weight) {
+          final painter = TextPainter(
+            text: TextSpan(
+              text: label,
+              style: VitalType.control.copyWith(fontWeight: weight),
+            ),
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+            maxLines: 1,
+          )..layout();
+          final width = painter.width;
+          painter.dispose();
+          return width;
+        }
+
+        final minimumColumn = math.max(
+          VitalLayout.target,
+          math.max(
+                labelWidth(primaryLabel, FontWeight.w700) +
+                    (isLoading ? 56 : 0),
+                labelWidth(cancel, FontWeight.w600),
+              ) +
+              40,
+        );
+        if (sheet || constraints.maxWidth < minimumColumn * 2 + 12) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [primary, const SizedBox(height: 10), secondary],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: secondary),
+            const SizedBox(width: 12),
+            Expanded(child: primary),
+          ],
+        );
+      },
     );
   }
 }
@@ -635,7 +748,9 @@ class VitalBadge extends StatelessWidget {
         vertical: compact ? 3 : 5,
       ),
       decoration: BoxDecoration(
-        color: tone == VitalTone.neutral
+        color: !colors.dark
+            ? Color.alphaBlend(foreground.withValues(alpha: .10), colors.canvas)
+            : tone == VitalTone.neutral
             ? colors.inset
             : tone == VitalTone.positive
             ? colors.accentSurface
@@ -815,6 +930,8 @@ class VitalSegments<T> extends StatelessWidget {
     required this.onChanged,
     required this.label,
     this.expand = true,
+    this.enabled = true,
+    this.allowReselect = false,
   });
 
   final List<T> values;
@@ -822,6 +939,8 @@ class VitalSegments<T> extends StatelessWidget {
   final ValueChanged<T> onChanged;
   final String Function(T) label;
   final bool expand;
+  final bool enabled;
+  final bool allowReselect;
 
   Widget _option(BuildContext context, T value) {
     final isSelected = value == selected;
@@ -835,16 +954,20 @@ class VitalSegments<T> extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
           child: Button(
             style: ButtonVariance.ghost,
-            onPressed: () {
-              if (isSelected) return;
-              HapticFeedback.selectionClick();
-              onChanged(value);
-            },
+            alignment: Alignment.center,
+            onPressed: !enabled
+                ? null
+                : () {
+                    if (isSelected && !allowReselect) return;
+                    HapticFeedback.selectionClick();
+                    onChanged(value);
+                  },
             child: Text(
               label(value),
+              textAlign: TextAlign.center,
               style: VitalType.label.copyWith(
-                color: isSelected ? colors.accent : colors.muted,
-                fontWeight: FontWeight.w600,
+                color: enabled && isSelected ? colors.accent : colors.muted,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -856,7 +979,7 @@ class VitalSegments<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final style = VitalType.label.copyWith(fontWeight: FontWeight.w600);
+    final style = VitalType.label.copyWith(fontWeight: FontWeight.w700);
     final scaler = MediaQuery.textScalerOf(context);
     final direction = Directionality.of(context);
     final widths = values.map((value) {
@@ -873,7 +996,9 @@ class VitalSegments<T> extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: theme.colorScheme.secondary,
+        color: theme.brightness == Brightness.light
+            ? VitalColors(context).inputFill
+            : theme.colorScheme.secondary,
         borderRadius: BorderRadius.circular(28),
       ),
       child: LayoutBuilder(

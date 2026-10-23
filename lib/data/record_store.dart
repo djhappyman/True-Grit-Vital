@@ -72,6 +72,7 @@ part 'daily_store.dart';
 part 'interval_store.dart';
 part 'pause_store.dart';
 part 'phase_store.dart';
+part 'schedule_stop_store.dart';
 part 'catalogue_store.dart';
 part 'stock_store.dart';
 part 'product_store.dart';

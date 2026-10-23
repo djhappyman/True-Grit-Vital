@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/app_lock.dart';
+import '../../app/storage.dart';
 import '../../domain/scheduling/daily_plan.dart' show CivilDate;
 import '../../domain/history/display_time.dart' show DisplayTime;
 import '../../l10n/app_localizations.dart';
@@ -32,10 +33,16 @@ Future<CivilDate?> showHistoryDateJump(
   BuildContext context, {
   required String zone,
   CivilDate? initialDate,
-}) => showVitalDialog<CivilDate>(
-  context: context,
-  builder: (_) => HistoryDateJumpDialog(zone: zone, initialDate: initialDate),
-);
+}) async {
+  final selected = await showVitalDatePicker(
+    context: context,
+    title: AppLocalizations.of(context).historyDateJump,
+    initialDate: initialDate?.calendarValue,
+    firstDate: DateTime(1),
+    lastDate: DateTime(9999, 12, 30),
+  );
+  return selected == null ? null : CivilDate.fromDateTime(selected);
+}
 
 /// Compact calendar command that opens the exact-date dialog in History.
 class HistoryDateJumpButton extends ConsumerStatefulWidget {
@@ -63,6 +70,8 @@ class _HistoryDateJumpButtonState extends ConsumerState<HistoryDateJumpButton> {
     if (opening || ref.read(appLockProvider).locked) return;
     opening = true;
     final zone = widget.zone;
+    final generation = ref.read(recordStoreProvider).value?.generation;
+    final lock = ref.read(appLockProvider);
     final CivilDate? date;
     try {
       date = await showHistoryDateJump(
@@ -73,7 +82,12 @@ class _HistoryDateJumpButtonState extends ConsumerState<HistoryDateJumpButton> {
     } finally {
       opening = false;
     }
-    if (!mounted || ref.read(appLockProvider).locked) return;
+    if (!mounted ||
+        ref.read(appLockProvider).locked ||
+        !identical(ref.read(appLockProvider), lock) ||
+        ref.read(recordStoreProvider).value?.generation != generation) {
+      return;
+    }
     focus.requestFocus();
     if (widget.zone != zone) return;
     if (date != null) widget.onSelected(date);

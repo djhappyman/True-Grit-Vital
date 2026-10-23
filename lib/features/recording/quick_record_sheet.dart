@@ -1,5 +1,6 @@
 import '../stock/stock_widgets.dart' show stockRecordAmountNumber;
 
+import 'package:flutter/services.dart' show TextInputAction;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
@@ -288,27 +289,45 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
     return EntryPage(
       panelled: false,
       children: [
-        Heading(entry.plan ? t.dashboardPlanTitle : t.dashboardQuickTitle),
-        Text(
-          entry.plan ? t.dashboardPlanHelp : t.dashboardQuickHelp,
-          style: StitchType.caption,
-        ),
+        Heading(t.dashboardChooseMedicine),
         if (stale) _staleNotice(t),
         const SizedBox(height: 16),
-        LabelledInput(label: t.search, controller: search),
-        const SizedBox(height: 8),
-        VitalButton.secondary(
-          leading: const Icon(LucideIcons.scanBarcode),
-          onPressed: _guardAction(() => setState(() => scanning = true)),
-          child: Text(t.finishR04Scan),
+        Row(
+          children: [
+            Expanded(
+              child: Semantics(
+                label: t.dashboardSearchMedicines,
+                child: TextField(
+                  controller: search,
+                  placeholder: Text(
+                    t.dashboardSearchMedicines,
+                    style: VitalType.body.copyWith(
+                      color: VitalColors(context).muted,
+                    ),
+                  ),
+                  borderRadius: BorderRadius.circular(VitalLayout.inputRadius),
+                  textInputAction: TextInputAction.search,
+                  features: [
+                    InputFeature.leading(
+                      Icon(
+                        LucideIcons.search,
+                        size: 18,
+                        color: VitalColors(context).muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            VitalIconButton(
+              label: t.finishR04Scan,
+              icon: LucideIcons.scanBarcode,
+              onPressed: _guardAction(() => setState(() => scanning = true)),
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        VitalButton.secondary(
-          leading: const Icon(LucideIcons.plus),
-          onPressed: _guardAction(() => _go(quickEntryCreateLocation(entry))),
-          child: Text(t.create),
-        ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         if (items.isLoading)
           Text(t.loadingRecords)
         else if (items.hasError)
@@ -317,8 +336,16 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
           )
         else ...[
           for (final item in items.requireValue.take(quickEntryPageSize)) ...[
-            VitalButton.secondary(
-              multiline: true,
+            VitalNavigationRow(
+              key: ValueKey(item.id),
+              label: item.name,
+              description:
+                  item.form.trim().isEmpty ||
+                      item.form == t.dashboardUnknownForm
+                  ? null
+                  : item.form,
+              icon: LucideIcons.pill,
+              quiet: true,
               onPressed: _guardAction(
                 () => _go(
                   entry.plan
@@ -326,9 +353,7 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
                       : quickEntryRecordLocation(entry, itemId: item.id),
                 ),
               ),
-              child: Text(item.name),
             ),
-            const SizedBox(height: 8),
           ],
           if (items.requireValue.isEmpty)
             Text(t.historyNoOptions, style: StitchType.caption),
@@ -345,6 +370,23 @@ class _QuickRecordSheetState extends ConsumerState<QuickRecordSheet> {
               child: Text(t.back),
             ),
         ],
+        const SizedBox(height: 8),
+        VitalControlStyle(
+          quiet: true,
+          child: Button(
+            style: ButtonVariance.ghost,
+            alignment: Alignment.center,
+            onPressed: _guardAction(() => _go(quickEntryCreateLocation(entry))),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(LucideIcons.plus, size: 18),
+                const SizedBox(width: 8),
+                Text(t.create),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }

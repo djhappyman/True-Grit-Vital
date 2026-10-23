@@ -349,8 +349,13 @@ class _SupportingTrendsPageState extends ConsumerState<SupportingTrendsPage>
             SupportingDateBasis.entry => t.supportingEntryChoice,
           },
         ),
-        LabelledInput(label: t.supportingFrom, controller: from),
-        LabelledInput(label: t.supportingBefore, controller: before),
+        VitalDateRangeField(
+          start: from,
+          end: before,
+          startLabel: t.supportingFrom,
+          endLabel: t.supportingBefore,
+          endExclusive: true,
+        ),
         if (!_routeRangeInvalid)
           Text(t.chartRangeSummary(start.toString(), end.toString())),
         Text(t.supportingDisplayZone(query.displayZone)),

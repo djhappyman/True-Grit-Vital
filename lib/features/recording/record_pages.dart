@@ -1,6 +1,8 @@
 import '../stock/strength_equivalent.dart';
 import '../stock/vial_preparation_editor.dart';
 import '../substances/substance_profile_editor.dart';
+import '../substances/medicine_strength_fields.dart';
+import '../substances/medicine_category_field.dart';
 import '../substances/substance_detail_providers.dart';
 import '../supporting/supporting_pages.dart';
 import '../../app/display_preferences.dart';
@@ -213,18 +215,24 @@ class Heading extends StatelessWidget {
   const Heading(this.text, {super.key});
   final String text;
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 8, bottom: 16),
-    child: Semantics(
-      header: true,
-      child: Text(
-        text,
-        style: VitalControlScope.inDialog(context)
-            ? VitalType.dialogTitle
-            : VitalType.section,
-      ),
-    ),
-  );
+  Widget build(BuildContext context) =>
+      VitalSettingsScope.maybeOf(context) != null
+      ? Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 12),
+          child: VitalSettingsLabel(text),
+        )
+      : Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 16),
+          child: Semantics(
+            header: true,
+            child: Text(
+              text,
+              style: VitalControlScope.inDialog(context)
+                  ? VitalType.dialogTitle
+                  : VitalType.section,
+            ),
+          ),
+        );
 }
 
 class EntryPage extends StatelessWidget {
@@ -251,15 +259,6 @@ class EntryPage extends StatelessWidget {
           Flexible(
             child: VitalTaskBody(
               children: [
-                if (onBack == null)
-                  Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: VitalButton.secondary(
-                      leading: const Icon(LucideIcons.arrowLeft),
-                      onPressed: () => requestVitalTaskDismiss(context),
-                      child: Text(t.back),
-                    ),
-                  ),
                 for (final child in children)
                   if (child is! VitalTaskActions) child,
               ],
@@ -274,6 +273,19 @@ class EntryPage extends StatelessWidget {
       );
     }
     final titleIndex = children.indexWhere((child) => child is Heading);
+    final settings = VitalSettingsScope.maybeOf(context);
+    if (settings != null) {
+      return VitalSettingsPage(
+        title: titleIndex < 0
+            ? settings.fallbackTitle
+            : (children[titleIndex] as Heading).text,
+        onBack: onBack,
+        children: [
+          for (var i = 0; i < children.length; i++)
+            if (i != titleIndex) children[i],
+        ],
+      );
+    }
     return VitalPage(
       title: titleIndex < 0 ? null : (children[titleIndex] as Heading).text,
       panelled: panelled,
@@ -931,6 +943,10 @@ class LabelledInput extends StatelessWidget {
     this.focusNode,
     this.textInputAction,
     this.onSubmitted,
+    this.picker,
+    this.pickerZone,
+    this.showLabel = true,
+    this.placeholder,
   });
   final String label;
   final TextEditingController controller;
@@ -942,35 +958,56 @@ class LabelledInput extends StatelessWidget {
   final FocusNode? focusNode;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
+  final VitalPickerKind? picker;
+  final String? pickerZone;
+  final bool showLabel;
+  final String? placeholder;
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 20),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(label, style: VitalType.label),
-        const SizedBox(height: 8),
+        if (showLabel) ...[
+          Text(label, style: VitalType.label),
+          const SizedBox(height: 8),
+        ],
         Semantics(
           label: semanticLabel ?? label,
-          child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            enabled: enabled,
-            keyboardType: keyboardType,
-            maxLines: maxLines,
-            borderRadius: BorderRadius.circular(
-              maxLines > 1
-                  ? VitalLayout.multilineRadius
-                  : VitalLayout.inputRadius,
-            ),
-            minLines: maxLines > 1 ? 1 : null,
-            onSubmitted: onSubmitted,
-            textInputAction:
-                textInputAction ??
-                (maxLines > 1 ? TextInputAction.newline : TextInputAction.next),
-          ),
+          child: picker != null
+              ? VitalPickerField(
+                  label: semanticLabel ?? label,
+                  controller: controller,
+                  kind: picker!,
+                  enabled: enabled,
+                  zoneId: pickerZone,
+                  focusNode: focusNode,
+                )
+              : TextField(
+                  controller: controller,
+                  placeholder: placeholder == null ? null : Text(placeholder!),
+                  focusNode: focusNode,
+                  enabled: enabled,
+                  keyboardType: keyboardType,
+                  maxLines: maxLines,
+                  borderRadius: BorderRadius.circular(
+                    maxLines > 1
+                        ? VitalLayout.multilineRadius
+                        : VitalLayout.inputRadius,
+                  ),
+                  minLines: maxLines > 1 ? 1 : null,
+                  onSubmitted: onSubmitted,
+                  textInputAction:
+                      textInputAction ??
+                      (maxLines > 1
+                          ? TextInputAction.newline
+                          : TextInputAction.next),
+                ),
         ),
-        if (helper != null)
+        if (helper != null &&
+            !(picker != null &&
+                (helper == AppLocalizations.of(context).dateExample ||
+                    helper == AppLocalizations.of(context).timeExample)))
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(
@@ -1444,6 +1481,11 @@ class _ItemFormState extends DurableFormState<ItemForm> {
       setState(() => error = t.nameRequired);
       return;
     }
+    if (widget.quick && profileEditor.form == null) {
+      setState(() => error = t.quickMedicineChooseForm);
+      return;
+    }
+    if (widget.quick) unit.text = SubstanceProfile.unitFor(profileEditor.form!);
     if (widget.quick && unit.text.trim().isEmpty) {
       setState(() => error = t.dashboardUnitRequired);
       return;
@@ -1461,7 +1503,11 @@ class _ItemFormState extends DurableFormState<ItemForm> {
     try {
       profile = profileEditor.read(blend: productEnabled);
     } catch (_) {
-      setState(() => error = t.substanceProfileInvalid);
+      setState(
+        () => error = widget.quick
+            ? t.quickMedicineAmountsInvalid
+            : t.substanceProfileInvalid,
+      );
       return;
     }
     List<ProductComponent>? components;
@@ -1829,6 +1875,7 @@ class _ItemFormState extends DurableFormState<ItemForm> {
                       const {
                         SubstanceForm.tablet,
                         SubstanceForm.capsule,
+                        SubstanceForm.caplet,
                       }.contains(f)
                       ? 'count'
                       : const {
@@ -1944,29 +1991,11 @@ class _ItemFormState extends DurableFormState<ItemForm> {
         : uncertain
         ? t.retry
         : t.create;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(
-          width: double.infinity,
-          child: StitchButton(
-            primary: true,
-            icon: LucideIcons.check,
-            onPressed: busy || conflict || (!ownerValid && !uncertain)
-                ? null
-                : save,
-            child: Text(label),
-          ),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          width: double.infinity,
-          child: StitchButton(
-            onPressed: busy ? null : leave,
-            child: Text(t.cancel),
-          ),
-        ),
-      ],
+    return VitalFormActions(
+      primaryLabel: label,
+      isLoading: busy,
+      onPrimary: busy || conflict || (!ownerValid && !uncertain) ? null : save,
+      onCancel: busy ? null : leave,
     );
   }
 
@@ -1998,36 +2027,35 @@ class _ItemFormState extends DurableFormState<ItemForm> {
         const SizedBox(height: 16),
         LabelledInput(
           label: t.dashboardName,
+          showLabel: false,
+          placeholder: t.dashboardName,
           controller: name,
           error: error == t.nameRequired ? error : null,
           enabled: ownerValid && !busy && !uncertain,
         ),
-        LabelledInput(
-          label: t.unitLabel,
-          controller: unit,
+        MedicineFormFields(
+          data: profileEditor,
           enabled: ownerValid && !busy && !uncertain,
-          error: error == t.dashboardUnitRequired ? error : null,
+          categoryField: MedicineCategoryField(
+            personId: owner!.id,
+            value: type.text,
+            enabled: ownerValid && !busy && !uncertain,
+            onSelected: (name, category) => setState(() {
+              type.text = name;
+              selectedTypeId = category?.id;
+              selectedTypeRevision = category?.revision;
+              entryChanged();
+            }),
+          ),
+          onChanged: () => setState(() {
+            final selected = profileEditor.form;
+            if (selected != null) {
+              unit.text = SubstanceProfile.unitFor(selected);
+              form.text = substanceFormLabel(t, selected);
+            }
+            entryChanged();
+          }),
         ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final value in ['mg', 'ml', 'count'])
-              _chip(
-                label: value == 'count' ? t.dashboardUnitCount : value,
-                selected: unit.text == value,
-                onPressed: ownerValid && !busy && !uncertain
-                    ? () => setState(() {
-                        unit.text = value;
-                        entryChanged();
-                      })
-                    : null,
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(t.dashboardUnitHelp, style: StitchType.caption),
         const SizedBox(height: 16),
         ?failure(),
         _actions(t, ownerValid: ownerValid),
@@ -3175,6 +3203,7 @@ class _DoseFormState extends DurableFormState<DoseForm> {
                   DoseSectionHeading(t.screenRecordWhen),
                   const SizedBox(height: 6),
                   LabelledInput(
+                    picker: VitalPickerKind.date,
                     label: t.actualDateLabel,
                     controller: date,
                     helper: t.dateExample,
@@ -3183,6 +3212,7 @@ class _DoseFormState extends DurableFormState<DoseForm> {
                     keyboardType: TextInputType.datetime,
                   ),
                   LabelledInput(
+                    picker: VitalPickerKind.time,
                     label: t.actualTimeLabel,
                     controller: time,
                     helper: t.timeExample,

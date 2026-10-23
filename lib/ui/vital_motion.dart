@@ -16,6 +16,8 @@ abstract final class VitalMotion {
   static const dialog = Duration(milliseconds: 260);
   static const dialogClose = Duration(milliseconds: 200);
   static const row = Duration(milliseconds: 220);
+  static const rowSpring = Duration(milliseconds: 380);
+  static const rowRemove = Duration(milliseconds: 260);
   static const calendar = Duration(milliseconds: 320);
   static const filter = Duration(milliseconds: 180);
   static const progress = Duration(milliseconds: 480);

@@ -120,28 +120,18 @@ class IntervalEditor extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(t.intervalBasis),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            for (final (mode, label) in [
-              (IntervalMode.fixedPlanned, t.intervalFixed),
-              (IntervalMode.qualifyingActual, t.intervalActual),
-            ])
-              Semantics(
-                selected: fields.mode == mode,
-                child: VitalButton.secondary(
-                  multiline: true,
-                  onPressed: enabled
-                      ? () {
-                          fields.mode = mode;
-                          onChanged();
-                        }
-                      : null,
-                  child: Text(label),
-                ),
-              ),
-          ],
+        VitalSelect<IntervalMode>(
+          label: t.intervalBasis,
+          value: fields.mode,
+          values: IntervalMode.values,
+          labelOf: (mode) => mode == IntervalMode.fixedPlanned
+              ? t.intervalFixed
+              : t.intervalActual,
+          enabled: enabled,
+          onChanged: (mode) {
+            fields.mode = mode;
+            onChanged();
+          },
         ),
         const SizedBox(height: 16),
         Text(
@@ -159,6 +149,7 @@ class IntervalEditor extends StatelessWidget {
         ),
         if (fields.mode == IntervalMode.fixedPlanned)
           LabelledInput(
+            picker: VitalPickerKind.instant,
             key: const ValueKey('intervalAnchor'),
             label: t.intervalAnchor,
             helper: t.intervalAnchorHelp,

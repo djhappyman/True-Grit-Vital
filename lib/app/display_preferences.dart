@@ -170,48 +170,30 @@ class TimeFormatSettings extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Semantics(
-          header: true,
-          child: Text(
-            t.timeFormat,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+        VitalSettingsLabel(t.timeFormat),
+        const SizedBox(height: 8),
+        Text(
+          t.timeFormatHelp,
+          style: VitalSettingsType.detail.copyWith(
+            color: VitalColors(context).muted,
           ),
         ),
-        Text(t.timeFormatHelp),
         if (state.failed)
           Semantics(liveRegion: true, child: Text(t.displaySaveFailure)),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            for (final (value, label) in [
-              (TimeFormat.system, t.timeSystem),
-              (TimeFormat.h12, t.time12),
-              (TimeFormat.h24, t.time24),
-            ])
-              MergeSemantics(
-                child: Semantics(
-                  selected: state.timeFormat == value,
-                  child: state.timeFormat == value
-                      ? VitalButton(
-                          onPressed: state.busy
-                              ? null
-                              : () => ref
-                                    .read(displayPreferencesProvider.notifier)
-                                    .setTimeFormat(value),
-                          child: Text(label),
-                        )
-                      : VitalButton.secondary(
-                          onPressed: state.busy
-                              ? null
-                              : () => ref
-                                    .read(displayPreferencesProvider.notifier)
-                                    .setTimeFormat(value),
-                          child: Text(label),
-                        ),
-                ),
-              ),
-          ],
+        const SizedBox(height: 12),
+        VitalSegments<TimeFormat>(
+          values: const [TimeFormat.system, TimeFormat.h12, TimeFormat.h24],
+          selected: state.timeFormat,
+          enabled: !state.busy,
+          allowReselect: state.failed,
+          onChanged: ref
+              .read(displayPreferencesProvider.notifier)
+              .setTimeFormat,
+          label: (value) => switch (value) {
+            TimeFormat.system => t.timeSystem,
+            TimeFormat.h12 => t.time12,
+            TimeFormat.h24 => t.time24,
+          },
         ),
       ],
     );

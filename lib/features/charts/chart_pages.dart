@@ -350,16 +350,13 @@ class _ChartsPageState extends ConsumerState<ChartsPage> {
           if (filters) ...[
             Focus(
               focusNode: rangeFocus,
-              child: LabelledInput(
-                label: t.chartFrom,
-                controller: from,
-                helper: t.historyDateHelp,
+              child: VitalDateRangeField(
+                start: from,
+                end: before,
+                startLabel: t.chartFrom,
+                endLabel: t.chartBefore,
+                endExclusive: true,
               ),
-            ),
-            LabelledInput(
-              label: t.chartBefore,
-              controller: before,
-              helper: t.historyDateHelp,
             ),
             if (error != null) Semantics(liveRegion: true, child: Text(error!)),
             Align(

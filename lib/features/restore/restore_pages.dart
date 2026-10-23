@@ -53,38 +53,18 @@ class _RestorePageState extends ConsumerState<RestorePage> {
       canPop: !active,
       child: VitalScaffold(
         headers: [
-          SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  VitalButton.secondary(
-                    onPressed: active
-                        ? null
-                        : () => context.canPop()
-                              ? context.pop()
-                              : context.go('/today'),
-                    child: Text(t.back),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          VitalSettingsToolbar(title: t.restoreTitle, backEnabled: !active),
         ],
         child: SafeArea(
           top: false,
           child: VitalInsetScrollView(
             child: VitalPageBody(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 80),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (state.phase != RestorePhase.complete)
                     const RestoreRecoveryBanner(),
-                  HeadingText(t.restoreTitle),
                   const SizedBox(height: 16),
                   if (locked)
                     _message(t.restoreLocked)

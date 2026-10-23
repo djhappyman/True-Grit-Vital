@@ -3066,55 +3066,55 @@ abstract class AppLocalizations {
   /// No description provided for @intervalBasis.
   ///
   /// In en, this message translates to:
-  /// **'Interval anchor'**
+  /// **'Count from'**
   String get intervalBasis;
 
   /// No description provided for @intervalFixed.
   ///
   /// In en, this message translates to:
-  /// **'Planned'**
+  /// **'First planned dose'**
   String get intervalFixed;
 
   /// No description provided for @intervalActual.
   ///
   /// In en, this message translates to:
-  /// **'Recorded'**
+  /// **'Last recorded dose'**
   String get intervalActual;
 
   /// No description provided for @intervalFixedHelp.
   ///
   /// In en, this message translates to:
-  /// **'Keep the entered planned anchor. Recorded doses do not move this interval.'**
+  /// **'Keep the planned times, even if a dose is recorded later.'**
   String get intervalFixedHelp;
 
   /// No description provided for @intervalActualHelp.
   ///
   /// In en, this message translates to:
-  /// **'Use the latest qualifying recorded time for this plan. Extra doses do not qualify automatically.'**
+  /// **'Count from the last dose linked to this schedule. Unplanned doses do not move it.'**
   String get intervalActualHelp;
 
   /// No description provided for @intervalDuration.
   ///
   /// In en, this message translates to:
-  /// **'Elapsed hours'**
+  /// **'Hours between doses'**
   String get intervalDuration;
 
   /// No description provided for @intervalDurationHelp.
   ///
   /// In en, this message translates to:
-  /// **'Enter a positive number of hours, for example 6 or 1.5.'**
+  /// **'The same gap repeats between planned doses.'**
   String get intervalDurationHelp;
 
   /// No description provided for @intervalAnchor.
   ///
   /// In en, this message translates to:
-  /// **'Planned instant'**
+  /// **'First dose'**
   String get intervalAnchor;
 
   /// No description provided for @intervalAnchorHelp.
   ///
   /// In en, this message translates to:
-  /// **'Enter a date and time with its UTC offset, for example 2026-10-19T08:00:00+01:00. Use Z for UTC.'**
+  /// **'Choose when this repeating schedule begins.'**
   String get intervalAnchorHelp;
 
   /// No description provided for @intervalNoAnchor.
@@ -3300,13 +3300,13 @@ abstract class AppLocalizations {
   /// No description provided for @pauseOnDays.
   ///
   /// In en, this message translates to:
-  /// **'Active days'**
+  /// **'Days taking it'**
   String get pauseOnDays;
 
   /// No description provided for @pauseOffDays.
   ///
   /// In en, this message translates to:
-  /// **'Break days'**
+  /// **'Days off'**
   String get pauseOffDays;
 
   /// No description provided for @pauseOffHelp.
@@ -3318,7 +3318,7 @@ abstract class AppLocalizations {
   /// No description provided for @pauseBlockAnchor.
   ///
   /// In en, this message translates to:
-  /// **'First active date'**
+  /// **'Starting'**
   String get pauseBlockAnchor;
 
   /// No description provided for @pauseIntersection.
@@ -13215,6 +13215,18 @@ abstract class AppLocalizations {
   /// **'Plan a dose'**
   String get dashboardPlanTitle;
 
+  /// Title of the shared medicine chooser for planning or recording a dose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose medicine'**
+  String get dashboardChooseMedicine;
+
+  /// Quiet placeholder and persistent accessible label of the medicine search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search medicines'**
+  String get dashboardSearchMedicines;
+
   /// No description provided for @dashboardPlanHelp.
   ///
   /// In en, this message translates to:
@@ -13272,7 +13284,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboardQuickCreateHelp.
   ///
   /// In en, this message translates to:
-  /// **'Start with a name and the unit you use. Add other details whenever you like.'**
+  /// **'Add a medicine and its strength to track your doses and plan when to take it.'**
   String get dashboardQuickCreateHelp;
 
   /// No description provided for @dashboardUnknownForm.
@@ -13914,91 +13926,91 @@ abstract class AppLocalizations {
   /// User-configured schedule timing and follow-up control; no clinical timing inference.
   ///
   /// In en, this message translates to:
-  /// **'These options apply to doses with a planned time.'**
+  /// **'Choose whether to label dose times or send an extra reminder. Both are optional.'**
   String get finishR05TimingHelp;
 
   /// User-configured schedule timing and follow-up control; no clinical timing inference.
   ///
   /// In en, this message translates to:
-  /// **'Timing labels'**
+  /// **'Show timing'**
   String get finishR05Labels;
 
   /// User-configured schedule timing and follow-up control; no clinical timing inference.
   ///
   /// In en, this message translates to:
-  /// **'Compare recorded times with your own timing window.'**
+  /// **'Show Early, On time or Late beside recorded doses.'**
   String get finishR05LabelsHelp;
 
   /// User-configured schedule timing and follow-up control; no clinical timing inference.
   ///
   /// In en, this message translates to:
-  /// **'Allowance (minutes)'**
+  /// **'Minutes either side'**
   String get finishR05Allowance;
 
   /// User-configured schedule timing and follow-up control; no clinical timing inference.
   ///
   /// In en, this message translates to:
-  /// **'How many minutes before or after the planned time count as within your window? Use a whole number from 0 to 10,080.'**
+  /// **'This many minutes before or after the planned time counts as On time.'**
   String get finishR05AllowanceHelp;
 
   /// User-configured schedule timing and follow-up control; no clinical timing inference.
   ///
   /// In en, this message translates to:
-  /// **'Follow-up reminder'**
+  /// **'Remind me again'**
   String get finishR05FollowUp;
 
   /// User-configured schedule timing and follow-up control; no clinical timing inference.
   ///
   /// In en, this message translates to:
-  /// **'One extra reminder if you have not recorded or skipped the dose. Uses this schedule’s reminders; your device may delay alerts.'**
+  /// **'One extra reminder unless you record or skip the dose. Uses this schedule’s reminders.'**
   String get finishR05FollowUpHelp;
 
   /// User-configured schedule timing and follow-up control; no clinical timing inference.
   ///
   /// In en, this message translates to:
-  /// **'Delay (minutes)'**
+  /// **'Remind after'**
   String get finishR05Delay;
 
   /// User-configured schedule timing and follow-up control; no clinical timing inference.
   ///
   /// In en, this message translates to:
-  /// **'Minutes after the planned time. Use a whole number from 1 to 10,080.'**
+  /// **'Minutes after the planned time.'**
   String get finishR05DelayHelp;
 
   /// User-configured schedule timing and follow-up control; no clinical timing inference.
   ///
   /// In en, this message translates to:
-  /// **'Enter a whole number in the range shown before continuing.'**
+  /// **'Use 0 to 10,080 minutes for timing, or 1 to 10,080 minutes for an extra reminder.'**
   String get finishR05Invalid;
 
   /// User-configured schedule timing and follow-up control; no clinical timing inference.
   ///
   /// In en, this message translates to:
-  /// **'Earlier'**
+  /// **'Early'**
   String get finishR05Earlier;
 
   /// User-configured schedule timing and follow-up control; no clinical timing inference.
   ///
   /// In en, this message translates to:
-  /// **'Within your window'**
+  /// **'On time'**
   String get finishR05Within;
 
   /// User-configured schedule timing and follow-up control; no clinical timing inference.
   ///
   /// In en, this message translates to:
-  /// **'Later'**
+  /// **'Late'**
   String get finishR05Later;
 
   /// Summary of exact user-entered timing policy, not clinical advice.
   ///
   /// In en, this message translates to:
-  /// **'Your window: {minutes} minutes before or after the planned time.'**
+  /// **'On time means within {minutes} minutes of the planned time.'**
   String finishR05WindowSummary(int minutes);
 
   /// Summary of exact user-entered timing policy, not clinical advice.
   ///
   /// In en, this message translates to:
-  /// **'One follow-up {minutes} minutes after the planned time, if you have not recorded or skipped it.'**
+  /// **'One extra reminder after {minutes} minutes, unless you record or skip the dose.'**
   String finishR05FollowUpSummary(int minutes);
 
   /// Format option for a FHIR R4 JSON export.
@@ -14474,6 +14486,885 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scanning stopped when Vital left the screen. Scan the pack again.'**
   String get finishR04PausedHelp;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get simpleScheduleUnit;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'This conversion needs more than six decimal places. Choose another unit or amount.'**
+  String get simpleSchedulePrecision;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get simpleScheduleRepeat;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get simpleScheduleDaily;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose days'**
+  String get simpleScheduleWeekdays;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Every few days'**
+  String get simpleScheduleDays;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Every few hours'**
+  String get simpleScheduleHours;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'No set times'**
+  String get simpleScheduleUntimed;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'More patterns'**
+  String get simpleSchedulePatterns;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Times'**
+  String get simpleScheduleTimes;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Days between doses'**
+  String get simpleScheduleEveryDays;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours between doses'**
+  String get simpleScheduleEveryHours;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Doses per day'**
+  String get simpleScheduleDailyCount;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get simpleScheduleDuration;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongoing'**
+  String get simpleScheduleOngoing;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Days or weeks'**
+  String get simpleScheduleLength;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Date range'**
+  String get simpleScheduleRange;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Total amount'**
+  String get simpleScheduleTotal;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Until empty'**
+  String get simpleScheduleEmpty;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting'**
+  String get simpleScheduleStarts;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Until'**
+  String get simpleScheduleUntil;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get simpleScheduleDayUnit;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Weeks'**
+  String get simpleScheduleWeekUnit;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose'**
+  String get simpleScheduleChoose;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends when your recorded doses of this medicine reach this amount, counting from the starting day.'**
+  String get simpleScheduleTotalHelp;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends when the chosen container is recorded as empty. An estimated run-out date does not end it.'**
+  String get simpleScheduleEmptyHelp;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose container'**
+  String get simpleScheduleContainer;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a tracked container before using this option.'**
+  String get simpleScheduleNoContainer;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get simpleScheduleMore;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled days off'**
+  String get simpleScheduleBreaks;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount per time'**
+  String get simpleScheduleDifferentAmounts;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming up'**
+  String get simpleScheduleNext;
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends after {amount} {unit} is recorded.'**
+  String simpleScheduleTotalReview(String amount, String unit);
+
+  /// Simplified schedule editor. Exact amounts and units are user-entered; no medicine advice is inferred.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, {time}: {amount} {unit}'**
+  String simpleScheduleNextDose(
+    String date,
+    String time,
+    String amount,
+    String unit,
+  );
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose date'**
+  String get pickerDate;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose time'**
+  String get pickerTime;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'Date and time'**
+  String get pickerDateTime;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'Date range'**
+  String get pickerRange;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'Selection'**
+  String get pickerSelection;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'Month and year'**
+  String get pickerMonthYear;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose year'**
+  String get pickerYear;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get pickerThisMonth;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'This year'**
+  String get pickerThisYear;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get pickerRangeStart;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'End date'**
+  String get pickerRangeEnd;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'In selected range'**
+  String get pickerInsideRange;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlighted'**
+  String get pickerHighlighted;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'Unavailable'**
+  String get pickerUnavailable;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'Select hour'**
+  String get pickerHour;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'Select minute'**
+  String get pickerMinute;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock face. Select hour.'**
+  String get pickerClockHour;
+
+  /// Shared Workout-family picker label or accessible name.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock face. Select minute.'**
+  String get pickerClockMinute;
+
+  /// Shared calendar and repeat control label.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get pickerMonth;
+
+  /// Shared calendar and repeat control label.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get pickerYearUnit;
+
+  /// Shared calendar and repeat control label.
+  ///
+  /// In en, this message translates to:
+  /// **'Every few weeks'**
+  String get repeatWeeks;
+
+  /// Shared calendar and repeat control label.
+  ///
+  /// In en, this message translates to:
+  /// **'Every few months'**
+  String get repeatMonths;
+
+  /// Shared calendar and repeat control label.
+  ///
+  /// In en, this message translates to:
+  /// **'Every (weeks)'**
+  String get repeatWeekInterval;
+
+  /// Shared calendar and repeat control label.
+  ///
+  /// In en, this message translates to:
+  /// **'Every (months)'**
+  String get repeatMonthInterval;
+
+  /// Shared calendar and repeat control label.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase {label}'**
+  String repeatIncrease(String label);
+
+  /// Shared calendar and repeat control label.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease {label}'**
+  String repeatDecrease(String label);
+
+  /// Shared Workout-family calendar or repeat control.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get repeatYears;
+
+  /// Shared Workout-family calendar or repeat control.
+  ///
+  /// In en, this message translates to:
+  /// **'Every (years)'**
+  String get repeatYearInterval;
+
+  /// Shared Workout-family calendar or repeat control.
+  ///
+  /// In en, this message translates to:
+  /// **'Last day'**
+  String get repeatLastDay;
+
+  /// Shared Workout-family calendar or repeat control.
+  ///
+  /// In en, this message translates to:
+  /// **'Once'**
+  String get repeatOnce;
+
+  /// Shared Workout-family calendar or repeat control.
+  ///
+  /// In en, this message translates to:
+  /// **'Time, {time}'**
+  String pickerTimeValue(String time);
+
+  /// Shared Workout-family calendar or repeat control.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String pickerRangeValue(String start, String end);
+
+  /// Shared Workout-family calendar or repeat control.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, {time}'**
+  String pickerDateTimeValue(String date, String time);
+
+  /// Shared Workout-family calendar or repeat control.
+  ///
+  /// In en, this message translates to:
+  /// **'{start}. Choose an end date.'**
+  String pickerRangePending(String start);
+
+  /// Simplified schedule timing preference. Records the person’s instruction without suggesting a dose or clinical interval.
+  ///
+  /// In en, this message translates to:
+  /// **'When to take'**
+  String get simpleScheduleWhen;
+
+  /// Simplified schedule timing preference. Records the person’s instruction without suggesting a dose or clinical interval.
+  ///
+  /// In en, this message translates to:
+  /// **'Anytime'**
+  String get simpleScheduleAnytime;
+
+  /// Simplified schedule timing preference. Records the person’s instruction without suggesting a dose or clinical interval.
+  ///
+  /// In en, this message translates to:
+  /// **'{bedtime}, {food}'**
+  String simpleScheduleWhenCombined(String bedtime, String food);
+
+  /// Plain-English helper for a person-authored schedule. Does not change dose, timing or instructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: Take with a glass of water.'**
+  String get simpleScheduleInstructionExample;
+
+  /// Plain-English helper for a person-authored schedule. Does not change dose, timing or instructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a separate amount for each time you add.'**
+  String get simpleScheduleDifferentHelp;
+
+  /// Plain-English helper for a person-authored schedule. Does not change dose, timing or instructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat days taking this medicine, followed by days without it.'**
+  String get simpleScheduleBreakHelp;
+
+  /// Plain-English helper for a person-authored schedule. Does not change dose, timing or instructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the scheduled days in each taking period will have planned doses.'**
+  String get simpleScheduleBreakDates;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine form'**
+  String get quickMedicineForm;
+
+  /// Brief explanation below the medicine form heading.
+  ///
+  /// In en, this message translates to:
+  /// **'What it comes as.'**
+  String get quickMedicineFormHelp;
+
+  /// Original label quantity beside label-strength fields, such as per 5 ml or per 1 tablet.
+  ///
+  /// In en, this message translates to:
+  /// **'per {quantity} {unit}'**
+  String quickMedicinePer(String quantity, String unit);
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a form'**
+  String get quickMedicineChooseForm;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Caplet'**
+  String get quickMedicineCaplet;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Solid pill'**
+  String get quickMedicineTabletHint;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Long tablet'**
+  String get quickMedicineCapletHint;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine inside shell'**
+  String get quickMedicineCapsuleHint;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Liquid to swallow'**
+  String get quickMedicineLiquidHint;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Loose powder'**
+  String get quickMedicinePowderHint;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Oil-based injection'**
+  String get quickMedicineOilHint;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Water-based injection'**
+  String get quickMedicineWaterHint;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs mixing'**
+  String get quickMedicineMixedHint;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'tablet'**
+  String get quickMedicineTablet;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'tablets'**
+  String get quickMedicineTablets;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'capsule'**
+  String get quickMedicineCapsule;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'capsules'**
+  String get quickMedicineCapsules;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'caplet'**
+  String get quickMedicineCapletUnit;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'caplets'**
+  String get quickMedicineCaplets;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Record powder by its weight in mg. You can add more details later.'**
+  String get quickMedicinePowderHelp;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Label strength'**
+  String get quickMedicineStrength;
+
+  /// Short subtitle beneath Label strength. Refers to the original pack or medicine label, not a recommended dose.
+  ///
+  /// In en, this message translates to:
+  /// **'The strength shown on the label.'**
+  String get quickMedicineStrengthHelp;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Powder amount'**
+  String get quickMedicinePowderAmount;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Final mixed volume'**
+  String get quickMedicineFinalVolume;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the total volume after mixing, not just the water added.'**
+  String get quickMedicineFinalHelp;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'For'**
+  String get quickMedicineFor;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Contains'**
+  String get quickMedicineContains;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Strength unit'**
+  String get quickMedicineMassUnit;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'1 {unit} = {amount} {massUnit}'**
+  String quickMedicineEquivalent(String unit, String amount, String massUnit);
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'1 {unit} ≈ {amount} {massUnit}'**
+  String quickMedicineEquivalentApprox(
+    String unit,
+    String amount,
+    String massUnit,
+  );
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert'**
+  String get quickMedicineConvert;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Label amounts'**
+  String get quickMedicineLabelTitle;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the amounts exactly as shown on the label. Vital calculates the strength for one unit.'**
+  String get quickMedicineLabelHelp;
+
+  /// Quick medicine form or reference-strength input. Describes user-entered label information, not a dose recommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a positive amount in each field, with up to 6 decimal places.'**
+  String get quickMedicineAmountsInvalid;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get medicineCategory;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'How you group it.'**
+  String get medicineCategoryHelp;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose category'**
+  String get medicineCategoryChoose;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'No category'**
+  String get medicineCategoryNone;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'No grouping'**
+  String get medicineCategoryNoneHint;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own group'**
+  String get medicineCategoryCustomHint;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Create category'**
+  String get medicineCategoryCreate;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'New category'**
+  String get medicineCategoryNew;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a shorter name.'**
+  String get medicineCategoryNameLong;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Pain relief'**
+  String get medicineCategoryPain;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Aches and pain'**
+  String get medicineCategoryPainHint;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Cold & allergy'**
+  String get medicineCategoryAllergy;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Colds and allergies'**
+  String get medicineCategoryAllergyHint;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart & circulation'**
+  String get medicineCategoryHeart;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood pressure, cholesterol'**
+  String get medicineCategoryHeartHint;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart'**
+  String get medicineCategoryHeartShort;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Diabetes & blood sugar'**
+  String get medicineCategoryDiabetes;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood sugar control'**
+  String get medicineCategoryDiabetesHint;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood sugar'**
+  String get medicineCategoryDiabetesShort;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Stomach & digestion'**
+  String get medicineCategoryDigestion;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Heartburn and digestion'**
+  String get medicineCategoryDigestionHint;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Digestion'**
+  String get medicineCategoryDigestionShort;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Mental health & sleep'**
+  String get medicineCategoryMood;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Mood, anxiety, sleep'**
+  String get medicineCategoryMoodHint;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Mood & sleep'**
+  String get medicineCategoryMoodShort;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Infections'**
+  String get medicineCategoryInfections;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Antibiotics and antivirals'**
+  String get medicineCategoryInfectionsHint;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Asthma & breathing'**
+  String get medicineCategoryBreathing;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Inhalers and breathing'**
+  String get medicineCategoryBreathingHint;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathing'**
+  String get medicineCategoryBreathingShort;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamins & supplements'**
+  String get medicineCategoryVitamins;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitamins and minerals'**
+  String get medicineCategoryVitaminsHint;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplements'**
+  String get medicineCategoryVitaminsShort;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Anabolics & PEDs'**
+  String get medicineCategoryPeds;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance and physique'**
+  String get medicineCategoryPedsHint;
+
+  /// Personal medicine grouping in the quick-create form. Organisational labels chosen by the person, not clinical classification or medication advice.
+  ///
+  /// In en, this message translates to:
+  /// **'PEDs'**
+  String get medicineCategoryPedsShort;
 }
 
 class _AppLocalizationsDelegate

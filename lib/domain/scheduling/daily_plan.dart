@@ -4,6 +4,8 @@ import '../records.dart';
 import 'calendar_pattern.dart';
 import 'pause_pattern.dart';
 import 'schedule_requirement.dart';
+import 'schedule_options.dart';
+export 'schedule_options.dart';
 export 'calendar_pattern.dart';
 export 'pause_pattern.dart';
 export 'schedule_requirement.dart';
@@ -332,6 +334,8 @@ final class DailyPlanVersion {
     this.requirements,
     this.effectiveFrom,
     this.effectiveUntil,
+    this.doseDisplay,
+    this.stopCondition,
   }) : pauses = List.unmodifiable(pauses) {
     if ((timing is AsNeeded || timing is ElapsedInterval) &&
         calendar is! EveryDay) {
@@ -360,6 +364,8 @@ final class DailyPlanVersion {
     }
   }
   final String personId, planId, itemId, versionId;
+  final PlanDoseDisplay? doseDisplay;
+  final PlanStopCondition? stopCondition;
   final CivilDate start;
   final CivilDate? endExclusive;
   final DailyTiming timing;

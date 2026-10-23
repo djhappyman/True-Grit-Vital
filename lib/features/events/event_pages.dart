@@ -1983,6 +1983,8 @@ class _EventFormState extends DurableFormState<EventForm> {
         ],
       ),
       LabelledInput(
+        picker: VitalPickerKind.flexibleDate,
+        pickerZone: zone.text.trim(),
         label: t.eventPlannedStart,
         controller: plannedStart,
         helper: t.eventDateHelp,
@@ -2019,6 +2021,8 @@ class _EventFormState extends DurableFormState<EventForm> {
               (t.eventActualEnd, actualEnd),
             ])
               LabelledInput(
+                picker: VitalPickerKind.flexibleDate,
+                pickerZone: zone.text.trim(),
                 label: field.$1,
                 controller: field.$2,
                 helper: t.eventDateHelp,
@@ -2057,6 +2061,8 @@ class _EventFormState extends DurableFormState<EventForm> {
                 _ => t.loadingRecords,
               }),
               LabelledInput(
+                picker: VitalPickerKind.flexibleDate,
+                pickerZone: zone.text.trim(),
                 label: t.eventMemberStart,
                 controller: m.from,
                 enabled: enabled,
@@ -2066,6 +2072,8 @@ class _EventFormState extends DurableFormState<EventForm> {
                 ),
               ),
               LabelledInput(
+                picker: VitalPickerKind.flexibleDate,
+                pickerZone: zone.text.trim(),
                 label: t.eventMemberEnd,
                 controller: m.until,
                 enabled: enabled,
@@ -2479,6 +2487,7 @@ class _UsePeriodFormState extends DurableFormState<UsePeriodForm> {
       if (!valid) Text(t.conflictFailure),
       const SizedBox(height: 16),
       LabelledInput(
+        picker: VitalPickerKind.partialDate,
         label: t.useStart,
         controller: start,
         enabled: enabled,
@@ -2486,6 +2495,7 @@ class _UsePeriodFormState extends DurableFormState<UsePeriodForm> {
         error: error == t.useDateError ? error : null,
       ),
       LabelledInput(
+        picker: VitalPickerKind.partialDate,
         label: t.useEnd,
         controller: end,
         enabled: enabled,

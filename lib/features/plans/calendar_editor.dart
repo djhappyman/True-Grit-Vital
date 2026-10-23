@@ -77,12 +77,16 @@ class CalendarFormFields {
           ..clear()
           ..addAll(weekdays);
       case EveryNMonths(:final anchorMonth, :final interval, :final selector):
-        pattern = 'months';
+        pattern = interval % 12 == 0 ? 'years' : 'months';
         anchor.text = anchorMonth.toString();
-        this.interval.text = '$interval';
+        this.interval.text =
+            '${pattern == 'years' ? interval ~/ 12 : interval}';
         switch (selector) {
           case DayOfMonth(:final day, :final missingDatePolicy):
-            this.selector = 'date';
+            this.selector =
+                day == 31 && missingDatePolicy == MissingDatePolicy.lastValid
+                ? 'lastDay'
+                : 'date';
             this.day.text = '$day';
             missing = missingDatePolicy?.name ?? '';
           case OrdinalWeekday(
@@ -104,7 +108,7 @@ class CalendarFormFields {
   }
 
   bool get needsMissingChoice =>
-      pattern == 'months' &&
+      (pattern == 'months' || pattern == 'years') &&
       (selector == 'date' && (int.tryParse(day.text.trim()) ?? 0) > 28 ||
           selector == 'ordinal' && ordinal == 5);
   CalendarPattern candidate() {
@@ -129,10 +133,15 @@ class CalendarFormFields {
           interval: int.parse(interval.text.trim()),
           weekdays: weekdays,
         ),
-        'months' => EveryNMonths(
+        'months' || 'years' => EveryNMonths(
           anchorMonth: CivilDate.parse(anchor.text.trim()),
-          interval: int.parse(interval.text.trim()),
+          interval:
+              int.parse(interval.text.trim()) * (pattern == 'years' ? 12 : 1),
           selector: switch (selector) {
+            'lastDay' => DayOfMonth(
+              31,
+              missingDatePolicy: MissingDatePolicy.lastValid,
+            ),
             'date' => DayOfMonth(
               int.parse(day.text.trim()),
               missingDatePolicy: policy,
@@ -151,6 +160,30 @@ class CalendarFormFields {
     } catch (_) {
       error ??= pattern == 'unsupported' ? 'unsupported' : 'invalid';
       rethrow;
+    }
+  }
+
+  void choosePattern(String value) {
+    final previous = pattern;
+    pattern = value;
+    try {
+      final date = CivilDate.parse(anchor.text);
+      if (value == 'weeks') {
+        anchor.text = date.addDays(1 - date.calendarValue.weekday).toString();
+      }
+      if (value == 'months' || value == 'years') {
+        if (previous != 'months' && previous != 'years') {
+          day.text = '${date.day}';
+          weekday = date.calendarValue.weekday;
+          ordinal = (date.day - 1) ~/ 7 + 1;
+        }
+        anchor.text = CivilDate(date.year, date.month, 1).toString();
+      }
+      if ((value == 'weeks' || value == 'weekdays') && weekdays.isEmpty) {
+        weekdays.add(date.calendarValue.weekday);
+      }
+    } catch (_) {
+      /* Retain an invalid draft for explicit repair. */
     }
   }
 
@@ -183,164 +216,189 @@ class CalendarEditor extends StatelessWidget {
   final VoidCallback onChanged;
   @override
   Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context), f = fields;
+    final t = AppLocalizations.of(context);
+    final labels = {
+      'daily': t.simpleScheduleDaily,
+      'weekdays': t.simpleScheduleWeekdays,
+      'days': t.simpleScheduleDays,
+      'weeks': t.repeatWeeks,
+      'months': t.repeatMonths,
+      'years': t.repeatYears,
+    };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Heading(t.calendarDates),
-        Text(t.calendarDatesHelp),
-        CalendarChoices(
-          value: f.pattern,
-          enabled: enabled,
-          choices: [
-            ('daily', t.calendarDaily),
-            ('weekdays', t.calendarWeekdays),
-            ('days', t.calendarDays),
-            ('weeks', t.calendarWeeks),
-            ('months', t.calendarMonths),
+        Text(t.simpleScheduleRepeat, style: VitalType.label),
+        const SizedBox(height: 8),
+        VitalSelect<String>(
+          label: t.simpleScheduleRepeat,
+          value: fields.pattern,
+          values: [
+            ...labels.keys,
+            if (!labels.containsKey(fields.pattern)) fields.pattern,
           ],
-          onSelected: (v) {
-            f.pattern = v;
+          labelOf: (key) => labels[key] ?? t.calendarUnsupported,
+          enabled: enabled,
+          onChanged: (key) {
+            fields.choosePattern(key);
             onChanged();
           },
         ),
-        if (f.pattern == 'unsupported') Text(t.calendarUnsupported),
-        if (f.pattern == 'days' ||
-            f.pattern == 'weeks' ||
-            f.pattern == 'months') ...[
-          LabelledInput(
-            key: const ValueKey('calendarInterval'),
-            label: switch (f.pattern) {
-              'days' => t.calendarDayInterval,
-              'weeks' => t.calendarWeekInterval,
-              _ => t.calendarMonthInterval,
-            },
-            controller: f.interval,
-            enabled: enabled,
-            keyboardType: TextInputType.number,
-            helper: f.pattern == 'months'
-                ? t.calendarYearHelp
-                : t.calendarIntervalHelp,
-          ),
-          LabelledInput(
-            key: const ValueKey('calendarAnchor'),
-            label: f.pattern == 'weeks'
-                ? t.calendarWeekAnchor
-                : f.pattern == 'months'
-                ? t.calendarMonthAnchor
-                : t.calendarAnchor,
-            controller: f.anchor,
-            enabled: enabled,
-            keyboardType: TextInputType.datetime,
-            helper: f.pattern == 'weeks'
-                ? t.calendarWeekHelp
-                : f.pattern == 'months'
-                ? t.calendarMonthHelp
-                : t.dateExample,
-          ),
-        ],
-        if (f.pattern == 'weekdays' || f.pattern == 'weeks') ...[
-          Text(t.calendarSelectWeekdays),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              for (var day = 1; day <= 7; day++)
-                CalendarChoice(
-                  label: weekdayLabel(t, day),
-                  selected: f.weekdays.contains(day),
-                  onPressed: enabled
-                      ? () {
-                          if (!f.weekdays.add(day)) {
-                            f.weekdays.remove(day);
-                          }
-                          onChanged();
-                        }
-                      : null,
-                ),
-            ],
-          ),
-        ],
-        if (f.pattern == 'months') ...[
-          Text(t.calendarMonthRule),
-          CalendarChoices(
-            value: f.selector,
-            enabled: enabled,
-            choices: [
-              ('date', t.calendarDate),
-              ('ordinal', t.calendarOrdinal),
-              ('last', t.calendarLast),
-            ],
-            onSelected: (v) {
-              f.selector = v;
-              onChanged();
-            },
-          ),
-          if (f.selector == 'date')
-            LabelledInput(
-              key: const ValueKey('calendarNominalDay'),
-              label: t.calendarNominalDay,
-              controller: f.day,
-              enabled: enabled,
-              keyboardType: TextInputType.number,
-              helper: t.calendarNominalHelp,
-            ),
-          if (f.selector == 'ordinal') ...[
-            Text(t.calendarOrdinalNumber),
-            Text(t.calendarOrdinalHelp),
-            CalendarChoices(
-              value: '${f.ordinal}',
-              enabled: enabled,
-              choices: [for (var n = 1; n <= 5; n++) ('$n', '$n')],
-              onSelected: (v) {
-                f.ordinal = int.parse(v);
-                onChanged();
-              },
-            ),
-          ],
-          if (f.selector != 'date') ...[
-            Text(t.calendarWeekday),
-            CalendarChoices(
-              value: '${f.weekday}',
-              enabled: enabled,
-              choices: [
-                for (var n = 1; n <= 7; n++) ('$n', weekdayLabel(t, n)),
-              ],
-              onSelected: (v) {
-                f.weekday = int.parse(v);
-                onChanged();
-              },
-            ),
-          ],
-          if (f.needsMissingChoice) ...[
-            Heading(t.calendarMissing),
-            Text(
-              f.selector == 'date'
-                  ? t.calendarMissingDayHelp
-                  : t.calendarMissingWeekHelp,
-            ),
-            CalendarChoices(
-              value: f.missing,
-              enabled: enabled,
-              choices: [('omit', t.calendarOmit), ('lastValid', t.calendarUse)],
-              onSelected: (v) {
-                f.missing = v;
-                onChanged();
-              },
-            ),
-          ],
-        ],
-        if (f.error != null)
-          Semantics(
-            liveRegion: true,
-            child: Text(switch (f.error) {
-              'missing' => t.calendarMissingRequired,
-              'unsupported' => t.calendarUnsupported,
-              _ => t.calendarInvalid,
-            }),
-          ),
-        const SizedBox(height: 20),
+        CalendarRepeatDetails(
+          fields: fields,
+          enabled: enabled,
+          onChanged: onChanged,
+        ),
       ],
+    );
+  }
+}
+
+/// The shared Workout-style repeat controls, mapped to Vital's existing rules.
+class CalendarRepeatDetails extends StatelessWidget {
+  const CalendarRepeatDetails({
+    super.key,
+    required this.fields,
+    required this.enabled,
+    required this.onChanged,
+  });
+  final CalendarFormFields fields;
+  final bool enabled;
+  final VoidCallback onChanged;
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context), f = fields;
+    return VitalRepeatTransition(
+      value: f.pattern,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (f.pattern == 'days' ||
+              f.pattern == 'weeks' ||
+              (f.pattern == 'months' || f.pattern == 'years')) ...[
+            VitalRepeatStepper(
+              label: switch (f.pattern) {
+                'days' => t.simpleScheduleEveryDays,
+                'weeks' => t.repeatWeekInterval,
+                'years' => t.repeatYearInterval,
+                _ => t.repeatMonthInterval,
+              },
+              controller: f.interval,
+              enabled: enabled,
+              max: 9999,
+            ),
+            LabelledInput(
+              picker: f.pattern == 'weeks'
+                  ? VitalPickerKind.week
+                  : f.pattern == 'months' || f.pattern == 'years'
+                  ? VitalPickerKind.month
+                  : VitalPickerKind.date,
+              label: t.simpleScheduleStarts,
+              controller: f.anchor,
+              enabled: enabled,
+            ),
+          ],
+          if (f.pattern == 'weekdays' || f.pattern == 'weeks')
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: VitalWeekdayPicker(
+                selected: f.weekdays,
+                enabled: enabled,
+                onChanged: (days) {
+                  f.weekdays
+                    ..clear()
+                    ..addAll(days);
+                  onChanged();
+                },
+              ),
+            ),
+          if ((f.pattern == 'months' || f.pattern == 'years')) ...[
+            VitalSelect<String>(
+              label: t.calendarMonthRule,
+              value: f.selector,
+              values: const ['date', 'lastDay', 'ordinal', 'last'],
+              labelOf: (key) => switch (key) {
+                'date' => t.calendarDate,
+                'lastDay' => t.repeatLastDay,
+                'ordinal' => t.calendarOrdinal,
+                _ => t.calendarLast,
+              },
+              enabled: enabled,
+              onChanged: (key) {
+                f.selector = key;
+                onChanged();
+              },
+            ),
+            if (f.selector == 'date')
+              VitalRepeatStepper(
+                label: t.calendarNominalDay,
+                controller: f.day,
+                enabled: enabled,
+                max: 31,
+              ),
+            if (f.selector == 'ordinal')
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: VitalSelect<int>(
+                  label: t.calendarOrdinalNumber,
+                  value: f.ordinal,
+                  values: const [1, 2, 3, 4, 5],
+                  labelOf: (n) => '$n',
+                  enabled: enabled,
+                  onChanged: (n) {
+                    f.ordinal = n;
+                    onChanged();
+                  },
+                ),
+              ),
+            if (f.selector == 'ordinal' || f.selector == 'last')
+              VitalSelect<int>(
+                label: t.calendarWeekday,
+                value: f.weekday,
+                values: const [1, 2, 3, 4, 5, 6, 7],
+                labelOf: (day) => weekdayLabel(t, day),
+                enabled: enabled,
+                onChanged: (day) {
+                  f.weekday = day;
+                  onChanged();
+                },
+              ),
+            if (f.needsMissingChoice) ...[
+              const SizedBox(height: 12),
+              Text(
+                f.selector == 'date'
+                    ? t.calendarMissingDayHelp
+                    : t.calendarMissingWeekHelp,
+                style: VitalType.metadata,
+              ),
+              VitalSelect<String>(
+                label: t.calendarMissing,
+                value: f.missing,
+                values: const ['', 'omit', 'lastValid'],
+                labelOf: (key) => switch (key) {
+                  'omit' => t.calendarOmit,
+                  'lastValid' => t.calendarUse,
+                  _ => t.simpleScheduleChoose,
+                },
+                enabled: enabled,
+                onChanged: (key) {
+                  f.missing = key;
+                  onChanged();
+                },
+              ),
+            ],
+          ],
+          if (f.error != null)
+            Semantics(
+              liveRegion: true,
+              child: Text(switch (f.error) {
+                'missing' => t.calendarMissingRequired,
+                'unsupported' => t.calendarUnsupported,
+                _ => t.calendarInvalid,
+              }),
+            ),
+        ],
+      ),
     );
   }
 }

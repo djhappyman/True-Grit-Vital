@@ -80,7 +80,7 @@ class _DiagnosticsPageState extends ConsumerState<DiagnosticsPage> {
                 for (final event in items.reversed)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: VitalSurface(
+                    child: VitalSettingsCard(
                       child: Semantics(
                         container: true,
                         label:

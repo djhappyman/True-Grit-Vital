@@ -311,8 +311,13 @@ class _ExportPageState extends ConsumerState<ExportPage> {
           VitalSection(
             title: Text(t.exportRange),
             children: [
-              LabelledInput(label: t.exportFrom, controller: _from),
-              LabelledInput(label: t.exportBefore, controller: _before),
+              VitalDateRangeField(
+                start: _from,
+                end: _before,
+                startLabel: t.exportFrom,
+                endLabel: t.exportBefore,
+                endExclusive: true,
+              ),
               Text(t.batch15T06DateShortcuts, style: VitalType.label),
               Wrap(
                 spacing: 8,
@@ -523,10 +528,7 @@ class _ExportPageState extends ConsumerState<ExportPage> {
             VitalSurface(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: SelectableText(
-                  preview.excerpt,
-                  style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-                ),
+                child: SelectableText(preview.excerpt, style: VitalType.code),
               ),
             ),
           ],

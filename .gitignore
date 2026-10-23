@@ -79,6 +79,7 @@ linux/flutter/ephemeral/
 !/docs/design/implementation-contract.md
 !/docs/design/interaction-blueprint.md
 !/docs/design/interaction-implementation-plan.md
+!/docs/design/picker-provenance.md
 !/docs/design/stitch/
 !/docs/design/reviews/
 !/docs/design/references/

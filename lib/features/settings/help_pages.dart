@@ -8,6 +8,7 @@ import '../../app/privacy.dart';
 import '../../domain/privacy/diagnostics.dart';
 import '../../domain/privacy/licences.dart';
 import '../../l10n/app_localizations.dart';
+import '../../ui/vital_ui.dart';
 import '../catalogue/catalogue_picker.dart' show catalogueReaderProvider;
 import '../recording/record_pages.dart' show EntryPage, Heading, LoadFailure;
 import 'settings_widgets.dart';
@@ -98,14 +99,9 @@ class _HelpSection extends StatelessWidget {
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget build(BuildContext context) => VitalSettingsSection(
+    title: title,
     children: [
-      Semantics(
-        header: true,
-        child: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      ),
-      const SizedBox(height: 8),
       for (var index = 0; index < children.length; index++) ...[
         if (index > 0) const SizedBox(height: 8),
         children[index],
@@ -159,13 +155,7 @@ class _LicencesPageState extends ConsumerState<LicencesPage> {
           onPressed: () => context.push('/settings/licences/app'),
         ),
         const SizedBox(height: 16),
-        Semantics(
-          header: true,
-          child: Text(
-            t.packageNotices,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-        ),
+        VitalSettingsLabel(t.packageNotices),
         const SizedBox(height: 10),
         notices.when(
           data: (items) => items.isEmpty

@@ -1801,35 +1801,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get intervalPattern => 'Interval';
 
   @override
-  String get intervalBasis => 'Interval anchor';
+  String get intervalBasis => 'Count from';
 
   @override
-  String get intervalFixed => 'Planned';
+  String get intervalFixed => 'First planned dose';
 
   @override
-  String get intervalActual => 'Recorded';
+  String get intervalActual => 'Last recorded dose';
 
   @override
   String get intervalFixedHelp =>
-      'Keep the entered planned anchor. Recorded doses do not move this interval.';
+      'Keep the planned times, even if a dose is recorded later.';
 
   @override
   String get intervalActualHelp =>
-      'Use the latest qualifying recorded time for this plan. Extra doses do not qualify automatically.';
+      'Count from the last dose linked to this schedule. Unplanned doses do not move it.';
 
   @override
-  String get intervalDuration => 'Elapsed hours';
+  String get intervalDuration => 'Hours between doses';
 
   @override
   String get intervalDurationHelp =>
-      'Enter a positive number of hours, for example 6 or 1.5.';
+      'The same gap repeats between planned doses.';
 
   @override
-  String get intervalAnchor => 'Planned instant';
+  String get intervalAnchor => 'First dose';
 
   @override
   String get intervalAnchorHelp =>
-      'Enter a date and time with its UTC offset, for example 2026-10-19T08:00:00+01:00. Use Z for UTC.';
+      'Choose when this repeating schedule begins.';
 
   @override
   String get intervalNoAnchor => 'No qualifying dose';
@@ -1952,17 +1952,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pauseContinuous => 'Continuous';
 
   @override
-  String get pauseOnDays => 'Active days';
+  String get pauseOnDays => 'Days taking it';
 
   @override
-  String get pauseOffDays => 'Break days';
+  String get pauseOffDays => 'Days off';
 
   @override
   String get pauseOffHelp =>
       'Enter whole days. Zero break days keeps the plan continuous.';
 
   @override
-  String get pauseBlockAnchor => 'First active date';
+  String get pauseBlockAnchor => 'Starting';
 
   @override
   String get pauseIntersection =>
@@ -8478,6 +8478,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardPlanTitle => 'Plan a dose';
 
   @override
+  String get dashboardChooseMedicine => 'Choose medicine';
+
+  @override
+  String get dashboardSearchMedicines => 'Search medicines';
+
+  @override
   String get dashboardPlanHelp => 'Choose a medicine and set when to take it.';
 
   @override
@@ -8509,7 +8515,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboardQuickCreateHelp =>
-      'Start with a name and the unit you use. Add other details whenever you like.';
+      'Add a medicine and its strength to track your doses and plan when to take it.';
 
   @override
   String get dashboardUnknownForm => 'Not specified';
@@ -8946,57 +8952,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get finishR05TimingHelp =>
-      'These options apply to doses with a planned time.';
+      'Choose whether to label dose times or send an extra reminder. Both are optional.';
 
   @override
-  String get finishR05Labels => 'Timing labels';
+  String get finishR05Labels => 'Show timing';
 
   @override
   String get finishR05LabelsHelp =>
-      'Compare recorded times with your own timing window.';
+      'Show Early, On time or Late beside recorded doses.';
 
   @override
-  String get finishR05Allowance => 'Allowance (minutes)';
+  String get finishR05Allowance => 'Minutes either side';
 
   @override
   String get finishR05AllowanceHelp =>
-      'How many minutes before or after the planned time count as within your window? Use a whole number from 0 to 10,080.';
+      'This many minutes before or after the planned time counts as On time.';
 
   @override
-  String get finishR05FollowUp => 'Follow-up reminder';
+  String get finishR05FollowUp => 'Remind me again';
 
   @override
   String get finishR05FollowUpHelp =>
-      'One extra reminder if you have not recorded or skipped the dose. Uses this schedule’s reminders; your device may delay alerts.';
+      'One extra reminder unless you record or skip the dose. Uses this schedule’s reminders.';
 
   @override
-  String get finishR05Delay => 'Delay (minutes)';
+  String get finishR05Delay => 'Remind after';
 
   @override
-  String get finishR05DelayHelp =>
-      'Minutes after the planned time. Use a whole number from 1 to 10,080.';
+  String get finishR05DelayHelp => 'Minutes after the planned time.';
 
   @override
   String get finishR05Invalid =>
-      'Enter a whole number in the range shown before continuing.';
+      'Use 0 to 10,080 minutes for timing, or 1 to 10,080 minutes for an extra reminder.';
 
   @override
-  String get finishR05Earlier => 'Earlier';
+  String get finishR05Earlier => 'Early';
 
   @override
-  String get finishR05Within => 'Within your window';
+  String get finishR05Within => 'On time';
 
   @override
-  String get finishR05Later => 'Later';
+  String get finishR05Later => 'Late';
 
   @override
   String finishR05WindowSummary(int minutes) {
-    return 'Your window: $minutes minutes before or after the planned time.';
+    return 'On time means within $minutes minutes of the planned time.';
   }
 
   @override
   String finishR05FollowUpSummary(int minutes) {
-    return 'One follow-up $minutes minutes after the planned time, if you have not recorded or skipped it.';
+    return 'One extra reminder after $minutes minutes, unless you record or skip the dose.';
   }
 
   @override
@@ -9362,4 +9367,484 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get finishR04PausedHelp =>
       'Scanning stopped when Vital left the screen. Scan the pack again.';
+
+  @override
+  String get simpleScheduleUnit => 'Unit';
+
+  @override
+  String get simpleSchedulePrecision =>
+      'This conversion needs more than six decimal places. Choose another unit or amount.';
+
+  @override
+  String get simpleScheduleRepeat => 'Repeat';
+
+  @override
+  String get simpleScheduleDaily => 'Every day';
+
+  @override
+  String get simpleScheduleWeekdays => 'Choose days';
+
+  @override
+  String get simpleScheduleDays => 'Every few days';
+
+  @override
+  String get simpleScheduleHours => 'Every few hours';
+
+  @override
+  String get simpleScheduleUntimed => 'No set times';
+
+  @override
+  String get simpleSchedulePatterns => 'More patterns';
+
+  @override
+  String get simpleScheduleTimes => 'Times';
+
+  @override
+  String get simpleScheduleEveryDays => 'Days between doses';
+
+  @override
+  String get simpleScheduleEveryHours => 'Hours between doses';
+
+  @override
+  String get simpleScheduleDailyCount => 'Doses per day';
+
+  @override
+  String get simpleScheduleDuration => 'Duration';
+
+  @override
+  String get simpleScheduleOngoing => 'Ongoing';
+
+  @override
+  String get simpleScheduleLength => 'Days or weeks';
+
+  @override
+  String get simpleScheduleRange => 'Date range';
+
+  @override
+  String get simpleScheduleTotal => 'Total amount';
+
+  @override
+  String get simpleScheduleEmpty => 'Until empty';
+
+  @override
+  String get simpleScheduleStarts => 'Starting';
+
+  @override
+  String get simpleScheduleUntil => 'Until';
+
+  @override
+  String get simpleScheduleDayUnit => 'Days';
+
+  @override
+  String get simpleScheduleWeekUnit => 'Weeks';
+
+  @override
+  String get simpleScheduleChoose => 'Choose';
+
+  @override
+  String get simpleScheduleTotalHelp =>
+      'Ends when your recorded doses of this medicine reach this amount, counting from the starting day.';
+
+  @override
+  String get simpleScheduleEmptyHelp =>
+      'Ends when the chosen container is recorded as empty. An estimated run-out date does not end it.';
+
+  @override
+  String get simpleScheduleContainer => 'Choose container';
+
+  @override
+  String get simpleScheduleNoContainer =>
+      'Add a tracked container before using this option.';
+
+  @override
+  String get simpleScheduleMore => 'Advanced';
+
+  @override
+  String get simpleScheduleBreaks => 'Scheduled days off';
+
+  @override
+  String get simpleScheduleDifferentAmounts => 'Amount per time';
+
+  @override
+  String get simpleScheduleNext => 'Coming up';
+
+  @override
+  String simpleScheduleTotalReview(String amount, String unit) {
+    return 'Ends after $amount $unit is recorded.';
+  }
+
+  @override
+  String simpleScheduleNextDose(
+    String date,
+    String time,
+    String amount,
+    String unit,
+  ) {
+    return '$date, $time: $amount $unit';
+  }
+
+  @override
+  String get pickerDate => 'Choose date';
+
+  @override
+  String get pickerTime => 'Choose time';
+
+  @override
+  String get pickerDateTime => 'Date and time';
+
+  @override
+  String get pickerRange => 'Date range';
+
+  @override
+  String get pickerSelection => 'Selection';
+
+  @override
+  String get pickerMonthYear => 'Month and year';
+
+  @override
+  String get pickerYear => 'Choose year';
+
+  @override
+  String get pickerThisMonth => 'This month';
+
+  @override
+  String get pickerThisYear => 'This year';
+
+  @override
+  String get pickerRangeStart => 'Start date';
+
+  @override
+  String get pickerRangeEnd => 'End date';
+
+  @override
+  String get pickerInsideRange => 'In selected range';
+
+  @override
+  String get pickerHighlighted => 'Highlighted';
+
+  @override
+  String get pickerUnavailable => 'Unavailable';
+
+  @override
+  String get pickerHour => 'Select hour';
+
+  @override
+  String get pickerMinute => 'Select minute';
+
+  @override
+  String get pickerClockHour => 'Clock face. Select hour.';
+
+  @override
+  String get pickerClockMinute => 'Clock face. Select minute.';
+
+  @override
+  String get pickerMonth => 'Month';
+
+  @override
+  String get pickerYearUnit => 'Year';
+
+  @override
+  String get repeatWeeks => 'Every few weeks';
+
+  @override
+  String get repeatMonths => 'Every few months';
+
+  @override
+  String get repeatWeekInterval => 'Every (weeks)';
+
+  @override
+  String get repeatMonthInterval => 'Every (months)';
+
+  @override
+  String repeatIncrease(String label) {
+    return 'Increase $label';
+  }
+
+  @override
+  String repeatDecrease(String label) {
+    return 'Decrease $label';
+  }
+
+  @override
+  String get repeatYears => 'Yearly';
+
+  @override
+  String get repeatYearInterval => 'Every (years)';
+
+  @override
+  String get repeatLastDay => 'Last day';
+
+  @override
+  String get repeatOnce => 'Once';
+
+  @override
+  String pickerTimeValue(String time) {
+    return 'Time, $time';
+  }
+
+  @override
+  String pickerRangeValue(String start, String end) {
+    return '$start to $end';
+  }
+
+  @override
+  String pickerDateTimeValue(String date, String time) {
+    return '$date, $time';
+  }
+
+  @override
+  String pickerRangePending(String start) {
+    return '$start. Choose an end date.';
+  }
+
+  @override
+  String get simpleScheduleWhen => 'When to take';
+
+  @override
+  String get simpleScheduleAnytime => 'Anytime';
+
+  @override
+  String simpleScheduleWhenCombined(String bedtime, String food) {
+    return '$bedtime, $food';
+  }
+
+  @override
+  String get simpleScheduleInstructionExample =>
+      'Example: Take with a glass of water.';
+
+  @override
+  String get simpleScheduleDifferentHelp =>
+      'Set a separate amount for each time you add.';
+
+  @override
+  String get simpleScheduleBreakHelp =>
+      'Repeat days taking this medicine, followed by days without it.';
+
+  @override
+  String get simpleScheduleBreakDates =>
+      'Only the scheduled days in each taking period will have planned doses.';
+
+  @override
+  String get quickMedicineForm => 'Medicine form';
+
+  @override
+  String get quickMedicineFormHelp => 'What it comes as.';
+
+  @override
+  String quickMedicinePer(String quantity, String unit) {
+    return 'per $quantity $unit';
+  }
+
+  @override
+  String get quickMedicineChooseForm => 'Choose a form';
+
+  @override
+  String get quickMedicineCaplet => 'Caplet';
+
+  @override
+  String get quickMedicineTabletHint => 'Solid pill';
+
+  @override
+  String get quickMedicineCapletHint => 'Long tablet';
+
+  @override
+  String get quickMedicineCapsuleHint => 'Medicine inside shell';
+
+  @override
+  String get quickMedicineLiquidHint => 'Liquid to swallow';
+
+  @override
+  String get quickMedicinePowderHint => 'Loose powder';
+
+  @override
+  String get quickMedicineOilHint => 'Oil-based injection';
+
+  @override
+  String get quickMedicineWaterHint => 'Water-based injection';
+
+  @override
+  String get quickMedicineMixedHint => 'Needs mixing';
+
+  @override
+  String get quickMedicineTablet => 'tablet';
+
+  @override
+  String get quickMedicineTablets => 'tablets';
+
+  @override
+  String get quickMedicineCapsule => 'capsule';
+
+  @override
+  String get quickMedicineCapsules => 'capsules';
+
+  @override
+  String get quickMedicineCapletUnit => 'caplet';
+
+  @override
+  String get quickMedicineCaplets => 'caplets';
+
+  @override
+  String get quickMedicinePowderHelp =>
+      'Record powder by its weight in mg. You can add more details later.';
+
+  @override
+  String get quickMedicineStrength => 'Label strength';
+
+  @override
+  String get quickMedicineStrengthHelp => 'The strength shown on the label.';
+
+  @override
+  String get quickMedicinePowderAmount => 'Powder amount';
+
+  @override
+  String get quickMedicineFinalVolume => 'Final mixed volume';
+
+  @override
+  String get quickMedicineFinalHelp =>
+      'Use the total volume after mixing, not just the water added.';
+
+  @override
+  String get quickMedicineFor => 'For';
+
+  @override
+  String get quickMedicineContains => 'Contains';
+
+  @override
+  String get quickMedicineMassUnit => 'Strength unit';
+
+  @override
+  String quickMedicineEquivalent(String unit, String amount, String massUnit) {
+    return '1 $unit = $amount $massUnit';
+  }
+
+  @override
+  String quickMedicineEquivalentApprox(
+    String unit,
+    String amount,
+    String massUnit,
+  ) {
+    return '1 $unit ≈ $amount $massUnit';
+  }
+
+  @override
+  String get quickMedicineConvert => 'Convert';
+
+  @override
+  String get quickMedicineLabelTitle => 'Label amounts';
+
+  @override
+  String get quickMedicineLabelHelp =>
+      'Enter the amounts exactly as shown on the label. Vital calculates the strength for one unit.';
+
+  @override
+  String get quickMedicineAmountsInvalid =>
+      'Enter a positive amount in each field, with up to 6 decimal places.';
+
+  @override
+  String get medicineCategory => 'Category';
+
+  @override
+  String get medicineCategoryHelp => 'How you group it.';
+
+  @override
+  String get medicineCategoryChoose => 'Choose category';
+
+  @override
+  String get medicineCategoryNone => 'No category';
+
+  @override
+  String get medicineCategoryNoneHint => 'No grouping';
+
+  @override
+  String get medicineCategoryCustomHint => 'Your own group';
+
+  @override
+  String get medicineCategoryCreate => 'Create category';
+
+  @override
+  String get medicineCategoryNew => 'New category';
+
+  @override
+  String get medicineCategoryNameLong => 'Enter a shorter name.';
+
+  @override
+  String get medicineCategoryPain => 'Pain relief';
+
+  @override
+  String get medicineCategoryPainHint => 'Aches and pain';
+
+  @override
+  String get medicineCategoryAllergy => 'Cold & allergy';
+
+  @override
+  String get medicineCategoryAllergyHint => 'Colds and allergies';
+
+  @override
+  String get medicineCategoryHeart => 'Heart & circulation';
+
+  @override
+  String get medicineCategoryHeartHint => 'Blood pressure, cholesterol';
+
+  @override
+  String get medicineCategoryHeartShort => 'Heart';
+
+  @override
+  String get medicineCategoryDiabetes => 'Diabetes & blood sugar';
+
+  @override
+  String get medicineCategoryDiabetesHint => 'Blood sugar control';
+
+  @override
+  String get medicineCategoryDiabetesShort => 'Blood sugar';
+
+  @override
+  String get medicineCategoryDigestion => 'Stomach & digestion';
+
+  @override
+  String get medicineCategoryDigestionHint => 'Heartburn and digestion';
+
+  @override
+  String get medicineCategoryDigestionShort => 'Digestion';
+
+  @override
+  String get medicineCategoryMood => 'Mental health & sleep';
+
+  @override
+  String get medicineCategoryMoodHint => 'Mood, anxiety, sleep';
+
+  @override
+  String get medicineCategoryMoodShort => 'Mood & sleep';
+
+  @override
+  String get medicineCategoryInfections => 'Infections';
+
+  @override
+  String get medicineCategoryInfectionsHint => 'Antibiotics and antivirals';
+
+  @override
+  String get medicineCategoryBreathing => 'Asthma & breathing';
+
+  @override
+  String get medicineCategoryBreathingHint => 'Inhalers and breathing';
+
+  @override
+  String get medicineCategoryBreathingShort => 'Breathing';
+
+  @override
+  String get medicineCategoryVitamins => 'Vitamins & supplements';
+
+  @override
+  String get medicineCategoryVitaminsHint => 'Vitamins and minerals';
+
+  @override
+  String get medicineCategoryVitaminsShort => 'Supplements';
+
+  @override
+  String get medicineCategoryPeds => 'Anabolics & PEDs';
+
+  @override
+  String get medicineCategoryPedsHint => 'Performance and physique';
+
+  @override
+  String get medicineCategoryPedsShort => 'PEDs';
 }

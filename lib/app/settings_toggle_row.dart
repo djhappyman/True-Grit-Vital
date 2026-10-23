@@ -36,6 +36,7 @@ class _SettingsToggleRowState extends State<SettingsToggleRow> {
   @override
   Widget build(BuildContext context) {
     final colours = Theme.of(context).colorScheme;
+    final settings = VitalSettingsScope.maybeOf(context) != null;
     return Semantics(
       container: true,
       label: widget.label,
@@ -68,9 +69,12 @@ class _SettingsToggleRowState extends State<SettingsToggleRow> {
                   : VitalMotion.choice,
               curve: VitalMotion.geometry,
               constraints: const BoxConstraints(minHeight: 72),
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+              padding: EdgeInsets.symmetric(
+                vertical: settings ? 14 : 16,
+                horizontal: settings ? 2 : 12,
+              ),
               decoration: BoxDecoration(
-                color: colours.secondary,
+                color: settings ? Colors.transparent : colours.secondary,
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
                   color: _focused ? colours.ring : const Color(0x00000000),
@@ -83,11 +87,20 @@ class _SettingsToggleRowState extends State<SettingsToggleRow> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.label, style: VitalType.label),
+                        Text(
+                          widget.label,
+                          style: settings
+                              ? VitalSettingsType.item
+                              : VitalType.label,
+                        ),
                         const SizedBox(height: 4),
                         Text(
                           widget.description,
-                          style: TextStyle(color: colours.mutedForeground),
+                          style: settings
+                              ? VitalSettingsType.detail.copyWith(
+                                  color: colours.mutedForeground,
+                                )
+                              : TextStyle(color: colours.mutedForeground),
                         ),
                       ],
                     ),

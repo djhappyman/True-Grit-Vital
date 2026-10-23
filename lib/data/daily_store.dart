@@ -78,6 +78,44 @@ extension DailyRecordStore on RecordStore {
         if (amounts.any((a) => a.unit != item.unit)) {
           throw const CommandConflict('plan_unit');
         }
+        if (plan.doseDisplay?.strength case final strength?) {
+          if (strength.ingredientId != plan.itemId) {
+            throw const CommandConflict('plan_unit');
+          }
+        }
+        if (plan.doseDisplay case final display?) {
+          if (convertScheduleAmount(
+                ExactAmount(BigInt.one),
+                display.unit,
+                item.unit,
+                display.strength,
+              ) ==
+              null) {
+            throw const CommandConflict('plan_unit');
+          }
+        }
+        if (plan.stopCondition case final rule?) {
+          DailyResolver().clock.validateZone(rule.zone);
+          if (rule.strength != null &&
+              rule.strength!.ingredientId != plan.itemId) {
+            throw const CommandConflict('plan_unit');
+          }
+          if (rule.unit != null && rule.unit != item.unit) {
+            throw const CommandConflict('plan_unit');
+          }
+          if (rule.containerId case final id?) {
+            final container = await stockContainerById(
+              personId: plan.personId,
+              containerId: id,
+            );
+            if (container == null ||
+                container.itemId != plan.itemId ||
+                container.balance.value == null ||
+                container.balance.value! <= ExactAmount.zero) {
+              throw const CommandConflict('stock_container');
+            }
+          }
+        }
         if (plan.timing case DailySlots(:final slots)) {
           if (slots.length > 100) throw ArgumentError('daily_slot_bound');
         }
@@ -175,6 +213,8 @@ extension DailyRecordStore on RecordStore {
               instructions: v.instructions,
               timingPolicy: v.timingPolicy,
               requirements: v.requirements,
+              doseDisplay: v.doseDisplay,
+              stopCondition: v.stopCondition,
               effectiveFrom: v.effectiveFrom,
               effectiveUntil: v.effectiveUntil,
               zoneBasis: v.zoneBasis,
@@ -1478,9 +1518,10 @@ extension DailyRecordStore on RecordStore {
       planId: e.identity.planId,
       personId: e.identity.personId,
     );
-    if (e.plannedCount != null &&
-        aggregate?.end != null &&
-        !actionInstant.isBefore(aggregate!.end!.exclusiveInstant)) {
+    if (aggregate?.endFor(e.versionId) != null &&
+        !actionInstant.isBefore(
+          aggregate!.endFor(e.versionId)!.exclusiveInstant,
+        )) {
       throw const CommandConflict('plan_ended');
     }
     if (e.eligibilityConflict != null) {

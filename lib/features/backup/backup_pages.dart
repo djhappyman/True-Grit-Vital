@@ -3,7 +3,6 @@ import 'package:flutter/material.dart'
     show MaterialLocalizations, TimeOfDay;
 import 'package:flutter/services.dart' show TextInputAction;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../app/backup.dart';
@@ -74,44 +73,13 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     final state = ref.watch(backupProvider);
     final controller = ref.read(backupProvider.notifier);
     return VitalScaffold(
-      headers: [
-        SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: VitalButton.secondary(
-                onPressed: () {
-                  if (context.canPop()) {
-                    context.pop();
-                  } else {
-                    context.go('/today');
-                  }
-                },
-                child: Text(text.back),
-              ),
-            ),
-          ),
-        ),
-      ],
+      headers: [VitalSettingsToolbar(title: text.backup)],
       child: VitalInsetScrollView(
         child: VitalPageBody(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 80),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Semantics(
-                header: true,
-                child: Text(
-                  text.backup,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
               if (operations == null)
                 _FailurePanel(
                   heading: text.backupUnavailableHeading,

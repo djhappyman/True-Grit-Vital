@@ -54,12 +54,20 @@ extension PhaseRecordStore on RecordStore {
       'SELECT snapshot FROM phase_plan WHERE plan=? AND person=?',
       [planId, personId],
     );
-    if (rows.isEmpty) return null;
-    final stored = decodePhasePlan(
-      dailyObject(rows.single['snapshot'] as String),
-    );
     // Versions are authoritative after ordinary edits or pause/restart commands.
     final versions = await _phaseVersions(planId, personId);
+    if (versions.isEmpty) return null;
+    if (rows.isEmpty && versions.every((p) => p.stopCondition == null)) {
+      return null;
+    }
+    final stored = rows.isEmpty
+        ? PhasePlan(phases: versions)
+        : decodePhasePlan(dailyObject(rows.single['snapshot'] as String));
+    final versionEnds = <String, PlanEnd>{};
+    for (final version in versions) {
+      final bound = await _scheduleStop(version);
+      if (bound != null) versionEnds[version.versionId] = bound;
+    }
     final origins = <DailyPlanVersion>[];
     for (final id
         in stored.overrides
@@ -104,6 +112,7 @@ extension PhaseRecordStore on RecordStore {
       phases: versions,
       originPhases: origins,
       end: stored.end,
+      versionEnds: versionEnds,
       overrides: overrides,
     );
   }

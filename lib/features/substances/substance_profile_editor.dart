@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
 import '../../domain/substance_profile.dart';
+import 'medicine_strength_fields.dart';
 import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
 import '../recording/record_pages.dart' show LabelledInput, Heading;
@@ -20,6 +21,7 @@ String substanceFormLabel(AppLocalizations t, SubstanceForm form) =>
       SubstanceForm.powderToMix => t.substanceMix,
       SubstanceForm.tablet => t.tablet,
       SubstanceForm.capsule => t.screenCreateFormCapsule,
+      SubstanceForm.caplet => t.quickMedicineCaplet,
       SubstanceForm.liquid => t.liquid,
       SubstanceForm.powder => t.screenCreateFormPowder,
       SubstanceForm.other => t.substanceOther,
@@ -124,6 +126,7 @@ class SubstanceProfileEditorData {
   SubstanceProfileEditorData(this.changed) {
     other.addListener(changed);
     strength.addListener(changed);
+    strengthBasis.addListener(changed);
     halfLife = HalfLifeEditorData(changed);
   }
   final VoidCallback changed;
@@ -131,12 +134,14 @@ class SubstanceProfileEditorData {
   SubstanceForm? form;
   String massUnit = 'mg';
   final other = TextEditingController(), strength = TextEditingController();
+  final strengthBasis = TextEditingController(text: '1');
   late final HalfLifeEditorData halfLife;
   String encode() => jsonEncode({
     'route': route?.name,
     'form': form?.name,
     'otherForm': other.text,
     'strengthText': strength.text,
+    'strengthBasisText': strengthBasis.text,
     'massUnit': massUnit,
     'halfLife': halfLife.capture(),
   });
@@ -150,6 +155,9 @@ class SubstanceProfileEditorData {
         : SubstanceForm.values.byName(m['form'] as String);
     other.text = m['otherForm'] as String? ?? '';
     strength.text = m['strengthText'] as String? ?? '';
+    strengthBasis.text =
+        m['strengthBasisText'] as String? ??
+        (form == SubstanceForm.powderToMix ? '' : '1');
     massUnit = m['massUnit'] as String? ?? 'mg';
     halfLife.restore(Map<String, dynamic>.from(m['halfLife'] as Map? ?? {}));
   }
@@ -166,6 +174,9 @@ class SubstanceProfileEditorData {
       form: form!,
       otherForm: other.text.trim(),
       massUnit: massUnit,
+      strengthBasisText: blend || strength.text.trim().isEmpty
+          ? '1'
+          : strengthBasis.text.trim().replaceAll(',', '.'),
       strengthText: blend || strength.text.trim().isEmpty
           ? null
           : strength.text.trim().replaceAll(',', '.'),
@@ -176,6 +187,7 @@ class SubstanceProfileEditorData {
   void dispose() {
     other.dispose();
     strength.dispose();
+    strengthBasis.dispose();
     halfLife.dispose();
   }
 }
@@ -204,6 +216,7 @@ class SubstanceProfileEditor extends StatelessWidget {
       SubstanceRoute.oral => const [
         SubstanceForm.tablet,
         SubstanceForm.capsule,
+        SubstanceForm.caplet,
         SubstanceForm.liquid,
         SubstanceForm.powder,
         SubstanceForm.other,
@@ -211,12 +224,16 @@ class SubstanceProfileEditor extends StatelessWidget {
       SubstanceRoute.other => const [SubstanceForm.other],
       null => const <SubstanceForm>[],
     };
-    final isCount =
-        data.form == SubstanceForm.tablet || data.form == SubstanceForm.capsule;
+    final isCount = const {
+      SubstanceForm.tablet,
+      SubstanceForm.capsule,
+      SubstanceForm.caplet,
+    }.contains(data.form);
     final isLiquid = const {
       SubstanceForm.oil,
       SubstanceForm.water,
       SubstanceForm.liquid,
+      SubstanceForm.powderToMix,
     }.contains(data.form);
     void changed() {
       data.changed();
@@ -237,6 +254,9 @@ class SubstanceProfileEditor extends StatelessWidget {
             data.route = r;
             data.form = r == SubstanceRoute.other ? SubstanceForm.other : null;
             data.strength.clear();
+            data.strengthBasis.text = data.form == SubstanceForm.powderToMix
+                ? ''
+                : '1';
             changed();
           },
         ),
@@ -261,28 +281,12 @@ class SubstanceProfileEditor extends StatelessWidget {
               controller: data.other,
               enabled: enabled,
             ),
-          if (!blend && (isCount || isLiquid)) ...[
-            LabelledInput(
-              label: isCount ? t.substanceStrengthEach : t.substanceStrengthMl,
-              controller: data.strength,
+          if (!blend && (isCount || isLiquid))
+            MedicineStrengthFields(
+              data: data,
               enabled: enabled,
-              helper: t.substanceStrengthHelp,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
+              onChanged: onChanged,
             ),
-            _Choices(
-              values: const ['mg', 'mcg'],
-              selected: data.massUnit,
-              enabled: enabled,
-              label: (u) => u == 'mcg' ? t.substanceMicrograms : 'mg',
-              onChanged: (u) {
-                data.massUnit = u;
-                changed();
-              },
-            ),
-          ],
-          if (data.form == SubstanceForm.powderToMix) Text(t.substanceVialNext),
           if (!blend) ...[
             const SizedBox(height: 12),
             HalfLifeEditor(
@@ -319,7 +323,11 @@ class SubstanceProfileSummary extends StatelessWidget {
             t.substanceStrengthSummary(
               profile.strengthText!,
               profile.massUnit == 'mcg' ? t.substanceMicrograms : 'mg',
-              profile.isCount ? t.substanceEach : 'ml',
+              profile.strengthBasisText == '1'
+                  ? profile.isCount
+                        ? t.substanceEach
+                        : 'ml'
+                  : '${profile.strengthBasisText} ${profile.isCount ? t.dashboardUnitCount : 'ml'}',
             ),
           ),
         if (h != null) ...[

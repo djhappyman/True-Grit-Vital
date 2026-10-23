@@ -270,23 +270,11 @@ class _PrivacyPageState extends ConsumerState<PrivacyPage> {
           SettingsNotice(message: _notice!, isError: _failed),
         ],
         const SizedBox(height: 24),
-        Semantics(
-          header: true,
-          child: Text(
-            t.copies,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-        ),
+        VitalSettingsLabel(t.copies),
         const SizedBox(height: 8),
         Text(t.privacyCopies),
         const SizedBox(height: 28),
-        Semantics(
-          header: true,
-          child: Text(
-            t.deleteRecords,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-        ),
+        VitalSettingsLabel(t.deleteRecords),
         const SizedBox(height: 12),
         peopleState.when(
           data: (people) {

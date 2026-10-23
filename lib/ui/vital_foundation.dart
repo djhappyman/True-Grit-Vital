@@ -21,83 +21,91 @@ abstract final class VitalLayout {
   static const double panelPadding = 16;
 }
 
-/// Semantic roles transcribed from the saved Stitch typography.
+/// Semantic roles shared with True Grit Workout typography.
 abstract final class VitalType {
+  static const uiFontFamily = 'PlusJakartaSans';
+  static const monoFontFamily = 'JetBrainsMono';
   static const title = TextStyle(
-    fontFamily: 'StitchSans',
+    fontFamily: uiFontFamily,
     fontSize: 28,
     height: 34 / 28,
-    fontWeight: FontWeight.w600,
-    letterSpacing: -.42,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0,
   );
   static const detailTitle = TextStyle(
-    fontFamily: 'StitchSans',
+    fontFamily: uiFontFamily,
     fontSize: 24,
     height: 32 / 24,
     fontWeight: FontWeight.w600,
   );
   static const section = TextStyle(
-    fontFamily: 'StitchSans',
+    fontFamily: uiFontFamily,
     fontSize: 20,
     height: 1.4,
     fontWeight: FontWeight.w600,
     letterSpacing: -.1,
   );
   static const record = TextStyle(
-    fontFamily: 'StitchSans',
-    fontSize: 17,
-    height: 24 / 17,
+    fontFamily: uiFontFamily,
+    fontSize: 16,
+    height: 22 / 16,
     fontWeight: FontWeight.w600,
   );
   static const body = TextStyle(
-    fontFamily: 'StitchSans',
+    fontFamily: uiFontFamily,
     fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 20 / 14,
   );
   static const metadata = TextStyle(
-    fontFamily: 'StitchSans',
+    fontFamily: uiFontFamily,
     fontSize: 12,
     fontWeight: FontWeight.w400,
     height: 16 / 12,
-    letterSpacing: .12,
+    letterSpacing: .25,
   );
   static const label = TextStyle(
-    fontFamily: 'StitchSans',
-    fontSize: 13,
-    height: 18 / 13,
+    fontFamily: uiFontFamily,
+    fontSize: 12,
+    height: 16 / 12,
     fontWeight: FontWeight.w500,
-    letterSpacing: .13,
+    letterSpacing: .5,
   );
   static const control = TextStyle(
-    fontFamily: 'StitchSans',
+    fontFamily: uiFontFamily,
     fontSize: 14,
     height: 20 / 14,
     fontWeight: FontWeight.w600,
     letterSpacing: .1,
   );
   static const dialogTitle = TextStyle(
-    fontFamily: 'StitchSans',
+    fontFamily: uiFontFamily,
     fontSize: 18,
     height: 26 / 18,
     fontWeight: FontWeight.w700,
   );
   static const micro = TextStyle(
-    fontFamily: 'StitchSans',
+    fontFamily: uiFontFamily,
     fontSize: 11,
     height: 14 / 11,
     fontWeight: FontWeight.w500,
-    letterSpacing: .22,
+    letterSpacing: .5,
+  );
+  static const code = TextStyle(
+    fontFamily: monoFontFamily,
+    fontSize: 12,
+    height: 16 / 12,
+    fontWeight: FontWeight.w400,
   );
   static const quantity = TextStyle(
-    fontFamily: 'StitchSans',
+    fontFamily: monoFontFamily,
     fontSize: 24,
     fontWeight: FontWeight.w600,
     height: 32 / 24,
     fontFeatures: [FontFeature.tabularFigures()],
   );
   static const metric = TextStyle(
-    fontFamily: 'StitchSans',
+    fontFamily: monoFontFamily,
     fontSize: 32,
     fontWeight: FontWeight.w600,
     height: 38 / 32,
@@ -132,6 +140,7 @@ class VitalColors {
   Color get canvas => scheme.background;
   Color get surface => scheme.card;
   Color get inset => scheme.secondary;
+  Color get inputFill => scheme.muted;
   Color get ink => scheme.foreground;
   Color get muted => scheme.mutedForeground;
   Color get accent => scheme.primary;

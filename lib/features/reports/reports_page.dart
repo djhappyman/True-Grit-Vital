@@ -252,38 +252,20 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
     });
     return VitalScaffold(
       headers: [
-        SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-            child: Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                VitalButton.secondary(
-                  onPressed: () {
-                    final back = widget.returnLocation;
-                    if (widget.item != null && context.canPop()) {
-                      // The overview stays mounted beneath a pushed item
-                      // report, so popping retains its selected section.
-                      context.pop();
-                    } else if (back != null) {
-                      context.go(back);
-                    } else if (context.canPop()) {
-                      context.pop();
-                    } else {
-                      context.go('/history');
-                    }
-                  },
-                  child: Text(t.back),
-                ),
-                VitalButton.secondary(
-                  onPressed: () => context.push('/appearance'),
-                  child: Text(t.appearance),
-                ),
-              ],
-            ),
-          ),
+        VitalSettingsToolbar(
+          title: t.reportsTitle,
+          onBack: () {
+            final back = widget.returnLocation;
+            if (widget.item != null && context.canPop()) {
+              context.pop();
+            } else if (back != null) {
+              context.go(back);
+            } else if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/history');
+            }
+          },
         ),
       ],
       child: people.when(
@@ -467,7 +449,6 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 ),
                 const SizedBox(height: 16),
               ],
-              Heading(t.reportsTitle),
               Text(t.reportScopeHelp),
               if (requestedItem != null &&
                   !_seedBlocked &&
@@ -564,17 +545,13 @@ class _ReportsPageState extends ConsumerState<ReportsPage> {
                 ),
               ],
               const SizedBox(height: 20),
-              LabelledInput(
-                label: t.reportFrom,
-                controller: from,
-                helper: t.reportDateHelp,
+              VitalDateRangeField(
+                start: from,
+                end: through,
+                startLabel: t.reportFrom,
+                endLabel: t.reportThrough,
+                endExclusive: false,
                 error: dateError,
-                enabled: editingEnabled,
-              ),
-              LabelledInput(
-                label: t.reportThrough,
-                controller: through,
-                helper: t.reportThroughHelp,
                 enabled: editingEnabled,
               ),
               LabelledInput(

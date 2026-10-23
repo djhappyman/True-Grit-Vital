@@ -261,7 +261,7 @@ BarcodeItemReview barcodeItemReview(
   final profile = detail?.profile;
   final enteredStrength = profile?.strengthText;
   final strength = enteredStrength != null
-      ? '${enteredStrength.trim()} ${profile!.massUnit}/${profile.isCount ? 'count' : 'ml'}'
+      ? '${enteredStrength.trim()} ${profile!.massUnit}/${profile.strengthBasisText} ${profile.isCount ? 'count' : 'ml'}'
       : catalogue?.trim() ?? '';
   return BarcodeItemReview(
     item: item,

@@ -18,6 +18,11 @@ class VitalGlassScope extends InheritedWidget {
       (context.dependOnInheritedWidgetOfExactType<VitalGlassScope>()?.opaque ??
           false) ||
       MediaQuery.highContrastOf(context);
+
+  /// Light chrome and overlays use solid theme surfaces. The modal barrier
+  /// can dim the page without showing through the sheet/dialog itself.
+  static bool opaqueSurfaceOf(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.light || opaqueOf(context);
   @override
   bool updateShouldNotify(VitalGlassScope oldWidget) =>
       opaque != oldWidget.opaque;
@@ -94,7 +99,14 @@ class VitalGlassSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final opaque = VitalGlassScope.opaqueOf(context);
+    final opaque = VitalGlassScope.opaqueSurfaceOf(context);
+    final colors = Theme.of(context).colorScheme;
+    final solidColor = switch (role) {
+      VitalGlassRole.sheet ||
+      VitalGlassRole.dialog ||
+      VitalGlassRole.menu => colors.popover,
+      VitalGlassRole.appBar || VitalGlassRole.bottomBar => colors.card,
+    };
     final amount = progress.clamp(0.0, 1.0);
     const overscan = 3.0;
     return ClipRRect(
@@ -108,7 +120,7 @@ class VitalGlassSurface extends StatelessWidget {
                 child: Opacity(
                   opacity: amount,
                   child: opaque
-                      ? ColoredBox(color: Theme.of(context).colorScheme.card)
+                      ? ColoredBox(color: solidColor)
                       : Stack(
                           children: [
                             Positioned(

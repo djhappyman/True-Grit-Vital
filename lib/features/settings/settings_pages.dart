@@ -2,20 +2,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
-import '../../app/appearance.dart';
-import '../../app/display_preferences.dart';
 import '../../app/privacy.dart';
 import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
-import 'settings_backup_status.dart';
+import '../profiles/profile_pages.dart' show profilesProvider;
 import 'settings_widgets.dart';
-import 'settings_vault.dart';
 
-/// The three factual groups of the Settings hub.
+/// Stable section identities for existing Settings return links.
 ///
-/// Each group maps to one card whose rows are real, capability-gated
-/// destinations. The filter only chooses which cards are shown; no group owns a
-/// second copy of a form.
+/// All sections appear in one list; a group URL reveals its section.
 enum SettingsHubGroup { general, privacy, data }
 
 /// Settings: one hub for the implemented capabilities.
@@ -34,14 +29,33 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  late SettingsHubGroup _group = widget.initialGroup;
+  final _groups = [for (var i = 0; i < 3; i++) GlobalKey()];
+
+  @override
+  void initState() {
+    super.initState();
+    _revealGroup();
+  }
 
   @override
   void didUpdateWidget(SettingsPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.initialGroup != widget.initialGroup) {
-      _group = widget.initialGroup;
-    }
+    if (oldWidget.initialGroup != widget.initialGroup) _revealGroup();
+  }
+
+  void _revealGroup() {
+    if (widget.initialGroup == SettingsHubGroup.general) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final target = _groups[widget.initialGroup.index].currentContext;
+      if (target != null) {
+        Scrollable.ensureVisible(
+          target,
+          duration: VitalMotion.duration(context, VitalMotion.detail),
+          curve: VitalMotion.arrival,
+        );
+      }
+    });
   }
 
   @override
@@ -51,21 +65,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       GoRouter.of(context),
       configured: ref.watch(settingsCapabilitiesProvider),
     );
-    final displayFailed =
-        ref.watch(appearanceErrorProvider) ||
-        ref.watch(displayPreferencesProvider).failed;
     final sections = <Widget>[
       SettingsSection(
         title: t.screenSettingsGroupGeneral,
         icon: LucideIcons.slidersHorizontal,
-        description: t.screenSettingsGeneralBody,
         children: [
-          SettingsNavigationRow(
-            icon: LucideIcons.userRound,
-            label: t.profile,
-            description: t.settingsProfileBody,
-            onPressed: () => context.push('/profile'),
-          ),
           SettingsNavigationRow(
             icon: LucideIcons.sunMoon,
             label: t.appearance,
@@ -95,7 +99,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       SettingsSection(
         title: t.privacy,
         icon: LucideIcons.shieldCheck,
-        description: t.privacyBody,
         children: [
           SettingsNavigationRow(
             icon: LucideIcons.archive,
@@ -114,14 +117,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       SettingsSection(
         title: t.data,
         icon: LucideIcons.database,
-        description: t.screenSettingsDataBody,
         children: [
-          const SettingsVaultSummary(),
-          const SizedBox(height: 8),
-          if (capabilities.hasReports) ...[
-            SettingsReportDates(reportsPath: capabilities.reportsPath!),
-            const SizedBox(height: 8),
-          ],
+          SettingsNavigationRow(
+            icon: LucideIcons.database,
+            label: t.featureVaultTitle,
+            description: t.featureVaultDatabase,
+            onPressed: () => context.push('/settings/storage'),
+          ),
           if (capabilities.hasReports)
             SettingsNavigationRow(
               icon: LucideIcons.fileText,
@@ -136,7 +138,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               description: t.settingsExportsBody,
               onPressed: () => context.push(capabilities.exportsPath!),
             ),
-          SettingsBackupStatus(backupPath: capabilities.backupPath),
+          if (capabilities.hasBackup)
+            SettingsNavigationRow(
+              icon: LucideIcons.hardDrive,
+              label: t.backup,
+              description: t.settingsBackupBody,
+              onPressed: () => context.push(capabilities.backupPath!),
+            ),
           if (capabilities.hasRestore)
             SettingsNavigationRow(
               icon: LucideIcons.upload,
@@ -147,128 +155,82 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ],
       ),
     ];
-    return SafeArea(
-      top: false,
-      bottom: false,
-      child: VitalScaffold(
-        headers: [
-          VitalPageBody(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: VitalButton.secondary(
-                    onPressed: () =>
-                        context.canPop() ? context.pop() : context.go('/today'),
-                    leading: const Icon(LucideIcons.arrowLeft),
-                    child: Text(t.back),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _SettingsGroupFilter(
-                  group: _group,
-                  onChanged: (group) => setState(() => _group = group),
-                ),
-              ],
-            ),
-          ),
-        ],
-        child: VitalPager(
-          index: _group.index,
-          itemCount: 3,
-          onChanged: (index) =>
-              setState(() => _group = SettingsHubGroup.values[index]),
-          itemBuilder: (_, index) => VitalScrollBody(
-            children: [
-              if (index == 0) ...[
-                const _SettingsHero(),
-                const SizedBox(height: 16),
-              ],
-              if (displayFailed)
-                SettingsNotice(
-                  message: t.settingsDisplayUnsaved,
-                  isError: true,
-                  action: VitalButton.secondary(
-                    onPressed: () => context.push('/appearance'),
-                    child: Text(t.appearance),
-                  ),
-                ),
-              sections[index],
-            ],
-          ),
-        ),
+    return VitalSettingsPage(
+      title: t.settings,
+      hub: true,
+      trailing: VitalIconButton(
+        label: t.edit,
+        icon: LucideIcons.pencil,
+        onPressed: () => context.push('/profile'),
       ),
+      children: [
+        const _SettingsHero(),
+        const SizedBox(height: 24),
+        for (var index = 0; index < sections.length; index++) ...[
+          if (index > 0) const SizedBox(height: 24),
+          KeyedSubtree(key: _groups[index], child: sections[index]),
+        ],
+      ],
     );
   }
 }
 
-/// The page identity: the hub title, one factual storage badge and the body.
-///
-/// It replaces the plain title so the first thing on the screen names what the
-/// hub controls. It claims no cipher, version, size or remote custody.
-class _SettingsHero extends StatelessWidget {
+/// The saved local profile and factual storage badge, with the existing editor.
+class _SettingsHero extends ConsumerWidget {
   const _SettingsHero();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context);
-    final colours = Theme.of(context).colorScheme;
-    return VitalPanel(
-      gap: 8,
-      children: [
-        Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 12,
-          runSpacing: 8,
-          children: [
-            Semantics(
-              header: true,
-              child: Text(t.settings, style: VitalType.detailTitle),
+    final c = VitalColors(context);
+    final people = ref.watch(profilesProvider);
+    final person = people.value?.where((profile) => profile.isMe).firstOrNull;
+    final name = person != null
+        ? (person.name == 'Me' ? t.me : person.name)
+        : people.hasError
+        ? t.profileUnavailable
+        : t.loadingRecords;
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, bottom: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 96,
+            height: 96,
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: c.accent, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: c.accent.withValues(alpha: .16),
+                  blurRadius: 10,
+                ),
+              ],
             ),
-            VitalBadge(
-              t.screenSettingsVaultBadge,
-              tone: VitalTone.positive,
-              dot: true,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: c.accentSurface,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(LucideIcons.userRound, color: c.accent, size: 32),
             ),
-          ],
-        ),
-        Text(
-          t.settingsBody,
-          style: VitalType.metadata.copyWith(color: colours.mutedForeground),
-        ),
-      ],
-    );
-  }
-}
-
-/// The three mutually exclusive sections of the hub.
-///
-/// The shared segment control supplies the 48px targets, keyboard activation
-/// and selected-state semantics; horizontal scrolling keeps large text readable.
-class _SettingsGroupFilter extends StatelessWidget {
-  const _SettingsGroupFilter({required this.group, required this.onChanged});
-
-  final SettingsHubGroup group;
-  final ValueChanged<SettingsHubGroup> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    return VitalSegments<SettingsHubGroup>(
-      values: const [
-        SettingsHubGroup.general,
-        SettingsHubGroup.privacy,
-        SettingsHubGroup.data,
-      ],
-      selected: group,
-      onChanged: onChanged,
-      label: (value) => switch (value) {
-        SettingsHubGroup.general => t.screenSettingsGroupGeneral,
-        SettingsHubGroup.privacy => t.privacy,
-        SettingsHubGroup.data => t.data,
-      },
+          ),
+          const SizedBox(height: 14),
+          Text(
+            name,
+            textAlign: TextAlign.center,
+            style: VitalType.detailTitle.copyWith(color: c.ink),
+          ),
+          const SizedBox(height: 8),
+          VitalBadge(
+            t.screenSettingsVaultBadge,
+            tone: VitalTone.positive,
+            dot: true,
+          ),
+        ],
+      ),
     );
   }
 }

@@ -7,7 +7,6 @@ import '../../app/reports.dart';
 import '../../app/vital_app.dart';
 import '../../l10n/app_localizations.dart';
 import '../../ui/vital_ui.dart';
-import '../recording/record_pages.dart';
 
 typedef ReportDocumentViewBuilder = Widget Function(
   BuildContext context,
@@ -50,39 +49,32 @@ class ReportPreviewPage extends ConsumerWidget {
     );
     return VitalScaffold(
       headers: [
-        SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-            child: Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
+        VitalSettingsToolbar(
+          title: t.reportPreviewTitle,
+          onBack: () =>
+              context.canPop() ? context.pop() : context.go('/reports'),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+          child: VitalActions(
+            children: [
+              VitalButton.secondary(
+                onPressed: artifact == null || !canSave || state.handoffBusy
+                    ? null
+                    : () => ref
+                          .read(reportControllerProvider.notifier)
+                          .save(asText: state.textPreview),
+                child: Text(t.save),
+              ),
+              if (!state.textPreview)
                 VitalButton.secondary(
-                  onPressed: () =>
-                      context.canPop() ? context.pop() : context.go('/reports'),
-                  child: Text(t.back),
-                ),
-                VitalButton.secondary(
-                  onPressed: artifact == null || !canSave || state.handoffBusy
+                  onPressed: artifact == null || !canShare || state.handoffBusy
                       ? null
-                      : () => ref
-                            .read(reportControllerProvider.notifier)
-                            .save(asText: state.textPreview),
-                  child: Text(t.save),
+                      : () =>
+                            ref.read(reportControllerProvider.notifier).share(),
+                  child: Text(t.share),
                 ),
-                if (!state.textPreview)
-                  VitalButton.secondary(
-                    onPressed:
-                        artifact == null || !canShare || state.handoffBusy
-                        ? null
-                        : () => ref
-                              .read(reportControllerProvider.notifier)
-                              .share(),
-                    child: Text(t.share),
-                  ),
-              ],
-            ),
+            ],
           ),
         ),
       ],
@@ -91,7 +83,6 @@ class ReportPreviewPage extends ConsumerWidget {
           : PageContent(
               panelled: true,
               children: [
-                Heading(t.reportPreviewTitle),
                 Semantics(
                   header: true,
                   child: Text(

@@ -119,6 +119,8 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
     Map<String, String>? row,
     String? helper,
     int maxLines = 1,
+    VitalPickerKind? picker,
+    String? pickerZone,
   }) {
     final values = row ?? form.fields;
     final path = row == null ? key : '${row['id']}:$key';
@@ -146,6 +148,8 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
       child: LabelledInput(
         label: label,
         controller: controller,
+        picker: picker,
+        pickerZone: pickerZone,
         helper: helper,
         maxLines: maxLines,
         enabled: !busy && !uncertain && !conflict,
@@ -433,6 +437,14 @@ class _SupportingFormState extends DurableFormState<SupportingForm> {
         input(
           '${prefix}Text',
           t.supportingDateText,
+          picker: precision == 'exact'
+              ? VitalPickerKind.instant
+              : precision == 'day'
+              ? VitalPickerKind.date
+              : null,
+          pickerZone: form.get('${prefix}Zone').isEmpty
+              ? null
+              : form.get('${prefix}Zone'),
           helper: precision == 'exact'
               ? t.supportingExactDateHelp
               : t.supportingDateHelp,

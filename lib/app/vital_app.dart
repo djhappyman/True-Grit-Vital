@@ -55,6 +55,7 @@ import '../features/settings/diagnostic_pages.dart';
 import '../features/settings/help_pages.dart';
 import '../features/settings/privacy_pages.dart';
 import '../features/settings/settings_pages.dart';
+import '../features/settings/settings_vault.dart' show LocalDataPage;
 import '../features/reports/reports_page.dart';
 import '../features/reports/report_preview_page.dart';
 import '../features/restore/restore_pages.dart';
@@ -473,6 +474,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
           ),
         ),
+      ),
+      vitalRoute(
+        path: '/settings/storage',
+        builder: (_, _) => const StorageGate(child: LocalDataPage()),
       ),
       vitalRoute(
         path: '/settings/privacy',
@@ -1173,6 +1178,15 @@ class PageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasTitle = children.isNotEmpty && children.first is Heading;
+    final settings = VitalSettingsScope.maybeOf(context);
+    if (settings != null) {
+      final duplicateTitle =
+          hasTitle &&
+          (children.first as Heading).text == settings.fallbackTitle;
+      return VitalSettingsBody(
+        children: duplicateTitle ? children.skip(1).toList() : children,
+      );
+    }
     return VitalScrollBody(
       children: [
         if (hasTitle) VitalPageHeader(title: (children.first as Heading).text),
@@ -1211,68 +1225,33 @@ class AppearancePage extends ConsumerWidget {
     return EntryPage(
       children: [
         Heading(text.appearance),
-        const SizedBox(height: 8),
-        Text(text.appearanceBody),
+        Text(
+          text.appearanceBody,
+          style: VitalSettingsType.detail.copyWith(
+            color: VitalColors(context).muted,
+          ),
+        ),
         if (saveError)
           Semantics(liveRegion: true, child: Text(text.appearanceFailure)),
         const SizedBox(height: 24),
-        const AppLockSettings(),
+        VitalSettingsSection(
+          title: text.colourMode,
+          children: [
+            VitalSegments<ThemeMode>(
+              values: const [ThemeMode.system, ThemeMode.light, ThemeMode.dark],
+              selected: preferences.mode,
+              enabled: !saving,
+              allowReselect: saveError,
+              onChanged: controller.setMode,
+              label: (mode) => switch (mode) {
+                ThemeMode.system => text.system,
+                ThemeMode.light => text.light,
+                ThemeMode.dark => text.dark,
+              },
+            ),
+          ],
+        ),
         const SizedBox(height: 24),
-        const TimeFormatSettings(),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            VitalButton.secondary(
-              onPressed: () => context.push('/reminders'),
-              child: Text(text.reminders),
-            ),
-            VitalButton.secondary(
-              onPressed: () => context.push('/backup'),
-              child: Text(text.backup),
-            ),
-          ],
-        ),
-        const SizedBox(height: 32),
-        Semantics(
-          header: true,
-          child: Text(
-            text.colourMode,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final (mode, label) in [
-              (ThemeMode.system, text.system),
-              (ThemeMode.light, text.light),
-              (ThemeMode.dark, text.dark),
-            ])
-              Semantics(
-                selected: preferences.mode == mode,
-                child: VitalButton.secondary(
-                  onPressed: saving ? null : () => controller.setMode(mode),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (preferences.mode == mode) ...[
-                        const ExcludeSemantics(
-                          child: Icon(LucideIcons.check, size: 16),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
-                      Text(label),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 20),
         SettingsToggleRow(
           label: text.opaqueSurfaces,
           description: text.opaqueHelper,
@@ -1290,37 +1269,60 @@ class AppearancePage extends ConsumerWidget {
           reduceMotion: effective.reduceMotion,
         ),
         const SizedBox(height: 24),
-        SurfaceSample(effective: effective, opaqueChosen: preferences.opaque),
+        const TimeFormatSettings(),
         const SizedBox(height: 24),
-        Semantics(
-          header: true,
-          child: Text(
-            text.formSamples,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
+        VitalSettingsSection(
+          title: text.privacy,
+          children: const [AppLockSettings()],
         ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 24,
-          runSpacing: 16,
-          children: [
-            for (final (icon, label) in [
-              (LucideIcons.pill, text.tablet),
-              (LucideIcons.syringe, text.injection),
-              (LucideIcons.droplets, text.liquid),
-            ])
-              Row(
-                mainAxisSize: MainAxisSize.min,
+        const SizedBox(height: 24),
+        VitalDisclosure(
+          title: text.formSamples,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SurfaceSample(
+                effective: effective,
+                opaqueChosen: preferences.opaque,
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 24,
+                runSpacing: 16,
                 children: [
-                  ExcludeSemantics(child: Icon(icon)),
-                  const SizedBox(width: 8),
-                  Text(label),
+                  for (final (icon, label) in [
+                    (LucideIcons.pill, text.tablet),
+                    (LucideIcons.syringe, text.injection),
+                    (LucideIcons.droplets, text.liquid),
+                  ])
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ExcludeSemantics(child: Icon(icon)),
+                        const SizedBox(width: 8),
+                        Text(label),
+                      ],
+                    ),
                 ],
               ),
-          ],
+              const SizedBox(height: 12),
+              Text(text.formHelper),
+            ],
+          ),
         ),
-        const SizedBox(height: 12),
-        Text(text.formHelper),
+        const SizedBox(height: 24),
+        VitalSettingsRow(
+          label: text.reminders,
+          description: text.settingsRemindersBody,
+          icon: LucideIcons.bell,
+          onPressed: () => context.push('/reminders'),
+        ),
+        VitalSettingsRow(
+          label: text.backup,
+          description: text.settingsBackupBody,
+          icon: LucideIcons.archive,
+          onPressed: () => context.push('/backup'),
+        ),
       ],
     );
   }
@@ -1338,6 +1340,8 @@ class SurfaceSample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = AppLocalizations.of(context);
+    final light = Theme.of(context).brightness == Brightness.light;
+    final opaque = effective.opaque || VitalGlassScope.opaqueSurfaceOf(context);
     final child = Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -1352,8 +1356,10 @@ class SurfaceSample extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            effective.opaque
-                ? (opaqueChosen ? text.opaqueChosen : text.opaqueActive)
+            opaque
+                ? (opaqueChosen || light
+                      ? text.opaqueChosen
+                      : text.opaqueActive)
                 : text.glassActive,
           ),
           const SizedBox(height: 8),
@@ -1363,7 +1369,7 @@ class SurfaceSample extends StatelessWidget {
         ],
       ),
     );
-    if (effective.opaque) {
+    if (opaque) {
       return Container(
         key: const ValueKey('opaque-sample'),
         decoration: BoxDecoration(
@@ -1411,7 +1417,33 @@ GoRoute vitalRoute({
               final dialog =
                   path == '/site/:person/:record' ||
                   path == '/attachment/:id/rename';
-              final child = builder(context, state);
+              final page = builder(context, state);
+              final t = AppLocalizations.of(context);
+              final settingsTitle = switch (path) {
+                '/settings' => t.settings,
+                '/appearance' => t.appearance,
+                '/profile' => t.profile,
+                '/reminders' => t.reminders,
+                '/settings/storage' => t.featureVaultTitle,
+                '/settings/privacy' => t.privacy,
+                '/settings/diagnostics' => t.diagnostics,
+                '/settings/help' => t.help,
+                '/settings/licences' => t.licences,
+                '/settings/licences/app' => t.appLicence,
+                '/settings/licences/:index' => t.licence,
+                '/backup' => t.backup,
+                '/restore' => t.restoreTitle,
+                '/exports' => t.exportTitle,
+                '/reports' => t.reportsTitle,
+                '/reports/preview' => t.reportPreviewTitle,
+                _ => null,
+              };
+              final child = settingsTitle == null
+                  ? page
+                  : VitalSettingsScope(
+                      fallbackTitle: settingsTitle,
+                      child: page,
+                    );
               return CustomTransitionPage<void>(
                 key: state.pageKey,
                 opaque: !task,

@@ -310,12 +310,14 @@ class _ScreenLabsCollectionPageState
                       },
                     ),
                     const SizedBox(height: 12),
-                    LabelledInput(label: t.supportingFrom, controller: from),
-                    const SizedBox(height: 12),
-                    LabelledInput(
-                      label: t.supportingBefore,
-                      controller: before,
+                    VitalDateRangeField(
+                      start: from,
+                      end: before,
+                      startLabel: t.supportingFrom,
+                      endLabel: t.supportingBefore,
+                      endExclusive: true,
                     ),
+                    const SizedBox(height: 12),
                     const SizedBox(height: 8),
                     Text(
                       _rangeSummary(t),

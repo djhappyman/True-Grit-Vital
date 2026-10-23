@@ -36,7 +36,7 @@ Use explicit evidence and commits for each completed step. Screens remain canoni
 | Substance setup `/create` | Full editor; current catalogue/custom flow and draft protection. Group advanced identity/product configuration contextually. |
 | Catalogue, type selection and source pickers | Anchored compact choices or focused searchable task overlay; full identities and whole-collection search. |
 | Types `/types/:person`, `/types/:person/edit` | Management page; create/rename short values in dialogs. Filter controls link to management as a secondary action. |
-| Schedule `/schedule/:id` | Full editor; six modes and Preview/Save guards. Conditional sections reveal smoothly and retain controllers. |
+| Schedule `/schedule/:id` | Simple amount/time/repeat/duration editor with Review/Save guards. Unusual modes and breaks live under More options. Compatible-unit equivalents update live; date ranges use the canonical calendar. |
 | Pause `/pause/:id` | Focused task overlay; preserve exact interval scope and explicit resume/review controls. |
 | Phases `/phases/:id` | Full editor/review for repeating breaks and consequential boundaries. |
 | Stock `/stock/:person` | Compact inventory page; exact balances/states, Add and per-container overflow. |
@@ -61,7 +61,8 @@ Use explicit evidence and commits for each completed step. Screens remain canoni
 | Reports `/reports`, `/reports/preview` | Full selection and preview workflow; dates, inclusion/privacy and exact reviewed artifact remain explicit. |
 | Export `/exports` | Full selection/review; scope and concrete destination remain visible before generation. |
 | Backup/restore `/backup`, `/restore` | Full guarded workflows. Never persist passwords; show concrete progress/consequences and recovery. |
-| Settings `/settings` | General/Privacy/Data PageView sections using existing real destinations. |
+| Settings `/settings` | Navigation rows beneath the profile header; no inline data summaries or report controls. Group links reveal section anchors. |
+| Local data `/settings/storage` | Existing locked-aware data summary in the shared settings drilldown. |
 | Appearance `/appearance` | Settings page using shared switches/choices and central reduced effects. |
 | Profile `/profile` | Full short setup/profile editor; keep adult confirmation and report identity explicit. |
 | Reminders `/reminders` | Settings page with truthful OS/capability state and recovery. |
@@ -251,3 +252,73 @@ The follow-up family pass adapts Workout's canonical overlay frame/actions, pill
 Reference sources: Workout's shared overlays/canonical app_overlay_frame.dart and app_overlay_actions.dart, app_overlay_models.dart, forms/app_form_fields.dart, layout/app_media_picker_components.dart, and app/theme spacing/typography/color_schemes.dart. These inform Vital adapters; sibling Material widgets are not imported into Vital.
 
 Static analysis and hot reload passed. Comprehensive interaction, capture and device checks remain deferred by the owner's standing direction. No measured visual/accessibility acceptance is claimed from the source comparison alone.
+
+## Settings family, 23 October
+
+The owner requested Workout's settings styling across the hub and subpages. Shared settings toolbar/body/section/row/card/type adapters now carry that design. The hub uses one continuous list without tabs, with a centred saved-profile header, flat rows and small section labels. Group return links reveal section anchors. Appearance uses real disabled segments, flat switches and a disclosure for its existing samples. Same-choice retries after preference failures remain available.
+
+The route-scoped presentation reaches Profile, Reminders, Privacy, Diagnostics, Help and all licence pages through the existing EntryPage/form engine. Backup, Restore, Reports/preview and Export receive matching headers and open body surfaces. Restore's active-operation Back guard, report return context, preview Save/Share, permission actions, capability gating, profile drafts and destructive confirmation authority stay on their original paths. The later navigation-only correction adds `/settings/storage` for the existing local data summary; no new setting or data capability is added.
+
+Reference sources are Workout's settings_screen.dart, settings_group_screens.dart, settings_drilldown_scaffold.dart, settings_section_widgets.dart and settings_surface_components.dart. Shadcn remains Vital's control system. Static analysis and live hot reload were used; comprehensive interaction/capture/native tests remain deferred at the owner's request.
+
+### Owner correction: one page and app typography
+
+The owner rejected tabs in the Settings hub and withheld push until visual approval. The hub now follows Workout’s centred avatar/name layout and continuous section list. It has no horizontal pager. Existing Privacy/Data group links scroll to their section rather than selecting a tab.
+
+Plus Jakarta Sans and JetBrains Mono now supply the shared app typography. Eight font files were copied unchanged from Workout, with embedded copyright/OFL metadata checked and source/target hashes matched. Font licences are bundled and available in the existing notice collection. The UI font change reaches Vital, Stitch compatibility widgets, native shadcn text and code/numeric styles. Existing PDF document-font handling is retained. This pass remains local for owner review; no push or release is authorised yet.
+
+Local verification after the correction: whole-project analysis passed; hot reload reported no runtime errors in the running app. The Linux debug asset bundle was rebuilt successfully and its font manifest contains all four weights of both new families. The existing running process requires a full app restart to review the new font registration. No comprehensive tests, push or release were performed.
+
+## Light surfaces, 23 October
+
+Owner correction: light sheets/dialogs keep solid Material-style colouring. Background dimming is explicitly allowed; the sheet itself must not show the dimmed page through translucent glass. The shared surface renderer now uses solid theme colours for light overlays/chrome, while dark glass and all existing barrier/dismissal/record guards remain in place. The appearance sample follows the same policy. Verification is static analysis and live reload; comprehensive tests and publication remain deferred.
+
+## Hub and pill refinement, 23 October
+
+The owner requested navigation rows only in the Settings hub. Local data now opens its own subsection. Reports retains its date editor, and Backup retains its confirmed-save/history panel. The hub no longer embeds summaries, report shortcuts or backup commands. Shared segmented pills explicitly centre every label and use bold text, including matching width calculations for the scrollable large-text layout. Comprehensive tests and publication remain deferred.
+
+## Medicine chooser, 23 October
+
+The owner approved a compact chooser: Choose medicine, quiet Search medicines placeholder with persistent semantics, Scan beside the field, flat saved-medicine navigation rows and one quiet Create action below results. Existing full-collection search, paging, scan confirmation, stale-dataset and route/lock guards remain in place. The saved form appears only when supplied. No strength or dose is inferred from a medicine name. The shared sheet adapter no longer adds a dismiss-only Back button; its accessible handle and existing dismissal guards remain.
+
+## Canonical pickers and Schedule, 23 October
+
+Local implementation, awaiting owner visual acceptance. Schedule uses the simplified composition and exact compatible-unit conversion. Captured display strength and optional factual end rules extend the existing version codec. Existing drafts, revisions, generation, lock and uncertain-save guards remain in place.
+
+Workout's canonical date, clock, navigation, range-summary and week-math sources are adapted in `lib/ui/pickers`; see [provenance](picker-provenance.md). Active date/time entry paths now call them in recording, combined doses, Schedule, phases/pauses/intervals, stock/preparation, events/use periods, History, reports/exports, charts and supporting records. Inclusive and exclusive upper bounds retain their original domain meaning. Existing Today/History record calendars keep their actual queries and paging policies.
+
+Repeat editors share compact selectors, weekday pills, steppers and reduced-motion-aware transitions. Monthly/yearly selectors retain explicit missing-date policy; yearly is represented by the existing exact month engine. No medication dose/strength is inferred from its name. Workout's planned occurrence-count stop is not reinterpreted as recorded medication use; Vital's requested duration/actual-amount/container rules remain authoritative.
+
+Verification for this pass is deliberately limited to formatting, static analysis, exact arithmetic/codec/version-end checks and hot reload/runtime diagnostics. The owner deferred comprehensive tests; physical-device range dragging, focus/keyboard, largest-text and reduced-motion acceptance remain to be exercised. No commit or push is authorised for this UI pass until the owner is happy.
+
+Host evidence for this local pass: `./tool/flutterw analyze --no-pub` completed with no issues; hot reload succeeded and Dart runtime diagnostics reported no errors. A disposable deterministic check confirmed 1ml = 400mg, 0.5ml = 200mg, inverse/microgram conversion, refusal of non-exact scheduling precision, codec snapshots and per-version end isolation. The check used synthetic strength data and did not change the owner's medicine. Its temporary runner was removed after verification. These results do not claim physical-device visual, accessibility or performance acceptance.
+
+Schedule refinements: Times Add is a centred quiet text action; stable keyed rows spring/fade in and out using the shared animated-row adapter. Light dropdowns use the semantic inset fill. Start/end values are centred, human-readable quiet text controls. One When to take selector replaces the separate food and bedtime controls, preserving an existing combined instruction until explicitly changed. No medication timing advice or new dose defaults are introduced.
+
+The 23 October Schedule refinement groups date/time/repeat controls in one surface, uses Starting with consistent label/value alignment, provides a multiline Instructions field with ghost label/example, and keeps the plain-English Timing controls visible above Advanced. The one Advanced expansion explains Amount per time and Scheduled days off. Existing fields, defaults and durable commands are retained; Early/On time/Late remain person-defined timing labels.
+
+## Quick medicine strength and light controls, 23 October
+
+Local implementation awaiting visual acceptance: grouped medicine-form dropdown; fixed one-unit reference; optional mg/microgram strength; guarded Convert dialog; and powder/final-volume entry. Caplets use the existing count pipeline. Original nonterminating label ratios are retained exactly in the profile with an additive quantity field; older profiles retain their original per-one meaning. Stock prefills use only exact representable per-one values, and mixed preparation fields retain their original mass and final volume.
+
+Light text fields and dropdowns use the shared soft neutral grey fill (`#E7E8EA`), strengthened after the owner found the earlier fill too difficult to see. Dropdown hover remains neutral. Chip fills derive from their text tone. Dark-mode fill behaviour is retained. Static analysis, exact synthetic conversion/legacy round-trip checks and hot reload/runtime diagnostics are the scoped checks; comprehensive tests and physical-device visual acceptance remain deferred by the owner. No commit/push was made.
+
+The owner’s 23 October medicine-entry refinement replaces the separate For row with Strength, amount/unit controls and a fixed per-one reference. Narrow or large-text layouts place that reference beneath the controls. Medicine form adds a brief explanation and simpler option subtitles. Shared grouped dropdown headings use bold accent text and extra group spacing. These changes retain the existing conversion, mixed-volume, save and dismissal paths; verification is scoped to analysis and hot reload/runtime diagnostics, with visual acceptance by the owner.
+
+The subsequent strength refinement restores the live equivalent for all supported forms, keeps retained original label ratios visible, makes the per-one reference bold in the accent colour, and sizes the mass-unit trigger independently of the amount field. Short selected unit labels retain full menu/accessibility wording. The leave-blank hint was removed. Narrow and large-text layouts adapt using measured reference width and can stack the controls.
+
+The final preview correction keeps both label strength per entered quantity and the per-one equivalent visible for every valid strength, with singular/plural count labels. Convert now retains original amounts for terminating ratios as well as recurring ones; derived display values do not replace label data. This reuses the existing additive profile/draft fields and exact arithmetic.
+
+The owner’s final clarification makes the input Label strength itself: original strength and quantity remain visible and editable, including after Convert. The calculated per-one preview appears only for quantities other than one (numeric equality, so 1.0 also omits it). The former duplicated label preview is removed. This supersedes the preceding always-two-preview treatment.
+
+## Medicine categories, 23 October
+
+Medicine form and Category now share a two-column row with short helpers and responsive stacking. The ten agreed starter categories have brief plain-English subtitles; saved custom categories are included. Create category opens the shared glass/opaque dialog and stages the choice in the existing durable medicine draft. The existing atomic item/type command persists it on medicine save, preserving identity/revision guards and existing collection filtering. No schema or dependency changes were needed. The dialog retains lock/generation dismissal and stale-result checks. Targeted static analysis and debug bundle compilation passed. The existing running session rejected hot reload with the internal tooling error s1.reloadSources (-32603), so these category changes need a session restart for visual review. Comprehensive tests and device visual acceptance remain deferred.
+
+## Shared form baseline, 23 October
+
+Owner approved the New medicine hierarchy for future sheets and full-page forms. The source screenshot is retained in [the form reference](reviews/2026-10-23-form-standard/README.md). The current [blueprint](interaction-blueprint.md#form-standard) records two-column fields, selective subtitles/ghost text and shared styling. Reusable `VitalFormRow` and `VitalFormActions` back the rule. Medicine creation adopts them: Create has no decorative tick; sheets stack primary/Cancel, while full pages show equal Cancel/primary columns with measured large-text fallback. Existing durable save and dismissal callbacks remain in place. Other forms migrate when revised; this is not a claim of app-wide migration. Targeted static analysis and hot reload are the scoped checks; comprehensive tests remain deferred by the owner. All changes remain local, without commit or push.
+
+## Approved UI checkpoint, 23 October
+
+The owner accepted the revised medicine form and approved committing and pushing this UI checkpoint with a comprehensive changelog. This supersedes the earlier hold on publication for this pass. Full `./tool/flutterw analyze --no-pub` and `./tool/flutterw build linux --debug --no-pub` passed on the final code. Live hot reload and runtime diagnostics passed after the running compiler session was rebuilt. Font hashes match the recorded source assets and bundled OFL notices. Comprehensive tests and physical-device accessibility/performance acceptance remain deferred; this checkpoint does not publish a new APK or release.

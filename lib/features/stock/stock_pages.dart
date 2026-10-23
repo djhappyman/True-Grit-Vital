@@ -250,6 +250,7 @@ class _StockPageState extends ConsumerState<StockPage> {
                     ),
                     const SizedBox(height: 12),
                     LabelledInput(
+                      picker: VitalPickerKind.date,
                       key: const ValueKey('stock-cutoff-field'),
                       label: t.directCutoffLabel,
                       controller: _cutoff,
@@ -1558,9 +1559,14 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
       strengthPerCount = profile?.isCount ?? item!.unit == 'count';
       if (profile?.strengthText != null) {
         strength.text = item!.name;
-        knownStrength = true;
-        concentration.text = profile!.strengthText!;
+        knownStrength = profile!.perUnitStrengthText != null;
+        concentration.text = profile.perUnitStrengthText ?? '';
         strengthMassUnit = profile.massUnit;
+        if (mixed) {
+          preparationEditor.powder.text = profile.strengthText!;
+          preparationEditor.massUnit = profile.massUnit;
+          preparationEditor.finalVolume.text = profile.strengthBasisText;
+        }
       }
       productLabel = currentProduct.value;
       if (productLabel != null) {
@@ -1742,6 +1748,7 @@ class _StockContainerFormState extends DurableFormState<StockContainerForm> {
               error: invalid == 'lot' ? error : null,
             ),
             LabelledInput(
+              picker: VitalPickerKind.date,
               label: t.featureStockExpiry,
               controller: expiry,
               helper: t.featureStockExpiryHelp,
@@ -2149,6 +2156,7 @@ class _StockAdjustmentFormState extends DurableFormState<StockAdjustmentForm> {
           error: error == t.featureStockLotInvalid ? error : null,
         ),
         LabelledInput(
+          picker: VitalPickerKind.date,
           label: t.featureStockExpiry,
           controller: expiry,
           helper: t.featureStockExpiryHelp,

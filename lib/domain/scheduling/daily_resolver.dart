@@ -208,6 +208,8 @@ final class DailyResolver {
         onOff: plan.onOff,
         instructions: plan.instructions,
         requirements: plan.requirements,
+        doseDisplay: plan.doseDisplay,
+        stopCondition: plan.stopCondition,
         effectiveFrom: plan.effectiveFrom,
         effectiveUntil: plan.effectiveUntil,
       );

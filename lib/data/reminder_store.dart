@@ -314,8 +314,8 @@ extension ReminderRecordStore on RecordStore {
       personId: e.identity.personId,
     );
     if (aggregate != null) {
-      if (aggregate.end != null &&
-          !instant.isBefore(aggregate.end!.exclusiveInstant)) {
+      if (aggregate.endFor(e.versionId) != null &&
+          !instant.isBefore(aggregate.endFor(e.versionId)!.exclusiveInstant)) {
         throw const CommandConflict('plan_ended');
       }
       for (final phase in aggregate.phases) {

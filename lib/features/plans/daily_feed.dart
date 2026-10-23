@@ -1027,6 +1027,7 @@ class _ClockReplacementState extends ConsumerState<ClockReplacement> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         LabelledInput(
+          picker: VitalPickerKind.time,
           label: t.planReplacementTime,
           controller: time,
           helper: t.timeExample,

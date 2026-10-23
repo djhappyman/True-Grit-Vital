@@ -10,6 +10,12 @@ ThemeData vitalTheme(Brightness brightness) {
     radius: 1,
     typography: const Typography.geist(
       sans: VitalType.body,
+      mono: TextStyle(fontFamily: VitalType.monoFontFamily),
+      p: VitalType.body,
+      textLarge: VitalType.section,
+      textSmall: VitalType.control,
+      textMuted: VitalType.body,
+      inlineCode: VitalType.code,
       h1: VitalType.title,
       h2: VitalType.detailTitle,
       h3: VitalType.section,
@@ -29,7 +35,8 @@ ThemeData vitalTheme(Brightness brightness) {
       secondaryForeground: () => palette.ink,
       accent: () => palette.accentSurface,
       accentForeground: () => palette.accent,
-      muted: () => palette.ink.withValues(alpha: .04),
+      muted: () =>
+          dark ? palette.ink.withValues(alpha: .04) : const Color(0xFFE7E8EA),
       mutedForeground: () => palette.muted,
       border: () => palette.line,
       input: () => Color(dark ? 0xFF708A7C : 0xFF6B7D74),

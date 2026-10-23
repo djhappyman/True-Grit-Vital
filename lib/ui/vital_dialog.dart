@@ -17,11 +17,19 @@ class VitalDialog extends StatelessWidget {
     this.leading,
     this.trailing,
     this.maxWidth = VitalLayout.dialogWidth,
+    this.contentPadding,
+    this.surfaceRadius = VitalLayout.sheetRadius,
+    this.headerBodySpacing = 8,
+    this.headerAlignment = CrossAxisAlignment.start,
+    this.footerSpacing = 20,
   });
 
   final Widget? title, content, leading, trailing;
   final List<Widget>? actions;
   final double maxWidth;
+  final EdgeInsetsGeometry? contentPadding;
+  final double surfaceRadius, headerBodySpacing, footerSpacing;
+  final CrossAxisAlignment headerAlignment;
 
   @override
   Widget build(BuildContext context) {
@@ -31,10 +39,12 @@ class VitalDialog extends StatelessWidget {
     final hasActions = actions?.isNotEmpty ?? false;
     final scrollable =
         content is ScrollView || content is SingleChildScrollView;
-    final padding = media.textScaler.scale(14) >= 28 ? 16.0 : 24.0;
+    final padding =
+        contentPadding?.resolve(Directionality.of(context)) ??
+        EdgeInsets.all(media.textScaler.scale(14) >= 28 ? 16.0 : 24.0);
     final header = hasHeader
         ? Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: headerAlignment,
             children: [
               if (leading != null) ...[
                 IconTheme.merge(
@@ -91,14 +101,14 @@ class VitalDialog extends StatelessWidget {
                         children: [
                           ?header,
                           if (header != null && content != null)
-                            const SizedBox(height: 8),
+                            SizedBox(height: headerBodySpacing),
                           ?content,
                         ],
                       ),
                     ),
                   ),
                 if (hasActions) ...[
-                  const SizedBox(height: 20),
+                  SizedBox(height: footerSpacing),
                   VitalDialogActions(children: actions!),
                 ],
               ],
@@ -110,9 +120,7 @@ class VitalDialog extends StatelessWidget {
                   width: width,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                        VitalLayout.sheetRadius,
-                      ),
+                      borderRadius: BorderRadius.circular(surfaceRadius),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: .22),
@@ -124,20 +132,19 @@ class VitalDialog extends StatelessWidget {
                     ),
                     child: VitalGlassSurface(
                       role: VitalGlassRole.dialog,
+                      borderRadius: BorderRadius.circular(surfaceRadius),
                       child: ModalContainer(
                         fillColor: Colors.transparent,
                         filled: false,
                         borderWidth: 0,
                         borderColor: Colors.transparent,
-                        borderRadius: BorderRadius.circular(
-                          VitalLayout.sheetRadius,
-                        ),
-                        padding: EdgeInsets.all(padding),
+                        borderRadius: BorderRadius.circular(surfaceRadius),
+                        padding: padding,
                         surfaceBlur: 0,
                         surfaceOpacity: 0,
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
-                            maxHeight: math.max(0, height - padding * 2),
+                            maxHeight: math.max(0, height - padding.vertical),
                           ),
                           child: VitalControlScope(
                             child: FocusTraversalGroup(

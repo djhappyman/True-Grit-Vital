@@ -668,11 +668,13 @@ class _CombinedFormState extends DurableFormState<CombinedForm> {
       const SizedBox(height: 20),
       if (!reviewing) ...[
         LabelledInput(
+          picker: VitalPickerKind.date,
           label: t.actualDateLabel,
           controller: date,
           enabled: enabled,
         ),
         LabelledInput(
+          picker: VitalPickerKind.time,
           label: t.actualTimeLabel,
           controller: time,
           enabled: enabled,
