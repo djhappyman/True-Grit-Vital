@@ -1,5 +1,24 @@
 # Design implementation roadmap
 
+## Roadmap completion, 23 October
+
+The owner authorised five concurrent lanes and lead takeover of rate-limited
+work, from `3787c65`. Policy questions for timing/follow-ups, backup destination
+and FHIR/scanning are pending; dependent behaviour awaits those answers.
+
+| Lane | Work | Model | State |
+| --- | --- | --- | --- |
+| R01 | Structured food/bedtime schedule requirements | Free DeepSeek | Assigned |
+| R02 | Reproducible physical-performance/glass validation tooling | Free GLM | Assigned |
+| R03 | Automatic encrypted backup lifecycle | Paid OpenCode DeepSeek | Assigned; policy boundary explicit |
+| R04 | Local pack scanning and confirmed associations | Direct API DeepSeek | Assigned; policy/licence boundary explicit |
+| R05 | Timing labels, follow-up reminders, healthcare export and integration | Lead | In progress; policy boundary explicit |
+
+Original device/release/catalogue admission gates remain separate. No Android
+device is currently attached; host checks cannot close physical validation.
+Briefs and task identities are retained under
+`.scratch/vital-implementation/roadmap-finish-2026-10-23/`.
+
 ## Fifteen-task continuation, 22 October
 
 Owner authorised three Sol 6.1 workers, two OpenCode-hosted DeepSeek workers
